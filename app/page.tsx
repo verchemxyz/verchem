@@ -465,7 +465,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-muted-foreground mb-4">
-              "VerChem saved me countless hours on stoichiometry homework. The step-by-step solutions are incredible!"
+              &ldquo;VerChem saved me countless hours on stoichiometry homework. The step-by-step solutions are incredible!&rdquo;
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
@@ -487,7 +487,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-muted-foreground mb-4">
-              "As a chemistry teacher, VerChem is my go-to tool for demonstrations. NIST validation gives me confidence."
+              &ldquo;As a chemistry teacher, VerChem is my go-to tool for demonstrations. NIST validation gives me confidence.&rdquo;
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
@@ -509,7 +509,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-muted-foreground mb-4">
-              "The molecule builder is revolutionary! My students are finally excited about chemistry."
+              &ldquo;The molecule builder is revolutionary! My students are finally excited about chemistry.&rdquo;
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">

@@ -42,7 +42,7 @@ export const ARIA_LABELS = {
  * ARIA Descriptions for Complex Interactions
  */
 export const ARIA_DESCRIPTIONS = {
-  'molecule-builder-canvas': 'Click to add atoms, drag to create bonds, right-click to delete. Use keyboard shortcuts: Ctrl+Z to undo, Ctrl+Y to redo.',
+  'molecule-builder-canvas': 'Interactive molecule canvas. Click empty space to add an atom. Click an atom or bond to select. Use Shift+Click to select multiple items. Drag selected atoms to move them. Drag between atoms to create a bond. Right-click an item to delete it. Press Delete or Backspace to delete all selected items. Use Ctrl+Z to undo and Ctrl+Y to redo.',
   '3d-viewer-canvas': 'Drag to rotate molecule, scroll to zoom. Click atoms to view details.',
   'periodic-table-grid': 'Use arrow keys to navigate elements, Enter to select, Escape to close details.',
   'formula-input': 'Enter chemical formula. Example: H2O, CO2, CH4. Press Enter to calculate.',

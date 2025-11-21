@@ -1,79 +1,118 @@
 'use client'
 
+import React from 'react'
 import { ATOM_COLORS } from '@/lib/data/molecules-3d'
-import { getAllowedBondTypes, type BondType } from '@/lib/utils/bond-restrictions'
+import { getAllowedBondTypes, getMaxTotalBondOrder, type BondType } from '@/lib/utils/bond-restrictions'
+import { getValenceElectrons } from '@/lib/utils/molecule-builder'
+import { ELEMENT_GROUPS, BOND_OPTIONS } from '@/lib/constants/molecule-builder'
 
+/**
+ * Props for AtomPalette component
+ */
 interface AtomPaletteProps {
+  /** Currently selected element symbol (e.g., 'C', 'H', 'O') */
   selectedElement: string
+  /** Callback when element is selected */
   onSelectElement: (element: string) => void
+  /** Currently selected bond mode */
   bondMode: 'single' | 'double' | 'triple'
+  /** Callback when bond mode changes */
   onBondModeChange: (mode: 'single' | 'double' | 'triple') => void
 }
 
-const AVAILABLE_ELEMENTS = [
-  { symbol: 'H', name: 'Hydrogen', group: 'nonmetal' },
-  { symbol: 'C', name: 'Carbon', group: 'nonmetal' },
-  { symbol: 'N', name: 'Nitrogen', group: 'nonmetal' },
-  { symbol: 'O', name: 'Oxygen', group: 'nonmetal' },
-  { symbol: 'F', name: 'Fluorine', group: 'halogen' },
-  { symbol: 'S', name: 'Sulfur', group: 'nonmetal' },
-  { symbol: 'P', name: 'Phosphorus', group: 'nonmetal' },
-  { symbol: 'Cl', name: 'Chlorine', group: 'halogen' },
-  { symbol: 'Br', name: 'Bromine', group: 'halogen' },
-  { symbol: 'I', name: 'Iodine', group: 'halogen' },
-  { symbol: 'B', name: 'Boron', group: 'metalloid' },
-  { symbol: 'Si', name: 'Silicon', group: 'metalloid' },
-]
-
-export default function AtomPalette({
+/**
+ * AtomPalette - Interactive element and bond type selector
+ *
+ * Displays available chemical elements organized by category (Backbone, Halogens, Expanded)
+ * and bond types (Single, Double, Triple). Automatically disables bond types that are not
+ * allowed for the currently selected element based on chemistry rules.
+ *
+ * @component
+ * @example
+ * ```tsx
+ * <AtomPalette
+ *   selectedElement="C"
+ *   onSelectElement={(el) => setElement(el)}
+ *   bondMode="single"
+ *   onBondModeChange={(mode) => setBondMode(mode)}
+ * />
+ * ```
+ */
+function AtomPalette({
   selectedElement,
   onSelectElement,
   bondMode,
   onBondModeChange,
 }: AtomPaletteProps) {
-  // Get allowed bond types for current element
-  const allowedBonds = getAllowedBondTypes(selectedElement)
+  // Memoize allowed bond types calculation
+  const allowedBonds = React.useMemo(
+    () => getAllowedBondTypes(selectedElement),
+    [selectedElement]
+  )
 
   return (
-    <div className="bg-black/30 backdrop-blur-md rounded-xl p-4 border border-white/10">
-      <h3 className="text-lg font-bold text-white mb-3">🧪 Atom Palette</h3>
+    <div className="rounded-2xl border border-white/10 bg-slate-950/80 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.4)]">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">Atom & Bond Palette</h3>
+        <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
+          {selectedElement} | {bondMode}
+        </div>
+      </div>
 
-      {/* Element Grid */}
-      <div className="grid grid-cols-3 gap-2 mb-6">
-        {AVAILABLE_ELEMENTS.map(element => (
-          <button
-            key={element.symbol}
-            onClick={() => onSelectElement(element.symbol)}
-            className={`
-              relative p-3 rounded-lg border-2 transition-all transform hover:scale-105
-              ${selectedElement === element.symbol
-                ? 'border-cyan-400 bg-cyan-500/20 shadow-lg shadow-cyan-500/30'
-                : 'border-white/20 bg-white/5 hover:bg-white/10'
-              }
-            `}
-            title={element.name}
-          >
-            <div
-              className="w-6 h-6 rounded-full mx-auto mb-1"
-              style={{ backgroundColor: ATOM_COLORS[element.symbol] || '#999' }}
-            />
-            <span className="text-white font-bold text-sm">{element.symbol}</span>
-            {selectedElement === element.symbol && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
-            )}
-          </button>
+      <div className="mt-4 space-y-4">
+        {ELEMENT_GROUPS.map(group => (
+          <div key={group.title} className="rounded-xl border border-white/5 bg-white/5 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">{group.title}</p>
+                <p className="text-xs text-slate-300">{group.hint}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {group.items.map(item => {
+                const isSelected = selectedElement === item.symbol
+                const maxBonds = getMaxTotalBondOrder(item.symbol)
+                const valence = getValenceElectrons(item.symbol)
+
+                return (
+                  <button
+                    key={item.symbol}
+                    onClick={() => onSelectElement(item.symbol)}
+                    className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left transition ${
+                      isSelected
+                        ? 'border-cyan-400/50 bg-cyan-500/10 text-white shadow-[0_10px_30px_rgba(34,211,238,0.25)]'
+                        : 'border-white/10 bg-white/5 text-slate-100 hover:border-cyan-300/40 hover:bg-cyan-500/5'
+                    }`}
+                    aria-pressed={isSelected}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-base font-bold text-slate-950"
+                        style={{ backgroundColor: ATOM_COLORS[item.symbol] || '#e2e8f0' }}
+                      >
+                        {item.symbol}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold leading-tight">{item.name}</p>
+                        <p className="text-[11px] text-slate-300">Valence {valence} | Max {maxBonds} bonds</p>
+                      </div>
+                    </div>
+                    {isSelected && <span className="text-xs font-semibold text-cyan-200">Active</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         ))}
       </div>
 
-      {/* Bond Mode Selector */}
-      <div className="border-t border-white/10 pt-4">
-        <h4 className="text-sm font-bold text-gray-300 mb-2">Bond Type</h4>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { mode: 'single' as const, label: 'Single', symbol: '─' },
-            { mode: 'double' as const, label: 'Double', symbol: '═' },
-            { mode: 'triple' as const, label: 'Triple', symbol: '≡' },
-          ].map(({ mode, label, symbol }) => {
+      <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-white">Bond type</h4>
+          <p className="text-[11px] text-slate-300">Auto-blocked if element disallows</p>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {BOND_OPTIONS.map(({ mode, label, symbol }) => {
             const isAllowed = allowedBonds.includes(mode as BondType)
             const isSelected = bondMode === mode
 
@@ -82,41 +121,32 @@ export default function AtomPalette({
                 key={mode}
                 onClick={() => isAllowed && onBondModeChange(mode)}
                 disabled={!isAllowed}
+                className={`rounded-lg border px-3 py-2 text-center transition ${
+                  isSelected
+                    ? 'border-cyan-400/50 bg-cyan-500/10 text-white shadow-[0_10px_30px_rgba(34,211,238,0.25)]'
+                    : isAllowed
+                      ? 'border-white/10 bg-white/5 text-slate-100 hover:border-cyan-300/40 hover:bg-cyan-500/5'
+                      : 'border-rose-300/40 bg-rose-500/10 text-rose-100/60 cursor-not-allowed'
+                }`}
                 title={
                   isAllowed
                     ? `${label} bond`
                     : `${selectedElement} cannot form ${label.toLowerCase()} bonds`
                 }
-                className={`
-                  py-2 px-3 rounded-lg border-2 transition
-                  ${isSelected
-                    ? 'border-purple-400 bg-purple-500/20 text-purple-300'
-                    : isAllowed
-                      ? 'border-white/20 bg-white/5 text-gray-300 hover:bg-white/10 cursor-pointer'
-                      : 'border-red-500/30 bg-red-500/10 text-red-400/50 cursor-not-allowed opacity-50'
-                  }
-                `}
               >
-                <div className="text-xl">{symbol}</div>
-                <div className="text-xs">{label}</div>
-                {!isAllowed && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl text-red-500/70">⊘</span>
-                  </div>
-                )}
+                <div className="text-lg font-bold">{symbol}</div>
+                <div className="text-[11px]">{label}</div>
               </button>
             )
           })}
         </div>
       </div>
-
-      {/* Instructions */}
-      <div className="mt-6 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
-        <p className="text-blue-300 text-xs font-bold mb-1">Selected:</p>
-        <p className="text-white font-bold">
-          {selectedElement} • {bondMode} bond
-        </p>
-      </div>
     </div>
   )
 }
+
+/**
+ * Memoized AtomPalette - Prevents unnecessary re-renders
+ * Only re-renders when props change
+ */
+export default React.memo(AtomPalette)

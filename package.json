@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx __tests__/molecule-builder.test.ts",
     "test:calculations": "tsx scripts/run-calculations-tests.ts",
     "validate": "tsx scripts/run-validation.ts"
   },
@@ -26,6 +27,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@stripe/stripe-js": "^8.5.2",
+    "@supabase/supabase-js": "^2.84.0",
     "@types/file-saver": "^2.0.7",
     "canvg": "^4.0.3",
     "class-variance-authority": "^0.7.1",

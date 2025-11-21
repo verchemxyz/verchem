@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('STRIPE_ERROR:', err);
     return new NextResponse(JSON.stringify({ error: 'Error creating checkout session' }), {
       status: 500,

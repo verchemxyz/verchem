@@ -7,25 +7,34 @@ export type BondType = 'single' | 'double' | 'triple'
  * Get allowed bond types for an element
  *
  * Chemistry Rules:
- * - H, F, Cl, Br, I: Single bonds only (1 bond, can't expand octet)
+ * - H, F, Cl, Br, I: Single bonds only (halogens can't expand octet)
  * - C, N: All types (can form single, double, triple bonds)
- * - O, S, P: Single and double (no triple bonds)
- * - B, Si: Mostly single (special cases exist but rare)
+ * - O, S, P, Si: Single and double bonds
+ *   - O: C=O (carbonyl), O=O (oxygen gas)
+ *   - S: S=O (sulfur dioxide), S=S (disulfur)
+ *   - P: P=O (phosphine oxide)
+ *   - Si: Si=O (siloxanes), Si=Si (disilene)
+ * - B: Mostly single (trigonal planar, electron deficient)
+ *
+ * Note: Period 3+ elements (S, P, Si, Cl) can expand their octet
+ * to accommodate more bonds, but this is handled separately by
+ * getMaxTotalBondOrder()
  */
 export function getAllowedBondTypes(element: string): BondType[] {
   switch (element.toUpperCase()) {
     // Single bond only (halogens + hydrogen)
     case 'H':
     case 'F':
-    case 'Cl':
+    case 'CL':
     case 'BR':
     case 'I':
       return ['single']
 
-    // Single and double bonds (oxygen group)
+    // Single and double bonds (oxygen group + silicon)
     case 'O':
     case 'S':
     case 'P':
+    case 'SI':  // Silicon can form Si=O, Si=Si double bonds
       return ['single', 'double']
 
     // All bond types (carbon, nitrogen)
@@ -33,9 +42,8 @@ export function getAllowedBondTypes(element: string): BondType[] {
     case 'N':
       return ['single', 'double', 'triple']
 
-    // Default: single only (boron, silicon, metals)
+    // Single only (boron, metals, default)
     case 'B':
-    case 'SI':
     default:
       return ['single']
   }
