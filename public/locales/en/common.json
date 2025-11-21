@@ -1,0 +1,354 @@
+{
+  "app": {
+    "title": "VerChem - Chemical Calculator",
+    "description": "Professional chemical calculation tools",
+    "tagline": "Accurate chemical calculations made simple"
+  },
+  "navigation": {
+    "home": "Home",
+    "calculators": "Calculators",
+    "periodicTable": "Periodic Table",
+    "converter": "Converter",
+    "help": "Help",
+    "about": "About",
+    "settings": "Settings",
+    "virtualLab": "Virtual Lab",
+    "3dViewer": "3D Viewer",
+    "lewis": "Lewis Structures",
+    "vsepr": "VSEPR Geometry",
+    "equationBalancer": "Equation Balancer",
+    "stoichiometry": "Stoichiometry",
+    "solutions": "Solutions & pH",
+    "gasLaws": "Gas Laws",
+    "thermodynamics": "Thermodynamics",
+    "kinetics": "Chemical Kinetics",
+    "electrochemistry": "Electrochemistry",
+    "electronConfig": "Electron Config"
+  },
+  "calculators": {
+    "title": "Chemical Calculators",
+    "molecularWeight": {
+      "title": "Molecular Weight Calculator",
+      "description": "Calculate molecular weight from chemical formula",
+      "formula": "Chemical Formula",
+      "placeholder": "Enter formula (e.g., H2O, C6H12O6)",
+      "calculate": "Calculate",
+      "result": "Molecular Weight",
+      "error": "Invalid chemical formula"
+    },
+    "molarity": {
+      "title": "Molarity Calculator",
+      "description": "Calculate molarity from mass and volume",
+      "mass": "Mass (g)",
+      "volume": "Volume (L)",
+      "molecularWeight": "Molecular Weight (g/mol)",
+      "calculate": "Calculate Molarity",
+      "result": "Molarity (M)"
+    },
+    "ph": {
+      "title": "pH Calculator",
+      "description": "Calculate pH from hydrogen ion concentration",
+      "concentration": "H⁺ Concentration (mol/L)",
+      "calculate": "Calculate pH",
+      "result": "pH Value",
+      "acidic": "Acidic",
+      "neutral": "Neutral",
+      "basic": "Basic"
+    },
+    "stoichiometry": {
+      "title": "Stoichiometry Calculator",
+      "description": "Calculate reactants and products in chemical reactions",
+      "reaction": "Chemical Reaction",
+      "given": "Given Amount",
+      "calculate": "Calculate",
+      "result": "Result"
+    }
+  },
+  "periodicTable": {
+    "title": "Periodic Table of Elements",
+    "search": "Search elements...",
+    "elementInfo": "Element Information",
+    "atomicNumber": "Atomic Number",
+    "atomicMass": "Atomic Mass",
+    "electronConfig": "Electron Configuration",
+    "group": "Group",
+    "period": "Period",
+    "block": "Block"
+  },
+  "converter": {
+    "title": "Unit Converter",
+    "temperature": {
+      "title": "Temperature Converter",
+      "celsius": "Celsius",
+      "fahrenheit": "Fahrenheit",
+      "kelvin": "Kelvin"
+    },
+    "pressure": {
+      "title": "Pressure Converter",
+      "atm": "Atmosphere",
+      "pa": "Pascal",
+      "mmHg": "mmHg"
+    },
+    "concentration": {
+      "title": "Concentration Converter",
+      "molarity": "Molarity (M)",
+      "molality": "Molality (m)",
+      "percent": "Percent (%)",
+      "ppm": "Parts per million (ppm)"
+    }
+  },
+  "common": {
+    "calculate": "Calculate",
+    "clear": "Clear",
+    "reset": "Reset",
+    "save": "Save",
+    "load": "Load",
+    "export": "Export",
+    "import": "Import",
+    "copy": "Copy",
+    "paste": "Paste",
+    "error": "Error",
+    "warning": "Warning",
+    "success": "Success",
+    "info": "Information",
+    "loading": "Loading...",
+    "pleaseWait": "Please wait...",
+    "required": "Required field",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "help": "Help",
+    "about": "About",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidNumber": "Please enter a valid number",
+    "invalidFormula": "Invalid chemical formula",
+    "outOfRange": "Value is out of acceptable range",
+    "positiveNumber": "Please enter a positive number"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error",
+    "calculation": "Calculation error",
+    "invalidInput": "Invalid input",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized access"
+  },
+  "help": {
+    "title": "Help Center",
+    "gettingStarted": "Getting Started",
+    "calculators": "Using Calculators",
+    "periodicTable": "Periodic Table Guide",
+    "converter": "Unit Converter Guide",
+    "faq": "Frequently Asked Questions",
+    "contact": "Contact Support"
+  },
+  "chemicalElements": {
+    "H": "Hydrogen",
+    "He": "Helium",
+    "Li": "Lithium",
+    "Be": "Beryllium",
+    "B": "Boron",
+    "C": "Carbon",
+    "N": "Nitrogen",
+    "O": "Oxygen",
+    "F": "Fluorine",
+    "Ne": "Neon",
+    "Na": "Sodium",
+    "Mg": "Magnesium",
+    "Al": "Aluminum",
+    "Si": "Silicon",
+    "P": "Phosphorus",
+    "S": "Sulfur",
+    "Cl": "Chlorine",
+    "Ar": "Argon",
+    "K": "Potassium",
+    "Ca": "Calcium"
+  },
+  "home": {
+    "new": "NEW! ✨",
+    "features": {
+      "free": "Free Forever",
+      "openSource": "Open Source",
+      "worldClass": "World-Class",
+      "noRegistration": "No Registration Required",
+      "productionQuality": "Production Quality",
+      "title": "Everything You Need for Chemistry",
+      "subtitle": "From high school to PhD research, we've got you covered",
+      "hero": {
+        "title": "Chemistry Made Beautiful & Easy",
+        "description": "The most comprehensive free chemistry platform for students and professionals. Interactive 3D molecules, powerful calculators, and everything you need to master chemistry.",
+        "cta3d": "Explore 3D Molecules",
+        "ctaPeriodic": "Interactive Periodic Table"
+      },
+      "3dViewer": {
+        "title": "3D Molecular Viewer",
+        "description": "Interactive 3D visualization with 10 pre-built molecules, 4 display styles, and real-time rotation",
+        "tags": {
+          "interactive": "Interactive",
+          "cpk": "CPK Colors",
+          "zoom": "Zoom & Rotate"
+        }
+      },
+      "moleculeBuilder": {
+        "title": "Molecule Builder 🎮",
+        "description": "Build molecules interactively! Real-time stability check, visual feedback & recognition",
+        "tags": {
+          "interactive": "🔥 Interactive",
+          "stability": "🔬 Stability",
+          "animations": "✨ Animations"
+        }
+      },
+      "virtualLab": {
+        "title": "Virtual Lab",
+        "description": "Simulate titrations and virtual experiments with safe, visual feedback.",
+        "tags": {
+          "titration": "Titration",
+          "simulation": "Simulation",
+          "safe": "Safe & Visual"
+        }
+      },
+      "lewis": {
+        "title": "Lewis Structures",
+        "description": "Draw Lewis dot structures with octet checks, formal charges, and visual guidance.",
+        "tags": {
+          "structures": "Structures",
+          "bonds": "Bonds",
+          "electrons": "Valence Electrons"
+        }
+      },
+      "vsepr": {
+        "title": "VSEPR Geometry",
+        "description": "Explore 3D molecular shapes and bond angles using VSEPR theory.",
+        "tags": {
+          "geometry": "Geometry",
+          "shapes": "Molecular Shapes",
+          "angles": "Bond Angles"
+        }
+      },
+      "stoichiometry": {
+        "title": "Stoichiometry Calculator",
+        "description": "Mole conversions, limiting reagent, theoretical yield, and percent yield.",
+        "tags": {
+          "moles": "Moles",
+          "mass": "Mass",
+          "limiting": "Limiting Reagent"
+        }
+      },
+      "solutions": {
+        "title": "Solutions & pH",
+        "description": "Molarity, dilution, pH, buffers, and colligative properties.",
+        "tags": {
+          "pH": "pH",
+          "molarity": "Molarity",
+          "dilution": "Dilution"
+        }
+      },
+      "gasLaws": {
+        "title": "Gas Laws Calculator",
+        "description": "Ideal gas law, combined gas law, and real gas behavior.",
+        "tags": {
+          "ideal": "Ideal Gas",
+          "pvnrt": "PV = nRT",
+          "combined": "Combined Gas Law"
+        }
+      },
+      "thermodynamics": {
+        "title": "Thermodynamics",
+        "description": "Calculate ΔH, ΔS, ΔG, and equilibrium constants with detailed steps.",
+        "tags": {
+          "enthalpy": "Enthalpy (ΔH)",
+          "entropy": "Entropy (ΔS)",
+          "gibbs": "Gibbs Free Energy (ΔG)"
+        }
+      },
+      "kinetics": {
+        "title": "Chemical Kinetics",
+        "description": "Rate laws, integrated rate equations, half-life, and Arrhenius equation.",
+        "tags": {
+          "rateLaws": "Rate Laws",
+          "halfLife": "Half-Life",
+          "arrhenius": "Arrhenius"
+        }
+      },
+      "electrochemistry": {
+        "title": "Electrochemistry",
+        "description": "Redox reactions, galvanic cells, Nernst equation, and electrolysis.",
+        "tags": {
+          "redox": "Redox",
+          "galvanic": "Galvanic Cells",
+          "nernst": "Nernst Equation"
+        }
+      },
+      "electronConfig": {
+        "title": "Electron Configuration",
+        "description": "Orbital diagrams, electron configurations, and noble-gas notation.",
+        "tags": {
+          "orbitals": "Orbitals",
+          "notation": "Notation",
+          "diagrams": "Diagrams"
+        }
+      },
+      "periodicTable": {
+        "title": "Interactive Periodic Table",
+        "description": "Click any element for detailed properties, electron configuration, and discovery history",
+        "tags": {
+          "elements": "118 Elements",
+          "data": "Complete Data",
+          "search": "Search"
+        }
+      },
+      "equationBalancer": {
+        "title": "Equation Balancer",
+        "description": "Automatic chemical equation balancing with reaction type identification",
+        "tags": {
+          "balancer": "Balancer",
+          "examples": "10 Examples",
+          "atomCount": "Atom Count"
+        }
+      }
+    },
+    "stats": {
+      "elements": "Elements",
+      "compounds": "Compounds",
+      "tools": "Calculators & Tools",
+      "free": "Free"
+    },
+    "cta": {
+      "title": "Ready to Master Chemistry?",
+      "subtitle": "Join thousands of students and professionals using VerChem",
+      "button": "Get Started for Free"
+    },
+    "footer": {
+      "description": "World-class chemistry platform built with modern web technologies.",
+      "tools": {
+        "title": "Tools"
+      },
+      "calculators": {
+        "title": "Calculators"
+      },
+      "about": {
+        "title": "About",
+        "documentation": "Documentation",
+        "github": "GitHub",
+        "privacy": "Privacy Policy",
+        "contact": "Contact"
+      },
+      "copyright": "Built with ❤️ for chemistry students and professionals worldwide.",
+      "ecosystem": "Part of the Ver* ecosystem"
+    }
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "app": {
+    "title": "VerChem - 化学計算機",
+    "description": "プロフェッショナルな化学計算ツール",
+    "tagline": "正確な化学計算を簡単に"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "calculators": "計算機",
+    "periodicTable": "周期表",
+    "converter": "変換ツール",
+    "help": "ヘルプ",
+    "about": "について",
+    "settings": "設定"
+  },
+  "calculators": {
+    "title": "化学計算機",
+    "molecularWeight": {
+      "title": "分子量計算機",
+      "description": "化学式から分子量を計算",
+      "formula": "化学式",
+      "placeholder": "化学式を入力 (例: H2O, C6H12O6)",
+      "calculate": "計算",
+      "result": "分子量",
+      "error": "無効な化学式"
+    },
+    "molarity": {
+      "title": "モル濃度計算機",
+      "description": "質量と体積からモル濃度を計算",
+      "mass": "質量 (g)",
+      "volume": "体積 (L)",
+      "molecularWeight": "分子量 (g/mol)",
+      "calculate": "モル濃度を計算",
+      "result": "モル濃度 (M)"
+    },
+    "ph": {
+      "title": "pH計算機",
+      "description": "水素イオン濃度からpH値を計算",
+      "concentration": "H⁺ 濃度 (mol/L)",
+      "calculate": "pHを計算",
+      "result": "pH値",
+      "acidic": "酸性",
+      "neutral": "中性",
+      "basic": "塩基性"
+    },
+    "stoichiometry": {
+      "title": "化学量論計算機",
+      "description": "化学反応における反応物と生成物を計算",
+      "reaction": "化学反応",
+      "given": "与えられた量",
+      "calculate": "計算",
+      "result": "結果"
+    }
+  },
+  "periodicTable": {
+    "title": "元素の周期表",
+    "search": "元素を検索...",
+    "elementInfo": "元素情報",
+    "atomicNumber": "原子番号",
+    "atomicMass": "原子質量",
+    "electronConfig": "電子配置",
+    "group": "族",
+    "period": "周期",
+    "block": "ブロック"
+  },
+  "converter": {
+    "title": "単位変換ツール",
+    "temperature": {
+      "title": "温度変換ツール",
+      "celsius": "摂氏",
+      "fahrenheit": "華氏",
+      "kelvin": "ケルビン"
+    },
+    "pressure": {
+      "title": "圧力変換ツール",
+      "atm": "大気圧",
+      "pa": "パスカル",
+      "mmHg": "mmHg"
+    },
+    "concentration": {
+      "title": "濃度変換ツール",
+      "molarity": "モル濃度 (M)",
+      "molality": "重量モル濃度 (m)",
+      "percent": "パーセント (%)",
+      "ppm": "百万分率 (ppm)"
+    }
+  },
+  "common": {
+    "calculate": "計算",
+    "clear": "クリア",
+    "reset": "リセット",
+    "save": "保存",
+    "load": "読み込み",
+    "export": "エクスポート",
+    "import": "インポート",
+    "copy": "コピー",
+    "paste": "貼り付け",
+    "error": "エラー",
+    "warning": "警告",
+    "success": "成功",
+    "info": "情報",
+    "loading": "読み込み中...",
+    "pleaseWait": "お待ちください...",
+    "required": "必須フィールド",
+    "optional": "オプション",
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "finish": "完了",
+    "help": "ヘルプ",
+    "about": "について",
+    "settings": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード"
+  },
+  "validation": {
+    "required": "このフィールドは必須です",
+    "invalidNumber": "有効な数値を入力してください",
+    "invalidFormula": "無効な化学式",
+    "outOfRange": "値が許容範囲外です",
+    "positiveNumber": "正の数値を入力してください"
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "network": "ネットワークエラー",
+    "calculation": "計算エラー",
+    "invalidInput": "無効な入力",
+    "notFound": "見つかりません",
+    "unauthorized": "不正なアクセス"
+  },
+  "help": {
+    "title": "ヘルプセンター",
+    "gettingStarted": "はじめに",
+    "calculators": "計算機の使用",
+    "periodicTable": "周期表ガイド",
+    "converter": "単位変換ツールガイド",
+    "faq": "よくある質問",
+    "contact": "サポートに連絡"
+  },
+  "chemicalElements": {
+    "H": "水素",
+    "He": "ヘリウム",
+    "Li": "リチウム",
+    "Be": "ベリリウム",
+    "B": "ホウ素",
+    "C": "炭素",
+    "N": "窒素",
+    "O": "酸素",
+    "F": "フッ素",
+    "Ne": "ネオン",
+    "Na": "ナトリウム",
+    "Mg": "マグネシウム",
+    "Al": "アルミニウム",
+    "Si": "ケイ素",
+    "P": "リン",
+    "S": "硫黄",
+    "Cl": "塩素",
+    "Ar": "アルゴン",
+    "K": "カリウム",
+    "Ca": "カルシウム"
+  }
+}

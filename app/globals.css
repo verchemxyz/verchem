@@ -1,26 +1,607 @@
 @import "tailwindcss";
 
+/* Light theme variables */
 :root {
+  /* Primary colors */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+  --primary-950: #172554;
+
+  /* Secondary colors (purple) */
+  --secondary-50: #faf5ff;
+  --secondary-100: #f3e8ff;
+  --secondary-200: #e9d5ff;
+  --secondary-300: #d8b4fe;
+  --secondary-400: #c084fc;
+  --secondary-500: #a855f7;
+  --secondary-600: #9333ea;
+  --secondary-700: #7c3aed;
+  --secondary-800: #6b21a8;
+  --secondary-900: #581c87;
+  --secondary-950: #3b0764;
+
+  /* Neutral colors */
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+  --neutral-950: #0a0a0a;
+
+  /* Semantic colors */
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --input: #ffffff;
+  --input-border: #e5e5e5;
+  --border: #e5e5e5;
+  --ring: #3b82f6;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+
+  /* Gradient colors */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #22c55e 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  --gradient-error: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-info: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+
+  /* Component specific */
+  --header-bg: rgba(255, 255, 255, 0.8);
+  --header-border: rgba(229, 229, 229, 0.5);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-muted: #a3a3a3;
+  --text-inverse: #ffffff;
+
+  /* Chemistry specific colors */
+  --element-metals: #3b82f6;
+  --element-nonmetals: #10b981;
+  --element-noble-gases: #8b5cf6;
+  --element-alkali: #ef4444;
+  --element-alkaline: #f59e0b;
+  --element-transition: #a855f7;
+  --element-metalloids: #06b6d4;
+  --element-halogens: #f97316;
+  --element-lanthanides: #ec4899;
+  --element-actinides: #d946ef;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark theme variables */
+.dark {
+  /* Primary colors (inverted) */
+  --primary-50: #172554;
+  --primary-100: #1e3a8a;
+  --primary-200: #1e40af;
+  --primary-300: #1d4ed8;
+  --primary-400: #2563eb;
+  --primary-500: #3b82f6;
+  --primary-600: #60a5fa;
+  --primary-700: #93c5fd;
+  --primary-800: #bfdbfe;
+  --primary-900: #dbeafe;
+  --primary-950: #eff6ff;
+
+  /* Secondary colors (inverted) */
+  --secondary-50: #3b0764;
+  --secondary-100: #581c87;
+  --secondary-200: #6b21a8;
+  --secondary-300: #7c3aed;
+  --secondary-400: #9333ea;
+  --secondary-500: #a855f7;
+  --secondary-600: #c084fc;
+  --secondary-700: #d8b4fe;
+  --secondary-800: #e9d5ff;
+  --secondary-900: #f3e8ff;
+  --secondary-950: #faf5ff;
+
+  /* Neutral colors (inverted) */
+  --neutral-50: #0a0a0a;
+  --neutral-100: #171717;
+  --neutral-200: #262626;
+  --neutral-300: #404040;
+  --neutral-400: #525252;
+  --neutral-500: #737373;
+  --neutral-600: #a3a3a3;
+  --neutral-700: #d4d4d4;
+  --neutral-800: #e5e5e5;
+  --neutral-900: #f5f5f5;
+  --neutral-950: #fafafa;
+
+  /* Semantic colors */
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #171717;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
+  --input: #262626;
+  --input-border: #404040;
+  --border: #262626;
+  --ring: #3b82f6;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --success: #059669;
+  --success-foreground: #fafafa;
+  --warning: #d97706;
+  --warning-foreground: #fafafa;
+  --info: #2563eb;
+  --info-foreground: #fafafa;
+
+  /* Gradient colors */
+  --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  --gradient-secondary: linear-gradient(135deg, #c084fc 0%, #f472b6 100%);
+  --gradient-success: linear-gradient(135deg, #34d399 0%, #4ade80 100%);
+  --gradient-warning: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%);
+  --gradient-error: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  --gradient-info: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
+
+  /* Component specific */
+  --header-bg: rgba(10, 10, 10, 0.8);
+  --header-border: rgba(38, 38, 38, 0.5);
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  --text-primary: #fafafa;
+  --text-secondary: #d4d4d4;
+  --text-muted: #737373;
+  --text-inverse: #0a0a0a;
+
+  /* Chemistry specific colors (adjusted for dark theme) */
+  --element-metals: #60a5fa;
+  --element-nonmetals: #34d399;
+  --element-noble-gases: #a78bfa;
+  --element-alkali: #f87171;
+  --element-alkaline: #fbbf24;
+  --element-transition: #c084fc;
+  --element-metalloids: #22d3ee;
+  --element-halogens: #fb923c;
+  --element-lanthanides: #f472b6;
+  --element-actinides: #e879f9;
 }
 
+/* System preference detection */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not(.light) {
+    /* Inherit all dark theme variables */
+    color-scheme: dark;
   }
 }
 
+/* Tailwind theme configuration */
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-input: var(--input);
+  --color-input-border: var(--input-border);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* Primary color scale */
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+  --color-primary-950: var(--primary-950);
+
+  /* Secondary color scale */
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+  --color-secondary-950: var(--secondary-950);
+
+  /* Neutral color scale */
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+
+  /* Gradients */
+  --gradient-primary: var(--gradient-primary);
+  --gradient-secondary: var(--gradient-secondary);
+  --gradient-success: var(--gradient-success);
+  --gradient-warning: var(--gradient-warning);
+  --gradient-error: var(--gradient-error);
+  --gradient-info: var(--gradient-info);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Shadows */
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
+
+  /* Chemistry colors */
+  --color-element-metals: var(--element-metals);
+  --color-element-nonmetals: var(--element-nonmetals);
+  --color-element-noble-gases: var(--element-noble-gases);
+  --color-element-alkali: var(--element-alkali);
+  --color-element-alkaline: var(--element-alkaline);
+  --color-element-transition: var(--element-transition);
+  --color-element-metalloids: var(--element-metalloids);
+  --color-element-halogens: var(--element-halogens);
+  --color-element-lanthanides: var(--element-lanthanides);
+  --color-element-actinides: var(--element-actinides);
+}
+
+/* Base styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Custom scrollbar for dark theme */
+.dark {
+  color-scheme: dark;
+}
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--neutral-800);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--neutral-600);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-500);
+}
+
+/* Utility classes for theme-aware components */
+.theme-bg {
+  background: var(--background);
+}
+
+.theme-text {
+  color: var(--foreground);
+}
+
+.theme-card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.theme-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--ring);
+}
+
+.theme-input {
+  background: var(--input);
+  color: var(--foreground);
+  border: 1px solid var(--input-border);
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.theme-button {
+  background: var(--primary-500);
+  color: var(--primary-foreground, white);
+  border: 1px solid var(--primary-600);
+}
+
+.theme-button:hover {
+  background: var(--primary-600);
+}
+
+.theme-button-secondary {
+  background: var(--secondary-500);
+  color: var(--secondary-foreground, white);
+  border: 1px solid var(--secondary-600);
+}
+
+.theme-button-secondary:hover {
+  background: var(--secondary-600);
+}
+
+/* 💎 PREMIUM COMPONENTS - Added for Paid Launch */
+
+/* Premium Glassmorphism Card */
+.premium-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .premium-card {
+  background: rgba(23, 23, 23, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.premium-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px 0 rgba(31, 38, 135, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+.dark .premium-card:hover {
+  box-shadow:
+    0 20px 40px 0 rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+/* Premium Gradient Button */
+.btn-premium {
+  position: relative;
+  padding: 12px 32px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow:
+    0 4px 15px 0 rgba(102, 126, 234, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.btn-premium::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-premium:hover::before {
+  opacity: 1;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 25px 0 rgba(102, 126, 234, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
+.btn-premium > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Premium Gradient Text */
+.text-premium {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* Premium Input Field */
+.input-premium {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+}
+
+.dark .input-premium {
+  background: rgba(38, 38, 38, 0.9);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.input-premium:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow:
+    0 4px 12px 0 rgba(102, 126, 234, 0.2),
+    0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Premium Badge */
+.badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #667eea;
+  backdrop-filter: blur(10px);
+}
+
+.dark .badge-premium {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+  border-color: rgba(102, 126, 234, 0.4);
+  color: #a78bfa;
+}
+
+/* Premium Glow Effect */
+.glow-premium {
+  position: relative;
+}
+
+.glow-premium::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glow-premium:hover::after {
+  opacity: 1;
+}
+
+/* Premium Divider */
+.divider-premium {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.5) 50%, transparent 100%);
+  margin: 32px 0;
+}
+
+/* Premium Animation - Pulse */
+@keyframes pulse-premium {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-premium {
+  animation: pulse-premium 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Premium Animation - Float */
+@keyframes float-premium {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float-premium {
+  animation: float-premium 3s ease-in-out infinite;
+}
+
+/* Premium Animation - Shimmer */
+@keyframes shimmer-premium {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer-premium {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  background-size: 1000px 100%;
+  animation: shimmer-premium 3s infinite;
+}
+
+/* Premium Hero Gradient Background */
+.hero-gradient-premium {
+  background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+}
+
+.dark .hero-gradient-premium {
+  background: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
 }

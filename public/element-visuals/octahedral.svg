@@ -1,0 +1,32 @@
+<svg width="400" height="260" viewBox="0 0 400 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="octaBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <radialGradient id="octaCore" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#c7d2fe"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </radialGradient>
+    <radialGradient id="octaNode" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#eef2ff"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="260" rx="24" fill="url(#octaBg)"/>
+  <g stroke="#c7d2fe" stroke-width="5" opacity="0.6">
+    <line x1="200" y1="130" x2="200" y2="30"/>
+    <line x1="200" y1="130" x2="200" y2="230"/>
+    <line x1="200" y1="130" x2="80" y2="130"/>
+    <line x1="200" y1="130" x2="320" y2="130"/>
+    <line x1="200" y1="130" x2="80" y2="50"/>
+    <line x1="200" y1="130" x2="320" y2="210"/>
+  </g>
+  <circle cx="200" cy="130" r="46" fill="url(#octaCore)" stroke="#818cf8" stroke-width="4"/>
+  <circle cx="200" cy="30" r="25" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+  <circle cx="200" cy="230" r="25" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+  <circle cx="80" cy="130" r="25" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+  <circle cx="320" cy="130" r="25" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+  <circle cx="80" cy="50" r="22" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+  <circle cx="320" cy="210" r="22" fill="url(#octaNode)" stroke="#a5b4fc" stroke-width="3"/>
+</svg>

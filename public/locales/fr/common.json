@@ -1,0 +1,169 @@
+{
+  "app": {
+    "title": "VerChem - Calculateur Chimique",
+    "description": "Outils de calcul chimique professionnels",
+    "tagline": "Des calculs chimiques précis rendus simples"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "calculators": "Calculateurs",
+    "periodicTable": "Tableau Périodique",
+    "converter": "Convertisseur",
+    "help": "Aide",
+    "about": "À propos",
+    "settings": "Paramètres"
+  },
+  "calculators": {
+    "title": "Calculateurs Chimiques",
+    "molecularWeight": {
+      "title": "Calculateur de Masse Moléculaire",
+      "description": "Calculer la masse moléculaire à partir de la formule chimique",
+      "formula": "Formule Chimique",
+      "placeholder": "Entrez la formule (ex. H2O, C6H12O6)",
+      "calculate": "Calculer",
+      "result": "Masse Moléculaire",
+      "error": "Formule chimique invalide"
+    },
+    "molarity": {
+      "title": "Calculateur de Molarité",
+      "description": "Calculer la molarité à partir de la masse et du volume",
+      "mass": "Masse (g)",
+      "volume": "Volume (L)",
+      "molecularWeight": "Masse Moléculaire (g/mol)",
+      "calculate": "Calculer la Molarité",
+      "result": "Molarité (M)"
+    },
+    "ph": {
+      "title": "Calculateur de pH",
+      "description": "Calculer le pH à partir de la concentration en ions hydrogène",
+      "concentration": "Concentration en H⁺ (mol/L)",
+      "calculate": "Calculer le pH",
+      "result": "Valeur de pH",
+      "acidic": "Acide",
+      "neutral": "Neutre",
+      "basic": "Basique"
+    },
+    "stoichiometry": {
+      "title": "Calculateur de Stœchiométrie",
+      "description": "Calculer les réactifs et produits dans les réactions chimiques",
+      "reaction": "Réaction Chimique",
+      "given": "Quantité Donnée",
+      "calculate": "Calculer",
+      "result": "Résultat"
+    }
+  },
+  "periodicTable": {
+    "title": "Tableau Périodique des Éléments",
+    "search": "Rechercher des éléments...",
+    "elementInfo": "Information sur l'Élément",
+    "atomicNumber": "Numéro Atomique",
+    "atomicMass": "Masse Atomique",
+    "electronConfig": "Configuration Électronique",
+    "group": "Groupe",
+    "period": "Période",
+    "block": "Bloc"
+  },
+  "converter": {
+    "title": "Convertisseur d'Unités",
+    "temperature": {
+      "title": "Convertisseur de Température",
+      "celsius": "Celsius",
+      "fahrenheit": "Fahrenheit",
+      "kelvin": "Kelvin"
+    },
+    "pressure": {
+      "title": "Convertisseur de Pression",
+      "atm": "Atmosphère",
+      "pa": "Pascal",
+      "mmHg": "mmHg"
+    },
+    "concentration": {
+      "title": "Convertisseur de Concentration",
+      "molarity": "Molarité (M)",
+      "molality": "Molalité (m)",
+      "percent": "Pourcentage (%)",
+      "ppm": "Parties par million (ppm)"
+    }
+  },
+  "common": {
+    "calculate": "Calculer",
+    "clear": "Effacer",
+    "reset": "Réinitialiser",
+    "save": "Sauvegarder",
+    "load": "Charger",
+    "export": "Exporter",
+    "import": "Importer",
+    "copy": "Copier",
+    "paste": "Coller",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "success": "Succès",
+    "info": "Information",
+    "loading": "Chargement...",
+    "pleaseWait": "Veuillez patienter...",
+    "required": "Champ requis",
+    "optional": "Optionnel",
+    "yes": "Oui",
+    "no": "Non",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer",
+    "help": "Aide",
+    "about": "À propos",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "darkMode": "Mode Sombre",
+    "lightMode": "Mode Clair"
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire",
+    "invalidNumber": "Veuillez entrer un nombre valide",
+    "invalidFormula": "Formule chimique invalide",
+    "outOfRange": "La valeur est hors de la plage acceptable",
+    "positiveNumber": "Veuillez entrer un nombre positif"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite",
+    "network": "Erreur réseau",
+    "calculation": "Erreur de calcul",
+    "invalidInput": "Entrée invalide",
+    "notFound": "Non trouvé",
+    "unauthorized": "Accès non autorisé"
+  },
+  "help": {
+    "title": "Centre d'Aide",
+    "gettingStarted": "Commencer",
+    "calculators": "Utiliser les Calculateurs",
+    "periodicTable": "Guide du Tableau Périodique",
+    "converter": "Guide du Convertisseur d'Unités",
+    "faq": "Questions Fréquemment Posées",
+    "contact": "Contacter le Support"
+  },
+  "chemicalElements": {
+    "H": "Hydrogène",
+    "He": "Hélium",
+    "Li": "Lithium",
+    "Be": "Béryllium",
+    "B": "Bore",
+    "C": "Carbone",
+    "N": "Azote",
+    "O": "Oxygène",
+    "F": "Fluor",
+    "Ne": "Néon",
+    "Na": "Sodium",
+    "Mg": "Magnésium",
+    "Al": "Aluminium",
+    "Si": "Silicium",
+    "P": "Phosphore",
+    "S": "Soufre",
+    "Cl": "Chlore",
+    "Ar": "Argon",
+    "K": "Potassium",
+    "Ca": "Calcium"
+  }
+}

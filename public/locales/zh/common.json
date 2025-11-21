@@ -1,0 +1,169 @@
+{
+  "app": {
+    "title": "VerChem - 化学计算器",
+    "description": "专业化学计算工具",
+    "tagline": "让化学计算变得简单准确"
+  },
+  "navigation": {
+    "home": "首页",
+    "calculators": "计算器",
+    "periodicTable": "元素周期表",
+    "converter": "单位转换器",
+    "help": "帮助",
+    "about": "关于",
+    "settings": "设置"
+  },
+  "calculators": {
+    "title": "化学计算器",
+    "molecularWeight": {
+      "title": "分子量计算器",
+      "description": "根据化学式计算分子量",
+      "formula": "化学式",
+      "placeholder": "输入化学式 (如 H2O, C6H12O6)",
+      "calculate": "计算",
+      "result": "分子量",
+      "error": "化学式无效"
+    },
+    "molarity": {
+      "title": "摩尔浓度计算器",
+      "description": "根据质量和体积计算摩尔浓度",
+      "mass": "质量 (克)",
+      "volume": "体积 (升)",
+      "molecularWeight": "分子量 (克/摩尔)",
+      "calculate": "计算摩尔浓度",
+      "result": "摩尔浓度 (M)"
+    },
+    "ph": {
+      "title": "pH计算器",
+      "description": "根据氢离子浓度计算pH值",
+      "concentration": "H⁺ 浓度 (摩尔/升)",
+      "calculate": "计算pH",
+      "result": "pH值",
+      "acidic": "酸性",
+      "neutral": "中性",
+      "basic": "碱性"
+    },
+    "stoichiometry": {
+      "title": "化学计量计算器",
+      "description": "计算化学反应中的反应物和产物",
+      "reaction": "化学反应",
+      "given": "给定数量",
+      "calculate": "计算",
+      "result": "结果"
+    }
+  },
+  "periodicTable": {
+    "title": "元素周期表",
+    "search": "搜索元素...",
+    "elementInfo": "元素信息",
+    "atomicNumber": "原子序数",
+    "atomicMass": "原子质量",
+    "electronConfig": "电子排布",
+    "group": "族",
+    "period": "周期",
+    "block": "区块"
+  },
+  "converter": {
+    "title": "单位转换器",
+    "temperature": {
+      "title": "温度转换器",
+      "celsius": "摄氏度",
+      "fahrenheit": "华氏度",
+      "kelvin": "开尔文"
+    },
+    "pressure": {
+      "title": "压力转换器",
+      "atm": "大气压",
+      "pa": "帕斯卡",
+      "mmHg": "毫米汞柱"
+    },
+    "concentration": {
+      "title": "浓度转换器",
+      "molarity": "摩尔浓度 (M)",
+      "molality": "质量摩尔浓度 (m)",
+      "percent": "百分比 (%)",
+      "ppm": "百万分之一 (ppm)"
+    }
+  },
+  "common": {
+    "calculate": "计算",
+    "clear": "清除",
+    "reset": "重置",
+    "save": "保存",
+    "load": "加载",
+    "export": "导出",
+    "import": "导入",
+    "copy": "复制",
+    "paste": "粘贴",
+    "error": "错误",
+    "warning": "警告",
+    "success": "成功",
+    "info": "信息",
+    "loading": "加载中...",
+    "pleaseWait": "请稍候...",
+    "required": "必填字段",
+    "optional": "可选",
+    "yes": "是",
+    "no": "否",
+    "ok": "确定",
+    "cancel": "取消",
+    "close": "关闭",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "finish": "完成",
+    "help": "帮助",
+    "about": "关于",
+    "settings": "设置",
+    "language": "语言",
+    "theme": "主题",
+    "darkMode": "深色模式",
+    "lightMode": "浅色模式"
+  },
+  "validation": {
+    "required": "此字段为必填项",
+    "invalidNumber": "请输入有效的数字",
+    "invalidFormula": "化学式无效",
+    "outOfRange": "数值超出可接受范围",
+    "positiveNumber": "请输入正数"
+  },
+  "errors": {
+    "generic": "发生错误",
+    "network": "网络错误",
+    "calculation": "计算错误",
+    "invalidInput": "输入无效",
+    "notFound": "未找到",
+    "unauthorized": "未授权访问"
+  },
+  "help": {
+    "title": "帮助中心",
+    "gettingStarted": "入门指南",
+    "calculators": "使用计算器",
+    "periodicTable": "元素周期表指南",
+    "converter": "单位转换器指南",
+    "faq": "常见问题",
+    "contact": "联系支持"
+  },
+  "chemicalElements": {
+    "H": "氢",
+    "He": "氦",
+    "Li": "锂",
+    "Be": "铍",
+    "B": "硼",
+    "C": "碳",
+    "N": "氮",
+    "O": "氧",
+    "F": "氟",
+    "Ne": "氖",
+    "Na": "钠",
+    "Mg": "镁",
+    "Al": "铝",
+    "Si": "硅",
+    "P": "磷",
+    "S": "硫",
+    "Cl": "氯",
+    "Ar": "氩",
+    "K": "钾",
+    "Ca": "钙"
+  }
+}

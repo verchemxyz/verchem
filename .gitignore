@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local environment variables
+.env*
+!/.env.production
+!/.env.development
+
+# Project memory files (sensitive information)
+CLAUDE.md
+KIMI.md
+AGENTS.md
+SESSION_SUMMARY*.md
+.ai-memory/
