@@ -27,12 +27,9 @@ export default function OAuthLoginButton() {
         .replace(/\//g, '_')
         .replace(/=/g, '')
 
-      // Always use non-www domain for OAuth (AIVerID requirement)
-      // Even if user is on www.verchem.xyz, OAuth must use verchem.xyz
-      const isLocalhost = window.location.hostname === 'localhost'
-      const redirect_uri = isLocalhost
-        ? `${window.location.origin}/oauth/callback`
-        : 'https://verchem.xyz/oauth/callback'
+      // Use configured redirect URI from environment
+      const redirect_uri = process.env.NEXT_PUBLIC_AIVERID_REDIRECT_URI ||
+        `${window.location.origin}/oauth/callback`
 
       const params = new URLSearchParams({
         client_id: process.env.NEXT_PUBLIC_AIVERID_CLIENT_ID || 'aiv_verchem_production_2025',
