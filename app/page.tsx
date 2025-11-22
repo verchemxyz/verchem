@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSelector, TranslatedText } from '@/components/i18n'
 import { GlobalSearchBar } from '@/components/search/GlobalSearchBar'
@@ -12,14 +13,20 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-header-border bg-header-bg backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium">
-              <span className="text-text-inverse font-bold text-xl">V</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-12 h-12 transition-transform group-hover:scale-110">
+              <Image
+                src="/logo.png"
+                alt="VerChem Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-bold hidden sm:block">
               <span className="text-premium">VerChem</span>
             </h1>
-          </div>
+          </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="/periodic-table" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
               <TranslatedText i18nKey="navigation.periodicTable" />

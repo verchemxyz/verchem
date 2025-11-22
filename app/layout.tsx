@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://verchem.com'),
+  metadataBase: new URL('https://verchem.xyz'),
   title: {
     default: "VerChem - World-Class Chemistry Platform",
     template: "%s | VerChem"
@@ -59,13 +59,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://verchem.com',
+    url: 'https://verchem.xyz',
     siteName: 'VerChem',
     title: 'VerChem - World-Class Chemistry Platform',
     description: 'Professional chemistry calculators and interactive tools. Free, accessible, and production-grade.',
     images: [
       {
-        url: '/og-image.png',
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: 'VerChem Chemistry Platform',
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'VerChem - Chemistry Platform',
     description: 'Professional chemistry calculators and interactive tools. Free and accessible.',
-    images: ['/og-image.png'],
+    images: ['/opengraph-image.png'],
   },
   robots: {
     index: true,
