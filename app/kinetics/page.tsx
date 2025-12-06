@@ -14,6 +14,17 @@ import {
   EXAMPLE_ARRHENIUS,
 } from '@/lib/calculations/kinetics'
 import type { RateOrder, RateLawResult, ArrheniusResult, ActivationEnergyResult } from '@/lib/calculations/kinetics'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for graph component (client-side only)
+const KineticsGraph = dynamic(() => import('@/components/charts/KineticsGraph'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-gray-100 rounded-xl h-[350px] flex items-center justify-center text-gray-500">
+      Loading graph...
+    </div>
+  ),
+})
 
 type CalculatorMode = 'concentration' | 'rate-constant' | 'arrhenius' | 'activation' | 'order'
 
@@ -690,6 +701,22 @@ export default function KineticsPage() {
         {/* Results */}
         {result && (
           <div className="space-y-6">
+            {/* Graph Visualization - Show for concentration and rate-constant modes */}
+            {(mode === 'concentration' || mode === 'rate-constant') && (
+              <div className="premium-card p-6">
+                <h2 className="text-xl font-bold mb-4">Concentration vs Time Graph</h2>
+                <KineticsGraph
+                  order={order}
+                  initialConc={initialConc}
+                  k={k}
+                  maxTime={Math.max(time * 2, 100)}
+                  highlightTime={time}
+                  width={600}
+                  height={350}
+                />
+              </div>
+            )}
+
             {/* Results Card */}
             <div className="premium-card p-6">
               <h2 className="text-2xl font-bold mb-6">Results</h2>

@@ -1,74 +1,84 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import MoleculeCanvasEnhanced from '@/components/molecule-builder/MoleculeCanvasEnhanced'
-import AtomPalette from '@/components/molecule-builder/AtomPalette'
-import StabilityPanel from '@/components/molecule-builder/StabilityPanel'
-import ExportMenu from '@/components/molecule-builder/ExportMenu'
-import PresetSelector from '@/components/molecule-builder/PresetSelector'
-import TutorialOverlay from '@/components/molecule-builder/TutorialOverlay'
-import { useToast } from '@/components/ui/toast'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { MoleculeBuilderErrorBoundary } from '@/components/ui/error-boundary'
-import {
-  validateMolecule,
-  recognizeMolecule,
-  getValenceElectrons,
-  molecule3DToBuilder,
-  type BuilderAtom,
-  type BuilderBond,
-  type ValidationResult
-} from '@/lib/utils/molecule-builder'
-import {
-  getAllowedBondTypes,
-  isBondTypeAllowed,
-  getMaxBondOrder,
-  getMaxTotalBondOrder,
-  getBondTypeName,
-  type BondType
-} from '@/lib/utils/bond-restrictions'
-import type { Molecule3D } from '@/lib/types/chemistry'
 
-type MoleculeHistory = {
-  atoms: BuilderAtom[]
-  bonds: BuilderBond[]
+// ============================================
+// Types
+// ============================================
+interface Atom {
+  id: number
+  element: string
+  x: number
+  y: number
+  color: string
 }
 
-type PresetKey = 'water' | 'methane' | 'carbonDioxide' | 'ammonia' | 'benzene'
-
-type PresetDefinition = {
-  label: string
-  description: string
-  layout: Array<{ element: string; x: number; y: number }>
-  bonds: Array<{ from: number; to: number; order: 1 | 2 | 3 }>
-  focusElement?: string
+interface Bond {
+  id: number
+  from: number
+  to: number
+  order: 1 | 2 | 3
 }
 
-const PRESETS: Record<PresetKey, PresetDefinition> = {
-  water: {
-    label: 'Water',
-    description: 'Bent 104.5 deg',
-    layout: [
-      { element: 'O', x: 340, y: 320 },
-      { element: 'H', x: 280, y: 360 },
-      { element: 'H', x: 400, y: 360 },
+interface PresetMolecule {
+  name: string
+  formula: string
+  smiles: string
+  atoms: Omit<Atom, 'id'>[]
+  bonds: Omit<Bond, 'id'>[]
+}
+
+// ============================================
+// Constants
+// ============================================
+const ATOM_COLORS: Record<string, string> = {
+  C: '#333333',
+  H: '#FFFFFF',
+  O: '#FF0000',
+  N: '#3050F8',
+  S: '#FFFF30',
+  P: '#FF8000',
+  F: '#90E050',
+  Cl: '#1FF01F',
+  Br: '#A62929',
+  I: '#940094',
+}
+
+const ELEMENTS = [
+  { symbol: 'C', name: 'Carbon', color: '#333333' },
+  { symbol: 'H', name: 'Hydrogen', color: '#FFFFFF' },
+  { symbol: 'O', name: 'Oxygen', color: '#FF0000' },
+  { symbol: 'N', name: 'Nitrogen', color: '#3050F8' },
+  { symbol: 'S', name: 'Sulfur', color: '#FFFF30' },
+  { symbol: 'Cl', name: 'Chlorine', color: '#1FF01F' },
+]
+
+const PRESET_MOLECULES: PresetMolecule[] = [
+  {
+    name: 'Water',
+    formula: 'H₂O',
+    smiles: 'O',
+    atoms: [
+      { element: 'O', x: 300, y: 250, color: '#FF0000' },
+      { element: 'H', x: 240, y: 310, color: '#FFFFFF' },
+      { element: 'H', x: 360, y: 310, color: '#FFFFFF' },
     ],
     bonds: [
       { from: 0, to: 1, order: 1 },
       { from: 0, to: 2, order: 1 },
     ],
-    focusElement: 'O',
   },
-  methane: {
-    label: 'Methane',
-    description: 'Tetrahedral projection',
-    layout: [
-      { element: 'C', x: 340, y: 320 },
-      { element: 'H', x: 260, y: 320 },
-      { element: 'H', x: 420, y: 320 },
-      { element: 'H', x: 320, y: 240 },
-      { element: 'H', x: 360, y: 400 },
+  {
+    name: 'Methane',
+    formula: 'CH₄',
+    smiles: 'C',
+    atoms: [
+      { element: 'C', x: 300, y: 250, color: '#333333' },
+      { element: 'H', x: 220, y: 250, color: '#FFFFFF' },
+      { element: 'H', x: 380, y: 250, color: '#FFFFFF' },
+      { element: 'H', x: 300, y: 170, color: '#FFFFFF' },
+      { element: 'H', x: 300, y: 330, color: '#FFFFFF' },
     ],
     bonds: [
       { from: 0, to: 1, order: 1 },
@@ -76,54 +86,114 @@ const PRESETS: Record<PresetKey, PresetDefinition> = {
       { from: 0, to: 3, order: 1 },
       { from: 0, to: 4, order: 1 },
     ],
-    focusElement: 'C',
   },
-  carbonDioxide: {
-    label: 'Carbon Dioxide',
-    description: 'Linear 180 deg',
-    layout: [
-      { element: 'O', x: 240, y: 320 },
-      { element: 'C', x: 340, y: 320 },
-      { element: 'O', x: 440, y: 320 },
+  {
+    name: 'Carbon Dioxide',
+    formula: 'CO₂',
+    smiles: 'O=C=O',
+    atoms: [
+      { element: 'O', x: 180, y: 250, color: '#FF0000' },
+      { element: 'C', x: 300, y: 250, color: '#333333' },
+      { element: 'O', x: 420, y: 250, color: '#FF0000' },
     ],
     bonds: [
       { from: 0, to: 1, order: 2 },
       { from: 1, to: 2, order: 2 },
     ],
-    focusElement: 'O',
   },
-  ammonia: {
-    label: 'Ammonia',
-    description: 'Trigonal pyramidal',
-    layout: [
-      { element: 'N', x: 340, y: 300 },
-      { element: 'H', x: 270, y: 360 },
-      { element: 'H', x: 410, y: 360 },
-      { element: 'H', x: 340, y: 430 },
+  {
+    name: 'Ammonia',
+    formula: 'NH₃',
+    smiles: 'N',
+    atoms: [
+      { element: 'N', x: 300, y: 230, color: '#3050F8' },
+      { element: 'H', x: 230, y: 300, color: '#FFFFFF' },
+      { element: 'H', x: 370, y: 300, color: '#FFFFFF' },
+      { element: 'H', x: 300, y: 350, color: '#FFFFFF' },
     ],
     bonds: [
       { from: 0, to: 1, order: 1 },
       { from: 0, to: 2, order: 1 },
       { from: 0, to: 3, order: 1 },
     ],
-    focusElement: 'N',
   },
-  benzene: {
-    label: 'Benzene',
-    description: 'Planar ring (alternating pi)',
-    layout: [
-      { element: 'C', x: 320, y: 200 },
-      { element: 'C', x: 404, y: 230 },
-      { element: 'C', x: 444, y: 310 },
-      { element: 'C', x: 404, y: 390 },
-      { element: 'C', x: 320, y: 420 },
-      { element: 'C', x: 236, y: 390 },
-      { element: 'H', x: 320, y: 130 },
-      { element: 'H', x: 470, y: 205 },
-      { element: 'H', x: 520, y: 310 },
-      { element: 'H', x: 470, y: 415 },
-      { element: 'H', x: 320, y: 490 },
-      { element: 'H', x: 170, y: 315 },
+  {
+    name: 'Ethane',
+    formula: 'C₂H₆',
+    smiles: 'CC',
+    atoms: [
+      { element: 'C', x: 230, y: 250, color: '#333333' },
+      { element: 'C', x: 370, y: 250, color: '#333333' },
+      { element: 'H', x: 160, y: 200, color: '#FFFFFF' },
+      { element: 'H', x: 160, y: 300, color: '#FFFFFF' },
+      { element: 'H', x: 230, y: 170, color: '#FFFFFF' },
+      { element: 'H', x: 440, y: 200, color: '#FFFFFF' },
+      { element: 'H', x: 440, y: 300, color: '#FFFFFF' },
+      { element: 'H', x: 370, y: 330, color: '#FFFFFF' },
+    ],
+    bonds: [
+      { from: 0, to: 1, order: 1 },
+      { from: 0, to: 2, order: 1 },
+      { from: 0, to: 3, order: 1 },
+      { from: 0, to: 4, order: 1 },
+      { from: 1, to: 5, order: 1 },
+      { from: 1, to: 6, order: 1 },
+      { from: 1, to: 7, order: 1 },
+    ],
+  },
+  {
+    name: 'Ethylene',
+    formula: 'C₂H₄',
+    smiles: 'C=C',
+    atoms: [
+      { element: 'C', x: 230, y: 250, color: '#333333' },
+      { element: 'C', x: 370, y: 250, color: '#333333' },
+      { element: 'H', x: 160, y: 200, color: '#FFFFFF' },
+      { element: 'H', x: 160, y: 300, color: '#FFFFFF' },
+      { element: 'H', x: 440, y: 200, color: '#FFFFFF' },
+      { element: 'H', x: 440, y: 300, color: '#FFFFFF' },
+    ],
+    bonds: [
+      { from: 0, to: 1, order: 2 },
+      { from: 0, to: 2, order: 1 },
+      { from: 0, to: 3, order: 1 },
+      { from: 1, to: 4, order: 1 },
+      { from: 1, to: 5, order: 1 },
+    ],
+  },
+  {
+    name: 'Acetylene',
+    formula: 'C₂H₂',
+    smiles: 'C#C',
+    atoms: [
+      { element: 'C', x: 230, y: 250, color: '#333333' },
+      { element: 'C', x: 370, y: 250, color: '#333333' },
+      { element: 'H', x: 140, y: 250, color: '#FFFFFF' },
+      { element: 'H', x: 460, y: 250, color: '#FFFFFF' },
+    ],
+    bonds: [
+      { from: 0, to: 1, order: 3 },
+      { from: 0, to: 2, order: 1 },
+      { from: 1, to: 3, order: 1 },
+    ],
+  },
+  {
+    name: 'Benzene',
+    formula: 'C₆H₆',
+    smiles: 'c1ccccc1',
+    atoms: [
+      { element: 'C', x: 300, y: 160, color: '#333333' },
+      { element: 'C', x: 378, y: 205, color: '#333333' },
+      { element: 'C', x: 378, y: 295, color: '#333333' },
+      { element: 'C', x: 300, y: 340, color: '#333333' },
+      { element: 'C', x: 222, y: 295, color: '#333333' },
+      { element: 'C', x: 222, y: 205, color: '#333333' },
+      { element: 'H', x: 300, y: 90, color: '#FFFFFF' },
+      { element: 'H', x: 438, y: 170, color: '#FFFFFF' },
+      { element: 'H', x: 438, y: 330, color: '#FFFFFF' },
+      { element: 'H', x: 300, y: 410, color: '#FFFFFF' },
+      { element: 'H', x: 162, y: 330, color: '#FFFFFF' },
+      { element: 'H', x: 162, y: 170, color: '#FFFFFF' },
     ],
     bonds: [
       { from: 0, to: 1, order: 2 },
@@ -139,690 +209,568 @@ const PRESETS: Record<PresetKey, PresetDefinition> = {
       { from: 4, to: 10, order: 1 },
       { from: 5, to: 11, order: 1 },
     ],
-    focusElement: 'C',
   },
-}
-
-const QUICK_ELEMENTS = [
-  { symbol: 'C', name: 'Carbon' },
-  { symbol: 'H', name: 'Hydrogen' },
-  { symbol: 'O', name: 'Oxygen' },
-  { symbol: 'N', name: 'Nitrogen' },
-  { symbol: 'Cl', name: 'Chlorine' },
-  { symbol: 'Br', name: 'Bromine' },
-  { symbol: 'I', name: 'Iodine' },
-  { symbol: 'F', name: 'Fluorine' },
-  { symbol: 'S', name: 'Sulfur' },
-  { symbol: 'P', name: 'Phosphorus' },
-  { symbol: 'B', name: 'Boron' },
-  { symbol: 'Si', name: 'Silicon' },
 ]
 
-const QUICK_BONDS: Array<{ mode: 'single' | 'double' | 'triple'; label: string; symbol: string }> = [
-  { mode: 'single', label: 'Single', symbol: '-' },
-  { mode: 'double', label: 'Double', symbol: '=' },
-  { mode: 'triple', label: 'Triple', symbol: '≡' },
-]
-
+// ============================================
+// Simple Molecule Builder Component
+// ============================================
 export default function MoleculeBuilderPage() {
-  const [atoms, setAtoms] = useState<BuilderAtom[]>([])
-  const [bonds, setBonds] = useState<BuilderBond[]>([])
-  const [selectedElement, setSelectedElement] = useState<string>('C')
-  const [bondMode, setBondMode] = useState<'single' | 'double' | 'triple'>('single')
-  const [validation, setValidation] = useState<ValidationResult | null>(null)
-  const [recognizedMolecule, setRecognizedMolecule] = useState<string | null>(null)
-  const [isShaking, setIsShaking] = useState(false)
-  const [blinkingAtoms, setBlinkingAtoms] = useState<number[]>([])
-  const [showTutorial, setShowTutorial] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [atoms, setAtoms] = useState<Atom[]>([])
+  const [bonds, setBonds] = useState<Bond[]>([])
+  const [selectedElement, setSelectedElement] = useState('C')
+  const [bondOrder, setBondOrder] = useState<1 | 2 | 3>(1)
+  const [mode, setMode] = useState<'atom' | 'bond' | 'delete' | 'move'>('atom')
+  const [selectedAtom, setSelectedAtom] = useState<number | null>(null)
+  const [draggingAtom, setDraggingAtom] = useState<number | null>(null)
+  const [hoveredAtom, setHoveredAtom] = useState<number | null>(null)
+  const [nextId, setNextId] = useState(1)
+  const [formula, setFormula] = useState('')
 
-  const [history, setHistory] = useState<MoleculeHistory[]>([{ atoms: [], bonds: [] }])
-  const [historyIndex, setHistoryIndex] = useState(0)
-  const { toast } = useToast()
-
-  // Check if user is new and should see tutorial
+  // Calculate molecular formula
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem('verchem-molecule-builder-tutorial-completed')
-    if (!hasSeenTutorial) {
-      // Show tutorial after a brief delay
-      const timer = setTimeout(() => setShowTutorial(true), 500)
-      return () => clearTimeout(timer)
-    }
-  }, [])
-
-  const handleTutorialComplete = () => {
-    setShowTutorial(false)
-    localStorage.setItem('verchem-molecule-builder-tutorial-completed', 'true')
-    toast.success('Tutorial completed! Ready to build molecules 🧪')
-  }
-
-  const handleShowTutorial = () => {
-    setShowTutorial(true)
-  }
-
-  const saveToHistory = (newAtoms: BuilderAtom[], newBonds: BuilderBond[]) => {
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push({ atoms: newAtoms, bonds: newBonds })
-
-    if (newHistory.length > 50) {
-      newHistory.shift()
-    } else {
-      setHistoryIndex(historyIndex + 1)
+    if (atoms.length === 0) {
+      setFormula('')
+      return
     }
 
-    setHistory(newHistory)
-  }
-
-  const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      const prevState = history[historyIndex - 1]
-      setAtoms([...prevState.atoms])
-      setBonds([...prevState.bonds])
-      setHistoryIndex(historyIndex - 1)
-    }
-  }, [historyIndex, history])
-
-  const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const nextState = history[historyIndex + 1]
-      setAtoms([...nextState.atoms])
-      setBonds([...nextState.bonds])
-      setHistoryIndex(historyIndex + 1)
-    }
-  }, [historyIndex, history])
-
-  useEffect(() => {
-    const allowedBonds = getAllowedBondTypes(selectedElement)
-    if (!allowedBonds.includes(bondMode as BondType)) {
-      if (allowedBonds.includes('triple')) {
-        setBondMode('triple')
-      } else if (allowedBonds.includes('double')) {
-        setBondMode('double')
-      } else {
-        setBondMode('single')
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedElement])
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault()
-        handleUndo()
-      }
-      if (
-        ((e.ctrlKey || e.metaKey) && e.key === 'y') ||
-        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z')
-      ) {
-        e.preventDefault()
-        handleRedo()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleUndo, handleRedo])
-
-  useEffect(() => {
-    if (atoms.length > 0) {
-      const result = validateMolecule(atoms, bonds)
-      setValidation(result)
-
-      if (!result.isStable) {
-        setIsShaking(true)
-        setTimeout(() => setIsShaking(false), 500)
-      }
-
-      const needsElectrons = atoms
-        .filter((_, i) => result.atomStability[i]?.needsElectrons > 0)
-        .map(a => a.id)
-      setBlinkingAtoms(needsElectrons)
-
-      const recognized = recognizeMolecule(atoms, bonds)
-      setRecognizedMolecule(recognized)
-    } else {
-      setValidation(null)
-      setBlinkingAtoms([])
-      setRecognizedMolecule(null)
-      setIsShaking(false)
-    }
-  }, [atoms, bonds])
-
-  const handleAddAtom = (x: number, y: number) => {
-    const newAtom: BuilderAtom = {
-      id: Date.now(),
-      element: selectedElement,
-      x,
-      y,
-      z: 0,
-      valenceElectrons: getValenceElectrons(selectedElement),
-      formalCharge: 0,
-    }
-    const newAtoms = [...atoms, newAtom]
-    setAtoms(newAtoms)
-    saveToHistory(newAtoms, bonds)
-  }
-
-  const handleAddBond = (atom1Id: number, atom2Id: number): boolean => {
-    const atom1 = atoms.find(a => a.id === atom1Id)
-    const atom2 = atoms.find(a => a.id === atom2Id)
-    if (!atom1 || !atom2) return false
-
-    const existingBond = bonds.find(
-      b => (b.atom1Id === atom1Id && b.atom2Id === atom2Id) ||
-           (b.atom1Id === atom2Id && b.atom2Id === atom1Id)
-    )
-
-    if (existingBond) {
-      const newOrder = (existingBond.order + 1) as 1 | 2 | 3
-      if (newOrder <= 3) {
-        const maxOrder = getMaxBondOrder(atom1.element, atom2.element)
-        const deltaOrder = newOrder - existingBond.order
-
-        const currentTotalAtom1 = bonds
-          .filter(b => b.atom1Id === atom1Id || b.atom2Id === atom1Id)
-          .reduce((sum, b) => sum + b.order, 0)
-        const currentTotalAtom2 = bonds
-          .filter(b => b.atom1Id === atom2Id || b.atom2Id === atom2Id)
-          .reduce((sum, b) => sum + b.order, 0)
-
-        const maxTotalAtom1 = getMaxTotalBondOrder(atom1.element)
-        const maxTotalAtom2 = getMaxTotalBondOrder(atom2.element)
-
-        const wouldExceedAtom1 = currentTotalAtom1 + deltaOrder > maxTotalAtom1
-        const wouldExceedAtom2 = currentTotalAtom2 + deltaOrder > maxTotalAtom2
-
-        if (newOrder <= maxOrder && !wouldExceedAtom1 && !wouldExceedAtom2) {
-          const newBonds = bonds.map(b =>
-            b === existingBond ? { ...b, order: newOrder } : b
-          )
-          setBonds(newBonds)
-          saveToHistory(atoms, newBonds)
-          return true
-        } else {
-          const reason = wouldExceedAtom1
-            ? `${atom1.element} cannot support more bonds (max ${maxTotalAtom1})`
-            : wouldExceedAtom2
-            ? `${atom2.element} cannot support more bonds (max ${maxTotalAtom2})`
-            : `${atom1.element}-${atom2.element} cannot form ${getBondTypeName(newOrder)} bond`
-          toast.error(reason)
-          return false
-        }
-      }
-    } else {
-      const bondOrder = bondMode === 'single' ? 1 : bondMode === 'double' ? 2 : 3
-
-      const maxTotalAtom1 = getMaxTotalBondOrder(atom1.element)
-      const maxTotalAtom2 = getMaxTotalBondOrder(atom2.element)
-
-      const currentTotalAtom1 = bonds
-        .filter(b => b.atom1Id === atom1Id || b.atom2Id === atom1Id)
-        .reduce((sum, b) => sum + b.order, 0)
-      const currentTotalAtom2 = bonds
-        .filter(b => b.atom1Id === atom2Id || b.atom2Id === atom2Id)
-        .reduce((sum, b) => sum + b.order, 0)
-
-      const wouldExceedAtom1 = currentTotalAtom1 + bondOrder > maxTotalAtom1
-      const wouldExceedAtom2 = currentTotalAtom2 + bondOrder > maxTotalAtom2
-
-      const isVeryRestrictive = ['H', 'F', 'CL', 'BR', 'I'].includes(atom1.element.toUpperCase()) || 
-                               ['H', 'F', 'CL', 'BR', 'I'].includes(atom2.element.toUpperCase())
-
-      if (
-        (isVeryRestrictive ? isBondTypeAllowed(atom1.element, atom2.element, bondMode) : true) &&
-        !wouldExceedAtom1 &&
-        !wouldExceedAtom2
-      ) {
-        const newBond: BuilderBond = {
-          id: Date.now(),
-          atom1Id,
-          atom2Id,
-          order: bondOrder,
-        }
-        const newBonds = [...bonds, newBond]
-        setBonds(newBonds)
-        saveToHistory(atoms, newBonds)
-        return true
-      } else {
-        const reason = wouldExceedAtom1
-          ? `${atom1.element} cannot support more bonds (max ${maxTotalAtom1})`
-          : wouldExceedAtom2
-          ? `${atom2.element} cannot support more bonds (max ${maxTotalAtom2})`
-          : `${atom1.element} or ${atom2.element} cannot form ${bondMode} bonds`
-        toast.error(reason)
-        return false
-      }
-    }
-    return false
-  }
-
-  const handleDeleteAtoms = (atomIds: number[]) => {
-    const idSet = new Set(atomIds);
-    const newAtoms = atoms.filter(a => !idSet.has(a.id))
-    const newBonds = bonds.filter(b => !idSet.has(b.atom1Id) && !idSet.has(b.atom2Id))
-    setAtoms(newAtoms)
-    setBonds(newBonds)
-    saveToHistory(newAtoms, newBonds)
-  };
-
-  const handleDeleteBonds = (bondIds: number[]) => {
-    const idSet = new Set(bondIds);
-    const newBonds = bonds.filter(b => !idSet.has(b.id));
-    setBonds(newBonds);
-    saveToHistory(atoms, newBonds);
-  };
-
-  const handleMoveAtoms = useCallback((movedAtoms: { id: number; x: number; y: number }[]) => {
-    const movedIds = new Set(movedAtoms.map(m => m.id))
-    const movedMap = new Map(movedAtoms.map(m => [m.id, { x: m.x, y: m.y }]))
-    const newAtoms = atoms.map(atom => {
-      if (movedIds.has(atom.id)) {
-        const newPos = movedMap.get(atom.id)!
-        return { ...atom, x: newPos.x, y: newPos.y }
-      }
-      return atom
+    const counts: Record<string, number> = {}
+    atoms.forEach(atom => {
+      counts[atom.element] = (counts[atom.element] || 0) + 1
     })
-    setAtoms(newAtoms)
+
+    // Hill system: C first, H second, then alphabetical
+    let f = ''
+    if (counts['C']) {
+      f += `C${counts['C'] > 1 ? counts['C'] : ''}`
+      delete counts['C']
+    }
+    if (counts['H']) {
+      f += `H${counts['H'] > 1 ? counts['H'] : ''}`
+      delete counts['H']
+    }
+    Object.keys(counts).sort().forEach(el => {
+      f += `${el}${counts[el] > 1 ? counts[el] : ''}`
+    })
+
+    setFormula(f)
   }, [atoms])
 
-  const handleDragEnd = () => {
-    saveToHistory(atoms, bonds);
+  // Draw canvas
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Clear
+    ctx.fillStyle = '#1e293b'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw grid
+    ctx.strokeStyle = '#334155'
+    ctx.lineWidth = 1
+    for (let x = 0; x < canvas.width; x += 50) {
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, canvas.height)
+      ctx.stroke()
+    }
+    for (let y = 0; y < canvas.height; y += 50) {
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(canvas.width, y)
+      ctx.stroke()
+    }
+
+    // Draw bonds
+    bonds.forEach(bond => {
+      const fromAtom = atoms.find(a => a.id === bond.from)
+      const toAtom = atoms.find(a => a.id === bond.to)
+      if (!fromAtom || !toAtom) return
+
+      ctx.strokeStyle = '#94a3b8'
+      ctx.lineWidth = 3
+
+      const dx = toAtom.x - fromAtom.x
+      const dy = toAtom.y - fromAtom.y
+      const angle = Math.atan2(dy, dx)
+      const perpX = Math.sin(angle) * 6
+      const perpY = -Math.cos(angle) * 6
+
+      if (bond.order === 1) {
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x, fromAtom.y)
+        ctx.lineTo(toAtom.x, toAtom.y)
+        ctx.stroke()
+      } else if (bond.order === 2) {
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x + perpX, fromAtom.y + perpY)
+        ctx.lineTo(toAtom.x + perpX, toAtom.y + perpY)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x - perpX, fromAtom.y - perpY)
+        ctx.lineTo(toAtom.x - perpX, toAtom.y - perpY)
+        ctx.stroke()
+      } else if (bond.order === 3) {
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x, fromAtom.y)
+        ctx.lineTo(toAtom.x, toAtom.y)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x + perpX * 1.5, fromAtom.y + perpY * 1.5)
+        ctx.lineTo(toAtom.x + perpX * 1.5, toAtom.y + perpY * 1.5)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x - perpX * 1.5, fromAtom.y - perpY * 1.5)
+        ctx.lineTo(toAtom.x - perpX * 1.5, toAtom.y - perpY * 1.5)
+        ctx.stroke()
+      }
+    })
+
+    // Draw bond preview when in bond mode with selected atom
+    if (mode === 'bond' && selectedAtom !== null && hoveredAtom !== null && selectedAtom !== hoveredAtom) {
+      const fromAtom = atoms.find(a => a.id === selectedAtom)
+      const toAtom = atoms.find(a => a.id === hoveredAtom)
+      if (fromAtom && toAtom) {
+        ctx.strokeStyle = '#22c55e'
+        ctx.lineWidth = 2
+        ctx.setLineDash([5, 5])
+        ctx.beginPath()
+        ctx.moveTo(fromAtom.x, fromAtom.y)
+        ctx.lineTo(toAtom.x, toAtom.y)
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+    }
+
+    // Draw atoms
+    atoms.forEach(atom => {
+      const isSelected = atom.id === selectedAtom
+      const isHovered = atom.id === hoveredAtom
+      const radius = isSelected || isHovered ? 28 : 24
+
+      // Glow effect
+      if (isSelected) {
+        const gradient = ctx.createRadialGradient(atom.x, atom.y, radius, atom.x, atom.y, radius + 15)
+        gradient.addColorStop(0, 'rgba(34, 197, 94, 0.4)')
+        gradient.addColorStop(1, 'rgba(34, 197, 94, 0)')
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.arc(atom.x, atom.y, radius + 15, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      // Atom circle
+      ctx.fillStyle = atom.color
+      ctx.beginPath()
+      ctx.arc(atom.x, atom.y, radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Border
+      ctx.strokeStyle = isSelected ? '#22c55e' : isHovered ? '#3b82f6' : '#475569'
+      ctx.lineWidth = isSelected ? 4 : isHovered ? 3 : 2
+      ctx.stroke()
+
+      // Element symbol
+      ctx.fillStyle = atom.element === 'C' || atom.element === 'S' ? '#ffffff' : '#000000'
+      ctx.font = 'bold 18px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(atom.element, atom.x, atom.y)
+    })
+
+    // Mode indicator
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'left'
+    ctx.fillText(`Mode: ${mode.toUpperCase()} | Atoms: ${atoms.length} | Bonds: ${bonds.length}`, 10, canvas.height - 10)
+
+  }, [atoms, bonds, mode, selectedAtom, hoveredAtom])
+
+  useEffect(() => {
+    draw()
+  }, [draw])
+
+  // Get atom at position
+  const getAtomAt = (x: number, y: number): Atom | undefined => {
+    return atoms.find(atom => {
+      const dx = atom.x - x
+      const dy = atom.y - y
+      return Math.sqrt(dx * dx + dy * dy) < 28
+    })
   }
 
+  // Handle canvas click
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const clickedAtom = getAtomAt(x, y)
+
+    if (mode === 'atom') {
+      if (!clickedAtom) {
+        // Add new atom
+        const newAtom: Atom = {
+          id: nextId,
+          element: selectedElement,
+          x,
+          y,
+          color: ATOM_COLORS[selectedElement] || '#999999',
+        }
+        setAtoms([...atoms, newAtom])
+        setNextId(nextId + 1)
+      }
+    } else if (mode === 'bond') {
+      if (clickedAtom) {
+        if (selectedAtom === null) {
+          // Select first atom
+          setSelectedAtom(clickedAtom.id)
+        } else if (selectedAtom !== clickedAtom.id) {
+          // Create bond
+          const existingBond = bonds.find(
+            b => (b.from === selectedAtom && b.to === clickedAtom.id) ||
+                 (b.from === clickedAtom.id && b.to === selectedAtom)
+          )
+
+          if (existingBond) {
+            // Upgrade bond order
+            const newOrder = (existingBond.order % 3 + 1) as 1 | 2 | 3
+            setBonds(bonds.map(b => b.id === existingBond.id ? { ...b, order: newOrder } : b))
+          } else {
+            // Create new bond
+            const newBond: Bond = {
+              id: nextId,
+              from: selectedAtom,
+              to: clickedAtom.id,
+              order: bondOrder,
+            }
+            setBonds([...bonds, newBond])
+            setNextId(nextId + 1)
+          }
+          setSelectedAtom(null)
+        }
+      } else {
+        setSelectedAtom(null)
+      }
+    } else if (mode === 'delete') {
+      if (clickedAtom) {
+        // Delete atom and connected bonds
+        setAtoms(atoms.filter(a => a.id !== clickedAtom.id))
+        setBonds(bonds.filter(b => b.from !== clickedAtom.id && b.to !== clickedAtom.id))
+        setSelectedAtom(null)
+      }
+    }
+  }
+
+  // Handle mouse move for hover and drag
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const atomUnder = getAtomAt(x, y)
+    setHoveredAtom(atomUnder?.id ?? null)
+
+    if (mode === 'move' && draggingAtom !== null) {
+      setAtoms(atoms.map(a =>
+        a.id === draggingAtom ? { ...a, x, y } : a
+      ))
+    }
+  }
+
+  // Handle mouse down for drag start
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (mode === 'move') {
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      const rect = canvas.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+
+      const atomUnder = getAtomAt(x, y)
+      if (atomUnder) {
+        setDraggingAtom(atomUnder.id)
+      }
+    }
+  }
+
+  // Handle mouse up for drag end
+  const handleMouseUp = () => {
+    if (mode === 'move') {
+      setDraggingAtom(null)
+    }
+  }
+
+  // Load preset molecule
+  const loadPreset = (preset: PresetMolecule) => {
+    const baseId = Date.now()
+    const newAtoms: Atom[] = preset.atoms.map((a, i) => ({
+      ...a,
+      id: baseId + i,
+    }))
+    const newBonds: Bond[] = preset.bonds.map((b, i) => ({
+      ...b,
+      id: baseId + 1000 + i,
+      from: baseId + b.from,
+      to: baseId + b.to,
+    }))
+
+    setAtoms(newAtoms)
+    setBonds(newBonds)
+    setNextId(baseId + 2000)
+    setSelectedAtom(null)
+  }
+
+  // Clear all
   const handleClear = () => {
     setAtoms([])
     setBonds([])
-    setValidation(null)
-    setRecognizedMolecule(null)
-    setHistory([{ atoms: [], bonds: [] }])
-    setHistoryIndex(0)
+    setSelectedAtom(null)
+    setNextId(1)
   }
 
-  const handleLoad3DPreset = (molecule: Molecule3D) => {
-    const { atoms: newAtoms, bonds: newBonds } = molecule3DToBuilder(molecule, 600, 600)
+  // Export as PNG
+  const exportPNG = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-    setAtoms(newAtoms)
-    setBonds(newBonds)
-    setValidation(null)
-    setRecognizedMolecule(null)
-    setHistory([{ atoms: newAtoms, bonds: newBonds }])
-    setHistoryIndex(0)
-
-    // Set first element from molecule as selected
-    if (newAtoms.length > 0) {
-      setSelectedElement(newAtoms[0].element)
-    }
-
-    toast.success(`Loaded ${molecule.name} (${molecule.formula})`)
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `molecule-${formula || 'unnamed'}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    }, 'image/png')
   }
-
-  const unstableAtoms = validation?.atomStability.filter(atom => !atom.isStable).length ?? 0
-  const electronsNeeded = validation?.atomStability.reduce((sum, atom) => sum + atom.needsElectrons, 0) ?? 0
-  const statusLabel = atoms.length === 0 ? 'Ready' : validation?.isStable ? 'Stable' : 'Needs fixes'
-  const formulaDisplay = validation?.formula ?? (atoms.length === 0 ? '--' : '...')
-
-  const handleQuickElement = (element: string) => {
-    setSelectedElement(element)
-    const allowed = getAllowedBondTypes(element)
-    if (!allowed.includes(bondMode)) {
-      if (allowed.includes('double')) setBondMode('double')
-      else if (allowed.includes('single')) setBondMode('single')
-    }
-  }
-
-  const legend = [
-    'Click empty space to drop an atom',
-    'Drag from one atom to another to create or upgrade a bond',
-    'Shift+Click for multi-select; Delete to clear selection',
-    'Ctrl/Cmd+Z undo; Ctrl/Cmd+Y redo',
-  ]
 
   return (
-    <MoleculeBuilderErrorBoundary>
-      <div className="min-h-screen bg-slate-950 text-slate-100">
-        <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <header className="border-b border-slate-700 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/50 bg-gradient-to-br from-cyan-500 to-emerald-500 text-xl font-bold text-slate-950 shadow-lg shadow-cyan-500/30">
-              V
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xl">V</span>
             </div>
             <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Molecule Forge</p>
-              <h1 className="text-xl font-semibold text-white">Valence-Safe Builder</h1>
+              <h1 className="text-xl font-bold text-white">VerChem</h1>
+              <p className="text-xs text-slate-400">Molecule Builder</p>
             </div>
           </Link>
-          <div className="flex items-center gap-3 text-xs text-slate-300">
-            <span className="rounded-full border border-emerald-400/40 px-3 py-1 text-emerald-200">
-              Real-time validation
-            </span>
-            <span className="rounded-full border border-cyan-400/40 px-3 py-1 text-cyan-200">
-              Keyboard-first
-            </span>
-            <ThemeToggle />
-            <Link href="/" className="rounded-full bg-white/10 px-3 py-1 font-semibold text-white transition hover:bg-white/20">
-              Back to Home
-            </Link>
-          </div>
+          <Link href="/" className="text-slate-400 hover:text-white transition-colors">
+            Back to Home
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 space-y-8">
-        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-emerald-200/80">Structure-first workflow</p>
-              <h2 className="text-3xl font-bold leading-tight text-white md:text-4xl">
-                Build molecules with a clear, physics-aware canvas
-              </h2>
-              <p className="mt-2 text-slate-300 max-w-2xl">
-                Valence-safe interactions, instant stability feedback, and a teaching-friendly HUD for fast reviews.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:w-80">
-              <div className="rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-wide text-emerald-200/80">Stability</p>
-                <p className="text-xl font-bold text-emerald-100">
-                  {statusLabel}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-wide text-cyan-200/80">Formula</p>
-                <p className="text-lg font-mono text-white">
-                  {formulaDisplay}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-wide text-slate-300/80">Atoms</p>
-                <p className="text-lg font-semibold text-white">{atoms.length}</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
-                <p className="text-xs uppercase tracking-wide text-slate-300/80">Bonds</p>
-                <p className="text-lg font-semibold text-white">{bonds.length}</p>
-              </div>
-            </div>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Simple Molecule Builder
+          </h1>
+          <p className="text-slate-400">
+            Click to add atoms, connect with bonds, or choose a preset molecule
+          </p>
         </div>
 
-        <div className="rounded-3xl border border-cyan-400/30 bg-slate-900/80 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.4)]">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-white">Quick picks (no scrolling)</p>
-              <p className="text-xs text-slate-300">Tap an element or bond type; invalid options are auto-blocked.</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_BONDS.map(bond => {
-                const allowed = getAllowedBondTypes(selectedElement).includes(bond.mode)
-                const active = bondMode === bond.mode
-                return (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Panel - Tools */}
+          <div className="lg:col-span-1 space-y-4">
+            {/* Mode Selection */}
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <h3 className="text-white font-semibold mb-3">Mode</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'atom', label: 'Add Atom', icon: '⚛️' },
+                  { id: 'bond', label: 'Add Bond', icon: '🔗' },
+                  { id: 'move', label: 'Move', icon: '✋' },
+                  { id: 'delete', label: 'Delete', icon: '🗑️' },
+                ].map(m => (
                   <button
-                    key={bond.mode}
-                    onClick={() => allowed && setBondMode(bond.mode)}
-                    disabled={!allowed}
-                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                      active
-                        ? 'border-cyan-400/60 bg-cyan-500/15 text-cyan-50'
-                        : allowed
-                          ? 'border-white/10 bg-white/5 text-slate-100 hover:border-cyan-300/40 hover:bg-cyan-500/5'
-                          : 'border-white/10 bg-white/5 text-slate-500 cursor-not-allowed'
+                    key={m.id}
+                    onClick={() => {
+                      setMode(m.id as typeof mode)
+                      setSelectedAtom(null)
+                    }}
+                    className={`p-3 rounded-lg text-center transition-all ${
+                      mode === m.id
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                     }`}
                   >
-                    {bond.symbol} {bond.label}
+                    <div className="text-xl">{m.icon}</div>
+                    <div className="text-xs mt-1">{m.label}</div>
                   </button>
-                )
-              })}
-            </div>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {QUICK_ELEMENTS.map(item => {
-              const active = selectedElement === item.symbol
-              const allowedBonds = getAllowedBondTypes(item.symbol)
-              return (
-                <button
-                  key={item.symbol}
-                  onClick={() => handleQuickElement(item.symbol)}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
-                    active
-                      ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-50'
-                      : 'border-white/10 bg-white/5 text-slate-100 hover:border-emerald-300/40 hover:bg-emerald-500/5'
-                  }`}
-                  aria-pressed={active}
-                >
-                  <span className="rounded-md bg-white/10 px-2 py-1 text-base font-bold text-white">
-                    {item.symbol}
-                  </span>
-                  <span className="text-xs text-slate-300">Allows {allowedBonds.join(', ')}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <section className="lg:col-span-8 space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-slate-900/70 px-4 py-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-100">
-                  {validation?.isStable ? 'Valence rules satisfied' : 'Checking valence rules'}
-                </div>
-                <div className="rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
-                  {recognizedMolecule ? `Recognized as ${recognizedMolecule}` : 'Recognition will appear here'}
-                </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
-                  Electrons needed: {electronsNeeded} e-
-                </div>
-                <div className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-200">
-                  Unstable atoms: {unstableAtoms}
-                </div>
+                ))}
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-3xl border border-cyan-400/30 bg-slate-950/60 shadow-[0_30px_80px_rgba(0,0,0,0.55)]" data-tutorial="builder-canvas">
-              <div
-                className="pointer-events-none absolute inset-0 opacity-60"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.2) 1px, transparent 0)',
-                  backgroundSize: '34px 34px',
-                }}
-              />
-              <div className="absolute inset-x-8 top-6 z-10 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/90">
-                    Hold + drag to place or upgrade a bond
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/90">
-                    Shift+Click to select multiple atoms
-                  </span>
-                </div>
-                {validation?.formula && (
-                  <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-sm font-mono text-emerald-100">
-                    {validation.formula}
-                  </span>
-                )}
-              </div>
-
-              <div className="relative z-10 px-4 pb-4 pt-14">
-                <MoleculeCanvasEnhanced
-                  atoms={atoms}
-                  bonds={bonds}
-                  onAddAtom={handleAddAtom}
-                  onAddBond={handleAddBond}
-                  onDeleteAtoms={handleDeleteAtoms}
-                  onDeleteBonds={handleDeleteBonds}
-                  onMoveAtoms={handleMoveAtoms}
-                  onDragEnd={handleDragEnd}
-                  isShaking={isShaking}
-                  blinkingAtoms={blinkingAtoms}
-                  validation={validation}
-                />
-                <div className="mt-4 grid gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3 text-xs text-slate-200 sm:grid-cols-2">
-                  {legend.map(item => (
-                    <div key={item} className="flex items-start gap-2">
-                      <span className="mt-0.5 h-2 w-2 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Preset Selector with Categories & Search */}
-            <div className="rounded-3xl border border-cyan-400/30 bg-slate-900/80 p-6 shadow-[0_18px_44px_rgba(0,0,0,0.4)]" data-tutorial="preset-selector">
-              <PresetSelector onLoadPreset={handleLoad3DPreset} />
-            </div>
-          </section>
-
-          <aside className="lg:col-span-4 space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.45)]" data-tutorial="atom-palette">
-              <div className="flex items-center justify-between gap-4">
-                <h3 className="text-lg font-semibold text-white">Element & Bond Console</h3>
-                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
-                  Step {historyIndex} / {history.length - 1}
-                </div>
-              </div>
-              <div className="mt-4">
-                <AtomPalette
-                  selectedElement={selectedElement}
-                  onSelectElement={setSelectedElement}
-                  bondMode={bondMode}
-                  onBondModeChange={setBondMode}
-                />
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleUndo}
-                  disabled={historyIndex <= 0}
-                  title="Undo (Ctrl+Z)"
-                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                    historyIndex > 0
-                      ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20'
-                      : 'border-white/10 bg-white/5 text-slate-300 cursor-not-allowed'
-                  }`}
-                >
-                  Undo
-                </button>
-                <button
-                  onClick={handleRedo}
-                  disabled={historyIndex >= history.length - 1}
-                  title="Redo (Ctrl+Y)"
-                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                    historyIndex < history.length - 1
-                      ? 'border-cyan-400/40 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20'
-                      : 'border-white/10 bg-white/5 text-slate-300 cursor-not-allowed'
-                  }`}
-                >
-                  Redo
-                </button>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleClear}
-                  className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20"
-                >
-                  Clear all
-                </button>
-                <div>
-                  <ExportMenu atoms={atoms} bonds={bonds} />
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-4">
-              <h4 className="text-md font-semibold text-white">Core Rules</h4>
-              <ul className="mt-3 space-y-2 text-sm text-emerald-50/90">
-                <li>Valence guardrails block bonds beyond allowed totals</li>
-                <li>Formal charge and missing-electron alerts are surfaced live</li>
-                <li>Drag again to upgrade single to double to triple (when allowed)</li>
-                <li>History keeps the last 50 steps so experiments stay reversible</li>
-              </ul>
-            </div>
-          </aside>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-slate-900/80 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.45)]" data-tutorial="stability-panel">
-            <h3 className="text-xl font-semibold text-white">Stability & Charge Map</h3>
-            <p className="mt-1 text-sm text-slate-300">
-              Inspect formula, bonds, charge balance, and per-atom stability without leaving the canvas.
-            </p>
-            <div className="mt-4">
-              <StabilityPanel
-                validation={validation}
-                atoms={atoms}
-                bonds={bonds}
-              />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-              <h4 className="text-md font-semibold text-white">Scenarios to explore</h4>
-              <div className="mt-3 space-y-2 text-sm text-slate-200">
-                <p>- Compare linear CO2 against bent H2O to see angle and charge differences</p>
-                <p>- Add halogens and attempt bond upgrades to feel valence ceilings</p>
-                <p>- Intentionally overbond to observe how formal charge warnings react</p>
-              </div>
-            </div>
-            {validation && !validation.isStable && (
-              <div className="rounded-3xl border border-amber-400/40 bg-amber-500/10 p-4">
-                <h4 className="text-md font-semibold text-amber-100">Immediate suggestions</h4>
-                <div className="mt-2 space-y-1 text-sm text-amber-50">
-                  {validation.hints.map((hint, i) => (
-                    <p key={i}>- {hint}</p>
+            {/* Element Selection (visible in atom mode) */}
+            {mode === 'atom' && (
+              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <h3 className="text-white font-semibold mb-3">Element</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {ELEMENTS.map(el => (
+                    <button
+                      key={el.symbol}
+                      onClick={() => setSelectedElement(el.symbol)}
+                      className={`p-2 rounded-lg text-center transition-all ${
+                        selectedElement === el.symbol
+                          ? 'ring-2 ring-emerald-500 bg-slate-600'
+                          : 'bg-slate-700 hover:bg-slate-600'
+                      }`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full mx-auto flex items-center justify-center text-sm font-bold"
+                        style={{
+                          backgroundColor: el.color,
+                          color: el.symbol === 'C' || el.symbol === 'S' ? 'white' : 'black',
+                        }}
+                      >
+                        {el.symbol}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1">{el.name}</div>
+                    </button>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Bond Order (visible in bond mode) */}
+            {mode === 'bond' && (
+              <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+                <h3 className="text-white font-semibold mb-3">Bond Type</h3>
+                <div className="space-y-2">
+                  {[
+                    { order: 1, label: 'Single (—)', symbol: '—' },
+                    { order: 2, label: 'Double (=)', symbol: '=' },
+                    { order: 3, label: 'Triple (≡)', symbol: '≡' },
+                  ].map(b => (
+                    <button
+                      key={b.order}
+                      onClick={() => setBondOrder(b.order as 1 | 2 | 3)}
+                      className={`w-full p-3 rounded-lg text-left transition-all ${
+                        bondOrder === b.order
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      }`}
+                    >
+                      <span className="text-lg mr-2">{b.symbol}</span>
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedAtom !== null && (
+                  <p className="text-emerald-400 text-sm mt-3">
+                    Click another atom to create bond
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <h3 className="text-white font-semibold mb-3">Actions</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={handleClear}
+                  className="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={exportPNG}
+                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  Export PNG
+                </button>
+              </div>
+            </div>
+
+            {/* Formula Display */}
+            {formula && (
+              <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-xl p-4">
+                <h3 className="text-white/80 text-sm mb-1">Molecular Formula</h3>
+                <div className="text-2xl font-bold text-white font-mono">{formula}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Center - Canvas */}
+          <div className="lg:col-span-2">
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={500}
+                onClick={handleCanvasClick}
+                onMouseMove={handleMouseMove}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                className="w-full rounded-lg cursor-crosshair"
+                style={{ aspectRatio: '6/5' }}
+              />
+            </div>
+
+            {/* Instructions */}
+            <div className="mt-4 bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <h4 className="text-white font-semibold mb-2">How to use:</h4>
+              <ul className="text-slate-400 text-sm space-y-1">
+                <li><strong>Atom Mode:</strong> Click on canvas to add atoms</li>
+                <li><strong>Bond Mode:</strong> Click first atom, then second atom to create bond. Click existing bond to upgrade.</li>
+                <li><strong>Move Mode:</strong> Drag atoms to reposition</li>
+                <li><strong>Delete Mode:</strong> Click atom to delete it and its bonds</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Right Panel - Presets */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <h3 className="text-white font-semibold mb-3">Preset Molecules</h3>
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {PRESET_MOLECULES.map(preset => (
+                  <button
+                    key={preset.name}
+                    onClick={() => loadPreset(preset)}
+                    className="w-full p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-left transition-all group"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-medium">{preset.name}</span>
+                      <span className="text-slate-400 font-mono text-sm">{preset.formula}</span>
+                    </div>
+                    <div className="text-slate-500 text-xs mt-1 group-hover:text-slate-400">
+                      Click to load
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </main>
 
-      {/* ARIA live regions for screen readers */}
-      <div
-        id="molecule-status-live"
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
-        {validation && (
-          <>
-            {validation.isStable
-              ? `Molecule is stable. Formula: ${validation.formula}`
-              : `Molecule needs fixes. ${validation.atomStability.filter(a => !a.isStable).length} atoms unstable.`
-            }
-          </>
-        )}
-      </div>
-
-      <div
-        id="molecule-error-live"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-        className="sr-only"
-      />
-
-      <footer className="border-t border-white/10 bg-slate-950/90 py-6">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-300">
-              <p>VerChem Molecule Forge | Valence, bonding, and formal-charge safety baked in</p>
-              <p className="mt-1 text-xs">Keyboard-ready | Screen-reader friendly | Built for teaching and quick validation</p>
-            </div>
-            <button
-              onClick={handleShowTutorial}
-              className="rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-500/20"
-              aria-label="Show tutorial"
-            >
-              📖 Show Tutorial
-            </button>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-slate-700 bg-slate-900/80 mt-12 py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-slate-400">
+          <p>VerChem Molecule Builder - Simple & Intuitive</p>
         </div>
       </footer>
-
-      {/* Tutorial overlay */}
-      {showTutorial && <TutorialOverlay onComplete={handleTutorialComplete} />}
     </div>
-    </MoleculeBuilderErrorBoundary>
   )
 }

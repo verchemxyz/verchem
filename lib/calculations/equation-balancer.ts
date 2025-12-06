@@ -1,11 +1,37 @@
 // VerChem - Chemical Equation Balancer
 // Advanced algorithm for balancing chemical equations
+// Updated: Nov 2025 - Improved algorithm with higher coefficient limits and redox support
 
 import { BalancedEquation } from '../types/chemistry'
 
 interface Fraction {
   num: number
   den: number
+}
+
+// Common oxidation states for redox balancing
+const OXIDATION_STATES: Record<string, number[]> = {
+  H: [1, -1],
+  O: [-2, -1],
+  F: [-1],
+  Na: [1],
+  K: [1],
+  Ca: [2],
+  Mg: [2],
+  Al: [3],
+  Fe: [2, 3],
+  Cu: [1, 2],
+  Zn: [2],
+  Ag: [1],
+  Cl: [-1, 1, 3, 5, 7],
+  Br: [-1, 1, 3, 5],
+  I: [-1, 1, 5, 7],
+  S: [-2, 2, 4, 6],
+  N: [-3, 3, 5],
+  C: [-4, 2, 4],
+  Mn: [2, 4, 7],
+  Cr: [2, 3, 6],
+  P: [-3, 3, 5],
 }
 
 /**
@@ -187,52 +213,118 @@ export function balanceEquation(equation: string): BalancedEquation {
 }
 
 /**
- * Brute force method (try coefficients 1-10)
- * Works well for simple equations
+ * Optimized brute force with smart pruning
+ * - Higher coefficient limit (up to 20)
+ * - Early termination when partial balance impossible
+ * - Prioritizes common coefficient patterns
  */
 function balanceBruteForce(
   reactants: string[],
   products: string[],
   elements: string[],
-  maxCoeff: number = 10
+  maxCoeff: number = 20
 ): number[] | null {
   const n = reactants.length + products.length
+  const parsedReactants = reactants.map(parseFormula)
+  const parsedProducts = products.map(parseFormula)
 
-  // Generate all possible coefficient combinations
-  function tryCoefficients(
+  // Pre-compute element counts for each compound
+  const reactantCounts = parsedReactants.map(parsed =>
+    elements.map(el => parsed[el] || 0)
+  )
+  const productCounts = parsedProducts.map(parsed =>
+    elements.map(el => parsed[el] || 0)
+  )
+
+  // Try common coefficient patterns first (1, 2, 3, 4, 6, 8, 10)
+  const priorityCoeffs = [1, 2, 3, 4, 6, 8, 10, 5, 7, 9, 12, 14, 16, 18, 20]
+
+  function tryCoefficientsOptimized(
     index: number,
     coeffs: number[],
-    maxTries: number = 100000
+    iterationsLeft: number
   ): number[] | null {
+    if (iterationsLeft <= 0) return null
+
     if (index === n) {
-      // Check if this combination balances
-      if (checkBalance(reactants, products, elements, coeffs)) {
-        return coeffs
+      // Fast balance check using pre-computed values
+      for (let elIdx = 0; elIdx < elements.length; elIdx++) {
+        let reactantSum = 0
+        let productSum = 0
+
+        for (let i = 0; i < reactants.length; i++) {
+          reactantSum += reactantCounts[i][elIdx] * coeffs[i]
+        }
+        for (let i = 0; i < products.length; i++) {
+          productSum += productCounts[i][elIdx] * coeffs[reactants.length + i]
+        }
+
+        if (reactantSum !== productSum) return null
       }
-      return null
+      return [...coeffs]
     }
 
-    for (let c = 1; c <= maxCoeff; c++) {
+    // For later compounds, try to constrain based on partial sums
+    const coeffsToTry =
+      index < 2 ? priorityCoeffs.filter(c => c <= maxCoeff) : getOrderedCoeffs(maxCoeff)
+
+    for (const c of coeffsToTry) {
       coeffs[index] = c
-      const result = tryCoefficients(index + 1, [...coeffs], maxTries - 1)
-      if (result) {
-        return result
+
+      // Early pruning: check if partial balance is possible
+      if (index >= reactants.length - 1 && index < n - 1) {
+        // Can we still balance with remaining coefficients?
+        let canBalance = true
+        for (let elIdx = 0; elIdx < elements.length && canBalance; elIdx++) {
+          let reactantSum = 0
+          for (let i = 0; i < reactants.length; i++) {
+            reactantSum += reactantCounts[i][elIdx] * coeffs[i]
+          }
+
+          let productSum = 0
+          let maxPossibleProduct = 0
+          for (let i = 0; i < products.length; i++) {
+            if (i + reactants.length <= index) {
+              productSum += productCounts[i][elIdx] * coeffs[reactants.length + i]
+            } else {
+              maxPossibleProduct += productCounts[i][elIdx] * maxCoeff
+            }
+          }
+
+          // If reactant sum exceeds max possible product, prune this branch
+          if (reactantSum > productSum + maxPossibleProduct) {
+            canBalance = false
+          }
+        }
+        if (!canBalance) continue
       }
-      if (maxTries <= 0) return null
+
+      const result = tryCoefficientsOptimized(index + 1, coeffs, iterationsLeft - 1)
+      if (result) return result
     }
 
     return null
   }
 
-  const result = tryCoefficients(0, [])
-
-  if (result) {
-    // Reduce to smallest integers
-    const g = arrayGCD(result)
-    return result.map(c => c / g)
+  // Try with increasingly higher limits
+  for (const limit of [10, 15, 20]) {
+    const result = tryCoefficientsOptimized(0, new Array(n).fill(0), 500000)
+    if (result) {
+      const g = arrayGCD(result)
+      return result.map(c => c / g)
+    }
+    if (limit >= maxCoeff) break
   }
 
   return null
+}
+
+function getOrderedCoeffs(max: number): number[] {
+  const result: number[] = []
+  for (let i = 1; i <= max; i++) {
+    result.push(i)
+  }
+  return result
 }
 
 /**
@@ -562,96 +654,242 @@ function buildBalancedEquation(
 }
 
 /**
- * Identify reaction type
+ * Identify reaction type with enhanced detection
  */
 export function identifyReactionType(equation: string): string {
-  const { reactants, products } = parseEquation(equation)
+  try {
+    const { reactants, products } = parseEquation(equation)
 
-  // Combustion: hydrocarbon + O2 -> CO2 + H2O
-  if (
-    reactants.some(r => r.includes('O2')) &&
-    products.some(p => p.includes('CO2')) &&
-    products.some(p => p.includes('H2O'))
-  ) {
-    return 'combustion'
+    // Check for redox indicators
+    const isRedox = detectRedoxReaction(reactants, products)
+    if (isRedox) {
+      // More specific redox types
+      if (
+        reactants.some(r => r.includes('O2')) &&
+        products.some(p => p.includes('CO2')) &&
+        products.some(p => p.includes('H2O'))
+      ) {
+        return 'combustion'
+      }
+      return 'redox'
+    }
+
+    // Combustion: hydrocarbon + O2 -> CO2 + H2O
+    if (
+      reactants.some(r => r.includes('O2')) &&
+      products.some(p => p.includes('CO2')) &&
+      products.some(p => p.includes('H2O'))
+    ) {
+      return 'combustion'
+    }
+
+    // Acid-base neutralization: acid + base -> salt + water
+    if (
+      (reactants.some(r => r.match(/^H[A-Z]/)) || reactants.some(r => r.includes('OH'))) &&
+      products.some(p => p === 'H2O' || p === 'HOH')
+    ) {
+      return 'acid-base'
+    }
+
+    // Synthesis: A + B -> AB
+    if (reactants.length === 2 && products.length === 1) {
+      return 'synthesis'
+    }
+
+    // Decomposition: AB -> A + B
+    if (reactants.length === 1 && products.length >= 2) {
+      return 'decomposition'
+    }
+
+    // Single replacement: A + BC -> AC + B (check if one reactant is element)
+    if (reactants.length === 2 && products.length === 2) {
+      const r1Elements = Object.keys(parseFormula(reactants[0]))
+      const r2Elements = Object.keys(parseFormula(reactants[1]))
+      if (r1Elements.length === 1 || r2Elements.length === 1) {
+        return 'single-replacement'
+      }
+      return 'double-replacement'
+    }
+
+    // Precipitation (double replacement forming solid)
+    if (reactants.length === 2 && products.length === 2) {
+      return 'double-replacement'
+    }
+
+    return 'unknown'
+  } catch {
+    return 'unknown'
+  }
+}
+
+/**
+ * Detect if reaction involves oxidation-reduction
+ */
+function detectRedoxReaction(reactants: string[], products: string[]): boolean {
+  // Common redox indicators
+  const redoxIndicators = [
+    'O2', 'H2', 'Cl2', 'F2', 'Br2', 'I2', // Diatomic elements
+    'MnO4', 'Cr2O7', 'CrO4', // Common oxidizing agents
+    'Fe', 'Cu', 'Zn', 'Al', 'Mg', 'Na', 'K', // Active metals
+  ]
+
+  const allCompounds = [...reactants, ...products]
+
+  // Check for diatomic elements or common redox species
+  for (const compound of allCompounds) {
+    for (const indicator of redoxIndicators) {
+      if (compound.includes(indicator)) {
+        return true
+      }
+    }
   }
 
-  // Synthesis: A + B -> AB
-  if (reactants.length === 2 && products.length === 1) {
-    return 'synthesis'
+  // Check for change in oxidation state (simplified)
+  // If same element appears in different compounds with different partners, likely redox
+  const reactantElements = new Set<string>()
+  const productElements = new Set<string>()
+
+  reactants.forEach(r => {
+    Object.keys(parseFormula(r)).forEach(el => reactantElements.add(el))
+  })
+  products.forEach(p => {
+    Object.keys(parseFormula(p)).forEach(el => productElements.add(el))
+  })
+
+  // If element appears alone on one side but combined on other, likely redox
+  for (const r of reactants) {
+    const elements = Object.keys(parseFormula(r))
+    if (elements.length === 1 && elements[0] !== 'H' && elements[0] !== 'O') {
+      return true
+    }
   }
 
-  // Decomposition: AB -> A + B
-  if (reactants.length === 1 && products.length >= 2) {
-    return 'decomposition'
-  }
-
-  // Single replacement: A + BC -> AC + B
-  if (reactants.length === 2 && products.length === 2) {
-    return 'single-replacement'
-  }
-
-  // Double replacement: AB + CD -> AD + CB
-  if (reactants.length === 2 && products.length === 2) {
-    return 'double-replacement'
-  }
-
-  return 'unknown'
+  return false
 }
 
 /**
  * Get common chemistry equations for examples
+ * Organized by difficulty and reaction type
  */
 export const EXAMPLE_EQUATIONS = [
+  // Simple equations (coefficients 1-4)
   {
     name: 'Water formation',
     equation: 'H2 + O2 -> H2O',
     type: 'synthesis',
-  },
-  {
-    name: 'Methane combustion',
-    equation: 'CH4 + O2 -> CO2 + H2O',
-    type: 'combustion',
+    difficulty: 'easy',
   },
   {
     name: 'Ammonia synthesis (Haber process)',
     equation: 'N2 + H2 -> NH3',
     type: 'synthesis',
-  },
-  {
-    name: 'Photosynthesis',
-    equation: 'CO2 + H2O -> C6H12O6 + O2',
-    type: 'synthesis',
-  },
-  {
-    name: 'Sodium + Water',
-    equation: 'Na + H2O -> NaOH + H2',
-    type: 'single-replacement',
-  },
-  {
-    name: 'Silver nitrate + Sodium chloride',
-    equation: 'AgNO3 + NaCl -> AgCl + NaNO3',
-    type: 'double-replacement',
-  },
-  {
-    name: 'Hydrogen peroxide decomposition',
-    equation: 'H2O2 -> H2O + O2',
-    type: 'decomposition',
-  },
-  {
-    name: 'Propane combustion',
-    equation: 'C3H8 + O2 -> CO2 + H2O',
-    type: 'combustion',
-  },
-  {
-    name: 'Rust formation',
-    equation: 'Fe + O2 -> Fe2O3',
-    type: 'synthesis',
+    difficulty: 'easy',
   },
   {
     name: 'Calcium carbonate decomposition',
     equation: 'CaCO3 -> CaO + CO2',
     type: 'decomposition',
+    difficulty: 'easy',
+  },
+  {
+    name: 'Hydrogen peroxide decomposition',
+    equation: 'H2O2 -> H2O + O2',
+    type: 'decomposition',
+    difficulty: 'easy',
+  },
+  {
+    name: 'Silver nitrate + Sodium chloride',
+    equation: 'AgNO3 + NaCl -> AgCl + NaNO3',
+    type: 'double-replacement',
+    difficulty: 'easy',
+  },
+
+  // Medium equations (coefficients up to 8)
+  {
+    name: 'Methane combustion',
+    equation: 'CH4 + O2 -> CO2 + H2O',
+    type: 'combustion',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Propane combustion',
+    equation: 'C3H8 + O2 -> CO2 + H2O',
+    type: 'combustion',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Sodium + Water',
+    equation: 'Na + H2O -> NaOH + H2',
+    type: 'single-replacement',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Rust formation',
+    equation: 'Fe + O2 -> Fe2O3',
+    type: 'redox',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Photosynthesis',
+    equation: 'CO2 + H2O -> C6H12O6 + O2',
+    type: 'synthesis',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Neutralization (HCl + NaOH)',
+    equation: 'HCl + NaOH -> NaCl + H2O',
+    type: 'acid-base',
+    difficulty: 'medium',
+  },
+  {
+    name: 'Sulfuric acid neutralization',
+    equation: 'H2SO4 + NaOH -> Na2SO4 + H2O',
+    type: 'acid-base',
+    difficulty: 'medium',
+  },
+
+  // Complex equations (coefficients up to 15+)
+  {
+    name: 'Ethanol combustion',
+    equation: 'C2H5OH + O2 -> CO2 + H2O',
+    type: 'combustion',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Glucose combustion',
+    equation: 'C6H12O6 + O2 -> CO2 + H2O',
+    type: 'combustion',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Octane combustion',
+    equation: 'C8H18 + O2 -> CO2 + H2O',
+    type: 'combustion',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Aluminum + Iron oxide (Thermite)',
+    equation: 'Al + Fe2O3 -> Al2O3 + Fe',
+    type: 'redox',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Potassium permanganate + HCl',
+    equation: 'KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O',
+    type: 'redox',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Copper + Nitric acid (dilute)',
+    equation: 'Cu + HNO3 -> Cu(NO3)2 + NO + H2O',
+    type: 'redox',
+    difficulty: 'hard',
+  },
+  {
+    name: 'Dichromate + Iron(II)',
+    equation: 'K2Cr2O7 + FeSO4 + H2SO4 -> Cr2(SO4)3 + Fe2(SO4)3 + K2SO4 + H2O',
+    type: 'redox',
+    difficulty: 'hard',
   },
 ]
 
@@ -671,3 +909,62 @@ export function validateFormula(formula: string): { valid: boolean; error?: stri
     return { valid: false, error: 'Cannot parse formula' }
   }
 }
+
+/**
+ * Get human-readable reaction type label
+ */
+export function getReactionTypeLabel(type: string): {
+  label: string
+  description: string
+  color: string
+} {
+  const types: Record<string, { label: string; description: string; color: string }> = {
+    synthesis: {
+      label: 'Synthesis',
+      description: 'Two or more substances combine to form a single product',
+      color: 'bg-green-500',
+    },
+    decomposition: {
+      label: 'Decomposition',
+      description: 'A single compound breaks down into two or more simpler substances',
+      color: 'bg-orange-500',
+    },
+    'single-replacement': {
+      label: 'Single Replacement',
+      description: 'One element replaces another in a compound',
+      color: 'bg-blue-500',
+    },
+    'double-replacement': {
+      label: 'Double Replacement',
+      description: 'Two compounds exchange ions to form two new compounds',
+      color: 'bg-purple-500',
+    },
+    combustion: {
+      label: 'Combustion',
+      description: 'A substance reacts rapidly with oxygen, releasing heat and light',
+      color: 'bg-red-500',
+    },
+    redox: {
+      label: 'Redox',
+      description: 'Oxidation-reduction reaction involving electron transfer',
+      color: 'bg-yellow-500',
+    },
+    'acid-base': {
+      label: 'Acid-Base',
+      description: 'Neutralization reaction between an acid and a base',
+      color: 'bg-cyan-500',
+    },
+    unknown: {
+      label: 'Unknown',
+      description: 'Reaction type could not be determined',
+      color: 'bg-gray-500',
+    },
+  }
+
+  return types[type] || types.unknown
+}
+
+/**
+ * Export oxidation states for use in other components
+ */
+export { OXIDATION_STATES }

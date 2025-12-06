@@ -209,6 +209,8 @@ export async function GET(request: NextRequest) {
         name: user.name || user.username || user.email?.split('@')[0] || 'User',
         email: user.email,
         subscription_tier: 'free', // Default tier (VerCal ecosystem)
+        // Early Bird: Registration date from AIVerID
+        registered_at: user.registered_at || user.created_at || null,
       },
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,

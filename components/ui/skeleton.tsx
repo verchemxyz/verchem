@@ -199,3 +199,129 @@ export function PresetSelectorSkeleton() {
     </div>
   )
 }
+
+/**
+ * LoadingSpinner - Animated spinner for loading states
+ */
+export function LoadingSpinner({
+  size = 'md',
+  className
+}: {
+  size?: 'sm' | 'md' | 'lg'
+  className?: string
+}) {
+  const sizeClasses = {
+    sm: 'w-4 h-4 border-2',
+    md: 'w-8 h-8 border-3',
+    lg: 'w-12 h-12 border-4',
+  }
+
+  return (
+    <div
+      className={cn(
+        'animate-spin rounded-full border-blue-200 border-t-blue-600',
+        sizeClasses[size],
+        className
+      )}
+      role="status"
+      aria-label="Loading"
+    >
+      <span className="sr-only">Loading...</span>
+    </div>
+  )
+}
+
+/**
+ * PageLoading - Full page loading state
+ */
+export function PageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <div className="text-center">
+        <LoadingSpinner size="lg" />
+        <p className="mt-4 text-slate-400 animate-pulse">Loading...</p>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * EmptyState - Placeholder when no data is available
+ */
+interface EmptyStateProps {
+  icon?: string
+  title: string
+  description: string
+  action?: {
+    label: string
+    onClick: () => void
+  }
+  className?: string
+}
+
+export function EmptyState({
+  icon = '📭',
+  title,
+  description,
+  action,
+  className
+}: EmptyStateProps) {
+  return (
+    <div className={cn('text-center py-12 px-4', className)}>
+      <div className="text-6xl mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">{description}</p>
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/**
+ * ResultSkeleton - Loading state for calculation results
+ */
+export function ResultSkeleton() {
+  return (
+    <div className="space-y-4 p-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <Skeleton className="h-6 w-32" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-8 w-32" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-5/6" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * GraphSkeleton - Loading state for graph/chart
+ */
+export function GraphSkeleton() {
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <Skeleton className="h-6 w-48 mb-4" />
+      <Skeleton className="h-[300px] w-full rounded-lg" />
+      <div className="mt-4 flex gap-4">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+    </div>
+  )
+}

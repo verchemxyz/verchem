@@ -5,30 +5,43 @@ import Link from 'next/link'
 import {
   balanceEquation,
   identifyReactionType,
+  getReactionTypeLabel,
   EXAMPLE_EQUATIONS,
 } from '@/lib/calculations/equation-balancer'
 import type { BalancedEquation } from '@/lib/types/chemistry'
+import { AiTutorExplainButton } from '@/components/ai-tutor'
+import { contextBuilders } from '@/lib/ai-tutor'
 
 export default function EquationBalancerPage() {
   const [equation, setEquation] = useState('')
   const [result, setResult] = useState<BalancedEquation | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isBalancing, setIsBalancing] = useState(false)
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null)
 
   // Balance equation
-  const handleBalance = () => {
+  const handleBalance = async () => {
     setError(null)
     setResult(null)
+    setIsBalancing(true)
 
     if (!equation.trim()) {
       setError('Please enter a chemical equation')
+      setIsBalancing(false)
       return
     }
+
+    // Small delay for UX feedback
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
       const balanced = balanceEquation(equation)
 
       if (!balanced.isBalanced) {
-        setError('Could not balance equation. Please check your input.')
+        setError(
+          'Could not balance equation. This may be a complex redox equation or the equation may be invalid. Please check your input and try again.'
+        )
+        setIsBalancing(false)
         return
       }
 
@@ -36,6 +49,8 @@ export default function EquationBalancerPage() {
     } catch {
       setError('Invalid equation format. Use format: A + B -> C + D')
     }
+
+    setIsBalancing(false)
   }
 
   // Load example
@@ -45,17 +60,23 @@ export default function EquationBalancerPage() {
     setResult(null)
   }
 
-  // Get reaction type label
-  const getReactionTypeLabel = (type: string): string => {
-    const labels: Record<string, string> = {
-      synthesis: 'Synthesis (A + B → AB)',
-      decomposition: 'Decomposition (AB → A + B)',
-      'single-replacement': 'Single Replacement (A + BC → AC + B)',
-      'double-replacement': 'Double Replacement (AB + CD → AD + CB)',
-      combustion: 'Combustion (CₓHᵧ + O₂ → CO₂ + H₂O)',
-      unknown: 'Unknown',
+  // Filter examples by difficulty
+  const filteredExamples = selectedDifficulty
+    ? EXAMPLE_EQUATIONS.filter((ex) => ex.difficulty === selectedDifficulty)
+    : EXAMPLE_EQUATIONS
+
+  // Get difficulty color
+  const getDifficultyColor = (difficulty: string): string => {
+    switch (difficulty) {
+      case 'easy':
+        return 'bg-green-100 text-green-700 border-green-300'
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-300'
+      case 'hard':
+        return 'bg-red-100 text-red-700 border-red-300'
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300'
     }
-    return labels[type] || 'Unknown'
   }
 
   return (
@@ -87,7 +108,7 @@ export default function EquationBalancerPage() {
       <main className="max-w-5xl mx-auto px-4 py-8">
         {/* Title */}
         <div className="text-center mb-12">
-          <div className="badge-premium mb-4">⚗️ Auto-Balance • 10 Examples</div>
+          <div className="badge-premium mb-4">⚗️ Auto-Balance • {EXAMPLE_EQUATIONS.length} Examples • Redox Support</div>
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             <span className="text-premium">Chemical Equation</span>
             <br />
@@ -129,9 +150,17 @@ export default function EquationBalancerPage() {
           {/* Balance Button */}
           <button
             onClick={handleBalance}
-            className="btn-premium glow-premium w-full py-4 text-lg"
+            disabled={isBalancing}
+            className="btn-premium glow-premium w-full py-4 text-lg disabled:opacity-50"
           >
-            ⚗️ Balance Equation
+            {isBalancing ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
+                Balancing...
+              </span>
+            ) : (
+              '⚗️ Balance Equation'
+            )}
           </button>
         </div>
 
@@ -166,6 +195,19 @@ export default function EquationBalancerPage() {
                 <span className="font-mono bg-white/20 px-3 py-1 rounded">
                   [{result.coefficients.join(', ')}]
                 </span>
+              </div>
+
+              {/* AI Explain Button */}
+              <div className="mt-6 pt-4 border-t border-white/20">
+                <AiTutorExplainButton
+                  context={contextBuilders['equation-balancer']({
+                    equation: equation,
+                    balanced: result.balanced,
+                    coefficients: result.coefficients,
+                    reactionType: identifyReactionType(equation),
+                  })}
+                  className="bg-white/20 hover:bg-white/30 border-white/30 text-white"
+                />
               </div>
             </div>
 
@@ -214,19 +256,28 @@ export default function EquationBalancerPage() {
               <h3 className="text-xl font-bold mb-4 text-primary-600">
                 Reaction Type
               </h3>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">🔬</span>
-                </div>
-                <div>
-                  <div className="font-bold text-lg text-foreground">
-                    {identifyReactionType(equation)}
+              {(() => {
+                const reactionType = identifyReactionType(equation)
+                const typeInfo = getReactionTypeLabel(reactionType)
+                return (
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 ${typeInfo.color} rounded-lg flex items-center justify-center shadow-lg`}>
+                      <span className="text-2xl text-white">🔬</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-xl text-foreground">
+                        {typeInfo.label}
+                      </div>
+                      <div className="text-muted-foreground text-sm mt-1">
+                        {typeInfo.description}
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 ${typeInfo.color} rounded-full text-sm font-medium text-white`}>
+                      {reactionType.toUpperCase()}
+                    </span>
                   </div>
-                  <div className="text-muted-foreground">
-                    {getReactionTypeLabel(identifyReactionType(equation))}
-                  </div>
-                </div>
-              </div>
+                )
+              })()}
             </div>
 
             {/* How It Works */}
@@ -272,23 +323,72 @@ export default function EquationBalancerPage() {
 
         {/* Examples */}
         <div className="premium-card p-6">
-          <h3 className="text-xl font-bold mb-4 text-primary-600">
-            Quick Examples
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h3 className="text-xl font-bold text-primary-600">
+              Quick Examples ({filteredExamples.length})
+            </h3>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setSelectedDifficulty(null)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedDifficulty === null
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setSelectedDifficulty('easy')}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedDifficulty === 'easy'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                Easy
+              </button>
+              <button
+                onClick={() => setSelectedDifficulty('medium')}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedDifficulty === 'medium'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                }`}
+              >
+                Medium
+              </button>
+              <button
+                onClick={() => setSelectedDifficulty('hard')}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedDifficulty === 'hard'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                }`}
+              >
+                Hard
+              </button>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {EXAMPLE_EQUATIONS.map((example, index) => (
+            {filteredExamples.map((example, index) => (
               <button
                 key={index}
                 onClick={() => loadExample(example.equation)}
                 className="text-left p-4 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-surface-hover transition-all"
               >
-                <div className="font-semibold text-gray-900 mb-1">
-                  {example.name}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-semibold text-gray-900">
+                    {example.name}
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getDifficultyColor(example.difficulty)}`}>
+                    {example.difficulty}
+                  </span>
                 </div>
-                <div className="text-sm font-mono text-gray-600">
+                <div className="text-sm font-mono text-gray-600 mt-2 break-all">
                   {example.equation}
                 </div>
-                <div className="mt-2">
+                <div className="mt-2 flex gap-2">
                   <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
                     {example.type}
                   </span>
@@ -318,42 +418,81 @@ export default function EquationBalancerPage() {
           <h3 className="text-xl font-bold mb-4 text-primary-600">
             Common Reaction Types
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border-2 border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-surface-hover transition-all">
-              <div className="font-bold text-foreground mb-2">Synthesis</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="border-2 border-green-200 rounded-lg p-4 hover:border-green-400 hover:bg-green-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                <span className="font-bold text-foreground">Synthesis</span>
+              </div>
               <div className="text-sm text-muted-foreground font-mono mb-2">A + B → AB</div>
               <div className="text-xs text-muted-foreground">
                 Two or more substances combine to form one product
               </div>
             </div>
-            <div className="border-2 border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-surface-hover transition-all">
-              <div className="font-bold text-foreground mb-2">Decomposition</div>
+            <div className="border-2 border-orange-200 rounded-lg p-4 hover:border-orange-400 hover:bg-orange-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-orange-500"></span>
+                <span className="font-bold text-foreground">Decomposition</span>
+              </div>
               <div className="text-sm text-muted-foreground font-mono mb-2">AB → A + B</div>
               <div className="text-xs text-muted-foreground">
                 One substance breaks down into two or more products
               </div>
             </div>
-            <div className="border-2 border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-surface-hover transition-all">
-              <div className="font-bold text-foreground mb-2">Single Replacement</div>
+            <div className="border-2 border-blue-200 rounded-lg p-4 hover:border-blue-400 hover:bg-blue-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                <span className="font-bold text-foreground">Single Replacement</span>
+              </div>
               <div className="text-sm text-muted-foreground font-mono mb-2">A + BC → AC + B</div>
               <div className="text-xs text-muted-foreground">
                 One element replaces another in a compound
               </div>
             </div>
-            <div className="border-2 border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-surface-hover transition-all">
-              <div className="font-bold text-foreground mb-2">Double Replacement</div>
+            <div className="border-2 border-purple-200 rounded-lg p-4 hover:border-purple-400 hover:bg-purple-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+                <span className="font-bold text-foreground">Double Replacement</span>
+              </div>
               <div className="text-sm text-muted-foreground font-mono mb-2">AB + CD → AD + CB</div>
               <div className="text-xs text-muted-foreground">
                 Two compounds exchange ions or elements
               </div>
             </div>
-            <div className="border-2 border-primary-100 rounded-lg p-4 hover:border-primary-300 hover:bg-surface-hover transition-all">
-              <div className="font-bold text-foreground mb-2">Combustion</div>
+            <div className="border-2 border-red-200 rounded-lg p-4 hover:border-red-400 hover:bg-red-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                <span className="font-bold text-foreground">Combustion</span>
+              </div>
               <div className="text-sm text-muted-foreground font-mono mb-2">
                 CₓHᵧ + O₂ → CO₂ + H₂O
               </div>
               <div className="text-xs text-muted-foreground">
-                Hydrocarbon reacts with oxygen to produce CO₂ and H₂O
+                Hydrocarbon reacts with oxygen producing heat
+              </div>
+            </div>
+            <div className="border-2 border-yellow-200 rounded-lg p-4 hover:border-yellow-400 hover:bg-yellow-50/50 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
+                <span className="font-bold text-foreground">Redox</span>
+              </div>
+              <div className="text-sm text-muted-foreground font-mono mb-2">
+                Oxidation + Reduction
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Electron transfer between species
+              </div>
+            </div>
+            <div className="border-2 border-cyan-200 rounded-lg p-4 hover:border-cyan-400 hover:bg-cyan-50/50 transition-all md:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-3 h-3 rounded-full bg-cyan-500"></span>
+                <span className="font-bold text-foreground">Acid-Base</span>
+              </div>
+              <div className="text-sm text-muted-foreground font-mono mb-2">
+                HX + MOH → MX + H₂O
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Neutralization forming salt and water
               </div>
             </div>
           </div>
