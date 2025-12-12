@@ -327,6 +327,56 @@ body {
   color-scheme: dark;
 }
 
+/* =========================================
+   WCAG 2.1 AA: Touch Target & Scrollbar
+   ========================================= */
+
+/* Minimum touch target size (44x44px) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Scrollbar utilities */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Firefox scrollbar support */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.dark .scrollbar-thin {
+  scrollbar-color: #475569 transparent;
+}
+
 /* ✨ Micro-interactions & Animations */
 
 @keyframes fadeIn {
@@ -616,20 +666,48 @@ body {
   font-weight: 700;
 }
 
-/* Premium Input Field */
+/* Premium Input Field - WCAG 2.1 AA Compliant */
 .input-premium {
   padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(102, 126, 234, 0.2);
+  min-height: 44px; /* WCAG touch target size */
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(102, 126, 234, 0.3);
   border-radius: 12px;
   font-size: 16px;
+  color: #1e293b; /* High contrast text */
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
 }
 
+/* WCAG 2.1 AA: Placeholder contrast 4.5:1 minimum */
+.input-premium::placeholder {
+  color: #64748b; /* Contrast ratio 4.96:1 on white */
+  opacity: 1;
+}
+
 .dark .input-premium {
-  background: rgba(38, 38, 38, 0.9);
-  border-color: rgba(102, 126, 234, 0.3);
+  background: rgba(38, 38, 38, 0.95);
+  border-color: rgba(102, 126, 234, 0.4);
+  color: #f1f5f9; /* High contrast text in dark mode */
+}
+
+.dark .input-premium::placeholder {
+  color: #94a3b8; /* Contrast ratio 4.68:1 on dark */
+}
+
+/* Disabled state with sufficient contrast */
+.input-premium:disabled {
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #475569; /* Contrast ratio 7.01:1 */
+  cursor: not-allowed;
+  opacity: 1; /* Don't reduce opacity, use color for disabled indication */
+}
+
+.dark .input-premium:disabled {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(71, 85, 105, 0.4);
+  color: #94a3b8; /* Contrast ratio 4.68:1 */
 }
 
 .input-premium:focus {
@@ -639,6 +717,18 @@ body {
     0 4px 12px 0 rgba(102, 126, 234, 0.2),
     0 0 0 4px rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
+}
+
+/* Error state */
+.input-premium[aria-invalid="true"] {
+  border-color: #dc2626;
+}
+
+.input-premium[aria-invalid="true"]:focus {
+  border-color: #dc2626;
+  box-shadow:
+    0 4px 12px 0 rgba(220, 38, 38, 0.2),
+    0 0 0 4px rgba(220, 38, 38, 0.1);
 }
 
 /* Premium Badge */

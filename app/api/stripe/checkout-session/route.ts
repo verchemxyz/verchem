@@ -1,23 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { getServerSession } from "next-auth/next"
+import { cookies } from 'next/headers';
+
+// SECURITY: Allowed origins for redirect URLs (prevent open redirect attacks)
+const ALLOWED_ORIGINS = [
+  'https://verchem.xyz',
+  'https://www.verchem.xyz',
+  'https://verchem.vercel.app',
+];
+
+// Add localhost in development
+if (process.env.NODE_ENV !== 'production') {
+  ALLOWED_ORIGINS.push('http://localhost:3000', 'http://127.0.0.1:3000');
+}
 
 // This is a placeholder. In a real app, you'd fetch this from your database
 // or a more sophisticated pricing configuration.
 const PREMIUM_PLAN_PRICE_ID = 'price_1P6qj3RxH3p0z2nF6Zz2yX7j'; // REPLACE WITH YOUR ACTUAL PRICE ID
 
-export async function POST(req: NextRequest) {
+// Verify session from our cookie-based auth (not next-auth)
+async function verifySession(): Promise<{ email: string } | null> {
   try {
-    const session = await getServerSession();
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('verchem-session');
 
-    if (!session || !session.user?.email) {
+    if (!sessionCookie?.value) {
+      return null;
+    }
+
+    const sessionData = JSON.parse(sessionCookie.value);
+
+    // Check expiry
+    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
+      return null;
+    }
+
+    if (!sessionData.user?.email) {
+      return null;
+    }
+
+    return { email: sessionData.user.email };
+  } catch {
+    return null;
+  }
+}
+
+// Get safe origin for redirects
+function getSafeOrigin(): string {
+  // Always use server-side config, never trust client headers
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (siteUrl && ALLOWED_ORIGINS.includes(siteUrl)) {
+    return siteUrl;
+  }
+
+  // Fallback to primary production URL
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://verchem.xyz';
+  }
+
+  return 'http://localhost:3000';
+}
+
+export async function POST(_req: NextRequest) {
+  try {
+    // Use our session verification instead of next-auth
+    const session = await verifySession();
+
+    if (!session?.email) {
       return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    // SECURITY: Use server-side origin, not client-provided header
+    const origin = getSafeOrigin();
 
     // Create a checkout session in Stripe
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -29,7 +87,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'subscription',
-      customer_email: session.user.email, // Pre-fill the user's email
+      customer_email: session.email, // Pre-fill the user's email
       success_url: `${origin}/account?session_id={CHECKOUT_SESSION_ID}`, // Redirect here on success
       cancel_url: `${origin}/account`, // Redirect here on cancellation
     });

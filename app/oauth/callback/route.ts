@@ -25,9 +25,17 @@ if (!hasSupabaseCredentials && process.env.NODE_ENV !== 'production') {
   console.warn('Supabase admin client not initialized: missing credentials')
 }
 
-// Compute session signature for security
+// Compute session signature using HMAC-SHA256
+// SECURITY: No default secret - SESSION_SECRET is required in production
 async function computeSessionSignature(value: string): Promise<string> {
-  const secret = process.env.SESSION_SECRET || 'verchem-session-secret-2025'
+  const secret = process.env.SESSION_SECRET
+
+  // This should never happen in production due to the check below,
+  // but we throw to be safe
+  if (!secret) {
+    throw new Error('SESSION_SECRET is required for session signing')
+  }
+
   const enc = new TextEncoder()
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
@@ -66,21 +74,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify OAuth state (protect against CSRF)
-    // Note: This is a best-effort check. If cookie is missing (due to SameSite policy
-    // or expiration), we log a warning but don't block the OAuth flow.
-    try {
-      // Next.js 15 cookies() is async
-      const cookieStore = await cookies()
-      const cookieState = cookieStore.get('oauth_state')?.value
-      if (!cookieState) {
-        console.warn('OAuth state cookie missing (may be expired or blocked by SameSite policy)')
-      } else if (cookieState !== state) {
-        console.warn('OAuth state mismatch - possible CSRF attempt or cookie issue')
+    // SECURITY: Strict enforcement - reject on mismatch or missing state
+    const cookieStore = await cookies()
+    const cookieState = cookieStore.get('oauth_state')?.value
+
+    if (!state) {
+      console.error('OAuth state parameter missing from callback URL')
+      return NextResponse.redirect(new URL('/?error=csrf_missing_state', request.url))
+    }
+
+    if (!cookieState) {
+      console.error('OAuth state cookie missing - possible CSRF attack or cookie expired')
+      // In production, be strict. In development, allow with warning for easier testing.
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.redirect(new URL('/?error=csrf_cookie_missing', request.url))
       }
-      // Continue with OAuth flow regardless (graceful degradation)
-    } catch (e) {
-      console.warn('Failed to verify OAuth state:', e)
-      // Continue anyway
+      console.warn('Allowing OAuth without state cookie in development mode')
+    } else if (cookieState !== state) {
+      console.error('OAuth state mismatch - CSRF attack detected!')
+      console.error(`Expected: ${cookieState.substring(0, 10)}..., Got: ${state.substring(0, 10)}...`)
+      return NextResponse.redirect(new URL('/?error=csrf_state_mismatch', request.url))
     }
 
     // Determine redirect URI - must match exactly what was sent in authorize

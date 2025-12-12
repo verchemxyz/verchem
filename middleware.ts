@@ -8,6 +8,11 @@
  * - User MUST be logged in via AIVerID to access any calculator/tool
  * - Early Bird members (registered before cutoff) get discounted pricing when we monetize
  *
+ * Security (Dec 2025 - Fixed by สมหมาย audit):
+ * - Session cookies are now HMAC-SHA256 signed
+ * - Middleware verifies signature before granting access
+ * - SESSION_SECRET is required in production
+ *
  * Public routes (no login required):
  * - / (homepage)
  * - /login, /oauth/* (auth routes)
@@ -24,11 +29,47 @@
  * - /challenge
  * - /compounds, /tutorials, /search
  *
- * Last Updated: 2025-12-03
+ * Last Updated: 2025-12-12
  */
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+// Verify session signature using HMAC-SHA256
+async function verifySessionSignature(value: string, signature: string): Promise<boolean> {
+  try {
+    const secret = process.env.SESSION_SECRET
+
+    // In production, SESSION_SECRET is required
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('SESSION_SECRET is required in production')
+        return false
+      }
+      // In development, allow without secret but log warning
+      console.warn('SESSION_SECRET not set - using insecure fallback for development')
+      return true // Allow in dev for easier testing
+    }
+
+    const enc = new TextEncoder()
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+    const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(value))
+    const bytes = new Uint8Array(sig)
+    let binary = ''
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
+    const expectedSig = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+    return expectedSig === signature
+  } catch (error) {
+    console.error('Session signature verification failed:', error)
+    return false
+  }
+}
 
 // Routes that require authentication
 const PROTECTED_ROUTES = [
@@ -95,7 +136,7 @@ function isPublicRoute(pathname: string): boolean {
   )
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip public routes and static files
@@ -113,18 +154,58 @@ export function middleware(request: NextRequest) {
 
   // Check if route is protected
   if (isProtectedRoute(pathname)) {
-    // Check for session cookie (set during OAuth callback)
+    // Check for session cookie and signature (set during OAuth callback)
     const sessionCookie = request.cookies.get('verchem-session')
-    const authCookie = request.cookies.get('verchem-auth')
+    const signatureCookie = request.cookies.get('verchem-session-sig')
 
-    // If not logged in, redirect to login
-    if (!sessionCookie?.value || !authCookie?.value) {
-      // Store the original URL to redirect back after login
+    // If no session cookie, redirect to login
+    if (!sessionCookie?.value) {
       const loginUrl = new URL('/', request.url)
       loginUrl.searchParams.set('login_required', '1')
       loginUrl.searchParams.set('redirect', pathname)
-
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Verify session signature to prevent cookie forgery
+    if (!signatureCookie?.value) {
+      console.warn('Session cookie without signature - possible forgery attempt')
+      // Clear invalid cookies and redirect
+      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
+      response.cookies.delete('verchem-session')
+      response.cookies.delete('verchem-auth')
+      return response
+    }
+
+    // Verify HMAC signature
+    const isValid = await verifySessionSignature(sessionCookie.value, signatureCookie.value)
+    if (!isValid) {
+      console.warn('Invalid session signature - possible forgery attempt')
+      // Clear invalid cookies and redirect
+      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
+      response.cookies.delete('verchem-session')
+      response.cookies.delete('verchem-session-sig')
+      response.cookies.delete('verchem-auth')
+      return response
+    }
+
+    // Check session expiration
+    try {
+      const sessionData = JSON.parse(sessionCookie.value)
+      if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
+        console.info('Session expired')
+        const response = NextResponse.redirect(new URL('/?error=session_expired', request.url))
+        response.cookies.delete('verchem-session')
+        response.cookies.delete('verchem-session-sig')
+        response.cookies.delete('verchem-auth')
+        return response
+      }
+    } catch {
+      console.warn('Invalid session data format')
+      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
+      response.cookies.delete('verchem-session')
+      response.cookies.delete('verchem-session-sig')
+      response.cookies.delete('verchem-auth')
+      return response
     }
   }
 

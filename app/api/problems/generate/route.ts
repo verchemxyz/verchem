@@ -6,7 +6,11 @@
  * Generates chemistry problems validated by our calculators
  * This is what makes us different from ChatGPT!
  *
- * Last Updated: 2025-12-02
+ * SECURITY (Dec 2025):
+ * - Rate limiting: 20 requests/minute per user
+ * - Input validation with strict bounds
+ *
+ * Last Updated: 2025-12-12
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -17,6 +21,7 @@ import {
   type ProblemCategory,
   type DifficultyLevel,
 } from '@/lib/ai-problems'
+import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Validate request body
 function validateRequest(body: unknown): ProblemGenerationRequest | null {
@@ -56,6 +61,26 @@ function validateRequest(body: unknown): ProblemGenerationRequest | null {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting - SECURITY
+    const clientId = getClientId(request)
+    const rateLimit = checkRateLimit(`problems:${clientId}`, RATE_LIMITS.problemGenerator)
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests',
+          message: `Please wait ${rateLimit.retryAfter} seconds before trying again.`,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfter),
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      )
+    }
+
     const body = await request.json()
     const validatedRequest = validateRequest(body)
 

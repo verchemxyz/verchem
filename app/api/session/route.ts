@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-// Verify session signature
+// Verify session signature using HMAC-SHA256
+// SECURITY: No default secret - SESSION_SECRET is required in production
 async function verifySessionSignature(value: string, signature: string): Promise<boolean> {
   try {
-    const secret = process.env.SESSION_SECRET || 'verchem-session-secret-2025'
+    const secret = process.env.SESSION_SECRET
+
+    // In production, SESSION_SECRET is required
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('CRITICAL: SESSION_SECRET is required in production')
+        return false
+      }
+      // In development without secret, skip verification with warning
+      console.warn('SESSION_SECRET not set - session verification skipped in development')
+      return true
+    }
+
     const enc = new TextEncoder()
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
@@ -19,7 +32,8 @@ async function verifySessionSignature(value: string, signature: string): Promise
     for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
     const expectedSig = btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
     return expectedSig === signature
-  } catch {
+  } catch (error) {
+    console.error('Session signature verification error:', error)
     return false
   }
 }

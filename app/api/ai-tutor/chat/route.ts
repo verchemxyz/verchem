@@ -6,7 +6,12 @@
  * Handles AI tutor conversations with context injection
  * Uses Claude Haiku for cost efficiency, Sonnet for complex topics
  *
- * Last Updated: 2025-12-02
+ * SECURITY (Dec 2025):
+ * - Rate limiting: 10 requests/minute per user
+ * - Session verification with HMAC signature
+ * - Input validation and size limits
+ *
+ * Last Updated: 2025-12-12
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -20,6 +25,7 @@ import {
 } from '@/lib/ai-tutor'
 import type { AiTutorChatRequest, CalculatorContext } from '@/lib/ai-tutor'
 import type { SubscriptionTier } from '@/lib/vercal/types'
+import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit'
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -105,6 +111,29 @@ function selectModel(message: string, context?: CalculatorContext): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. Rate limiting - SECURITY
+    const clientId = getClientId(request)
+    const rateLimit = checkRateLimit(`ai-tutor:${clientId}`, RATE_LIMITS.aiTutor)
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: 'Too many requests',
+          code: 'RATE_LIMIT',
+          retryAfter: rateLimit.retryAfter,
+          message: `Please wait ${rateLimit.retryAfter} seconds before trying again.`,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.retryAfter),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateLimit.resetTime),
+          },
+        }
+      )
+    }
+
     // 1. Check API key
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error('ANTHROPIC_API_KEY not configured')
@@ -117,8 +146,8 @@ export async function POST(request: NextRequest) {
     // 2. Verify authentication
     const session = await verifySession()
 
-    // Allow anonymous users with free tier
-    const userId = session?.userId || `anon-${request.headers.get('x-forwarded-for') || 'unknown'}`
+    // Use verified session ID or rate-limited client ID (not spoofable x-forwarded-for)
+    const userId = session?.userId || clientId
     const tier: SubscriptionTier = session?.tier || 'free'
 
     // 3. Check usage quota

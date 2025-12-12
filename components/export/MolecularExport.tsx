@@ -146,34 +146,63 @@ export const CalculatorExport: React.FC<CalculatorExportProps> = ({
           format: 'pdf'
         });
       } else {
-        // For PNG export, create a results table element
+        // For PNG export, create a results table element using safe DOM methods
+        // SECURITY: Using textContent instead of innerHTML to prevent XSS
         const resultsElement = document.createElement('div');
         resultsElement.className = 'p-6 bg-white dark:bg-gray-800';
-        resultsElement.innerHTML = `
-          <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">${calculatorName} Results</h2>
-          <div class="space-y-3">
-            ${results.map(result => `
-              <div class="border-b border-gray-200 dark:border-gray-700 pb-2">
-                <div class="font-medium text-gray-900 dark:text-gray-100">${result.name}</div>
-                <div class="text-lg text-blue-600 dark:text-blue-400">${result.value} ${result.unit || ''}</div>
-                ${result.formula ? `<div class="text-sm text-gray-600 dark:text-gray-400">Formula: ${result.formula}</div>` : ''}
-              </div>
-            `).join('')}
-          </div>
-          <div class="mt-4 text-xs text-gray-500 dark:text-gray-500">
-            Generated on ${new Date().toLocaleString()}
-          </div>
-        `;
-        
+
+        // Create header
+        const header = document.createElement('h2');
+        header.className = 'text-xl font-bold mb-4 text-gray-900 dark:text-gray-100';
+        header.textContent = `${calculatorName} Results`;
+        resultsElement.appendChild(header);
+
+        // Create results container
+        const resultsContainer = document.createElement('div');
+        resultsContainer.className = 'space-y-3';
+
+        // Add each result safely
+        results.forEach(result => {
+          const resultDiv = document.createElement('div');
+          resultDiv.className = 'border-b border-gray-200 dark:border-gray-700 pb-2';
+
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'font-medium text-gray-900 dark:text-gray-100';
+          nameDiv.textContent = result.name;
+          resultDiv.appendChild(nameDiv);
+
+          const valueDiv = document.createElement('div');
+          valueDiv.className = 'text-lg text-blue-600 dark:text-blue-400';
+          valueDiv.textContent = `${result.value} ${result.unit || ''}`.trim();
+          resultDiv.appendChild(valueDiv);
+
+          if (result.formula) {
+            const formulaDiv = document.createElement('div');
+            formulaDiv.className = 'text-sm text-gray-600 dark:text-gray-400';
+            formulaDiv.textContent = `Formula: ${result.formula}`;
+            resultDiv.appendChild(formulaDiv);
+          }
+
+          resultsContainer.appendChild(resultDiv);
+        });
+
+        resultsElement.appendChild(resultsContainer);
+
+        // Add timestamp
+        const timestampDiv = document.createElement('div');
+        timestampDiv.className = 'mt-4 text-xs text-gray-500 dark:text-gray-500';
+        timestampDiv.textContent = `Generated on ${new Date().toLocaleString()}`;
+        resultsElement.appendChild(timestampDiv);
+
         document.body.appendChild(resultsElement);
-        
+
         await ExportManager.exportElement(resultsElement, {
           format: 'png',
           filename: `${calculatorName}_results`,
           quality: 'high',
           includeTimestamp: true
         });
-        
+
         document.body.removeChild(resultsElement);
       }
     } catch (error) {

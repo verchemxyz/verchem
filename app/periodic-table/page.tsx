@@ -168,12 +168,22 @@ export default function PeriodicTablePage() {
         </div>
 
         {/* Periodic Table Grid */}
-        <div ref={tableContainerRef} className="premium-card p-4 md:p-6 overflow-x-auto">
-          <PeriodicTableGrid
-            onElementClick={setSelectedElement}
-            highlightCategory={highlightCategory}
-            searchQuery={searchQuery}
-          />
+        {/* Mobile-responsive: horizontal scroll with hint indicator */}
+        <div className="relative">
+          {/* Mobile scroll hint */}
+          <div className="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+            <div className="bg-gradient-to-l from-white via-white/80 to-transparent dark:from-gray-900 dark:via-gray-900/80 w-12 h-full absolute right-0" />
+            <span className="text-xs text-muted-foreground bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full animate-pulse">
+              Scroll →
+            </span>
+          </div>
+          <div ref={tableContainerRef} className="premium-card p-4 md:p-6 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+            <PeriodicTableGrid
+              onElementClick={setSelectedElement}
+              highlightCategory={highlightCategory}
+              searchQuery={searchQuery}
+            />
+          </div>
         </div>
 
         {/* Category Stats */}
