@@ -5,7 +5,8 @@ import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { LanguageSelector, TranslatedText } from '@/components/i18n'
 import { GlobalSearchBar } from '@/components/search/GlobalSearchBar'
-import AuthButton from '@/components/AuthButton' // Import AuthButton
+import AuthButton from '@/components/AuthButton'
+import { SupportBanner, SupportHeartButton } from '@/components/support/SupportBanner'
 
 export default function Home() {
   return (
@@ -37,11 +38,12 @@ export default function Home() {
             <Link href="/calculators" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
               <TranslatedText i18nKey="navigation.calculators" />
             </Link>
-            <Link href="#pricing" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              Pricing
+            <Link href="/support" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
+              Support
             </Link>
           </nav>
           <div className="flex items-center gap-4">
+            <SupportHeartButton />
             <AuthButton />
             <LanguageSelector />
             <ThemeToggle />
@@ -612,10 +614,10 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Company</h3>
+              <h3 className="font-bold mb-4">Community</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/about" className="hover:text-primary-600">About Us</Link></li>
-                <li><Link href="#pricing" className="hover:text-primary-600">Pricing</Link></li>
+                <li><Link href="/support" className="hover:text-primary-600">Support Us ♥</Link></li>
+                <li><Link href="/supporters" className="hover:text-primary-600">Our Supporters</Link></li>
                 <li><Link href="/docs" className="hover:text-primary-600">Documentation</Link></li>
                 <li><Link href="/contact" className="hover:text-primary-600">Contact</Link></li>
               </ul>
@@ -639,6 +641,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Support Banner - shows after 30 seconds */}
+      <SupportBanner delay={30000} />
     </div>
   )
 }

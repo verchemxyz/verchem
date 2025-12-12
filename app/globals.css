@@ -389,6 +389,11 @@ body {
   50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
 }
 
+@keyframes slideUp {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
 /* Animation utility classes */
 .animate-fadeIn {
   animation: fadeIn 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -420,6 +425,10 @@ body {
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* 📱 Mobile Text Size Fixes */
