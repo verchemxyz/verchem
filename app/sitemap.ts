@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://verchem.com'
+  const baseUrl = 'https://verchem.xyz'
   const currentDate = new Date()
 
   // Static pages

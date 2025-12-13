@@ -1,0 +1,63 @@
+# VerChem - World-Class Chemistry Platform
+# https://verchem.xyz
+# AI-Friendly Documentation
+
+## About VerChem
+VerChem is a free, world-class chemistry platform providing powerful calculators, interactive tools, and comprehensive chemical data for students, educators, and professionals.
+
+## Key Features
+
+### Chemistry Calculators (8 Tools)
+1. Equation Balancer - Balance chemical equations automatically
+2. Stoichiometry Calculator - Mass, mole, limiting reagent, percent yield calculations
+3. Solutions & pH Calculator - Molarity, dilution, pH, pOH, buffer solutions
+4. Gas Laws Calculator - Ideal gas, combined gas, Van der Waals, Graham's law
+5. Thermodynamics Calculator - Enthalpy, entropy, Gibbs free energy
+6. Chemical Kinetics - Rate laws, half-life, Arrhenius equation
+7. Electrochemistry - Redox reactions, galvanic cells, Nernst equation
+8. Electron Configuration - Orbital diagrams, noble gas notation
+
+### Interactive Tools (5 Tools)
+1. Interactive Periodic Table - All 118 elements with NIST/IUPAC data
+2. 3D Molecular Viewer - Visualize molecular structures
+3. Lewis Structure Generator - Electron dot diagrams
+4. VSEPR Geometry Predictor - Molecular shapes and geometry
+5. Virtual Lab - Titration simulator
+
+### AI-Powered Features
+1. AI Chemistry Tutor - 24/7 personalized tutoring (Claude-powered)
+2. AI Problem Generator - Unlimited practice problems with step-by-step solutions
+
+## Data Quality
+- 118 elements with complete properties (NIST/IUPAC 2021 certified)
+- 50+ common compounds with safety data
+- All calculations validated against scientific standards
+
+## Target Audience
+- High school and university chemistry students
+- Chemistry teachers and professors
+- Chemists and chemical engineers
+- Lab technicians and researchers
+
+## Technical Stack
+- Next.js 15 with TypeScript
+- 100% type-safe, production-grade code
+- WCAG 2.1 AA accessibility compliant
+- Mobile responsive design
+
+## Pricing
+- All features FREE for registered users
+- Donation-supported development
+
+## Contact
+- Website: https://verchem.xyz
+- Email: verchem.xyz@gmail.com
+
+## API Access
+API documentation available for developers at /api/docs
+
+## Last Updated
+December 2025
+
+## License
+Educational and personal use encouraged. Commercial licensing available.
