@@ -62,7 +62,7 @@ export default function Home() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
           </span>
-          🎉 14-Day Free Trial • No Credit Card Required • World-Class Quality
+          🎁 100% Free • No Credit Card • World-Class Quality
         </div>
 
         <h1 className="text-5xl md:text-7xl font-bold mb-6">
@@ -76,13 +76,13 @@ export default function Home() {
         <p className="text-xl md:text-2xl text-secondary-600 max-w-3xl mx-auto mb-12 leading-relaxed">
           Professional calculators, interactive tools, and 118 elements validated against NIST standards.
           <br />
-          <span className="text-primary-600 font-semibold">Trusted by 10,000+ students & professionals.</span>
+          <span className="text-primary-600 font-semibold">Built for students, educators & professionals.</span>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <button className="btn-premium glow-premium px-8 py-4 text-lg">
-            🚀 Start Free Trial
-          </button>
+          <Link href="/periodic-table" className="btn-premium glow-premium px-8 py-4 text-lg">
+            🚀 Get Started Free
+          </Link>
           <Link
             href="/periodic-table"
             className="px-8 py-4 premium-card rounded-xl font-semibold hover:shadow-lg transition-all text-lg inline-flex items-center justify-center gap-2"
@@ -100,19 +100,19 @@ export default function Home() {
             <svg className="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <span className="font-semibold">80% NIST Validated</span>
+            <span className="font-semibold">NIST Validated</span>
           </div>
           <div className="flex items-center gap-2 badge-premium">
             <svg className="w-5 h-5 text-warning" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            <span className="font-semibold">4.9/5.0 Rating</span>
+            <span className="font-semibold">100% Free</span>
           </div>
           <div className="flex items-center gap-2 badge-premium">
             <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
             </svg>
-            <span className="font-semibold">10,000+ Users</span>
+            <span className="font-semibold">Open Source Spirit</span>
           </div>
         </div>
 
@@ -156,7 +156,7 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Complete Elements</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.2s'}}>
-              <div className="text-5xl font-bold mb-2">500+</div>
+              <div className="text-5xl font-bold mb-2">50+</div>
               <div className="text-primary-100 font-medium">Chemical Compounds</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
@@ -164,8 +164,8 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Pro Tools</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
-              <div className="text-5xl font-bold mb-2">80%</div>
-              <div className="text-primary-100 font-medium">NIST Validated</div>
+              <div className="text-5xl font-bold mb-2">100%</div>
+              <div className="text-primary-100 font-medium">Free Forever</div>
             </div>
           </div>
         </div>
@@ -256,74 +256,47 @@ export default function Home() {
 
       <div className="divider-premium max-w-7xl mx-auto px-4"></div>
 
-      {/* Pricing Section - NEW! */}
+      {/* Free Forever + Support Section */}
       <section id="pricing" className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <div className="badge-premium mb-4">💎 Pricing</div>
+          <div className="badge-premium mb-4">🎁 100% Free</div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-premium">Choose Your Plan</span>
+            <span className="text-premium">Free Forever</span>
           </h2>
           <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            Start with 14-day free trial. No credit card required.
+            All features are completely free. No credit card, no trial limits.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Free Trial */}
-          <div className="premium-card p-8 relative">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Free Trial</h3>
-              <div className="text-4xl font-bold mb-2">$0</div>
-              <div className="text-muted-foreground">14 days</div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>All features unlocked</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Save 5 calculations</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Export PDF</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Email support</span>
-              </li>
-            </ul>
-            <button className="w-full px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-all">
-              Start Free Trial
-            </button>
-          </div>
-
-          {/* Student - POPULAR */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Free Forever */}
           <div className="premium-card p-8 relative border-2 border-primary-500 glow-premium">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-              🎓 MOST POPULAR
+              🎁 FOREVER FREE
             </div>
             <div className="text-center mb-6 mt-2">
-              <h3 className="text-2xl font-bold mb-2">Student</h3>
-              <div className="text-4xl font-bold mb-2">$2.99</div>
-              <div className="text-muted-foreground">per month</div>
-              <div className="text-sm text-success font-semibold mt-1">Save 20% annually</div>
+              <h3 className="text-2xl font-bold mb-2">Full Access</h3>
+              <div className="text-5xl font-bold mb-2 text-primary-600">$0</div>
+              <div className="text-muted-foreground">forever</div>
             </div>
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span className="font-semibold">Everything in Free +</span>
+                <span>All 14 calculators & tools</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>118 elements (NIST data)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>AI Chemistry Tutor</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -335,220 +308,117 @@ export default function Home() {
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Save 50 calculations</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Unlimited PDF exports</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Priority email support</span>
+                <span>Export to PDF, PNG, SVG</span>
               </li>
             </ul>
-            <button className="w-full btn-premium">
-              Get Started
-            </button>
+            <Link href="/calculators" className="w-full btn-premium block text-center">
+              Start Using Free
+            </Link>
           </div>
 
-          {/* Professional */}
-          <div className="premium-card p-8 relative">
+          {/* Support Us */}
+          <div className="premium-card p-8 relative bg-gradient-to-br from-pink-50/50 to-red-50/50">
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Professional</h3>
-              <div className="text-4xl font-bold mb-2">$9.99</div>
-              <div className="text-muted-foreground">per month</div>
-              <div className="text-sm text-success font-semibold mt-1">Save 20% annually</div>
+              <h3 className="text-2xl font-bold mb-2">Support Us</h3>
+              <div className="text-5xl mb-2">💚</div>
+              <div className="text-muted-foreground">Help keep VerChem free</div>
             </div>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="font-semibold">Everything in Student +</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Unlimited saves</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Advanced compounds (1,000+)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>API access (coming soon)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Priority support (24h)</span>
-              </li>
-            </ul>
-            <button className="w-full btn-premium">
-              Go Pro
-            </button>
-          </div>
-
-          {/* Team */}
-          <div className="premium-card p-8 relative bg-gradient-to-br from-primary-50/50 to-secondary-50/50">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Team</h3>
-              <div className="text-4xl font-bold mb-2">$49</div>
-              <div className="text-muted-foreground">per month</div>
-              <div className="text-sm text-muted-foreground mt-1">5 users included</div>
+            <p className="text-muted-foreground mb-6 text-center">
+              VerChem is built with love by a small team. Your support helps us maintain servers and develop new features.
+            </p>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <a href="https://buy.stripe.com/4gw9Ege2C1FO6rK5kl" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+                ☕ $3
+              </a>
+              <a href="https://buy.stripe.com/00gbMo4s21FO0Xi7su" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+                🍕 $10
+              </a>
+              <a href="https://buy.stripe.com/6oE4lW8Ii8489DW4gj" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+                🎁 $25
+              </a>
+              <a href="https://buy.stripe.com/14k4lWg6K5W06rKbIN" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-400 text-pink-700 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center bg-pink-50">
+                💎 $50
+              </a>
             </div>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="font-semibold">Everything in Pro +</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Team collaboration</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Admin dashboard</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Usage analytics</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Dedicated support</span>
-              </li>
-            </ul>
-            <button className="w-full px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-all">
-              Contact Sales
-            </button>
+            <Link href="/support" className="w-full px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-all block text-center">
+              Learn More
+            </Link>
           </div>
         </div>
 
         <div className="text-center mt-12">
-          <p className="text-muted-foreground mb-4">
-            💳 All plans include 14-day free trial • Cancel anytime • Money-back guarantee
+          <p className="text-muted-foreground">
+            💚 Supported by donations from the chemistry community
           </p>
         </div>
       </section>
 
       <div className="divider-premium max-w-7xl mx-auto px-4"></div>
 
-      {/* Social Proof Section - NEW! */}
+      {/* Why VerChem Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <div className="badge-premium mb-4">⭐ Testimonials</div>
+          <div className="badge-premium mb-4">✨ Why VerChem</div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-premium">Loved by Students & Professionals</span>
+            <span className="text-premium">Built for Learning</span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="premium-card p-6">
-            <div className="flex gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-5 h-5 text-warning" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <p className="text-muted-foreground mb-4">
-              &ldquo;VerChem saved me countless hours on stoichiometry homework. The step-by-step solutions are incredible!&rdquo;
+            <h3 className="text-xl font-bold mb-2">NIST Validated Data</h3>
+            <p className="text-muted-foreground">
+              All 118 elements with properties sourced from NIST and IUPAC standards. Accurate data you can trust.
             </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
-                S
-              </div>
-              <div>
-                <div className="font-semibold">Sarah Chen</div>
-                <div className="text-sm text-muted-foreground">Chemistry Student, MIT</div>
-              </div>
-            </div>
           </div>
 
           <div className="premium-card p-6">
-            <div className="flex gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-5 h-5 text-warning" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+            <div className="w-12 h-12 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
             </div>
-            <p className="text-muted-foreground mb-4">
-              &ldquo;As a chemistry teacher, VerChem is my go-to tool for demonstrations. NIST validation gives me confidence.&rdquo;
+            <h3 className="text-xl font-bold mb-2">Step-by-Step Solutions</h3>
+            <p className="text-muted-foreground">
+              Every calculation shows the work. Learn the process, not just the answer. Perfect for students.
             </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
-                M
-              </div>
-              <div>
-                <div className="font-semibold">Dr. Michael Rodriguez</div>
-                <div className="text-sm text-muted-foreground">High School Teacher, CA</div>
-              </div>
-            </div>
           </div>
 
           <div className="premium-card p-6">
-            <div className="flex gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-5 h-5 text-warning" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
             </div>
-            <p className="text-muted-foreground mb-4">
-              &ldquo;The molecule builder is revolutionary! My students are finally excited about chemistry.&rdquo;
+            <h3 className="text-xl font-bold mb-2">Free Forever</h3>
+            <p className="text-muted-foreground">
+              No paywalls, no trials. Full access to all tools. Supported by donations from the community.
             </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
-                E
-              </div>
-              <div>
-                <div className="font-semibold">Emma Thompson</div>
-                <div className="text-sm text-muted-foreground">Professor, Oxford</div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Trust Badges */}
+        {/* Real Stats */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">80%</div>
-            <div className="text-sm text-muted-foreground">NIST Validated</div>
+            <div className="text-3xl font-bold text-primary-600 mb-2">118</div>
+            <div className="text-sm text-muted-foreground">Elements</div>
           </div>
           <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">10K+</div>
-            <div className="text-sm text-muted-foreground">Active Users</div>
+            <div className="text-3xl font-bold text-primary-600 mb-2">14</div>
+            <div className="text-sm text-muted-foreground">Pro Tools</div>
           </div>
           <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">4.9/5</div>
-            <div className="text-sm text-muted-foreground">User Rating</div>
+            <div className="text-3xl font-bold text-primary-600 mb-2">50+</div>
+            <div className="text-sm text-muted-foreground">Compounds</div>
           </div>
           <div className="premium-card p-6 text-center">
             <div className="text-3xl font-bold text-primary-600 mb-2">100%</div>
-            <div className="text-sm text-muted-foreground">Satisfaction</div>
+            <div className="text-sm text-muted-foreground">Free</div>
           </div>
         </div>
       </section>
@@ -566,12 +436,12 @@ export default function Home() {
           </span>
         </h2>
         <p className="text-xl text-secondary-600 mb-12 max-w-2xl mx-auto">
-          Join 10,000+ students and professionals using VerChem every day.
+          All tools, all features, completely free. Start learning chemistry today.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="btn-premium glow-premium px-10 py-4 text-lg">
-            🚀 Start Free Trial - No Credit Card Required
-          </button>
+          <Link href="/calculators" className="btn-premium glow-premium px-10 py-4 text-lg">
+            🚀 Get Started Free
+          </Link>
           <Link
             href="/calculators"
             className="px-10 py-4 premium-card rounded-xl font-semibold hover:shadow-lg transition-all text-lg inline-flex items-center justify-center gap-2"
@@ -596,10 +466,10 @@ export default function Home() {
                 <span className="font-bold text-lg">VerChem</span>
               </div>
               <p className="text-muted-foreground text-sm mb-4">
-                World-class chemistry platform trusted by 10,000+ users worldwide.
+                Free chemistry platform with NIST-validated data. Built for students and educators.
               </p>
               <div className="badge-premium">
-                💎 80% NIST Validated
+                🎁 100% Free Forever
               </div>
             </div>
 
