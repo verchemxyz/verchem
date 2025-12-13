@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
@@ -33,25 +33,82 @@ function LoginRequiredModalInner() {
   const [isOpen, setIsOpen] = useState(false)
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
 
+  // ACCESSIBILITY: Focus trap refs (Dec 2025 - 4-AI Audit)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const previousActiveElement = useRef<HTMLElement | null>(null)
+
+  // Check login required from URL params
+  const loginRequired = searchParams.get('login_required')
+  const redirect = searchParams.get('redirect')
+
   useEffect(() => {
-    // Check if login is required (set by middleware)
-    const loginRequired = searchParams.get('login_required')
-    const redirect = searchParams.get('redirect')
-
-    if (loginRequired === '1') {
-      setIsOpen(true)
-      setRedirectPath(redirect)
+    if (loginRequired === '1' && !isOpen) {
+      // Defer setState to avoid synchronous setState in effect
+      const id = setTimeout(() => {
+        setIsOpen(true)
+        setRedirectPath(redirect)
+      }, 0)
+      return () => clearTimeout(id)
     }
-  }, [searchParams])
+  }, [loginRequired, redirect, isOpen])
 
-  const handleClose = () => {
+  // Close handler - defined BEFORE useEffect that uses it
+  const handleClose = useCallback(() => {
     setIsOpen(false)
     // Remove query params from URL without reload
     const url = new URL(window.location.href)
     url.searchParams.delete('login_required')
     url.searchParams.delete('redirect')
     window.history.replaceState({}, '', url.pathname)
-  }
+  }, [])
+
+  // ACCESSIBILITY: Focus trap implementation
+  useEffect(() => {
+    if (isOpen) {
+      // Save currently focused element
+      previousActiveElement.current = document.activeElement as HTMLElement
+      // Focus the close button when modal opens
+      closeButtonRef.current?.focus()
+
+      // Trap focus inside modal
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleClose()
+          return
+        }
+
+        if (e.key !== 'Tab') return
+
+        const modal = modalRef.current
+        if (!modal) return
+
+        const focusableElements = modal.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        const firstElement = focusableElements[0]
+        const lastElement = focusableElements[focusableElements.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement?.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement?.focus()
+          }
+        }
+      }
+
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    } else {
+      // Restore focus when modal closes
+      previousActiveElement.current?.focus()
+    }
+  }, [isOpen, handleClose])
 
   if (!isOpen) return null
 
@@ -63,11 +120,19 @@ function LoginRequiredModalInner() {
         onClick={handleClose}
       />
 
-      {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-300">
+      {/* Modal - ACCESSIBILITY: role="dialog" + aria attributes */}
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-modal-title"
+        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-300"
+      >
         {/* Close button */}
         <button
+          ref={closeButtonRef}
           onClick={handleClose}
+          aria-label="Close dialog"
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +147,7 @@ function LoginRequiredModalInner() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 id="login-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Sign in to Continue
           </h2>
           <p className="text-gray-600 dark:text-gray-400">

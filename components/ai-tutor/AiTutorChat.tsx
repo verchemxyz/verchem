@@ -116,10 +116,10 @@ export function AiTutorChat() {
           <div className="flex h-full flex-col items-center justify-center text-center text-gray-500">
             <Sparkles className="mb-3 h-12 w-12 text-purple-400" />
             <h4 className="mb-1 font-medium text-gray-700 dark:text-gray-300">
-              Hi! I'm your AI Chemistry Tutor
+              Hi! I&apos;m your AI Chemistry Tutor
             </h4>
             <p className="max-w-xs text-sm">
-              Ask me anything about chemistry - I'll help you understand concepts
+              Ask me anything about chemistry - I&apos;ll help you understand concepts
               and solve problems step by step.
             </p>
             <div className="mt-4 grid gap-2">

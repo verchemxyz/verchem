@@ -1,20 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import MoleculeEditor from '@/components/molecule-builder/MoleculeEditor'
 import Toolbar from '@/components/molecule-builder/Toolbar'
-import { 
-  BuilderAtom, 
-  BuilderBond, 
-  validateMolecule, 
+import {
+  BuilderAtom,
+  BuilderBond,
+  validateMolecule,
   ValidationResult,
-  checkOctetRule,
   recognizeMolecule
 } from '@/lib/utils/molecule-builder'
-import { 
-  getAllowedBondTypes, 
-  isBondTypeAllowed, 
-  getMaxBondOrder 
+import {
+  isBondTypeAllowed,
+  getMaxBondOrder
 } from '@/lib/utils/bond-restrictions'
 import { hapticAtomAdd, hapticBondCreate, hapticError, hapticSuccess } from '@/lib/utils/haptics'
 
@@ -31,22 +29,34 @@ export default function MoleculeBuilderPage() {
   const [isShaking, setIsShaking] = useState(false)
   const [blinkingAtoms, setBlinkingAtoms] = useState<number[]>([])
 
-  // Validation Effect
-  useEffect(() => {
-    const result = validateMolecule(atoms, bonds)
-    setValidation(result)
-    
-    const name = recognizeMolecule(atoms, bonds)
-    setMoleculeName(name)
+  // Validation - computed values, use useMemo instead of useEffect
+  const validationResult = useMemo(() => {
+    return validateMolecule(atoms, bonds)
+  }, [atoms, bonds])
 
-    // Check for unstable atoms to blink
-    const unstableIds = result.atomStability
+  const computedMoleculeName = useMemo(() => {
+    return recognizeMolecule(atoms, bonds)
+  }, [atoms, bonds])
+
+  const unstableAtomIds = useMemo(() => {
+    return validationResult.atomStability
       .filter(s => !s.isStable)
       .map((_, i) => atoms[i]?.id)
       .filter(id => id !== undefined)
-    
-    setBlinkingAtoms(unstableIds)
-  }, [atoms, bonds])
+  }, [validationResult, atoms])
+
+  // Sync computed values to state (for external usage)
+  useEffect(() => {
+    setValidation(validationResult)
+  }, [validationResult])
+
+  useEffect(() => {
+    setMoleculeName(computedMoleculeName)
+  }, [computedMoleculeName])
+
+  useEffect(() => {
+    setBlinkingAtoms(unstableAtomIds)
+  }, [unstableAtomIds])
 
   // Handlers
   const handleAddAtom = useCallback((x: number, y: number) => {

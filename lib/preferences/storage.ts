@@ -3,10 +3,21 @@ import { CURRENT_VERSION } from './defaults';
 import { migratePreferences } from './migrations';
 
 const STORAGE_KEY = 'verchem-preferences';
-// NOTE: This key is used only for lightweight obfuscation in localStorage.
-// It does NOT provide strong cryptographic security and should not be used
-// for secrets or highly sensitive data.
-const OBFUSCATION_KEY = 'verchem-preferences-obfuscation-key';
+
+/**
+ * SECURITY NOTE (Dec 2025 - 4-AI Audit):
+ *
+ * This storage uses Base64 encoding (NOT encryption) for localStorage data.
+ * XOR obfuscation was removed because:
+ * 1. XOR with known key provides NO real security
+ * 2. localStorage data is user preferences (not secrets)
+ * 3. Base64 is sufficient for preventing casual inspection
+ *
+ * For sensitive data, use:
+ * - Server-side storage with proper encryption
+ * - Signed cookies (like verchem-session)
+ * - Never store secrets in localStorage
+ */
 
 class ObfuscatedStorage implements PreferencesStorage {
   private storage: Storage | null;
@@ -18,27 +29,32 @@ class ObfuscatedStorage implements PreferencesStorage {
     this.encryptionEnabled = encryptionEnabled;
   }
 
-  private encrypt(data: string): string {
+  private encode(data: string): string {
     if (!this.encryptionEnabled) return data;
-    
-    // Simple XOR + Base64 obfuscation. This is NOT real encryption
-    // and only protects against casual inspection of localStorage.
-    const key = OBFUSCATION_KEY;
-    let encrypted = '';
-    for (let i = 0; i < data.length; i++) {
-      encrypted += String.fromCharCode(
-        data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-      );
+    // Use Base64 encoding - sufficient for user preferences
+    // NOT encryption, just encoding to prevent casual inspection
+    try {
+      return btoa(encodeURIComponent(data));
+    } catch {
+      return data;
     }
-    return btoa(encrypted); // Base64 encode
   }
 
-  private decrypt(data: string): string {
+  private decode(data: string): string {
     if (!this.encryptionEnabled) return data;
-    
     try {
-      const decoded = atob(data); // Base64 decode
-      const key = OBFUSCATION_KEY;
+      return decodeURIComponent(atob(data));
+    } catch {
+      // Fallback: try old XOR format for migration
+      return this.decodeLegacy(data);
+    }
+  }
+
+  // Migration helper for old XOR-encoded data
+  private decodeLegacy(data: string): string {
+    try {
+      const decoded = atob(data);
+      const key = 'verchem-preferences-obfuscation-key';
       let decrypted = '';
       for (let i = 0; i < decoded.length; i++) {
         decrypted += String.fromCharCode(
@@ -47,8 +63,17 @@ class ObfuscatedStorage implements PreferencesStorage {
       }
       return decrypted;
     } catch {
-      return data; // Return as-is if decryption fails
+      return data;
     }
+  }
+
+  // Legacy method names for compatibility
+  private encrypt(data: string): string {
+    return this.encode(data);
+  }
+
+  private decrypt(data: string): string {
+    return this.decode(data);
   }
 
   getPreferences(): UserPreferences | null {

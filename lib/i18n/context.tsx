@@ -26,17 +26,23 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, defaultLocale = 'en' }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
-  const [translations, setTranslations] = useState<Translations>(getTranslation(defaultLocale))
-
-  // Load saved locale from localStorage
-  useEffect(() => {
+  // Initialize with saved locale (lazy initialization to avoid useEffect setState)
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return defaultLocale
     const savedLocale = localStorage.getItem('verchem-locale') as Locale | null
     if (savedLocale && (savedLocale === 'en' || savedLocale === 'th')) {
-      setLocaleState(savedLocale)
-      setTranslations(getTranslation(savedLocale))
+      return savedLocale
     }
-  }, [])
+    return defaultLocale
+  })
+  const [translations, setTranslations] = useState<Translations>(() => {
+    if (typeof window === 'undefined') return getTranslation(defaultLocale)
+    const savedLocale = localStorage.getItem('verchem-locale') as Locale | null
+    if (savedLocale && (savedLocale === 'en' || savedLocale === 'th')) {
+      return getTranslation(savedLocale)
+    }
+    return getTranslation(defaultLocale)
+  })
 
   // Save locale to localStorage
   const setLocale = (newLocale: Locale) => {

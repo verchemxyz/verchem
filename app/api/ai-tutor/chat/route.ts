@@ -32,6 +32,10 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+// SECURITY: Message length limits (Dec 2025 - 4-AI Audit)
+const MAX_MESSAGE_LENGTH = 4000 // Prevent token abuse
+const MAX_CONVERSATION_HISTORY = 6 // Already limited in code
+
 // Session verification helper
 async function verifySession(): Promise<{
   userId: string
@@ -177,6 +181,19 @@ export async function POST(request: NextRequest) {
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
         { error: 'Message is required', code: 'INVALID_REQUEST' },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY: Validate message length
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json(
+        {
+          error: 'Message too long',
+          code: 'INVALID_REQUEST',
+          maxLength: MAX_MESSAGE_LENGTH,
+          message: `Message exceeds ${MAX_MESSAGE_LENGTH} characters. Please shorten your question.`,
+        },
         { status: 400 }
       )
     }

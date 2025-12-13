@@ -34,11 +34,19 @@ const OXIDATION_STATES: Record<string, number[]> = {
   P: [-3, 3, 5],
 }
 
+// SECURITY: Max input length to prevent ReDoS attacks (Dec 2025 - 4-AI Audit)
+const MAX_FORMULA_LENGTH = 500
+
 /**
  * Parse chemical formula to extract element counts
  * Examples: "H2O" -> {H: 2, O: 1}, "Ca(OH)2" -> {Ca: 1, O: 2, H: 2}
  */
 function parseFormula(formula: string): Record<string, number> {
+  // SECURITY: Limit input size to prevent ReDoS
+  if (formula.length > MAX_FORMULA_LENGTH) {
+    throw new Error(`Formula too long (max ${MAX_FORMULA_LENGTH} characters)`)
+  }
+
   const elements: Record<string, number> = {}
 
   // Remove states (s), (l), (g), (aq)

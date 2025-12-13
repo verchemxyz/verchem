@@ -26,19 +26,20 @@ export function SupportBanner({
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  useEffect(() => {
-    // Check if already dismissed this session
+  // Check initial state synchronously during render
+  const [initialDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
     const dismissed = sessionStorage.getItem('verchem-support-dismissed');
-    if (dismissed) {
-      setIsDismissed(true);
-      return;
-    }
-
-    // Check if user has already supported (from localStorage)
     const supported = localStorage.getItem('verchem-supporter');
-    if (supported) {
-      setIsDismissed(true);
-      return;
+    return !!(dismissed || supported);
+  });
+
+  useEffect(() => {
+    // Skip if already dismissed
+    if (initialDismissed) {
+      // Use setTimeout to defer setState
+      const id = setTimeout(() => setIsDismissed(true), 0);
+      return () => clearTimeout(id);
     }
 
     // Show after delay
@@ -47,7 +48,7 @@ export function SupportBanner({
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [delay]);
+  }, [delay, initialDismissed]);
 
   const handleDismiss = () => {
     setIsVisible(false);
@@ -159,11 +160,13 @@ export function SupportHeartButton() {
  * Shows randomly (not every time)
  */
 export function CalculatorThankYou() {
-  const [show, setShow] = useState(false);
+  // Initialize state lazily to avoid useEffect setState
+  const [show] = useState(() => {
+    if (typeof window === 'undefined') return false;
 
-  useEffect(() => {
     // Only show 20% of the time
     const shouldShow = Math.random() < 0.2;
+    if (!shouldShow) return false;
 
     // Check if shown recently
     const lastShown = localStorage.getItem('verchem-thankyou-shown');
@@ -171,11 +174,12 @@ export function CalculatorThankYou() {
       ? (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60)
       : 999;
 
-    if (shouldShow && hoursSinceShown > 24) {
-      setShow(true);
+    if (hoursSinceShown > 24) {
       localStorage.setItem('verchem-thankyou-shown', Date.now().toString());
+      return true;
     }
-  }, []);
+    return false;
+  });
 
   if (!show) return null;
 

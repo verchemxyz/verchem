@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Search, Calculator, Beaker, Book, Clock, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -103,6 +103,11 @@ export function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [recentSearches] = useState(['H2O', 'pH calculator', 'Gold']);
 
+  // ACCESSIBILITY: Focus trap refs (Dec 2025 - 4-AI Audit)
+  const modalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
   // Search results
   const results = useMemo(() => {
     if (!query.trim()) return [];
@@ -161,7 +166,13 @@ export function GlobalSearch() {
     return allResults.slice(0, 10); // Limit to 10 results
   }, [query]);
 
-  // Keyboard shortcut (Cmd/Ctrl + K)
+  // Close handler
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    setQuery('');
+  }, []);
+
+  // Keyboard shortcut (Cmd/Ctrl + K) + Focus trap
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -169,13 +180,55 @@ export function GlobalSearch() {
         setIsOpen(true);
       }
       if (e.key === 'Escape') {
-        setIsOpen(false);
+        handleClose();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleClose]);
+
+  // ACCESSIBILITY: Focus management (Dec 2025 - 4-AI Audit)
+  useEffect(() => {
+    if (isOpen) {
+      // Save currently focused element
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      // Focus the input when modal opens
+      setTimeout(() => inputRef.current?.focus(), 0);
+
+      // Trap focus inside modal
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+
+        const modal = modalRef.current;
+        if (!modal) return;
+
+        const focusableElements = modal.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement?.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement?.focus();
+          }
+        }
+      };
+
+      document.addEventListener('keydown', handleTabKey);
+      return () => document.removeEventListener('keydown', handleTabKey);
+    } else {
+      // Restore focus when modal closes
+      previousActiveElement.current?.focus();
+    }
+  }, [isOpen]);
 
   const handleResultClick = (url: string) => {
     router.push(url);
@@ -199,27 +252,35 @@ export function GlobalSearch() {
         </kbd>
       </button>
 
-      {/* Search modal */}
+      {/* Search modal - ACCESSIBILITY: role="dialog" + aria attributes */}
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
+          onClick={handleClose}
         >
           <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="search-modal-title"
             className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search input */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <label id="search-modal-title" className="sr-only">
+                Search calculators, elements, and compounds
+              </label>
               <div className="flex items-center gap-3">
-                <Search className="w-6 h-6 text-gray-400" />
+                <Search className="w-6 h-6 text-gray-400" aria-hidden="true" />
                 <input
+                  ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search calculators, elements, compounds..."
                   className="flex-1 text-lg bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                  autoFocus
+                  aria-labelledby="search-modal-title"
                 />
               </div>
             </div>

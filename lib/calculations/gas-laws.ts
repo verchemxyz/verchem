@@ -4,6 +4,35 @@
 // Import CODATA 2018 precise constants
 import { GAS_CONSTANT } from '@/lib/constants/physical-constants'
 
+// SECURITY: Physical limits to prevent unrealistic calculations (Dec 2025 - 4-AI Audit)
+const PHYSICAL_LIMITS = {
+  // Temperature: 0K to 10^8 K (stellar interiors)
+  MIN_TEMPERATURE: 0.001, // Just above absolute zero
+  MAX_TEMPERATURE: 1e8, // Stellar temperatures
+  // Pressure: vacuum to neutron star surface
+  MIN_PRESSURE: 1e-15, // Near perfect vacuum
+  MAX_PRESSURE: 1e15, // Neutron star surface
+  // Volume: atomic to astronomical
+  MIN_VOLUME: 1e-30, // Subatomic
+  MAX_VOLUME: 1e30, // Astronomical
+  // Moles: single molecules to massive amounts
+  MIN_MOLES: 1e-24, // Single molecule
+  MAX_MOLES: 1e15, // Industrial scale
+}
+
+/**
+ * Validate gas law inputs are within physical limits
+ */
+function validateGasInput(name: string, value: number | undefined, min: number, max: number): void {
+  if (value === undefined) return
+  if (!Number.isFinite(value)) {
+    throw new Error(`${name} must be a finite number`)
+  }
+  if (value < min || value > max) {
+    throw new Error(`${name} (${value}) is outside physical limits [${min}, ${max}]`)
+  }
+}
+
 /**
  * Convert temperature units
  */
@@ -81,21 +110,35 @@ export function idealGasLaw(input: IdealGasInput): IdealGasResult {
   const R = input.R || GAS_CONSTANT.atm
   const { P, V, n, T } = input
 
+  // SECURITY: Validate inputs are within physical limits
+  validateGasInput('Pressure', P, PHYSICAL_LIMITS.MIN_PRESSURE, PHYSICAL_LIMITS.MAX_PRESSURE)
+  validateGasInput('Volume', V, PHYSICAL_LIMITS.MIN_VOLUME, PHYSICAL_LIMITS.MAX_VOLUME)
+  validateGasInput('Moles', n, PHYSICAL_LIMITS.MIN_MOLES, PHYSICAL_LIMITS.MAX_MOLES)
+  validateGasInput('Temperature', T, PHYSICAL_LIMITS.MIN_TEMPERATURE, PHYSICAL_LIMITS.MAX_TEMPERATURE)
+
   // Solve for missing variable
   if (P === undefined && V !== undefined && n !== undefined && T !== undefined) {
-    return { P: (n * R * T) / V, V, n, T, R }
+    const result = (n * R * T) / V
+    validateGasInput('Calculated Pressure', result, PHYSICAL_LIMITS.MIN_PRESSURE, PHYSICAL_LIMITS.MAX_PRESSURE)
+    return { P: result, V, n, T, R }
   }
 
   if (P !== undefined && V === undefined && n !== undefined && T !== undefined) {
-    return { P, V: (n * R * T) / P, n, T, R }
+    const result = (n * R * T) / P
+    validateGasInput('Calculated Volume', result, PHYSICAL_LIMITS.MIN_VOLUME, PHYSICAL_LIMITS.MAX_VOLUME)
+    return { P, V: result, n, T, R }
   }
 
   if (P !== undefined && V !== undefined && n === undefined && T !== undefined) {
-    return { P, V, n: (P * V) / (R * T), T, R }
+    const result = (P * V) / (R * T)
+    validateGasInput('Calculated Moles', result, PHYSICAL_LIMITS.MIN_MOLES, PHYSICAL_LIMITS.MAX_MOLES)
+    return { P, V, n: result, T, R }
   }
 
   if (P !== undefined && V !== undefined && n !== undefined && T === undefined) {
-    return { P, V, n, T: (P * V) / (n * R), R }
+    const result = (P * V) / (n * R)
+    validateGasInput('Calculated Temperature', result, PHYSICAL_LIMITS.MIN_TEMPERATURE, PHYSICAL_LIMITS.MAX_TEMPERATURE)
+    return { P, V, n, T: result, R }
   }
 
   throw new Error('Need exactly 3 of 4 parameters (P, V, n, T)')

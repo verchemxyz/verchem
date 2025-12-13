@@ -5,11 +5,19 @@
  *
  * Validates user answers using our calculators
  *
- * Last Updated: 2025-12-02
+ * SECURITY (Dec 2025 - 4-AI Audit):
+ * - Rate limiting to prevent abuse
+ * - Input size limits to prevent DoS
+ *
+ * Last Updated: 2025-12-12
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { validateAnswer, type GeneratedProblem } from '@/lib/ai-problems'
+import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit'
+
+// Maximum request body size (prevent DoS)
+const MAX_BODY_SIZE = 10 * 1024 // 10KB
 
 interface ValidateRequest {
   problem: GeneratedProblem
@@ -20,6 +28,29 @@ interface ValidateRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientId = getClientId(request)
+    const rateLimit = checkRateLimit(`validate:${clientId}`, RATE_LIMITS.problemValidator)
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'Too many requests', retryAfter: rateLimit.retryAfter },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateLimit.retryAfter) }
+        }
+      )
+    }
+
+    // Check content length to prevent DoS
+    const contentLength = request.headers.get('content-length')
+    if (contentLength && parseInt(contentLength) > MAX_BODY_SIZE) {
+      return NextResponse.json(
+        { error: 'Request too large', maxSize: MAX_BODY_SIZE },
+        { status: 413 }
+      )
+    }
+
     const body: ValidateRequest = await request.json()
 
     if (!body.problem || typeof body.userAnswer !== 'number') {

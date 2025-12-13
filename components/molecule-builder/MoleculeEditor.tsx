@@ -113,6 +113,20 @@ export default function MoleculeEditor({
     }
   }, [])
 
+  // Helper to darken colors for 3D effect
+  const adjustColor = useCallback((color: string, amount: number) => {
+    return '#' + color.replace(/^#/, '').replace(/../g, c => ('0' + Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
+  }, []);
+
+  // Helper for text contrast
+  const getContrastColor = useCallback((hexColor: string) => {
+    const r = parseInt(hexColor.substr(1, 2), 16);
+    const g = parseInt(hexColor.substr(3, 2), 16);
+    const b = parseInt(hexColor.substr(5, 2), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#ffffff';
+  }, []);
+
   // Render function
   const render = useCallback(() => {
     const canvas = canvasRef.current
@@ -312,20 +326,6 @@ export default function MoleculeEditor({
 
     ctx.restore()
   }, [atoms, bonds, blinkingAtoms, hoveredAtom, connectionLine, isShaking, validation, selectedAtomIds, selectedBondIds, canvasScale, showGrid])
-
-  // Helper to darken colors for 3D effect
-  function adjustColor(color: string, amount: number) {
-    return '#' + color.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
-  }
-
-  // Helper for text contrast
-  function getContrastColor(hexColor: string) {
-    const r = parseInt(hexColor.substr(1, 2), 16);
-    const g = parseInt(hexColor.substr(3, 2), 16);
-    const b = parseInt(hexColor.substr(5, 2), 16);
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 128) ? '#000000' : '#ffffff';
-  }
 
   // Animation loop
   useEffect(() => {

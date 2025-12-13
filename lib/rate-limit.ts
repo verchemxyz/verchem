@@ -4,6 +4,18 @@
  * Simple in-memory rate limiting for API protection
  * SECURITY: Prevents brute-force and DoS attacks
  *
+ * NOTE (Dec 2025 - 4-AI Audit):
+ * Current implementation is in-memory (resets on server restart).
+ * For production at scale, consider:
+ * - Redis (Upstash) for distributed rate limiting
+ * - Vercel Edge Config for edge-level limits
+ * - Cloudflare WAF for enterprise protection
+ *
+ * Current in-memory approach is sufficient for:
+ * - Single instance deployments
+ * - Vercel serverless (per-instance limiting)
+ * - MVP/early stage products
+ *
  * Last Updated: 2025-12-12
  */
 
@@ -84,22 +96,49 @@ export function checkRateLimit(
 
 /**
  * Get client identifier from request
- * Uses X-Forwarded-For with fallback to IP
+ *
+ * SECURITY (Dec 2025 - 4-AI Audit):
+ * - Prioritize Vercel's trusted headers (X-Real-IP, X-Forwarded-For)
+ * - Vercel sets these from actual client IP, not spoofable
+ * - Fallback to fingerprint for anonymous users
  */
 export function getClientId(request: Request): string {
-  // Try X-Forwarded-For first (for proxied requests)
-  const forwardedFor = request.headers.get('x-forwarded-for')
-  if (forwardedFor) {
-    // Take first IP (original client)
-    return forwardedFor.split(',')[0].trim()
+  // 1. Try Vercel's X-Real-IP (most reliable, set by Vercel Edge)
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp && isValidIP(realIp)) {
+    return realIp.trim()
   }
 
-  // Fallback: use a hash of headers to identify client
+  // 2. Try X-Forwarded-For (Vercel also sets this)
+  // Only trust the LAST entry added by Vercel, not user-provided entries
+  const forwardedFor = request.headers.get('x-forwarded-for')
+  if (forwardedFor) {
+    // Take the LAST IP (the one Vercel/proxy added, not client-spoofed)
+    const ips = forwardedFor.split(',').map(ip => ip.trim())
+    const lastIp = ips[ips.length - 1]
+    if (lastIp && isValidIP(lastIp)) {
+      return lastIp
+    }
+  }
+
+  // 3. Fallback: use a hash of headers to identify client
   const userAgent = request.headers.get('user-agent') || ''
   const acceptLanguage = request.headers.get('accept-language') || ''
 
   // Create a simple fingerprint (not perfect, but helps)
   return `anon-${hashCode(userAgent + acceptLanguage)}`
+}
+
+/**
+ * Validate IP address format (basic check)
+ */
+function isValidIP(ip: string): boolean {
+  // IPv4 pattern
+  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/
+  // IPv6 pattern (simplified)
+  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/
+
+  return ipv4Pattern.test(ip) || ipv6Pattern.test(ip)
 }
 
 /**
