@@ -144,26 +144,34 @@ export default function CompoundBrowser({
         </div>
         
         <div className="text-sm text-gray-600 mb-2">
-          <div>MW: {compound.molecularMass.toFixed(2)} g/mol</div>
+          {compound.molecularMass && <div>MW: {compound.molecularMass.toFixed(2)} g/mol</div>}
           {compound.meltingPoint && <div>MP: {compound.meltingPoint}°C</div>}
           {compound.boilingPoint && <div>BP: {compound.boilingPoint}°C</div>}
         </div>
         
         {compound.hazards && compound.hazards.length > 0 && (
           <div className="mb-2">
-            {compound.hazards.slice(0, 2).map((hazard, idx) => (
-              <span 
-                key={idx}
-                className={`inline-block px-2 py-1 rounded text-xs mr-1 mb-1 ${
-                  hazard.severity === 'extreme' ? 'bg-red-100 text-red-800' :
-                  hazard.severity === 'high' ? 'bg-orange-100 text-orange-800' :
-                  hazard.severity === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-green-100 text-green-800'
-                }`}
-              >
-                {hazard.type}
-              </span>
-            ))}
+            {compound.hazards.slice(0, 3).map((hazard, idx) => {
+              // Handle both string (GHS code) and object format
+              const hazardCode = typeof hazard === 'string' ? hazard : (hazard.ghsCode || hazard.type || '');
+              const isCorrosive = hazardCode.includes('H314') || hazardCode.includes('H318');
+              const isToxic = hazardCode.includes('H300') || hazardCode.includes('H310') || hazardCode.includes('H330');
+              const isFlammable = hazardCode.includes('H220') || hazardCode.includes('H225') || hazardCode.includes('H226');
+
+              return (
+                <span
+                  key={idx}
+                  className={`inline-block px-2 py-1 rounded text-xs mr-1 mb-1 ${
+                    isToxic ? 'bg-red-100 text-red-800' :
+                    isCorrosive ? 'bg-orange-100 text-orange-800' :
+                    isFlammable ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {hazardCode}
+                </span>
+              );
+            })}
           </div>
         )}
         
@@ -210,7 +218,7 @@ export default function CompoundBrowser({
             <div className="flex items-center gap-3">
               <h3 className="font-bold text-gray-900">{compound.name}</h3>
               <span className="text-sm text-gray-500">{compound.formula}</span>
-              <span className="text-sm text-gray-400">MW: {compound.molecularMass.toFixed(1)}</span>
+              {compound.molecularMass && <span className="text-sm text-gray-400">MW: {compound.molecularMass.toFixed(1)}</span>}
             </div>
             
             <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
@@ -229,19 +237,26 @@ export default function CompoundBrowser({
           
           {compound.hazards && compound.hazards.length > 0 && (
             <div className="flex gap-1">
-              {compound.hazards.slice(0, 3).map((hazard, idx) => (
-                <span 
-                  key={idx}
-                  className={`px-2 py-1 rounded text-xs ${
-                    hazard.severity === 'extreme' ? 'bg-red-100 text-red-800' :
-                    hazard.severity === 'high' ? 'bg-orange-100 text-orange-800' :
-                    hazard.severity === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-green-100 text-green-800'
-                  }`}
-                >
-                  {hazard.type}
-                </span>
-              ))}
+              {compound.hazards.slice(0, 3).map((hazard, idx) => {
+                const hazardCode = typeof hazard === 'string' ? hazard : (hazard.ghsCode || hazard.type || '');
+                const isCorrosive = hazardCode.includes('H314') || hazardCode.includes('H318');
+                const isToxic = hazardCode.includes('H300') || hazardCode.includes('H310') || hazardCode.includes('H330');
+                const isFlammable = hazardCode.includes('H220') || hazardCode.includes('H225') || hazardCode.includes('H226');
+
+                return (
+                  <span
+                    key={idx}
+                    className={`px-2 py-1 rounded text-xs ${
+                      isToxic ? 'bg-red-100 text-red-800' :
+                      isCorrosive ? 'bg-orange-100 text-orange-800' :
+                      isFlammable ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {hazardCode}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
@@ -448,7 +463,7 @@ export default function CompoundBrowser({
               <h3 className="font-semibold mb-2">Basic Properties</h3>
               <div className="space-y-1 text-sm">
                 <div><strong>Formula:</strong> {selectedCompound.formula}</div>
-                <div><strong>Molecular Mass:</strong> {selectedCompound.molecularMass.toFixed(2)} g/mol</div>
+                {selectedCompound.molecularMass && <div><strong>Molecular Mass:</strong> {selectedCompound.molecularMass.toFixed(2)} g/mol</div>}
                 {selectedCompound.cas && <div><strong>CAS:</strong> {selectedCompound.cas}</div>}
                 {selectedCompound.meltingPoint && <div><strong>Melting Point:</strong> {selectedCompound.meltingPoint}°C</div>}
                 {selectedCompound.boilingPoint && <div><strong>Boiling Point:</strong> {selectedCompound.boilingPoint}°C</div>}
@@ -461,7 +476,13 @@ export default function CompoundBrowser({
               <div className="space-y-1 text-sm">
                 {selectedCompound.appearance && <div><strong>Appearance:</strong> {selectedCompound.appearance}</div>}
                 {selectedCompound.odor && <div><strong>Odor:</strong> {selectedCompound.odor}</div>}
-                {selectedCompound.solubility?.water && <div><strong>Solubility:</strong> {selectedCompound.solubility.water}</div>}
+                {selectedCompound.solubility && (
+                  <div><strong>Solubility:</strong> {
+                    typeof selectedCompound.solubility === 'string'
+                      ? selectedCompound.solubility
+                      : selectedCompound.solubility.water || 'N/A'
+                  }</div>
+                )}
                 {selectedCompound.pKa && <div><strong>pKa:</strong> {selectedCompound.pKa}</div>}
                 {selectedCompound.pKb && <div><strong>pKb:</strong> {selectedCompound.pKb}</div>}
               </div>
@@ -483,22 +504,28 @@ export default function CompoundBrowser({
           
           {selectedCompound.hazards && selectedCompound.hazards.length > 0 && (
             <div className="mt-4">
-              <h3 className="font-semibold mb-2">Hazards</h3>
-              <div className="space-y-2">
-                {selectedCompound.hazards.map((hazard, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      hazard.severity === 'extreme' ? 'bg-red-100 text-red-800' :
-                      hazard.severity === 'high' ? 'bg-orange-100 text-orange-800' :
-                      hazard.severity === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {hazard.type.toUpperCase()}
+              <h3 className="font-semibold mb-2">Hazards (GHS Codes)</h3>
+              <div className="flex flex-wrap gap-2">
+                {selectedCompound.hazards.map((hazard, idx) => {
+                  const hazardCode = typeof hazard === 'string' ? hazard : (hazard.ghsCode || hazard.type || '');
+                  const isCorrosive = hazardCode.includes('H314') || hazardCode.includes('H318');
+                  const isToxic = hazardCode.includes('H300') || hazardCode.includes('H310') || hazardCode.includes('H330');
+                  const isFlammable = hazardCode.includes('H220') || hazardCode.includes('H225') || hazardCode.includes('H226');
+
+                  return (
+                    <span
+                      key={idx}
+                      className={`px-2 py-1 rounded text-xs ${
+                        isToxic ? 'bg-red-100 text-red-800' :
+                        isCorrosive ? 'bg-orange-100 text-orange-800' :
+                        isFlammable ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {hazardCode}
                     </span>
-                    <span className="text-sm">{hazard.description}</span>
-                    {hazard.ghsCode && <span className="text-xs text-gray-500">({hazard.ghsCode})</span>}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

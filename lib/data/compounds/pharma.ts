@@ -1,0 +1,36 @@
+import { Compound, withMolarMass } from './types'
+
+const pharmaData: Array<Omit<Compound, 'molarMass'>> = [
+  { id: 'aspirin', name: 'Aspirin', formula: 'C9H8O4', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic', 'antiplatelet'] },
+  { id: 'paracetamol', name: 'Paracetamol', formula: 'C8H9NO2', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic', 'antipyretic'] },
+  { id: 'ibuprofen', name: 'Ibuprofen', formula: 'C13H18O2', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic', 'anti-inflammatory'] },
+  { id: 'naproxen', name: 'Naproxen', formula: 'C14H14O3', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic'] },
+  { id: 'diclofenac', name: 'Diclofenac', formula: 'C14H11Cl2NO2', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic', 'anti-inflammatory'] },
+  { id: 'amoxicillin', name: 'Amoxicillin', formula: 'C16H19N3O5S', category: 'pharmaceutical', physicalState: 'solid', uses: ['antibiotic'] },
+  { id: 'penicillin-g', name: 'Penicillin G', formula: 'C16H18N2O4S', category: 'pharmaceutical', physicalState: 'solid', uses: ['antibiotic'] },
+  { id: 'caffeine', name: 'Caffeine', formula: 'C8H10N4O2', category: 'pharmaceutical', physicalState: 'solid', uses: ['stimulant'] },
+  { id: 'theobromine', name: 'Theobromine', formula: 'C7H8N4O2', category: 'pharmaceutical', physicalState: 'solid', uses: ['stimulant'] },
+  { id: 'metformin', name: 'Metformin', formula: 'C4H11N5', category: 'pharmaceutical', physicalState: 'solid', uses: ['antidiabetic'] },
+  { id: 'atorvastatin', name: 'Atorvastatin', formula: 'C33H35FN2O5', category: 'pharmaceutical', physicalState: 'solid', uses: ['cholesterol lowering'] },
+  { id: 'simvastatin', name: 'Simvastatin', formula: 'C25H38O5', category: 'pharmaceutical', physicalState: 'solid', uses: ['cholesterol lowering'] },
+  { id: 'omeprazole', name: 'Omeprazole', formula: 'C17H19N3O3S', category: 'pharmaceutical', physicalState: 'solid', uses: ['acid suppression'] },
+  { id: 'ranitidine', name: 'Ranitidine', formula: 'C13H22N4O3S', category: 'pharmaceutical', physicalState: 'solid', uses: ['acid suppression'] },
+  { id: 'loratadine', name: 'Loratadine', formula: 'C22H23ClN2O2', category: 'pharmaceutical', physicalState: 'solid', uses: ['antihistamine'] },
+  { id: 'cetirizine', name: 'Cetirizine', formula: 'C21H25ClN2O3', category: 'pharmaceutical', physicalState: 'solid', uses: ['antihistamine'] },
+  { id: 'diphenhydramine', name: 'Diphenhydramine', formula: 'C17H21NO', category: 'pharmaceutical', physicalState: 'solid', uses: ['antihistamine'] },
+  { id: 'chlorpheniramine', name: 'Chlorpheniramine', formula: 'C16H19ClN2', category: 'pharmaceutical', physicalState: 'solid', uses: ['antihistamine'] },
+  { id: 'pseudoephedrine', name: 'Pseudoephedrine', formula: 'C10H15NO', category: 'pharmaceutical', physicalState: 'solid', uses: ['decongestant'] },
+  { id: 'epinephrine', name: 'Epinephrine', formula: 'C9H13NO3', category: 'pharmaceutical', physicalState: 'solid', uses: ['vasopressor'] },
+  { id: 'morphine', name: 'Morphine', formula: 'C17H19NO3', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic'] },
+  { id: 'codeine', name: 'Codeine', formula: 'C18H21NO3', category: 'pharmaceutical', physicalState: 'solid', uses: ['analgesic', 'antitussive'] },
+  { id: 'diazepam', name: 'Diazepam', formula: 'C16H13ClN2O', category: 'pharmaceutical', physicalState: 'solid', uses: ['anxiolytic'] },
+  { id: 'lorazepam', name: 'Lorazepam', formula: 'C15H10Cl2N2O2', category: 'pharmaceutical', physicalState: 'solid', uses: ['anxiolytic'] },
+  { id: 'sertraline', name: 'Sertraline', formula: 'C17H17Cl2N', category: 'pharmaceutical', physicalState: 'solid', uses: ['antidepressant'] },
+  { id: 'fluoxetine', name: 'Fluoxetine', formula: 'C17H18F3NO', category: 'pharmaceutical', physicalState: 'solid', uses: ['antidepressant'] },
+  { id: 'amitriptyline', name: 'Amitriptyline', formula: 'C20H23N', category: 'pharmaceutical', physicalState: 'solid', uses: ['antidepressant'] },
+  { id: 'lidocaine', name: 'Lidocaine', formula: 'C14H22N2O', category: 'pharmaceutical', physicalState: 'solid', uses: ['local anesthetic'] },
+  { id: 'metoprolol', name: 'Metoprolol', formula: 'C15H25NO3', category: 'pharmaceutical', physicalState: 'solid', uses: ['beta blocker'] },
+  { id: 'salbutamol', name: 'Salbutamol', formula: 'C13H21NO3', category: 'pharmaceutical', physicalState: 'solid', uses: ['bronchodilator'] },
+]
+
+export const PHARMACEUTICALS: Compound[] = pharmaData.map(entry => withMolarMass(entry))

@@ -4,7 +4,7 @@
 import { Compound } from './types/chemistry'
 import { searchCompoundsAdvanced } from './compound-search'
 import { calculateMolecularMass, calculatePercentComposition } from './calculations/stoichiometry'
-import { COMPREHENSIVE_COMPOUNDS } from './data/compounds-expanded'
+import { COMPREHENSIVE_COMPOUNDS } from './data/compounds'
 
 /**
  * Enhanced compound data with calculated properties
@@ -132,12 +132,13 @@ export function getSolutionProperties(formula: string): {
   
   // Extract solubility data
   let solubility = null
-  if (compound.solubility?.water) {
-    const solText = compound.solubility.water
-    const match = solText.match(/(\d+(?:\.\d+)?)\s*g\/L/)
-    if (match) {
-      solubility = parseFloat(match[1])
-    }
+  const solValue =
+    typeof compound.solubility === 'string'
+      ? compound.solubility
+      : compound.solubility?.water
+  if (solValue) {
+    const match = solValue.match(/(\d+(?:\.\d+)?)\s*g\/L/i)
+    if (match) solubility = parseFloat(match[1])
   }
   
   // Calculate pH for 0.1M solution
@@ -191,7 +192,7 @@ export function getSafetyData(formula: string): {
     }
   }
   
-  const hazards = compound.hazards || []
+  const hazards = normalizeHazards(compound)
   
   // Generate safety recommendations based on hazards
   const safetyPrecautions = generateSafetyPrecautions(hazards)
@@ -199,12 +200,7 @@ export function getSafetyData(formula: string): {
   const storage = generateStorageInstructions(hazards, compound)
   
   return {
-    hazards: hazards.map(h => ({
-      type: h.type,
-      severity: h.severity,
-      description: h.description,
-      ghsCode: h.ghsCode
-    })),
+    hazards,
     safetyPrecautions,
     firstAid,
     storage
@@ -239,18 +235,16 @@ export function getEducationalCompounds(level: 'basic' | 'intermediate' | 'advan
   
   if (level === 'basic') {
     // Only safe, common compounds
-    compounds = compounds.filter(c => 
-      !c.hazards?.some(h => 
-        ['toxic', 'carcinogen', 'corrosive', 'explosive'].includes(h.type)
-      )
-    )
+    compounds = compounds.filter(c => {
+      const hazards = normalizeHazards(c)
+      return !hazards.some(h => ['toxic', 'carcinogen', 'corrosive', 'explosive'].includes((h.type || '').toLowerCase()))
+    })
   } else if (level === 'intermediate') {
     // Allow some moderate hazards
-    compounds = compounds.filter(c => 
-      !c.hazards?.some(h => 
-        ['toxic', 'carcinogen', 'explosive'].includes(h.type)
-      )
-    )
+    compounds = compounds.filter(c => {
+      const hazards = normalizeHazards(c)
+      return !hazards.some(h => ['toxic', 'carcinogen', 'explosive'].includes((h.type || '').toLowerCase()))
+    })
   }
   // Advanced level includes all compounds
   
@@ -399,6 +393,49 @@ function getCounterIons(compound: EnhancedCompound): string[] {
   return [...new Set(counterIons)]
 }
 
+function normalizeHazards(compound: Compound): Array<{ type: string; severity: string; description: string; ghsCode?: string }> {
+  if (!compound.hazards) return []
+  return compound.hazards.map(h => {
+    if (typeof h === 'string') {
+      const genericType = mapHazardCodeToType(h)
+      return { type: genericType || h, severity: 'moderate', description: getHazardDescription(h), ghsCode: h }
+    }
+    const type = h.type || mapHazardCodeToType(h.ghsCode || '') || 'ghs'
+    return {
+      type,
+      severity: h.severity || 'moderate',
+      description: getHazardDescription(h.ghsCode || h.type || ''),
+      ghsCode: h.ghsCode,
+    }
+  })
+}
+
+function getHazardDescription(code: string): string {
+  const descriptions: Record<string, string> = {
+    'H220': 'Extremely flammable gas',
+    'H225': 'Highly flammable liquid and vapor',
+    'H226': 'Flammable liquid and vapor',
+    'H300': 'Fatal if swallowed',
+    'H310': 'Fatal in contact with skin',
+    'H314': 'Causes severe skin burns and eye damage',
+    'H318': 'Causes serious eye damage',
+    'H330': 'Fatal if inhaled',
+    'H400': 'Very toxic to aquatic life',
+  }
+  return descriptions[code.toUpperCase()] || ''
+}
+
+function mapHazardCodeToType(code: string): string | null {
+  const upper = code.toUpperCase()
+  if (upper.startsWith('H22') || upper.startsWith('H23')) return 'flammable'
+  if (upper.startsWith('H24') || upper.startsWith('H25')) return 'explosive'
+  if (upper.startsWith('H26') || upper.startsWith('H27')) return 'oxidizer'
+  if (upper.startsWith('H28') || upper.startsWith('H30')) return 'toxic'
+  if (upper.startsWith('H31')) return 'corrosive'
+  if (upper.startsWith('H34') || upper.startsWith('H35')) return 'carcinogen'
+  return null
+}
+
 function generateSafetyPrecautions(hazards: Array<{type: string, severity: string}>): string[] {
   const precautions: string[] = []
   
@@ -480,10 +517,10 @@ function convertToCSV(compounds: Compound[]): string {
     compound.meltingPoint || '',
     compound.boilingPoint || '',
     compound.density || '',
-    compound.solubility?.water || '',
+    typeof compound.solubility === 'string' ? compound.solubility : (compound.solubility?.water || ''),
     compound.uses?.join(';') || ''
   ])
-  
+
   return [headers, ...rows].map(row => row.join(',')).join('\n')
 }
 
@@ -498,7 +535,7 @@ function convertToTSV(compounds: Compound[]): string {
     compound.meltingPoint || '',
     compound.boilingPoint || '',
     compound.density || '',
-    compound.solubility?.water || '',
+    typeof compound.solubility === 'string' ? compound.solubility : (compound.solubility?.water || ''),
     compound.uses?.join(';') || ''
   ])
   

@@ -2,7 +2,7 @@
 // Comprehensive search, filtering, and analysis functions for 500+ compounds
 
 import { Compound } from './types/chemistry'
-import { COMPREHENSIVE_COMPOUNDS, COMPOUND_STATISTICS } from './data/compounds-expanded'
+import { COMPREHENSIVE_COMPOUNDS, COMPOUND_STATISTICS } from './data/compounds'
 
 /**
  * Advanced search options interface
@@ -56,9 +56,10 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
       compound.name.toLowerCase().includes(query) ||
       compound.formula.toLowerCase().includes(query) ||
       compound.iupacName?.toLowerCase().includes(query) ||
-      compound.thaiName?.toLowerCase().includes(query) ||
+      compound.nameThai?.toLowerCase().includes(query) ||
       compound.uses?.some(use => use.toLowerCase().includes(query)) ||
-      compound.cas?.includes(query)
+      compound.cas?.includes(query) ||
+      compound.casNumber?.includes(query)
     )
   }
 
@@ -74,7 +75,7 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
   if (options.molecularMassRange) {
     const [min, max] = options.molecularMassRange
     results = results.filter(compound => 
-      compound.molecularMass >= min && compound.molecularMass <= max
+      (compound.molecularMass ?? compound.molarMass) >= min && (compound.molecularMass ?? compound.molarMass) <= max
     )
   }
 
@@ -107,18 +108,23 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
   if (options.solubility) {
     results = results.filter(compound => {
       if (!compound.solubility) return false
-      const waterSolubility = compound.solubility.water?.toLowerCase() || ''
-      return waterSolubility.includes(options.solubility!.toLowerCase())
+      const solubilityValue =
+        typeof compound.solubility === 'string'
+          ? compound.solubility.toLowerCase()
+          : compound.solubility.water?.toLowerCase() || ''
+      return solubilityValue.includes(options.solubility!.toLowerCase())
     })
   }
 
   // Hazard filter
   if (options.hazardTypes && options.hazardTypes.length > 0) {
-    results = results.filter(compound => 
-      compound.hazards?.some(hazard => 
-        options.hazardTypes!.includes(hazard.type)
+    results = results.filter(compound => {
+      if (!compound.hazards) return false
+      const hazardEntries = compound.hazards.map(h =>
+        typeof h === 'string' ? h.toLowerCase() : (h.type || h.ghsCode || '').toLowerCase()
       )
-    )
+      return hazardEntries.some(code => options.hazardTypes!.some(h => code.includes(h.toLowerCase())))
+    })
   }
 
   // Sort results
@@ -133,8 +139,8 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
           bValue = b.name
           break
         case 'molecularMass':
-          aValue = a.molecularMass
-          bValue = b.molecularMass
+          aValue = a.molecularMass ?? a.molarMass
+          bValue = b.molecularMass ?? b.molarMass
           break
         case 'boilingPoint':
           aValue = a.boilingPoint || 0
@@ -239,8 +245,12 @@ export function findByElementComposition(elements: string[]): Compound[] {
  * Get compounds by hazard type
  */
 export function getCompoundsByHazard(hazardType: string): Compound[] {
+  const target = hazardType.toLowerCase()
   return COMPREHENSIVE_COMPOUNDS.filter(compound =>
-    compound.hazards?.some(hazard => hazard.type === hazardType)
+    compound.hazards?.some(hazard => {
+      const code = typeof hazard === 'string' ? hazard.toLowerCase() : (hazard.type || hazard.ghsCode || '').toLowerCase()
+      return code.includes(target)
+    })
   )
 }
 
@@ -283,14 +293,15 @@ export function getCompoundsByFunctionalGroup(functionalGroup: string): Compound
  * Get similar compounds based on molecular mass similarity
  */
 export function findSimilarCompounds(compound: Compound, threshold: number = 0.1): Compound[] {
-  const massRange = compound.molecularMass * threshold
-  const minMass = compound.molecularMass - massRange
-  const maxMass = compound.molecularMass + massRange
+  const baseMass = compound.molecularMass ?? compound.molarMass
+  const massRange = baseMass * threshold
+  const minMass = baseMass - massRange
+  const maxMass = baseMass + massRange
 
   return COMPREHENSIVE_COMPOUNDS.filter(c => 
     c.id !== compound.id &&
-    c.molecularMass >= minMass &&
-    c.molecularMass <= maxMass
+    (c.molecularMass ?? c.molarMass) >= minMass &&
+    (c.molecularMass ?? c.molarMass) <= maxMass
   )
 }
 
@@ -329,11 +340,14 @@ export function getCompoundsByState(temperature: number = 25): {
 export function getCompoundsBySolubility(solubilityType: 'soluble' | 'insoluble' | 'miscible', solvent: string = 'water'): Compound[] {
   return COMPREHENSIVE_COMPOUNDS.filter(compound => {
     if (!compound.solubility) return false
-    
-    const solubility = compound.solubility[solvent as keyof typeof compound.solubility]
-    if (!solubility || typeof solubility !== 'string') return false
 
-    const solText = solubility.toLowerCase()
+    const solubilityValue =
+      typeof compound.solubility === 'string'
+        ? compound.solubility
+        : compound.solubility[solvent as keyof typeof compound.solubility]
+    if (!solubilityValue || typeof solubilityValue !== 'string') return false
+
+    const solText = solubilityValue.toLowerCase()
     
     switch (solubilityType) {
       case 'miscible':
@@ -370,8 +384,10 @@ export function calculateMolecularSimilarity(compound1: Compound, compound2: Com
   const elementSimilarity = commonElements.length / totalElements.length
   
   // Calculate mass similarity
-  const massDiff = Math.abs(compound1.molecularMass - compound2.molecularMass)
-  const massSimilarity = 1 - (massDiff / Math.max(compound1.molecularMass, compound2.molecularMass))
+  const massA = compound1.molecularMass ?? compound1.molarMass
+  const massB = compound2.molecularMass ?? compound2.molarMass
+  const massDiff = Math.abs(massA - massB)
+  const massSimilarity = 1 - (massDiff / Math.max(massA, massB))
   
   // Combined similarity (weighted average)
   return (elementSimilarity * 0.6 + massSimilarity * 0.4)
@@ -414,7 +430,8 @@ export function validateCompoundData(compound: Partial<Compound>): string[] {
   if (!compound.id) errors.push('ID is required')
   if (!compound.name) errors.push('Name is required')
   if (!compound.formula) errors.push('Formula is required')
-  if (compound.molecularMass === undefined || compound.molecularMass <= 0) {
+  const massValue = compound.molecularMass ?? (compound as any).molarMass
+  if (massValue === undefined || Number(massValue) <= 0) {
     errors.push('Valid molecular mass is required')
   }
 
@@ -481,7 +498,8 @@ function getHazardDistribution() {
   COMPREHENSIVE_COMPOUNDS.forEach(compound => {
     if (compound.hazards) {
       compound.hazards.forEach(hazard => {
-        distribution[hazard.type] = (distribution[hazard.type] || 0) + 1
+        const key = typeof hazard === 'string' ? hazard : hazard.type || hazard.ghsCode || 'other'
+        distribution[key] = (distribution[key] || 0) + 1
       })
     }
   })
@@ -499,12 +517,22 @@ function getSolubilityDistribution() {
   }
   
   COMPREHENSIVE_COMPOUNDS.forEach(compound => {
-    if (!compound.solubility || !compound.solubility.water) {
+    if (!compound.solubility) {
       distribution.unknown++
       return
     }
-    
-    const sol = compound.solubility.water.toLowerCase()
+
+    const solString =
+      typeof compound.solubility === 'string'
+        ? compound.solubility.toLowerCase()
+        : compound.solubility.water?.toLowerCase()
+
+    if (!solString) {
+      distribution.unknown++
+      return
+    }
+
+    const sol = solString
     if (sol.includes('miscible')) {
       distribution.miscible++
     } else if (sol.includes('insoluble')) {

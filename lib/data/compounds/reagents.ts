@@ -1,0 +1,36 @@
+import { Compound, withMolarMass } from './types'
+
+const reagentData: Array<Omit<Compound, 'molarMass'>> = [
+  { id: 'phenolphthalein', name: 'Phenolphthalein', formula: 'C20H14O4', category: 'reagent', physicalState: 'solid', uses: ['acid-base indicator'] },
+  { id: 'methyl-orange', name: 'Methyl Orange', formula: 'C14H14N3NaO3S', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'methyl-red', name: 'Methyl Red', formula: 'C15H15N3O2', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'bromothymol-blue', name: 'Bromothymol Blue', formula: 'C27H28Br2O5S', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'phenol-red', name: 'Phenol Red', formula: 'C19H14O5S', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'thymolphthalein', name: 'Thymolphthalein', formula: 'C28H30O4', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'alizarin-yellow', name: 'Alizarin Yellow', formula: 'C13H8N3NaO5', category: 'reagent', physicalState: 'solid', uses: ['indicator'] },
+  { id: 'congo-red', name: 'Congo Red', formula: 'C32H22N6Na2O6S2', category: 'reagent', physicalState: 'solid', uses: ['indicator', 'stain'] },
+  { id: 'crystal-violet', name: 'Crystal Violet', formula: 'C25H30ClN3', category: 'reagent', physicalState: 'solid', uses: ['stain'] },
+  { id: 'methylene-blue', name: 'Methylene Blue', formula: 'C16H18ClN3S', category: 'reagent', physicalState: 'solid', uses: ['stain', 'redox indicator'] },
+  { id: 'ninhydrin', name: 'Ninhydrin', formula: 'C9H6O4', category: 'reagent', physicalState: 'solid', uses: ['amino acid detection'] },
+  { id: 'iodine', name: 'Iodine', formula: 'I2', category: 'reagent', physicalState: 'solid', uses: ['starch test', 'antiseptic'] },
+  { id: 'sodium-sulfite', name: 'Sodium Sulfite', formula: 'Na2SO3', category: 'reagent', physicalState: 'solid', uses: ['reducing agent'] },
+  { id: 'sodium-bisulfite', name: 'Sodium Bisulfite', formula: 'NaHSO3', category: 'reagent', physicalState: 'solid', uses: ['reducing agent', 'preservative'] },
+  { id: 'sodium-azide', name: 'Sodium Azide', formula: 'NaN3', category: 'reagent', physicalState: 'solid', hazards: ['H300'], uses: ['preservative', 'gas generant'] },
+  { id: 'sodium-hypophosphite', name: 'Sodium Hypophosphite', formula: 'NaH2PO2', category: 'reagent', physicalState: 'solid', uses: ['electroless plating'] },
+  { id: 'sodium-tetraborate', name: 'Sodium Tetraborate', formula: 'Na2B4O7', category: 'reagent', physicalState: 'solid', uses: ['buffer', 'flux'] },
+  { id: 'ammonium-acetate', name: 'Ammonium Acetate', formula: 'C2H7NO2', category: 'reagent', physicalState: 'solid', uses: ['buffer'] },
+  { id: 'potassium-hydrogen-phthalate', name: 'Potassium Hydrogen Phthalate', formula: 'C8H5KO4', category: 'reagent', physicalState: 'solid', uses: ['primary standard'] },
+  { id: 'triethanolamine', name: 'Triethanolamine', formula: 'C6H15NO3', category: 'reagent', physicalState: 'liquid', uses: ['buffer', 'surfactant'] },
+  { id: 'edta', name: 'EDTA', formula: 'C10H16N2O8', category: 'reagent', physicalState: 'solid', uses: ['chelating agent'] },
+  { id: 'sodium-tartrate', name: 'Sodium Tartrate', formula: 'Na2C4H4O6', category: 'reagent', physicalState: 'solid', uses: ['primary standard'] },
+  { id: 'potassium-ferrocyanide', name: 'Potassium Ferrocyanide', formula: 'K4FeC6N6', category: 'reagent', physicalState: 'solid', uses: ['blueprint paper', 'analytical'] },
+  { id: 'sodium-salicylate', name: 'Sodium Salicylate', formula: 'C7H5NaO3', category: 'reagent', physicalState: 'solid', uses: ['analgesic', 'fluorometry'] },
+  { id: 'sodium-lactate', name: 'Sodium Lactate', formula: 'C3H5NaO3', category: 'reagent', physicalState: 'liquid', uses: ['buffer', 'IV fluids'] },
+  { id: 'sodium-pyruvate', name: 'Sodium Pyruvate', formula: 'C3H3NaO3', category: 'reagent', physicalState: 'solid', uses: ['cell culture additive'] },
+  { id: 'ferrous-ammonium-sulfate', name: 'Ferrous Ammonium Sulfate', formula: 'FeH8N2O8S2', category: 'reagent', physicalState: 'solid', uses: ['analytical titration'] },
+  { id: 'ammonium-thiocyanate', name: 'Ammonium Thiocyanate', formula: 'NH4SCN', category: 'reagent', physicalState: 'solid', uses: ['iron test', 'chemical analysis'] },
+  { id: 'silver-nitrate', name: 'Silver Nitrate', formula: 'AgNO3', category: 'reagent', physicalState: 'solid', uses: ['precipitation tests', 'antiseptic'] },
+  { id: 'potassium-iodate', name: 'Potassium Iodate', formula: 'KIO3', category: 'reagent', physicalState: 'solid', uses: ['iodometric titration'] },
+]
+
+export const REAGENTS: Compound[] = reagentData.map(entry => withMolarMass(entry))

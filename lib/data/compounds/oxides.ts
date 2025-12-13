@@ -1,0 +1,36 @@
+import { Compound, withMolarMass } from './types'
+
+const oxideData: Array<Omit<Compound, 'molarMass'>> = [
+  { id: 'water', name: 'Water', nameThai: 'น้ำ', formula: 'H2O', category: 'oxide', physicalState: 'liquid', meltingPoint: 0, boilingPoint: 100, density: 1.0, uses: ['universal solvent', 'coolant'] },
+  { id: 'carbon-monoxide', name: 'Carbon Monoxide', formula: 'CO', category: 'oxide', physicalState: 'gas', boilingPoint: -191.5, hazards: ['H330'], uses: ['chemical synthesis', 'reducing agent'] },
+  { id: 'carbon-dioxide', name: 'Carbon Dioxide', formula: 'CO2', category: 'oxide', physicalState: 'gas', boilingPoint: -78.5, density: 0.00198, uses: ['carbonation', 'fire suppression'] },
+  { id: 'sulfur-dioxide', name: 'Sulfur Dioxide', formula: 'SO2', category: 'oxide', physicalState: 'gas', boilingPoint: -10, hazards: ['H331'], uses: ['preservative', 'bleaching'] },
+  { id: 'sulfur-trioxide', name: 'Sulfur Trioxide', formula: 'SO3', category: 'oxide', physicalState: 'liquid', boilingPoint: 45, hazards: ['H314'], uses: ['sulfuric acid production'] },
+  { id: 'nitric-oxide', name: 'Nitric Oxide', formula: 'NO', category: 'oxide', physicalState: 'gas', boilingPoint: -151.7, hazards: ['H330'], uses: ['medical', 'chemical intermediate'] },
+  { id: 'nitrogen-dioxide', name: 'Nitrogen Dioxide', formula: 'NO2', category: 'oxide', physicalState: 'gas', boilingPoint: 21.2, hazards: ['H330'], uses: ['oxidizer', 'rocket propellant'] },
+  { id: 'nitrous-oxide', name: 'Nitrous Oxide', formula: 'N2O', category: 'oxide', physicalState: 'gas', boilingPoint: -88.5, hazards: ['H272'], uses: ['anesthetic', 'propellant'] },
+  { id: 'iron-iii-oxide', name: 'Iron(III) Oxide', formula: 'Fe2O3', category: 'oxide', physicalState: 'solid', meltingPoint: 1565, uses: ['pigment', 'steel making'] },
+  { id: 'iron-ii-iii-oxide', name: 'Iron(II,III) Oxide', formula: 'Fe3O4', category: 'oxide', physicalState: 'solid', meltingPoint: 1597, uses: ['magnetic materials', 'pigments'] },
+  { id: 'iron-ii-oxide', name: 'Iron(II) Oxide', formula: 'FeO', category: 'oxide', physicalState: 'solid', uses: ['ceramics', 'steel'] },
+  { id: 'aluminum-oxide', name: 'Aluminum Oxide', formula: 'Al2O3', category: 'oxide', physicalState: 'solid', meltingPoint: 2072, uses: ['abrasive', 'ceramics'] },
+  { id: 'zinc-oxide', name: 'Zinc Oxide', formula: 'ZnO', category: 'oxide', physicalState: 'solid', meltingPoint: 1975, uses: ['rubber additive', 'sunscreen'] },
+  { id: 'titanium-dioxide', name: 'Titanium Dioxide', formula: 'TiO2', category: 'oxide', physicalState: 'solid', meltingPoint: 1843, uses: ['pigment', 'photocatalyst'] },
+  { id: 'silicon-dioxide', name: 'Silicon Dioxide', formula: 'SiO2', category: 'oxide', physicalState: 'solid', meltingPoint: 1713, uses: ['glass', 'electronics'] },
+  { id: 'copper-ii-oxide', name: 'Copper(II) Oxide', formula: 'CuO', category: 'oxide', physicalState: 'solid', meltingPoint: 1326, uses: ['catalyst', 'pigments'] },
+  { id: 'copper-i-oxide', name: 'Copper(I) Oxide', formula: 'Cu2O', category: 'oxide', physicalState: 'solid', meltingPoint: 1235, uses: ['pigments', 'semiconductor'] },
+  { id: 'lead-ii-oxide', name: 'Lead(II) Oxide', formula: 'PbO', category: 'oxide', physicalState: 'solid', meltingPoint: 888, hazards: ['H360'], uses: ['glass', 'batteries'] },
+  { id: 'lead-iv-oxide', name: 'Lead(IV) Oxide', formula: 'PbO2', category: 'oxide', physicalState: 'solid', meltingPoint: 290, hazards: ['H302'], uses: ['lead-acid batteries'] },
+  { id: 'manganese-dioxide', name: 'Manganese Dioxide', formula: 'MnO2', category: 'oxide', physicalState: 'solid', meltingPoint: 535, uses: ['batteries', 'pigments'] },
+  { id: 'calcium-oxide', name: 'Calcium Oxide', formula: 'CaO', category: 'oxide', physicalState: 'solid', meltingPoint: 2570, hazards: ['H314'], uses: ['cement', 'steel'] },
+  { id: 'magnesium-oxide', name: 'Magnesium Oxide', formula: 'MgO', category: 'oxide', physicalState: 'solid', meltingPoint: 2852, uses: ['refractory', 'antacid'] },
+  { id: 'sodium-oxide', name: 'Sodium Oxide', formula: 'Na2O', category: 'oxide', physicalState: 'solid', meltingPoint: 1132, hazards: ['H314'], uses: ['glass', 'ceramics'] },
+  { id: 'potassium-oxide', name: 'Potassium Oxide', formula: 'K2O', category: 'oxide', physicalState: 'solid', meltingPoint: 740, hazards: ['H314'], uses: ['fertilizer', 'glass'] },
+  { id: 'barium-oxide', name: 'Barium Oxide', formula: 'BaO', category: 'oxide', physicalState: 'solid', meltingPoint: 1923, hazards: ['H302', 'H314'], uses: ['ceramics', 'electronics'] },
+  { id: 'strontium-oxide', name: 'Strontium Oxide', formula: 'SrO', category: 'oxide', physicalState: 'solid', meltingPoint: 2430, hazards: ['H314'], uses: ['ceramics', 'pyrotechnics'] },
+  { id: 'chromium-iii-oxide', name: 'Chromium(III) Oxide', formula: 'Cr2O3', category: 'oxide', physicalState: 'solid', meltingPoint: 2435, uses: ['pigment', 'abrasive'] },
+  { id: 'tin-iv-oxide', name: 'Tin(IV) Oxide', formula: 'SnO2', category: 'oxide', physicalState: 'solid', meltingPoint: 1630, uses: ['ceramics', 'sensors'] },
+  { id: 'nickel-ii-oxide', name: 'Nickel(II) Oxide', formula: 'NiO', category: 'oxide', physicalState: 'solid', meltingPoint: 1955, hazards: ['H351'], uses: ['catalyst', 'batteries'] },
+  { id: 'cobalt-ii-oxide', name: 'Cobalt(II) Oxide', formula: 'CoO', category: 'oxide', physicalState: 'solid', meltingPoint: 1935, hazards: ['H351'], uses: ['ceramics', 'catalysts'] },
+]
+
+export const OXIDES: Compound[] = oxideData.map(entry => withMolarMass(entry))

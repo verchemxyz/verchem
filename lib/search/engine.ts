@@ -32,33 +32,43 @@ export class VerChemSearchEngine {
 
   private initializeData() {
     // Initialize compound data
-    this.compoundData = COMMON_COMPOUNDS.map(compound => ({
-      id: compound.id,
-      name: compound.name,
-      formula: compound.formula,
-      molecularMass: compound.molecularMass,
-      pKa: compound.pKa,
-      pKb: compound.pKb,
-      smiles: compound.structure,
-      cas: compound.cas,
-      meltingPoint: compound.meltingPoint,
-      boilingPoint: compound.boilingPoint,
-      density: compound.density,
-      solubility: compound.solubility?.water,
-      appearance: compound.appearance,
-      hazards: compound.hazards?.map(h => h.type),
-      ghsCodes: compound.hazards?.map(h => h.ghsCode).filter(Boolean) as string[],
-      uses: compound.uses,
-      category: 'compound',
-      tags: [
-        compound.name.toLowerCase(),
-        compound.formula.toLowerCase(),
-        compound.iupacName?.toLowerCase() || '',
-        ...(compound.uses || []).map(u => u.toLowerCase()),
-        ...(compound.hazards?.map(h => h.type) || [])
-      ].filter(Boolean),
-      thaiName: compound.thaiName
-    }))
+    this.compoundData = COMMON_COMPOUNDS.map(compound => {
+      // Handle hazards - can be string[] or object[]
+      const hazardTypes = compound.hazards?.map(h =>
+        typeof h === 'string' ? h : (h.type || h.ghsCode || '')
+      ).filter(Boolean) || [];
+      const ghsCodes = compound.hazards?.map(h =>
+        typeof h === 'string' ? h : (h.ghsCode || '')
+      ).filter(Boolean) || [];
+
+      return {
+        id: compound.id,
+        name: compound.name,
+        formula: compound.formula,
+        molecularMass: compound.molecularMass ?? compound.molarMass ?? 0,
+        pKa: compound.pKa,
+        pKb: compound.pKb,
+        smiles: (compound as { structure?: string }).structure,
+        cas: compound.cas,
+        meltingPoint: compound.meltingPoint,
+        boilingPoint: compound.boilingPoint,
+        density: compound.density,
+        solubility: typeof compound.solubility === 'string' ? compound.solubility : compound.solubility?.water,
+        appearance: compound.appearance,
+        hazards: hazardTypes,
+        ghsCodes: ghsCodes as string[],
+        uses: compound.uses,
+        category: 'compound' as const,
+        tags: [
+          compound.name.toLowerCase(),
+          compound.formula.toLowerCase(),
+          compound.iupacName?.toLowerCase() || '',
+          ...(compound.uses || []).map(u => u.toLowerCase()),
+          ...hazardTypes
+        ].filter(Boolean),
+        thaiName: compound.nameThai
+      };
+    })
 
     // Initialize element data
     this.elementData = PERIODIC_TABLE.map(element => ({

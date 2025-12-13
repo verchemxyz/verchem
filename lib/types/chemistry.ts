@@ -46,44 +46,7 @@ export type ElementCategory =
 /**
  * Chemical Compound
  */
-export interface Compound {
-  id: string
-  name: string
-  iupacName?: string
-  formula: string // e.g., "H2O", "C6H12O6"
-  molecularMass: number // g/mol
-  structure?: string // SMILES or InChI
-  cas?: string // CAS Registry Number
-
-  // Physical properties
-  meltingPoint?: number // °C
-  boilingPoint?: number // °C
-  density?: number // g/cm³
-  solubility?: Solubility
-  appearance?: string
-  odor?: string
-
-  // Safety data
-  hazards?: Hazard[]
-  flashPoint?: number // °C
-  autoignitionTemp?: number // °C
-  explosiveLimits?: {
-    lower: number // % vol
-    upper: number // % vol
-  }
-
-  // Chemical properties
-  pKa?: number
-  pKb?: number
-  dipoleMoment?: number // Debye
-  refractiveIndex?: number
-
-  // Common uses
-  uses?: string[]
-
-  // Thai name
-  thaiName?: string
-}
+export type Compound = import('../data/compounds/types').Compound
 
 export interface Solubility {
   water?: string // e.g., "soluble", "insoluble", "25 g/100 mL"
