@@ -2,6 +2,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { SearchBar } from '../../components/search/SearchBar'
 import { SearchResults } from '../../components/search/SearchResults'
 import { SearchBookmarks } from '../../components/search/SearchBookmarks'
@@ -9,18 +10,13 @@ import { SearchHistory } from '../../components/search/SearchHistory'
 import { useSearch } from '../../lib/search/context'
 import { CommandPalette } from '../../components/search/CommandPalette'
 
-interface SearchPageProps {
-  searchParams?: {
-    q?: string
-  }
-}
-
-export default function SearchPage({ searchParams }: SearchPageProps) {
+export default function SearchPage() {
+  const searchParams = useSearchParams()
   const { results, isSearching, searchHistory, bookmarks, search } = useSearch()
   const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [activeTab, setActiveTab] = useState<'search' | 'history' | 'bookmarks'>('search')
 
-  const initialQuery = typeof searchParams?.q === 'string' ? searchParams.q : ''
+  const initialQuery = searchParams.get('q') ?? ''
 
   // Keyboard shortcut for command palette
   useEffect(() => {

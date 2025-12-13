@@ -430,7 +430,7 @@ export function validateCompoundData(compound: Partial<Compound>): string[] {
   if (!compound.id) errors.push('ID is required')
   if (!compound.name) errors.push('Name is required')
   if (!compound.formula) errors.push('Formula is required')
-  const massValue = compound.molecularMass ?? (compound as any).molarMass
+  const massValue = compound.molecularMass ?? compound.molarMass
   if (massValue === undefined || Number(massValue) <= 0) {
     errors.push('Valid molecular mass is required')
   }

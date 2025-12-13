@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -125,24 +123,24 @@ export default function Home() {
             />
           </div>
           <div className="flex flex-wrap justify-center gap-2 mt-4 text-sm">
-            <button
-              onClick={() => window.open('/search?q=water', '_self')}
+            <Link
+              href="/search?q=water"
               className="badge-premium hover:scale-105 transition-transform cursor-pointer"
             >
               water
-            </button>
-            <button
-              onClick={() => window.open('/search?q=NaCl', '_self')}
+            </Link>
+            <Link
+              href="/search?q=NaCl"
               className="badge-premium hover:scale-105 transition-transform cursor-pointer"
             >
               NaCl
-            </button>
-            <button
-              onClick={() => window.open('/search?q=stoichiometry', '_self')}
+            </Link>
+            <Link
+              href="/search?q=stoichiometry"
               className="badge-premium hover:scale-105 transition-transform cursor-pointer"
             >
               stoichiometry
-            </button>
+            </Link>
           </div>
         </div>
       </section>

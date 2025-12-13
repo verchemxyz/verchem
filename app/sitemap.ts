@@ -4,15 +4,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://verchem.xyz'
   const currentDate = new Date()
 
-  // Static pages
+  // Public static pages (should be indexable)
   const staticPages = [
     '',
-    '/calculators',
-    '/periodic-table',
-    '/3d-viewer',
-    '/compounds',
-    '/tutorials',
-    '/preferences',
+    '/support',
+    '/supporters',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -20,20 +16,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === '' ? 1.0 : 0.8,
   }))
 
-  // Calculator pages
-  const calculators = [
-    '/equation-balancer',
-    '/stoichiometry',
-    '/solutions',
-    '/gas-laws',
-    '/electrochemistry',
-    '/thermodynamics',
-    '/kinetics',
-    '/electron-config',
-    '/lewis',
-    '/vsepr',
-    '/molecule-builder',
-    '/virtual-lab/titration',
+  // SEO landing pages (public, marketing + content)
+  const toolPages = [
+    '/tools/molar-mass',
+    '/tools/periodic-table',
+    '/tools/equation-balancer',
+    '/tools/stoichiometry',
+    '/tools/ph-calculator',
+    '/tools/gas-laws',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -41,5 +31,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }))
 
-  return [...staticPages, ...calculators]
+  return [...staticPages, ...toolPages]
 }

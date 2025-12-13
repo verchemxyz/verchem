@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme-context";
 import { AccessibilityProvider } from "@/lib/accessibility/context";
 import { SkipLinks } from "@/components/accessibility/skip-links";
@@ -15,16 +14,6 @@ import LoginRequiredModal from "@/components/LoginRequiredModal";
 import "./globals.css";
 import "./accessibility.css";
 import "./tutorials.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
@@ -119,7 +108,7 @@ export default function RootLayout({
       </head>
       
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="antialiased"
         suppressHydrationWarning
       >
         <ThemeProvider

@@ -93,9 +93,6 @@ const PROTECTED_ROUTES = [
   '/molecule-builder',
   '/unit-converter',
 
-  // SEO Landing Pages with tools
-  '/tools',
-
   // Practice & Challenge
   '/practice',
   '/challenge',
@@ -114,6 +111,7 @@ const PUBLIC_ROUTES = [
   '/',
   '/login',
   '/oauth',
+  '/tools',
   '/api',
   '/_next',
   '/favicon.ico',
