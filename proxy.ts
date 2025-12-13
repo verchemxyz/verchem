@@ -1,21 +1,22 @@
 /**
- * VerChem Middleware
+ * VerChem Proxy (previously middleware)
  *
- * 🔐 AUTHENTICATION REQUIRED FOR ALL FEATURES
+ * 🔐 AUTHENTICATION REQUIRED FOR PROTECTED ROUTES
  *
  * Strategy (Dec 2025):
  * - ALL features are FREE for AIVerID members
- * - User MUST be logged in via AIVerID to access any calculator/tool
+ * - User MUST be logged in via AIVerID to access protected calculators/tools
  * - Early Bird members (registered before cutoff) get discounted pricing when we monetize
  *
  * Security (Dec 2025 - Fixed by สมหมาย audit):
  * - Session cookies are now HMAC-SHA256 signed
- * - Middleware verifies signature before granting access
+ * - Proxy verifies signature before granting access
  * - SESSION_SECRET is required in production
  *
  * Public routes (no login required):
  * - / (homepage)
  * - /login, /oauth/* (auth routes)
+ * - /tools/* (SEO landing pages)
  * - /api/* (API routes handle their own auth)
  * - /_next/*, /favicon.ico, etc. (static files)
  *
@@ -24,12 +25,11 @@
  * - /stoichiometry, /solutions, /gas-laws, /thermodynamics, etc.
  * - /periodic-table, /vsepr, /electron-config, /lewis, /3d-viewer
  * - /virtual-lab/*
- * - /tools/*
  * - /practice/*
  * - /challenge
  * - /compounds, /tutorials, /search
  *
- * Last Updated: 2025-12-12
+ * Last Updated: 2025-12-13
  */
 
 import { NextResponse } from 'next/server'
@@ -129,12 +129,13 @@ function isProtectedRoute(pathname: string): boolean {
 
 // Check if path is public
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(route =>
-    pathname === route || pathname.startsWith(`${route}/`) || pathname.startsWith(route)
-  )
+  return PUBLIC_ROUTES.some(route => {
+    if (route === '/') return pathname === '/'
+    return pathname === route || pathname.startsWith(`${route}/`)
+  })
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip public routes and static files
@@ -211,7 +212,7 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-// Configure which routes the middleware runs on
+// Configure which routes the proxy runs on
 export const config = {
   matcher: [
     /*

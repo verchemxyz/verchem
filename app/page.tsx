@@ -36,6 +36,9 @@ export default function Home() {
             <Link href="/calculators" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
               <TranslatedText i18nKey="navigation.calculators" />
             </Link>
+            <Link href="/tools" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
+              Tools
+            </Link>
             <Link href="/support" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
               Support
             </Link>

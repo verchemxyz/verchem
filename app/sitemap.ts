@@ -6,14 +6,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Public static pages (should be indexable)
   const staticPages = [
-    '',
-    '/support',
-    '/supporters',
-  ].map((route) => ({
+    { route: '', changeFrequency: 'monthly' as const, priority: 1.0 },
+    { route: '/tools', changeFrequency: 'weekly' as const, priority: 0.9 },
+    { route: '/support', changeFrequency: 'monthly' as const, priority: 0.8 },
+    { route: '/supporters', changeFrequency: 'monthly' as const, priority: 0.7 },
+  ].map(({ route, changeFrequency, priority }) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
-    changeFrequency: 'monthly' as const,
-    priority: route === '' ? 1.0 : 0.8,
+    changeFrequency,
+    priority,
   }))
 
   // SEO landing pages (public, marketing + content)

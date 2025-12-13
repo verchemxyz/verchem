@@ -10,7 +10,7 @@ interface WebsiteSchemaProps {
 }
 
 export function WebsiteSchema({
-  url = 'https://verchem.com',
+  url = 'https://verchem.xyz',
   name = 'VerChem',
   description = 'Professional chemistry calculators and interactive tools'
 }: WebsiteSchemaProps) {
@@ -43,8 +43,8 @@ export function OrganizationSchema() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'VerChem',
-    url: 'https://verchem.com',
-    logo: 'https://verchem.com/logo.png',
+    url: 'https://verchem.xyz',
+    logo: 'https://verchem.xyz/logo.png',
     description: 'Professional chemistry calculators and interactive tools for students and professionals',
     sameAs: [
       // Add social media links here when available

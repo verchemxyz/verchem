@@ -79,6 +79,34 @@ import {
   EXAMPLE_CELLS,
 } from '../lib/calculations/electrochemistry'
 import {
+  calculateConcentration as calculateKineticsConcentration,
+  calculateRateConstant as calculateKineticsRateConstant,
+  arrheniusEquation as kineticsArrheniusEquation,
+  calculateActivationEnergy as calculateKineticsActivationEnergy,
+  determineReactionOrder,
+} from '../lib/calculations/kinetics'
+import {
+  calculateElectronConfiguration,
+  getPeriodicBlock,
+  predictIonCharge,
+} from '../lib/calculations/electron-config'
+import {
+  parseFormula as parseLewisFormula,
+  generateLewisStructure,
+  getPreDefinedLewisStructure,
+  validateLewisStructure,
+  LEWIS_H2O,
+} from '../lib/calculations/lewis-structure'
+import { predictFromFormula as predictVseprFromFormula } from '../lib/calculations/vsepr-geometry'
+import {
+  simulateTitration,
+  INDICATORS,
+  STRONG_ACIDS,
+  STRONG_BASES,
+  WEAK_ACIDS,
+} from '../lib/calculations/titration'
+import { balanceEquation, identifyReactionType } from '../lib/calculations/equation-balancer'
+import {
   AVOGADRO_CONSTANT,
   FARADAY_CONSTANT,
   STP,
@@ -146,6 +174,17 @@ function expectThrows(fn: () => unknown, messageIncludes?: string): void {
   if (!threw) {
     throw new Error('Expected function to throw, but it did not')
   }
+}
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? Math.abs(a) : gcd(b, a % b)
+}
+
+function normalizeCoefficients(coefficients: number[]): number[] {
+  if (coefficients.length === 0) return coefficients
+  const divisor = coefficients.reduce((acc, value) => gcd(acc, value))
+  if (!Number.isFinite(divisor) || divisor === 0) return coefficients
+  return coefficients.map(value => value / divisor)
 }
 
 /**
@@ -676,6 +715,203 @@ test('electrochemistry: redox balancing for Daniell cell example', () => {
       'Balanced equation should contain both Zn and Cu species'
     )
   }
+})
+
+/**
+ * Equation balancer tests
+ */
+test('equation-balancer: balances H2 + O2 -> H2O', () => {
+  const result = balanceEquation('H2 + O2 -> H2O')
+  if (!result.isBalanced) {
+    throw new Error('Expected equation to be balanced')
+  }
+  const normalized = normalizeCoefficients(result.coefficients)
+  expectEqual(normalized.join(','), '2,1,2')
+})
+
+test('equation-balancer: balances methane combustion', () => {
+  const result = balanceEquation('CH4 + O2 -> CO2 + H2O')
+  if (!result.isBalanced) {
+    throw new Error('Expected equation to be balanced')
+  }
+  const normalized = normalizeCoefficients(result.coefficients)
+  expectEqual(normalized.join(','), '1,2,1,2')
+  expectEqual(identifyReactionType(result.balanced), 'combustion')
+})
+
+test('equation-balancer: invalid equation returns isBalanced=false', () => {
+  const result = balanceEquation('not an equation')
+  if (result.isBalanced) {
+    throw new Error('Expected invalid equation to be unbalanced')
+  }
+})
+
+/**
+ * Electron configuration tests
+ */
+test('electron-config: oxygen has 6 valence electrons and predicts -2 ion charge', () => {
+  const oxygen = calculateElectronConfiguration(8, 'O')
+  expectEqual(oxygen.valenceElectrons, 6)
+  const charges = predictIonCharge(oxygen.atomicNumber, oxygen.valenceElectrons)
+  expectEqual(charges.includes(-2), true)
+  expectEqual(getPeriodicBlock(oxygen), 'p-block')
+})
+
+test('electron-config: chromium uses known exception configuration', () => {
+  const chromium = calculateElectronConfiguration(24, 'Cr')
+  expectEqual(chromium.condensedConfig, '[Ar] 3d⁵ 4s¹')
+  if (!chromium.exceptions?.includes('Chromium')) {
+    throw new Error('Expected Chromium exception explanation')
+  }
+})
+
+/**
+ * Lewis structure tests
+ */
+test('lewis-structure: parseFormula counts atoms for H2O', () => {
+  const atoms = parseLewisFormula('H2O')
+  expectEqual(atoms.get('H'), 2)
+  expectEqual(atoms.get('O'), 1)
+})
+
+test('lewis-structure: predefined H2O structure validates', () => {
+  const predefined = getPreDefinedLewisStructure('H2O')
+  if (!predefined) {
+    throw new Error('Expected predefined Lewis structure for H2O')
+  }
+  const validation = validateLewisStructure(predefined)
+  expectEqual(validation.valid, true)
+
+  const validationConst = validateLewisStructure(LEWIS_H2O)
+  expectEqual(validationConst.valid, true)
+})
+
+test('lewis-structure: generated H2O structure is neutral and satisfies octet/duet', () => {
+  const generated = generateLewisStructure('H2O')
+  const validation = validateLewisStructure(generated)
+  expectEqual(validation.valid, true)
+})
+
+/**
+ * VSEPR tests
+ */
+test('vsepr: CO2 is linear (double bonds inferred)', () => {
+  const prediction = predictVseprFromFormula('CO2')
+  if (!prediction) {
+    throw new Error('Expected VSEPR prediction for CO2')
+  }
+  expectEqual(prediction.molecularGeometry, 'linear')
+  expectEqual(prediction.doubleBonds, 2)
+})
+
+test('vsepr: H2O is bent', () => {
+  const prediction = predictVseprFromFormula('H2O')
+  if (!prediction) {
+    throw new Error('Expected VSEPR prediction for H2O')
+  }
+  expectEqual(prediction.molecularGeometry, 'bent')
+})
+
+/**
+ * Kinetics tests
+ */
+test('kinetics: first-order k from half-life example', () => {
+  const initial = 1
+  const final = 0.5
+  const time = 10
+
+  const result = calculateKineticsRateConstant('first', initial, final, time)
+  if (!result) {
+    throw new Error('Expected rate constant result')
+  }
+
+  const expectedK = Math.LN2 / time
+  expectApproximately(result.k, expectedK, 0.1)
+
+  const concentration = calculateKineticsConcentration('first', initial, result.k, time)
+  expectApproximately(concentration.concentration, final, 0.1)
+})
+
+test('kinetics: Arrhenius forward/inverse is consistent', () => {
+  const A = 1e12
+  const Ea = 50000
+  const T1 = 300
+  const T2 = 600
+
+  const k1 = kineticsArrheniusEquation(A, Ea, T1).k
+  const k2 = kineticsArrheniusEquation(A, Ea, T2).k
+
+  const recovered = calculateKineticsActivationEnergy(k1, T1, k2, T2)
+  if (!recovered) {
+    throw new Error('Expected activation energy result')
+  }
+  expectApproximately(recovered.Ea, Ea, 1)
+})
+
+test('kinetics: determineReactionOrder detects first order from synthetic data', () => {
+  const k = 0.1
+  const data = [0, 5, 10, 15, 20].map(time => ({
+    time,
+    concentration: Math.exp(-k * time),
+  }))
+
+  const result = determineReactionOrder(data)
+  if (!result) {
+    throw new Error('Expected reaction order result')
+  }
+  expectEqual(result.order, 'first')
+  expectApproximately(result.k, k, 2)
+})
+
+/**
+ * Titration tests
+ */
+test('titration: strong acid + strong base has pH 7 at equivalence', () => {
+  const indicator = INDICATORS.find(i => i.name === 'Bromothymol Blue')
+  if (!indicator) {
+    throw new Error('Bromothymol Blue indicator not found')
+  }
+
+  const acidTemplate = STRONG_ACIDS.find(a => a.formula === 'HCl')
+  const baseTemplate = STRONG_BASES.find(b => b.formula === 'NaOH')
+  if (!acidTemplate || !baseTemplate) {
+    throw new Error('Expected HCl and NaOH templates')
+  }
+
+  const acid = { ...acidTemplate, concentration: 0.1, volume: 50 }
+  const base = { ...baseTemplate, concentration: 0.1, type: 'strong' as const }
+
+  const result = simulateTitration(acid, base, indicator, 1)
+  expectApproximately(result.equivalencePoint.volume, 50, 0.01)
+  expectApproximately(result.equivalencePoint.pH, 7, 0.5)
+  if (!(result.initialPH < 2)) {
+    throw new Error('Expected acidic initial pH for strong acid analyte')
+  }
+  if (!(result.finalPH > 12)) {
+    throw new Error('Expected basic final pH after excess strong base')
+  }
+})
+
+test('titration: weak acid half-equivalence pH is close to pKa', () => {
+  const indicator = INDICATORS.find(i => i.name === 'Bromothymol Blue')
+  if (!indicator) {
+    throw new Error('Bromothymol Blue indicator not found')
+  }
+
+  const acidTemplate = WEAK_ACIDS.find(a => a.name === 'Acetic acid')
+  const baseTemplate = STRONG_BASES.find(b => b.formula === 'NaOH')
+  if (!acidTemplate || !baseTemplate) {
+    throw new Error('Expected acetic acid and NaOH templates')
+  }
+
+  const acid = { ...acidTemplate, concentration: 0.1, volume: 50 }
+  const base = { ...baseTemplate, concentration: 0.1, type: 'strong' as const }
+
+  const result = simulateTitration(acid, base, indicator, 1)
+  if (!result.halfEquivalencePoint || !acidTemplate.pKa) {
+    throw new Error('Expected half-equivalence point for weak acid titration')
+  }
+  expectApproximately(result.halfEquivalencePoint.pH, acidTemplate.pKa, 10)
 })
 
 async function runAllTests(): Promise<void> {

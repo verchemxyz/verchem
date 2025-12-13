@@ -56,8 +56,8 @@ export default function VSEPRPage() {
     if (parsed) {
       setCentralAtom(parsed.centralAtom)
       setNumBonds(parsed.bondingPairs)
-      setDoubleBonds(0)
-      setTripleBonds(0)
+      setDoubleBonds(parsed.doubleBonds)
+      setTripleBonds(parsed.tripleBonds)
       setPrediction(parsed)
       return
     }

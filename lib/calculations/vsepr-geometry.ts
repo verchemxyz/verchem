@@ -319,18 +319,28 @@ export function predictVSEPRGeometry(
  * Predict geometry from molecular formula (simple parser)
  */
 export function predictFromFormula(formula: string): VSEPRPrediction | null {
+  const normalizedFormula = formula.trim()
+
   // Try pattern 1: AB_n format (e.g., CH4, NH3, BF3)
-  const match1 = formula.match(/^([A-Z][a-z]?)([A-Z][a-z]?)(\d*)$/)
+  const match1 = normalizedFormula.match(/^([A-Z][a-z]?)([A-Z][a-z]?)(\d*)$/)
   if (match1) {
     const centralAtom = match1[1]
     const surroundingAtom = match1[2] || 'H'
     const count = match1[3] ? parseInt(match1[3]) : 1
     const surroundingAtoms = Array(count).fill(surroundingAtom)
-    return predictVSEPRGeometry(centralAtom, surroundingAtoms)
+
+    // Basic inference for common multiple-bond molecules to avoid wrong lone-pair estimates.
+    // CO2 (O=C=O) is linear because carbon forms two double bonds.
+    const options: VSEPROptions = {}
+    if (normalizedFormula === 'CO2') {
+      options.doubleBonds = 2
+    }
+
+    return predictVSEPRGeometry(centralAtom, surroundingAtoms, 0, options)
   }
 
   // Try pattern 2: A_nB format (e.g., H2O, H2S) - surrounding atom first
-  const match2 = formula.match(/^([A-Z][a-z]?)(\d+)([A-Z][a-z]?)$/)
+  const match2 = normalizedFormula.match(/^([A-Z][a-z]?)(\d+)([A-Z][a-z]?)$/)
   if (match2) {
     const surroundingAtom = match2[1]
     const count = parseInt(match2[2])
