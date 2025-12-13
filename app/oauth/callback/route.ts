@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
+function sanitizeRedirectPath(value: string | null): string {
+  if (!value) return '/'
+  if (!value.startsWith('/')) return '/'
+  if (value.startsWith('//')) return '/'
+  if (value.includes('://')) return '/'
+  if (value.includes('\\')) return '/'
+  return value
+}
+
 // Lazily initialize Supabase Admin Client when environment variables are available
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -52,7 +61,9 @@ async function computeSessionSignature(value: string): Promise<string> {
 }
 
 export async function GET(request: NextRequest) {
-  console.log('OAuth callback started')
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('OAuth callback started')
+  }
 
   try {
     const searchParams = request.nextUrl.searchParams
@@ -60,7 +71,9 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state')
     const error = searchParams.get('error')
 
-    console.log('OAuth params:', { code: code?.substring(0, 10) + '...', state, error })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('OAuth params:', { code: code?.substring(0, 10) + '...', state, error })
+    }
 
     // Handle OAuth errors
     if (error) {
@@ -85,11 +98,7 @@ export async function GET(request: NextRequest) {
 
     if (!cookieState) {
       console.error('OAuth state cookie missing - possible CSRF attack or cookie expired')
-      // In production, be strict. In development, allow with warning for easier testing.
-      if (process.env.NODE_ENV === 'production') {
-        return NextResponse.redirect(new URL('/?error=csrf_cookie_missing', request.url))
-      }
-      console.warn('Allowing OAuth without state cookie in development mode')
+      return NextResponse.redirect(new URL('/?error=csrf_cookie_missing', request.url))
     } else if (cookieState !== state) {
       console.error('OAuth state mismatch - CSRF attack detected!')
       console.error(`Expected: ${cookieState.substring(0, 10)}..., Got: ${state.substring(0, 10)}...`)
@@ -120,11 +129,13 @@ export async function GET(request: NextRequest) {
     const clientSecret = process.env.AIVERID_CLIENT_SECRET
     const clientId = process.env.NEXT_PUBLIC_AIVERID_CLIENT_ID || 'aiv_verchem_production_2025'
 
-    console.log('Config check:', {
-      hasClientSecret: !!clientSecret,
-      clientId,
-      redirect_uri
-    })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Config check:', {
+        hasClientSecret: !!clientSecret,
+        clientId,
+        redirect_uri
+      })
+    }
 
     if (!clientSecret) {
       console.error('AIVERID_CLIENT_SECRET not configured')
@@ -151,12 +162,14 @@ export async function GET(request: NextRequest) {
     const tokenUrl = process.env.NEXT_PUBLIC_AIVERID_TOKEN_URL ||
       'https://aiverid-backend-production.up.railway.app/oauth/token'
 
-    console.log('Token exchange:', {
-      url: tokenUrl,
-      clientId: tokenPayload.client_id,
-      hasSecret: !!tokenPayload.client_secret,
-      redirect_uri: tokenPayload.redirect_uri
-    })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Token exchange:', {
+        url: tokenUrl,
+        clientId: tokenPayload.client_id,
+        hasSecret: !!tokenPayload.client_secret,
+        redirect_uri: tokenPayload.redirect_uri
+      })
+    }
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -215,6 +228,7 @@ export async function GET(request: NextRequest) {
     const aiveridValue = user.aiverid || user.sub || user.id
 
     // Create session data
+    const sessionTtlSeconds = 7 * 24 * 60 * 60 // 7 days
     const sessionData = {
       user: {
         id: aiveridValue,
@@ -225,9 +239,9 @@ export async function GET(request: NextRequest) {
         // Early Bird: Registration date from AIVerID
         registered_at: user.registered_at || user.created_at || null,
       },
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString(),
+      // Tokens are intentionally NOT stored in cookies (reduce risk + cookie size).
+      // Re-authenticate when the session expires.
+      expires_at: new Date(Date.now() + sessionTtlSeconds * 1000).toISOString(),
     }
 
     // Check if user exists in database
@@ -278,8 +292,9 @@ export async function GET(request: NextRequest) {
     const sessionString = JSON.stringify(sessionData)
     const signature = await computeSessionSignature(sessionString)
 
-    // Create response with redirect to home
-    const response = NextResponse.redirect(new URL('/', request.url))
+    const redirectCookie = cookieStore.get('oauth_redirect')?.value ?? null
+    const redirectPath = sanitizeRedirectPath(redirectCookie)
+    const response = NextResponse.redirect(new URL(redirectPath, request.url))
 
     // Set session cookies
     const cookieOptions = {
@@ -287,7 +302,7 @@ export async function GET(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
       path: '/',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: sessionTtlSeconds,
     }
 
     response.cookies.set('verchem-session', sessionString, cookieOptions)
@@ -303,11 +318,7 @@ export async function GET(request: NextRequest) {
 
     // Clear oauth_state cookie after successful login
     response.cookies.set('oauth_state', '', { path: '/', maxAge: 0 })
-
-    // IMPORTANT: Small delay to ensure cookies propagate to browser
-    // Without this, redirect happens before Set-Cookie headers are sent
-    // Result: Browser reaches next page without session → 401 errors
-    await new Promise(resolve => setTimeout(resolve, 100)) // 100ms delay
+    response.cookies.set('oauth_redirect', '', { path: '/', maxAge: 0 })
 
     return response
 

@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
+function sanitizeRedirectPath(value: string): string {
+  if (!value.startsWith('/')) return '/'
+  if (value.startsWith('//')) return '/'
+  if (value.includes('://')) return '/'
+  if (value.includes('\\')) return '/'
+  return value
+}
+
 export default function OAuthLoginButton() {
   const [isLoading, setIsLoading] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
@@ -16,32 +24,19 @@ export default function OAuthLoginButton() {
     setIsLoading(true)
 
     try {
-      // Simple state parameter without user type
-      const stateData = {
-        timestamp: Date.now()
+      const currentUrl = new URL(window.location.href)
+      const redirectFromParam = currentUrl.searchParams.get('redirect')
+
+      let redirectPath: string
+      if (redirectFromParam) {
+        redirectPath = sanitizeRedirectPath(redirectFromParam)
+      } else {
+        currentUrl.searchParams.delete('login_required')
+        currentUrl.searchParams.delete('redirect')
+        redirectPath = currentUrl.pathname + currentUrl.search
       }
 
-      // Convert to base64 (browser-compatible)
-      const state = btoa(JSON.stringify(stateData))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '')
-
-      // Use configured redirect URI from environment
-      const redirect_uri = process.env.NEXT_PUBLIC_AIVERID_REDIRECT_URI ||
-        `${window.location.origin}/oauth/callback`
-
-      const params = new URLSearchParams({
-        client_id: process.env.NEXT_PUBLIC_AIVERID_CLIENT_ID || 'aiv_verchem_production_2025',
-        redirect_uri: redirect_uri,
-        response_type: 'code',
-        scope: 'profile email',
-        state
-      })
-
-      const authUrl = `${process.env.NEXT_PUBLIC_AIVERID_AUTH_URL}?${params.toString()}`
-      console.info('OAuth URL prepared')
-      window.location.href = authUrl
+      window.location.href = `/oauth/start?redirect=${encodeURIComponent(redirectPath)}`
     } catch (error) {
       console.error('Failed to initiate OAuth:', error)
       setIsLoading(false)

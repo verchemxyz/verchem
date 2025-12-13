@@ -170,6 +170,7 @@ export async function middleware(request: NextRequest) {
       // Clear invalid cookies and redirect
       const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
       response.cookies.delete('verchem-session')
+      response.cookies.delete('verchem-session-sig')
       response.cookies.delete('verchem-auth')
       return response
     }
