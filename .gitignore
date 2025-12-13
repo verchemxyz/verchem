@@ -48,6 +48,7 @@ next-env.d.ts
 # Project memory files (sensitive information)
 CLAUDE.md
 KIMI.md
+VERCHEM_GEMINI_LOG.md
 AGENTS.md
 SESSION_SUMMARY*.md
 .ai-memory/

@@ -5,11 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:webpack": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx __tests__/molecule-builder.test.ts",
-    "test:calculations": "tsx scripts/run-calculations-tests.ts",
-    "validate": "tsx scripts/run-validation.ts"
+    "test": "node --import tsx __tests__/molecule-builder.test.ts",
+    "test:calculations": "node --import tsx scripts/run-calculations-tests.ts",
+    "validate": "node --import tsx scripts/run-validation.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",

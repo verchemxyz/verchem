@@ -3,6 +3,9 @@
  * Testing chemistry logic for WCP standards
  */
 
+// Lightweight test harness (no Jest/Vitest required)
+import assert from 'node:assert/strict'
+
 import {
   getValenceElectrons,
   calculateFormalCharge,
@@ -20,6 +23,53 @@ import {
   getMaxBondOrder,
   getMaxTotalBondOrder,
 } from '@/lib/utils/bond-restrictions'
+
+type TestFn = () => void | Promise<void>
+type TestCase = { name: string; fn: TestFn }
+
+const tests: TestCase[] = []
+
+function describe(_name: string, fn: () => void) {
+  fn()
+}
+
+function test(name: string, fn: TestFn) {
+  tests.push({ name, fn })
+}
+
+function expect(actual: unknown) {
+  return {
+    toBe(expected: unknown) {
+      assert.equal(actual, expected)
+    },
+    toBeNull() {
+      assert.equal(actual, null)
+    },
+    toEqual(expected: unknown) {
+      assert.deepEqual(actual, expected)
+    },
+    toContain(expected: unknown) {
+      if (typeof actual === 'string') {
+        assert.ok(actual.includes(String(expected)))
+        return
+      }
+      if (Array.isArray(actual)) {
+        assert.ok(actual.includes(expected))
+        return
+      }
+      throw new Error('toContain only supports string and array values')
+    },
+    toHaveLength(expected: number) {
+      const length = (actual as { length?: unknown } | null | undefined)?.length
+      assert.equal(typeof length, 'number')
+      assert.equal(length, expected)
+    },
+    toBeGreaterThan(expected: number) {
+      assert.equal(typeof actual, 'number')
+      assert.ok((actual as number) > expected)
+    },
+  }
+}
 
 describe('Valence Electrons', () => {
   test('returns correct valence electrons for common elements', () => {
@@ -107,7 +157,7 @@ describe('Octet Rule Validation', () => {
   })
 
   test('detects unstable atoms correctly', () => {
-    // Incomplete methyl radical CH3
+    // Methyl radical CH3 (7 electrons around carbon)
     const carbonAtom: BuilderAtom = {
       id: 1,
       element: 'C',
@@ -126,7 +176,7 @@ describe('Octet Rule Validation', () => {
 
     const stability = checkOctetRule(carbonAtom, bonds)
     expect(stability.isStable).toBe(false)
-    expect(stability.needsElectrons).toBe(2)
+    expect(stability.needsElectrons).toBe(1)
   })
 
   test('handles hydrogen duet rule', () => {
@@ -330,4 +380,44 @@ describe('Complete Molecule Validation', () => {
     expect(validation.isValid).toBe(false)
     expect(validation.formula).toBe('Empty')
   })
+})
+
+async function runTests() {
+  console.log('🧪 VerChem Molecule Builder Unit Tests')
+  console.log('====================================\n')
+
+  let passed = 0
+  const failures: string[] = []
+
+  for (const testCase of tests) {
+    try {
+      await testCase.fn()
+      passed++
+      console.log(`✅ ${testCase.name}`)
+    } catch (error) {
+      failures.push(testCase.name)
+      console.log(`❌ ${testCase.name}`)
+      console.error(error)
+    }
+  }
+
+  console.log('\n📊 Test Summary')
+  console.log('--------------')
+  console.log(`Total tests: ${tests.length}`)
+  console.log(`Passed:      ${passed}`)
+  console.log(`Failed:      ${failures.length}`)
+
+  if (failures.length > 0) {
+    console.log('\n❌ Failures:')
+    failures.forEach((name) => console.log(`  - ${name}`))
+    process.exitCode = 1
+    return
+  }
+
+  console.log('\n✅ All molecule builder tests passed!')
+}
+
+runTests().catch((error) => {
+  console.error(error)
+  process.exitCode = 1
 })

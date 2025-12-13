@@ -333,9 +333,9 @@ test('gas-laws: Dalton, partial pressure, mole fraction', () => {
   expectApproximately(moleFraction, 0.25, 0.0001)
 })
 
-test('gas-laws: Graham\'s law effusion ratio', () => {
+test('gas-laws: Graham\'s law calculates rate2 from rate1', () => {
   const rate2 = grahamsLaw(1, 4, 16)
-  expectApproximately(rate2, 2, 0.0001)
+  expectApproximately(rate2, 0.5, 0.0001)
 })
 
 test('gas-laws: van der Waals equation input validation', () => {

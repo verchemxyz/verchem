@@ -175,26 +175,22 @@ export function getValenceElectrons(element: string): number {
  *   L = lone pair electrons
  *   B = bonding electrons (electrons in bonds)
  *
- * IMPORTANT: This function is designed for NEUTRAL molecules.
- * For ions (e.g., NH₄⁺, H₃O⁺), formal charge calculation requires
- * explicit lone pair tracking, which is not currently supported in the UI.
+ * Lone electrons inference (octet/duet assumption):
+ * - target electrons = 2 (H/He), 6 (B), 8 (most elements)
+ * - L = clamp(target - B, 0..(V - B/2))
  *
- * Current behavior:
- * - Infers lone electrons as: L = max(0, V - B/2)
- * - Works correctly for neutral molecules (H₂O, CH₄, NH₃, CO₂, etc.)
- * - May give incorrect results for charged species
+ * This supports common ions (NH₄⁺, H₃O⁺, OH⁻) without explicit lone-pair editing,
+ * but does not model expanded octets or radicals with full accuracy.
  *
  * Example - Water (H₂O):
  *   Oxygen: V=6, 2 bonds (4 bonding electrons)
  *   L = max(0, 6 - 2) = 4 (2 lone pairs) ✅
  *   FC = 6 - (4 + 2) = 0 ✅
  *
- * Example - Ammonium ion (NH₄⁺) - LIMITATION:
+ * Example - Ammonium ion (NH₄⁺):
  *   Nitrogen: V=5, 4 bonds (8 bonding electrons)
- *   L = max(0, 5 - 4) = 1 ❌ (should be 0 for NH₄⁺)
- *   FC = 5 - (1 + 4) = 0 ❌ (should be +1 for NH₄⁺)
- *
- * Future enhancement: Add explicit lone pair editing in UI
+ *   L = clamp(8 - 8, 0..(5 - 4)) = 0
+ *   FC = 5 - (0 + 4) = +1
  *
  * @param atom The atom to calculate formal charge for
  * @param bonds All bonds involving this atom
@@ -215,17 +211,21 @@ export function calculateFormalCharge(
   const electronsContributedToBonds = bondingElectrons / 2
 
   // Infer lone electrons (assumes neutral molecule)
-  // For ions, this may be incorrect - see function documentation
-  const loneElectrons = Math.max(0, valence - electronsContributedToBonds)
+  // Infer lone electrons from target (octet/duet) and clamp to what valence can supply.
+  // This supports common ions (e.g., NH4+, H3O+, OH-) without explicit lone-pair editing,
+  // but does not model expanded octets or radicals with full accuracy.
+  const target = getTargetElectrons(atom.element)
+  const maxLoneFromValence = Math.max(0, valence - electronsContributedToBonds)
+  const loneElectrons = Math.min(Math.max(0, target - bondingElectrons), maxLoneFromValence)
 
   // Calculate formal charge: FC = V - (L + B/2)
   const formalCharge = valence - (loneElectrons + electronsContributedToBonds)
 
-  // Warn if atom might be part of an ion (unusual formal charge)
+  // Warn if atom might be part of an exotic ion (unusual formal charge)
   if (Math.abs(formalCharge) > 1) {
     console.warn(
       `⚠️ ${atom.element} has formal charge ${formalCharge}. ` +
-      `This might indicate an ionic species, which requires explicit lone pair tracking.`
+      `This might indicate an exotic species that may require explicit lone pair tracking.`
     )
   }
 
