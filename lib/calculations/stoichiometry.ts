@@ -28,7 +28,7 @@ export function calculateMolecularMass(formula: string): number {
     }
   }
 
-  return Math.round(mass * 1000) / 1000 // 3 decimal places
+  return mass
 }
 
 /**

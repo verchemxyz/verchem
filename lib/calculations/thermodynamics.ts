@@ -16,21 +16,26 @@ export interface ThermodynamicData {
 /**
  * Parse formula with state notation (e.g., "H2O(g)", "CO2(g)", "H2O(l)")
  */
-function parseFormulaWithState(formulaWithState: string): { formula: string; state?: string } {
-  const match = formulaWithState.match(/^([A-Za-z0-9]+)\(([slga])\)$/)
+function parseFormulaWithState(
+  formulaWithState: string
+): { formula: string; state?: ThermodynamicData['state'] } {
+  const compact = formulaWithState.replace(/\s+/g, '')
+  const match = compact.match(/^(.+?)\((aq|s|l|g|a)\)$/i)
   if (match) {
     const stateMap: Record<string, 'solid' | 'liquid' | 'gas' | 'aqueous'> = {
-      's': 'solid',
-      'l': 'liquid',
-      'g': 'gas',
-      'a': 'aqueous'
+      s: 'solid',
+      l: 'liquid',
+      g: 'gas',
+      a: 'aqueous',
+      aq: 'aqueous',
     }
+    const stateKey = match[2].toLowerCase()
     return {
       formula: match[1],
-      state: stateMap[match[2]]
+      state: stateMap[stateKey],
     }
   }
-  return { formula: formulaWithState }
+  return { formula: compact }
 }
 
 /**
@@ -111,6 +116,29 @@ export const THERMODYNAMIC_DATA: ThermodynamicData[] = [
   { compound: 'Ammonium nitrate', formula: 'NH4NO3', deltaHf: -365.6, deltaGf: -183.9, S: 151.1, state: 'solid' },
 ]
 
+const DEFAULT_STATE_PRIORITY: ThermodynamicData['state'][] = ['liquid', 'solid', 'gas', 'aqueous']
+
+function resolveThermodynamicData(
+  formula: string,
+  state?: ThermodynamicData['state']
+): ThermodynamicData | null {
+  const matches = THERMODYNAMIC_DATA.filter(entry => entry.formula === formula)
+  if (matches.length === 0) return null
+
+  if (state) {
+    return matches.find(entry => entry.state === state) ?? null
+  }
+
+  if (matches.length === 1) return matches[0]
+
+  for (const candidateState of DEFAULT_STATE_PRIORITY) {
+    const candidate = matches.find(entry => entry.state === candidateState)
+    if (candidate) return candidate
+  }
+
+  return matches[0]
+}
+
 /**
  * Calculate ΔH°rxn (Enthalpy of Reaction)
  * ΔH°rxn = Σ(ΔH°f products) - Σ(ΔH°f reactants)
@@ -130,9 +158,7 @@ export function calculateDeltaH(
   steps.push('\nProducts:')
   for (const product of products) {
     const parsed = parseFormulaWithState(product.formula)
-    const data = parsed.state
-      ? THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula && d.state === parsed.state)
-      : THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula)
+    const data = resolveThermodynamicData(parsed.formula, parsed.state)
 
     if (!data) {
       steps.push(`❌ Data not found for ${product.formula}`)
@@ -148,9 +174,7 @@ export function calculateDeltaH(
   steps.push('\nReactants:')
   for (const reactant of reactants) {
     const parsed = parseFormulaWithState(reactant.formula)
-    const data = parsed.state
-      ? THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula && d.state === parsed.state)
-      : THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula)
+    const data = resolveThermodynamicData(parsed.formula, parsed.state)
 
     if (!data) {
       steps.push(`❌ Data not found for ${reactant.formula}`)
@@ -195,9 +219,7 @@ export function calculateDeltaS(
   steps.push('\nProducts:')
   for (const product of products) {
     const parsed = parseFormulaWithState(product.formula)
-    const data = parsed.state
-      ? THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula && d.state === parsed.state)
-      : THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula)
+    const data = resolveThermodynamicData(parsed.formula, parsed.state)
 
     if (!data) {
       steps.push(`❌ Data not found for ${product.formula}`)
@@ -213,9 +235,7 @@ export function calculateDeltaS(
   steps.push('\nReactants:')
   for (const reactant of reactants) {
     const parsed = parseFormulaWithState(reactant.formula)
-    const data = parsed.state
-      ? THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula && d.state === parsed.state)
-      : THERMODYNAMIC_DATA.find(d => d.formula === parsed.formula)
+    const data = resolveThermodynamicData(parsed.formula, parsed.state)
 
     if (!data) {
       steps.push(`❌ Data not found for ${reactant.formula}`)

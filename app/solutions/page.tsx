@@ -103,15 +103,19 @@ export default function SolutionsPage() {
 
         case 'strong-acid-ph': {
           const conc = parseFloat(concentration)
-          const result = calculateStrongAcidPH(conc)
+          const result = calculateStrongAcidPH(conc, { formula: selectedAcid })
           setPhResult(result)
+          const usesSecondDissociation = selectedAcid === 'H2SO4'
           setSteps([
-            `Strong Acid: ${selectedAcid} (complete dissociation)`,
+            `Strong Acid: ${selectedAcid} (strong dissociation)`,
             ``,
             `Given:`,
             `  Concentration = ${conc} M`,
             ``,
-            `For strong acids: [H⁺] = concentration`,
+            ...(usesSecondDissociation
+              ? ['Second dissociation of HSO₄⁻ accounted (Ka₂ ≈ 1.2×10⁻²).', ``]
+              : []),
+            `Effective [H⁺] (including water autoionization):`,
             `[H⁺] = ${result.H_concentration.toExponential(3)} M`,
             ``,
             `pH Calculation:`,
@@ -119,8 +123,8 @@ export default function SolutionsPage() {
             `pH = -log₁₀(${result.H_concentration.toExponential(3)})`,
             `pH = ${result.pH.toFixed(2)}`,
             ``,
-            `pOH = 14 - pH = ${result.pOH.toFixed(2)}`,
-            `[OH⁻] = 10⁻ᵖᴼᴴ = ${result.OH_concentration.toExponential(3)} M`,
+            `[OH⁻] = Kw / [H⁺] = ${result.OH_concentration.toExponential(3)} M`,
+            `pOH = -log₁₀[OH⁻] = ${result.pOH.toFixed(2)}`,
             ``,
             `Classification: ${getPhLabel(result.pH)}`,
           ])
@@ -129,15 +133,15 @@ export default function SolutionsPage() {
 
         case 'strong-base-ph': {
           const conc = parseFloat(concentration)
-          const result = calculateStrongBasePH(conc)
+          const result = calculateStrongBasePH(conc, { formula: selectedBase })
           setPhResult(result)
           setSteps([
-            `Strong Base: ${selectedBase} (complete dissociation)`,
+            `Strong Base: ${selectedBase} (strong dissociation)`,
             ``,
             `Given:`,
             `  Concentration = ${conc} M`,
             ``,
-            `For strong bases: [OH⁻] = concentration`,
+            `Effective [OH⁻] (including water autoionization):`,
             `[OH⁻] = ${result.OH_concentration.toExponential(3)} M`,
             ``,
             `pOH Calculation:`,
@@ -145,11 +149,8 @@ export default function SolutionsPage() {
             `pOH = -log₁₀(${result.OH_concentration.toExponential(3)})`,
             `pOH = ${result.pOH.toFixed(2)}`,
             ``,
-            `pH = 14 - pOH`,
-            `pH = 14 - ${result.pOH.toFixed(2)}`,
-            `pH = ${result.pH.toFixed(2)}`,
-            ``,
-            `[H⁺] = 10⁻ᵖᴴ = ${result.H_concentration.toExponential(3)} M`,
+            `[H⁺] = Kw / [OH⁻] = ${result.H_concentration.toExponential(3)} M`,
+            `pH = -log₁₀[H⁺] = ${result.pH.toFixed(2)}`,
             ``,
             `Classification: ${getPhLabel(result.pH)}`,
           ])

@@ -314,7 +314,7 @@ export function grahamsLaw(
   molarMass1: number,
   molarMass2: number
 ): number {
-  // rate1/rate2 = √(M2/M1)
+  // rate1/rate2 = √(M2/M1) -> rate2 = rate1 × √(M1/M2)
   return rate1 * Math.sqrt(molarMass1 / molarMass2)
 }
 

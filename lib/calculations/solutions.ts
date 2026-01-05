@@ -109,19 +109,117 @@ export function pOHToPH(pOH: number): number {
   return 14 - pOH
 }
 
+export interface StrongAcidOptions {
+  formula?: string
+  protonCount?: number
+}
+
+export interface StrongBaseOptions {
+  formula?: string
+  hydroxideCount?: number
+}
+
+const STRONG_ACID_PROTON_COUNTS: Record<string, number> = {
+  HCl: 1,
+  HNO3: 1,
+  HBr: 1,
+  HI: 1,
+  HClO4: 1,
+  H2SO4: 2,
+}
+
+const STRONG_ACID_SECOND_DISSOCIATION_KA: Record<string, number> = {
+  H2SO4: 1.2e-2,
+}
+
+const STRONG_BASE_HYDROXIDE_COUNTS: Record<string, number> = {
+  NaOH: 1,
+  KOH: 1,
+  LiOH: 1,
+  'Ca(OH)2': 2,
+  'Ba(OH)2': 2,
+}
+
+function normalizeFormula(formula: string): string {
+  const subscriptMap: Record<string, string> = {
+    '₀': '0',
+    '₁': '1',
+    '₂': '2',
+    '₃': '3',
+    '₄': '4',
+    '₅': '5',
+    '₆': '6',
+    '₇': '7',
+    '₈': '8',
+    '₉': '9',
+  }
+  return formula
+    .replace(/\s+/g, '')
+    .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => subscriptMap[match] ?? match)
+}
+
+function solveWithWaterAutoIonization(addedConcentration: number, kw: number): number {
+  const value = Math.max(addedConcentration, 0)
+  return 0.5 * (value + Math.sqrt(value * value + 4 * kw))
+}
+
+function calculateStrongAcidHydrogen(
+  concentration: number,
+  options?: StrongAcidOptions
+): number {
+  if (concentration <= 0) return 0
+  if (options?.protonCount !== undefined) {
+    return concentration * Math.max(options.protonCount, 0)
+  }
+
+  const normalized = options?.formula ? normalizeFormula(options.formula) : ''
+  if (normalized && STRONG_ACID_SECOND_DISSOCIATION_KA[normalized]) {
+    const Ka2 = STRONG_ACID_SECOND_DISSOCIATION_KA[normalized]
+    const b = concentration + Ka2
+    const discriminant = b * b + 4 * Ka2 * concentration
+    const x = (-b + Math.sqrt(discriminant)) / 2
+    return concentration + Math.max(0, x)
+  }
+
+  const protonCount = normalized ? STRONG_ACID_PROTON_COUNTS[normalized] ?? 1 : 1
+  return concentration * protonCount
+}
+
+function calculateStrongBaseHydroxide(
+  concentration: number,
+  options?: StrongBaseOptions
+): number {
+  if (concentration <= 0) return 0
+  if (options?.hydroxideCount !== undefined) {
+    return concentration * Math.max(options.hydroxideCount, 0)
+  }
+
+  const normalized = options?.formula ? normalizeFormula(options.formula) : ''
+  const hydroxideCount = normalized ? STRONG_BASE_HYDROXIDE_COUNTS[normalized] ?? 1 : 1
+  return concentration * hydroxideCount
+}
+
 /**
  * Strong acid pH calculation
  */
-export function calculateStrongAcidPH(concentration: number): {
+export function calculateStrongAcidPH(
+  concentration: number,
+  options?: StrongAcidOptions
+): {
   pH: number
   pOH: number
   H_concentration: number
   OH_concentration: number
 } {
-  const H_concentration = concentration
+  if (!Number.isFinite(concentration) || concentration < 0) {
+    throw new Error('Concentration must be a finite, non-negative number')
+  }
+
+  const strongHydrogen = calculateStrongAcidHydrogen(concentration, options)
+  const H_concentration = solveWithWaterAutoIonization(strongHydrogen, KW_25C)
   const pH = calculatePH(H_concentration)
-  const pOH = 14 - pH
-  const OH_concentration = Math.pow(10, -pOH)
+  const OH_concentration = KW_25C / H_concentration
+  const pOH = calculatePOH(OH_concentration)
 
   return { pH, pOH, H_concentration, OH_concentration }
 }
@@ -129,16 +227,24 @@ export function calculateStrongAcidPH(concentration: number): {
 /**
  * Strong base pH calculation
  */
-export function calculateStrongBasePH(concentration: number): {
+export function calculateStrongBasePH(
+  concentration: number,
+  options?: StrongBaseOptions
+): {
   pH: number
   pOH: number
   H_concentration: number
   OH_concentration: number
 } {
-  const OH_concentration = concentration
+  if (!Number.isFinite(concentration) || concentration < 0) {
+    throw new Error('Concentration must be a finite, non-negative number')
+  }
+
+  const strongHydroxide = calculateStrongBaseHydroxide(concentration, options)
+  const OH_concentration = solveWithWaterAutoIonization(strongHydroxide, KW_25C)
   const pOH = calculatePOH(OH_concentration)
-  const pH = 14 - pOH
-  const H_concentration = Math.pow(10, -pH)
+  const H_concentration = KW_25C / OH_concentration
+  const pH = calculatePH(H_concentration)
 
   return { pH, pOH, H_concentration, OH_concentration }
 }
