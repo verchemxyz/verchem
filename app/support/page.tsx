@@ -80,7 +80,7 @@ export default function SupportPage() {
   const [isCustom, setIsCustom] = useState(false);
 
   const handleSupport = (amount: number, tierId?: string) => {
-    // Stripe Payment Links - PRODUCTION
+    // Stripe Payment Links - PRODUCTION (from Stripe Dashboard 12 Dec 2025)
     const stripeLinks: Record<string, string> = {
       coffee: 'https://buy.stripe.com/9B6eVceFOg6z4Ctehm3cc0k',
       lunch: 'https://buy.stripe.com/aFaaEW69icUn8SJ6OU3cc0l',
