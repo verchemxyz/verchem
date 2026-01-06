@@ -281,16 +281,16 @@ export default function Home() {
               VerChem is built with love by a small team. Your support helps us maintain servers and develop new features.
             </p>
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <a href="https://buy.stripe.com/4gw9Ege2C1FO6rK5kl" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+              <a href="https://buy.stripe.com/9B6eVceFOg6z4Ctehm3cc0k" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
                 ☕ $3
               </a>
-              <a href="https://buy.stripe.com/00gbMo4s21FO0Xi7su" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+              <a href="https://buy.stripe.com/aFaaEW69icUn8SJ6OU3cc0l" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
                 🍕 $10
               </a>
-              <a href="https://buy.stripe.com/6oE4lW8Ii8489DW4gj" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
+              <a href="https://buy.stripe.com/aFa00igNW3jNb0R1uA3cc0m" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
                 🎁 $25
               </a>
-              <a href="https://buy.stripe.com/14k4lWg6K5W06rKbIN" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-400 text-pink-700 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center bg-pink-50">
+              <a href="https://buy.stripe.com/14A28q0OYaMfd8Z4GM3cc0n" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-400 text-pink-700 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center bg-pink-50">
                 💎 $50
               </a>
             </div>
