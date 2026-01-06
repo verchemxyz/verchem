@@ -244,45 +244,69 @@ export async function GET(request: NextRequest) {
       expires_at: new Date(Date.now() + sessionTtlSeconds * 1000).toISOString(),
     }
 
-    // Check if user exists in database
+    // Sync user to Supabase (optional - graceful degradation)
+    // Pattern from VerHotel: Don't fail OAuth if Supabase has issues
     if (supabaseAdmin) {
-      const { data: existingUser, error: dbError } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('aiverid_id', aiveridValue)
-        .maybeSingle()
-
-      if (dbError && dbError.code !== 'PGRST116') {
-        console.error('Database error:', dbError)
-      }
-
-      // If user doesn't exist, create one
-      if (!existingUser) {
-        const newUserData = {
-          aiverid_id: aiveridValue,
-          name: user.name || user.username || user.email?.split('@')[0] || 'User',
-          email: user.email,
-          // created_at will use DEFAULT CURRENT_TIMESTAMP from schema
-        }
-
-        const { data: newUser, error: createError } = await supabaseAdmin
+      try {
+        const { data: existingUser, error: dbError } = await supabaseAdmin
           .from('users')
-          .insert(newUserData)
-          .select()
-          .single()
+          .select('id, aiverid_id, email, name')
+          .eq('aiverid_id', aiveridValue)
+          .maybeSingle()
 
-        if (createError) {
-          console.error('Failed to create user:', createError)
-          return NextResponse.redirect(new URL('/?error=user_creation_failed', request.url))
+        if (dbError && dbError.code !== 'PGRST116') {
+          // PGRST116 = no rows found (expected for new users)
+          console.error('Database lookup error:', {
+            code: dbError.code,
+            message: dbError.message,
+            hint: dbError.hint,
+            details: dbError.details
+          })
         }
 
-        // Update session data with DB user
-        if (newUser) {
-          sessionData.user = { ...sessionData.user, ...newUser }
+        // If user doesn't exist, create one
+        if (!existingUser) {
+          // Pattern from VerHotel: Use placeholder if email missing
+          const emailValue = user.email || `${aiveridValue}@verchem.placeholder`
+
+          const newUserData = {
+            aiverid_id: aiveridValue,
+            name: user.name || user.username || user.email?.split('@')[0] || 'User',
+            email: emailValue,
+            // avatar_url is optional - only set if available
+            ...(user.picture && { avatar_url: user.picture }),
+          }
+
+          const { data: newUser, error: createError } = await supabaseAdmin
+            .from('users')
+            .insert(newUserData)
+            .select()
+            .single()
+
+          if (createError) {
+            // Detailed logging (pattern from VerGolf)
+            console.error('Failed to create user - Full error details:', {
+              code: createError.code,
+              message: createError.message,
+              hint: createError.hint,
+              details: createError.details,
+              userData: { aiverid_id: aiveridValue, email: emailValue }
+            })
+            // Graceful degradation: Continue without DB sync
+            // User can still use the app, just won't be saved to DB
+            console.info('Continuing OAuth without Supabase sync')
+          } else if (newUser) {
+            // Update session data with DB user
+            sessionData.user = { ...sessionData.user, ...newUser }
+          }
+        } else {
+          // User exists - update session data
+          sessionData.user = { ...sessionData.user, ...existingUser }
         }
-      } else {
-        // User exists - update session data
-        sessionData.user = { ...sessionData.user, ...existingUser }
+      } catch (supabaseError) {
+        // Catch any unexpected Supabase errors
+        console.error('Supabase sync failed:', supabaseError)
+        console.info('Continuing OAuth without Supabase sync')
       }
     } else {
       console.info('Skipping Supabase sync: admin client not configured')
