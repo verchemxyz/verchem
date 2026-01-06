@@ -1,57 +1,10 @@
 import Link from 'next/link'
-import Image from 'next/image'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { LanguageSelector, TranslatedText } from '@/components/i18n'
 import { GlobalSearchBar } from '@/components/search/GlobalSearchBar'
-import AuthButton from '@/components/AuthButton'
-import { SupportBanner, SupportHeartButton } from '@/components/support/SupportBanner'
+import { SupportBanner } from '@/components/support/SupportBanner'
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 transition-transform group-hover:scale-110">
-              <Image
-                src="/logo.png"
-                alt="VerChem Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/periodic-table" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              <TranslatedText i18nKey="navigation.periodicTable" />
-            </Link>
-            <Link href="/compounds" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              Compounds
-            </Link>
-            <Link href="/calculators" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              <TranslatedText i18nKey="navigation.calculators" />
-            </Link>
-            <Link href="/tools" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              Tools
-            </Link>
-            <Link href="/support" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium">
-              Support
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <SupportHeartButton />
-            <AuthButton />
-            <LanguageSelector />
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section - PREMIUM */}
       <section className="hero-gradient-premium max-w-7xl mx-auto px-4 py-24 text-center relative overflow-hidden">
         {/* Floating decorative elements */}
