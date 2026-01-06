@@ -186,9 +186,20 @@ export default function ChemistryChallengePage() {
   const [answeredQuestions, setAnsweredQuestions] = useState<{ correct: boolean; question: Question }[]>([])
   const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([])
 
-  // Shuffle questions on game start
+  // Shuffle questions on game start using deterministic method
   const startGame = useCallback(() => {
-    const shuffled = [...QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10)
+    // Use date-based deterministic shuffle for consistent daily challenges
+    const today = new Date().toDateString()
+    const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    
+    // Fisher-Yates shuffle with deterministic seed
+    const questions = [...QUESTIONS]
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = (seed + i) % (i + 1)
+      ;[questions[i], questions[j]] = [questions[j], questions[i]]
+    }
+    
+    const shuffled = questions.slice(0, 10)
     setShuffledQuestions(shuffled)
     setGameState('playing')
     setCurrentQuestion(0)

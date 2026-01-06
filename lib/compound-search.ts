@@ -414,11 +414,21 @@ export function getCompoundById(id: string): Compound | undefined {
 }
 
 /**
- * Get random compounds for testing/demos
+ * Get random compounds for testing/demos - using deterministic selection
  */
 export function getRandomCompounds(count: number = 5): Compound[] {
-  const shuffled = [...COMPREHENSIVE_COMPOUNDS].sort(() => 0.5 - Math.random())
-  return shuffled.slice(0, count)
+  // Use date-based deterministic selection for reproducible demos
+  const today = new Date().toDateString()
+  const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  
+  // Simple deterministic shuffle based on date seed
+  const compounds = [...COMPREHENSIVE_COMPOUNDS]
+  for (let i = compounds.length - 1; i > 0; i--) {
+    const j = (seed + i) % (i + 1)
+    ;[compounds[i], compounds[j]] = [compounds[j], compounds[i]]
+  }
+  
+  return compounds.slice(0, count)
 }
 
 /**

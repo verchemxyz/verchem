@@ -123,8 +123,7 @@ export default function PHCalculatorPage() {
     return 'text-purple-500'
   }
 
-  const getpHGradient = (pH: number) => {
-    const position = (pH / 14) * 100
+  const getpHGradient = () => {
     return `linear-gradient(to right, #ef4444 0%, #f97316 14%, #eab308 28%, #22c55e 50%, #06b6d4 64%, #3b82f6 78%, #8b5cf6 100%)`
   }
 
@@ -249,7 +248,7 @@ export default function PHCalculatorPage() {
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">pH Scale Position</h3>
                     <div className="relative h-12 rounded-full overflow-hidden"
-                         style={{ background: getpHGradient(result.pH) }}>
+                         style={{ background: getpHGradient() }}>
                       <div
                         className="absolute top-0 bottom-0 w-1 bg-white shadow-lg"
                         style={{ left: `${(result.pH / 14) * 100}%`, transform: 'translateX(-50%)' }}

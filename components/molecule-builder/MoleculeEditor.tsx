@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import type { BuilderAtom, BuilderBond, ValidationResult } from '@/lib/utils/molecule-builder'
 import { ATOM_COLORS } from '@/lib/data/molecules-3d'
-import { Download, Maximize2, Minimize2, Grid, Trash2, Zap, Undo2, Redo2, MousePointer2 } from 'lucide-react'
+import { Download, Maximize2, Minimize2, Grid, Trash2, Zap } from 'lucide-react'
 
 // Helper function to calculate the distance from a point to a line segment
 function getDistanceToLineSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
@@ -325,7 +325,7 @@ export default function MoleculeEditor({
     })
 
     ctx.restore()
-  }, [atoms, bonds, blinkingAtoms, hoveredAtom, connectionLine, isShaking, validation, selectedAtomIds, selectedBondIds, canvasScale, showGrid])
+  }, [atoms, bonds, blinkingAtoms, hoveredAtom, connectionLine, isShaking, validation, selectedAtomIds, selectedBondIds, canvasScale, showGrid, adjustColor, getContrastColor])
 
   // Animation loop
   useEffect(() => {

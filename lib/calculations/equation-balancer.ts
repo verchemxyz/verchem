@@ -335,36 +335,7 @@ function getOrderedCoeffs(max: number): number[] {
   return result
 }
 
-/**
- * Check if coefficients balance the equation
- */
-function checkBalance(
-  reactants: string[],
-  products: string[],
-  elements: string[],
-  coefficients: number[]
-): boolean {
-  for (const element of elements) {
-    let reactantCount = 0
-    let productCount = 0
 
-    reactants.forEach((compound, i) => {
-      const parsed = parseFormula(compound)
-      reactantCount += (parsed[element] || 0) * coefficients[i]
-    })
-
-    products.forEach((compound, i) => {
-      const parsed = parseFormula(compound)
-      productCount += (parsed[element] || 0) * coefficients[reactants.length + i]
-    })
-
-    if (reactantCount !== productCount) {
-      return false
-    }
-  }
-
-  return true
-}
 
 function balanceUsingGaussian(
   reactants: string[],

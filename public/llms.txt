@@ -1,63 +1,90 @@
 # VerChem - World-Class Chemistry Platform
-# https://verchem.xyz
-# AI-Friendly Documentation
 
-## About VerChem
-VerChem is a free, world-class chemistry platform providing powerful calculators, interactive tools, and comprehensive chemical data for students, educators, and professionals.
+> Free chemistry tools with professional-grade calculations, powered by NIST/IUPAC data
 
-## Key Features
+## Overview
 
-### Chemistry Calculators (8 Tools)
-1. Equation Balancer - Balance chemical equations automatically
-2. Stoichiometry Calculator - Mass, mole, limiting reagent, percent yield calculations
-3. Solutions & pH Calculator - Molarity, dilution, pH, pOH, buffer solutions
-4. Gas Laws Calculator - Ideal gas, combined gas, Van der Waals, Graham's law
-5. Thermodynamics Calculator - Enthalpy, entropy, Gibbs free energy
-6. Chemical Kinetics - Rate laws, half-life, Arrhenius equation
-7. Electrochemistry - Redox reactions, galvanic cells, Nernst equation
-8. Electron Configuration - Orbital diagrams, noble gas notation
+VerChem is a comprehensive chemistry platform designed for students, chemists, chemical engineers, and lab technicians. It provides free access to all 118 elements from the periodic table, powerful calculators for chemistry calculations, and validated data from authoritative sources like NIST and IUPAC.
 
-### Interactive Tools (5 Tools)
-1. Interactive Periodic Table - All 118 elements with NIST/IUPAC data
-2. 3D Molecular Viewer - Visualize molecular structures
-3. Lewis Structure Generator - Electron dot diagrams
-4. VSEPR Geometry Predictor - Molecular shapes and geometry
-5. Virtual Lab - Titration simulator
+Built with Next.js 15 and TypeScript, VerChem offers production-quality tools that are both educational and practical. All features are free for AIVerID members, following a "Free First" strategy to make world-class chemistry tools accessible to everyone.
 
-### AI-Powered Features
-1. AI Chemistry Tutor - 24/7 personalized tutoring (Claude-powered)
-2. AI Problem Generator - Unlimited practice problems with step-by-step solutions
+## Core Features
 
-## Data Quality
-- 118 elements with complete properties (NIST/IUPAC 2021 certified)
-- 50+ common compounds with safety data
-- All calculations validated against scientific standards
+### Periodic Table
+- **Complete Data**: All 118 elements with detailed properties
+- **NIST/IUPAC Validated**: Authoritative atomic masses and properties
+- **Interactive UI**: Click elements for full property cards
+- **Search & Filter**: Find elements by name, symbol, or property
 
-## Target Audience
-- High school and university chemistry students
-- Chemistry teachers and professors
-- Chemists and chemical engineers
-- Lab technicians and researchers
+### Chemistry Calculators
+- **Molar Mass Calculator**: Calculate molecular weight from formula
+- **Molarity Calculator**: Solution concentration calculations
+- **Dilution Calculator**: C1V1 = C2V2 calculations
+- **pH Calculator**: Acid-base equilibrium
+- **Gas Laws Calculator**: PV=nRT and related calculations
+- **Stoichiometry Calculator**: Balance equations, limiting reagents
+- **Electrochemistry Calculator**: Redox potentials, Nernst equation
+- **Thermodynamics Calculator**: Enthalpy, entropy, Gibbs free energy
+
+### Chemical Database
+- **1,000+ Compounds**: Common chemicals with properties
+- **Safety Data**: Hazard information and handling
+- **Physical Properties**: Boiling point, melting point, density
+
+### Educational Features
+- **Step-by-step Solutions**: Learn the process, not just answers
+- **Examples**: Pre-filled calculations to learn from
+- **Uncertainty Analysis**: Proper significant figures and error propagation
 
 ## Technical Stack
-- Next.js 15 with TypeScript
-- 100% type-safe, production-grade code
-- WCAG 2.1 AA accessibility compliant
-- Mobile responsive design
+
+- **Frontend**: Next.js 15.1, TypeScript 5.7
+- **Styling**: Tailwind CSS
+- **Deployment**: Vercel
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: AIVerID OAuth
+- **Payments**: Stripe (donation-based)
 
 ## Pricing
-- All features FREE for registered users
-- Donation-supported development
+
+- **Free Tier**: All features free for AIVerID members
+- **Student (Future)**: $19.99/year (Early Bird) / $49.99/year (Regular)
+- **Professional (Future)**: $49.99/year (Early Bird) / $149.99/year (Regular)
+
+## Key Pages
+
+- Homepage: https://verchem.xyz
+- Periodic Table: https://verchem.xyz/periodic-table
+- Molar Mass Calculator: https://verchem.xyz/calculators/molar-mass
+- Molarity Calculator: https://verchem.xyz/calculators/molarity
+- Dilution Calculator: https://verchem.xyz/calculators/dilution
+- pH Calculator: https://verchem.xyz/calculators/ph
+- Gas Laws Calculator: https://verchem.xyz/calculators/gas-laws
+- Stoichiometry Calculator: https://verchem.xyz/calculators/stoichiometry
+
+## FAQs
+
+### What is VerChem?
+VerChem is a free, professional-grade chemistry platform offering periodic table data, chemistry calculators, and educational tools. All data is validated against NIST and IUPAC standards.
+
+### Is VerChem free?
+Yes! All features are currently free for AIVerID members. We use a "Free First" strategy to make chemistry tools accessible to students and professionals worldwide.
+
+### How accurate is the data?
+VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. Atomic masses are updated to the latest standards.
+
+### Who can use VerChem?
+VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, and anyone who needs chemistry calculations.
+
+### What calculators are available?
+VerChem offers 8 calculators: Molar Mass, Molarity, Dilution, pH, Gas Laws, Stoichiometry, Electrochemistry, and Thermodynamics.
 
 ## Contact
+
 - Website: https://verchem.xyz
-- Email: verchem.xyz@gmail.com
+- Email: support@verchem.xyz
+- Part of AIVerID Ecosystem
 
-## API Access
-API documentation available for developers at /api/docs
-
-## Last Updated
-December 2025
-
-## License
-Educational and personal use encouraged. Commercial licensing available.
+---
+*Last updated: December 2025*
+*VerChem - Making Chemistry Accessible*

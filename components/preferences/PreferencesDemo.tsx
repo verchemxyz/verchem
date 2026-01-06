@@ -57,15 +57,19 @@ export function PreferencesDemo() {
   };
 
   const handleExport = () => {
-    const data = exportPreferences();
-    console.log('Exported preferences:', data);
-    alert('Preferences exported to console!');
+    void (async () => {
+      const data = await exportPreferences();
+      console.log('Exported preferences:', data);
+      alert('Preferences exported to console!');
+    })();
   };
 
   const handleImport = () => {
-    const sampleData = JSON.stringify(preferences, null, 2);
-    const success = importPreferences(sampleData);
-    alert(success ? 'Preferences imported successfully!' : 'Import failed!');
+    void (async () => {
+      const sampleData = JSON.stringify(preferences, null, 2);
+      const success = await importPreferences(sampleData);
+      alert(success ? 'Preferences imported successfully!' : 'Import failed!');
+    })();
   };
 
   return (

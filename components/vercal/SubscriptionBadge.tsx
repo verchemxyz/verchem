@@ -10,7 +10,7 @@
 'use client'
 
 import Link from 'next/link'
-import type { Subscription, SubscriptionTier } from '@/lib/vercal/types'
+import type { Subscription } from '@/lib/vercal/types'
 import { getTierColor, getTierDisplayName, formatExpiry } from '@/lib/vercal/subscription'
 
 interface SubscriptionBadgeProps {
@@ -87,7 +87,6 @@ export function SubscriptionBadge({
  */
 export function SubscriptionCard({ subscription }: { subscription: Subscription }) {
   const tierName = getTierDisplayName(subscription.tier)
-  const tierColor = getTierColor(subscription.tier)
 
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">

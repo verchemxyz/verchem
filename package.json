@@ -8,7 +8,9 @@
     "build:webpack": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx __tests__/molecule-builder.test.ts",
+    "test": "node --import tsx __tests__/molecule-builder.test.ts && node --import tsx __tests__/uncertainty.test.ts",
+    "test:molecules": "node --import tsx __tests__/molecule-builder.test.ts",
+    "test:uncertainty": "node --import tsx __tests__/uncertainty.test.ts",
     "test:calculations": "node --import tsx scripts/run-calculations-tests.ts",
     "validate": "node --import tsx scripts/run-validation.ts"
   },

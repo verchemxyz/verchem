@@ -43,7 +43,8 @@ I have successfully implemented a comprehensive User Preferences & Local Storage
 - **Privacy**: Analytics, data sharing, cloud sync, encryption
 
 ### 2. Storage System
-- **Obfuscated Storage**: XOR + Base64 obfuscation for preferences (**not** strong encryption; protects only against casual inspection of localStorage)
+- **Encrypted Storage (AES‑GCM)**: Web Crypto encryption at rest (client-side key stored locally; not suitable for secrets)
+- **Legacy Migration + Fallback**: Auto-migrates old Base64/XOR formats; falls back to Base64 encoding if Web Crypto is unavailable
 - **Cross-Tab Synchronization**: Automatic sync across browser tabs
 - **Version Migration**: Automatic migration between preference versions
 - **Backup/Restore**: Full import/export functionality
@@ -74,11 +75,11 @@ I have successfully implemented a comprehensive User Preferences & Local Storage
 
 ### Storage Architecture
 ```typescript
-// Obfuscated storage with cross-tab sync (XOR + Base64)
-// NOTE: This is obfuscation only and is not suitable for secrets.
-class ObfuscatedStorage implements PreferencesStorage {
-  private encrypt(data: string): string
-  private decrypt(data: string): string
+// Encrypted storage with cross-tab sync (AES-GCM via Web Crypto)
+// NOTE: Key is stored locally; not suitable for secrets.
+class EncryptedStorage implements PreferencesStorage {
+  private encryptString(data: string): Promise<string>
+  private tryDecryptToPlaintext(data: string): Promise<string | null>
   private broadcastChange(preferences: UserPreferences | null): void
 }
 ```
@@ -92,8 +93,8 @@ interface PreferencesContextType {
   updateCategory: (category: PreferenceCategory, updates: any) => void;
   resetPreferences: () => void;
   resetCategory: (category: PreferenceCategory) => void;
-  exportPreferences: () => string;
-  importPreferences: (data: string) => boolean;
+  exportPreferences: () => Promise<string>;
+  importPreferences: (data: string) => Promise<boolean>;
   isLoading: boolean;
   hasChanges: boolean;
 }
@@ -136,10 +137,10 @@ usePreferenceCondition()   // Conditional rendering
 
 ## 🔒 Security & Privacy
 
-### Storage Obfuscation
-- **XOR + Base64 Obfuscation**: Lightweight protection against casual inspection of localStorage
-- **Configurable**: Can be disabled if needed
-- **Limitations**: Not suitable for secrets or highly sensitive data
+### Storage Encryption
+- **AES‑GCM (Web Crypto)**: Encrypts preferences at rest in localStorage (client-side key stored locally)
+- **Legacy + Fallback**: Migrates old Base64/XOR formats; falls back to Base64 encoding if Web Crypto is unavailable
+- **Limitations**: Not suitable for secrets or highly sensitive data (XSS can still read key/data at runtime)
 
 ### Privacy Controls
 - **Analytics Toggle**: Optional usage tracking

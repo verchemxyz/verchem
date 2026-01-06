@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   balanceEquation,
   identifyReactionType,
@@ -12,20 +13,30 @@ import type { BalancedEquation } from '@/lib/types/chemistry'
 import { AiTutorExplainButton } from '@/components/ai-tutor'
 import { contextBuilders } from '@/lib/ai-tutor'
 
-export default function EquationBalancerPage() {
-  const [equation, setEquation] = useState('')
+function EquationBalancerContent() {
+  const searchParams = useSearchParams()
+  const initialEquation = searchParams.get('equation')
+  
+  const [equation, setEquation] = useState(initialEquation || '')
   const [result, setResult] = useState<BalancedEquation | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isBalancing, setIsBalancing] = useState(false)
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null)
 
-  // Balance equation
-  const handleBalance = async () => {
+  // Balance equation - defined before useEffect that uses it
+  const handleBalance = useCallback(async (equationToBalance?: string) => {
+    const targetEquation = equationToBalance ?? equation
+
+    // If we're balancing a new string (e.g. from examples), update state too
+    if (equationToBalance && equationToBalance !== equation) {
+      setEquation(equationToBalance)
+    }
+
     setError(null)
     setResult(null)
     setIsBalancing(true)
 
-    if (!equation.trim()) {
+    if (!targetEquation.trim()) {
       setError('Please enter a chemical equation')
       setIsBalancing(false)
       return
@@ -35,7 +46,7 @@ export default function EquationBalancerPage() {
     await new Promise((resolve) => setTimeout(resolve, 100))
 
     try {
-      const balanced = balanceEquation(equation)
+      const balanced = balanceEquation(targetEquation)
 
       if (!balanced.isBalanced) {
         setError(
@@ -51,13 +62,22 @@ export default function EquationBalancerPage() {
     }
 
     setIsBalancing(false)
-  }
+  }, [equation])
+
+  // Auto-balance on load if equation is provided in URL
+  useEffect(() => {
+    if (initialEquation) {
+      // Defer to avoid setState in effect warning
+      const id = requestAnimationFrame(() => {
+        handleBalance(initialEquation)
+      })
+      return () => cancelAnimationFrame(id)
+    }
+  }, [initialEquation, handleBalance])
 
   // Load example
   const loadExample = (exampleEquation: string) => {
-    setEquation(exampleEquation)
-    setError(null)
-    setResult(null)
+    handleBalance(exampleEquation)
   }
 
   // Filter examples by difficulty
@@ -149,7 +169,7 @@ export default function EquationBalancerPage() {
 
           {/* Balance Button */}
           <button
-            onClick={handleBalance}
+            onClick={() => handleBalance()}
             disabled={isBalancing}
             className="btn-premium glow-premium w-full py-4 text-lg disabled:opacity-50"
           >
@@ -511,3 +531,14 @@ export default function EquationBalancerPage() {
     </div>
   )
 }
+
+export default function EquationBalancerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen hero-gradient-premium flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-500 border-t-transparent"></div>
+    </div>}>
+      <EquationBalancerContent />
+    </Suspense>
+  )
+}
+

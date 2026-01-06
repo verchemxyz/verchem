@@ -9,7 +9,7 @@
  * Last Updated: 2025-12-02
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Brain,
@@ -21,7 +21,6 @@ import {
   CheckCircle,
   XCircle,
   ArrowRight,
-  RotateCcw,
   ChevronRight,
   Beaker,
   Wind,

@@ -18,6 +18,12 @@ import {
   findLimitingReagent,
   calculatePercentYield
 } from '@/lib/calculations/stoichiometry'
+import {
+  propagateDivision,
+  propagateMultiplication,
+  propagateConstantMultiplication,
+  propagateConstantDivision
+} from '@/lib/calculations/uncertainty'
 import { getCitationForCalculation, type Citation } from '@/lib/utils/citations'
 import { ScientificResult } from '@/components/ScientificResult'
 import { EnhancedCalculator } from '@/components/EnhancedCalculator'
@@ -144,91 +150,85 @@ export default function EnhancedStoichiometryPage() {
       const valueUnc = parseFloat(inputUnc)
 
       switch (conversionType) {
-        case 'mass-to-moles':
+        case 'mass-to-moles': {
           const molarMass1 = parseFloat(molarMassInput)
           conversionResult = massToMoles(value, molarMass1)
 
           if (showUncertainty) {
-            // Propagate uncertainty: n = m/M
-            const relativeUnc = Math.sqrt(
-              Math.pow(valueUnc / value, 2) +
-              Math.pow(parseFloat(molarMassInputUnc) / molarMass1, 2)
-            )
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateDivision(value, valueUnc, molarMass1, parseFloat(molarMassInputUnc))
+            uncertainty = result.uncertainty
           }
 
           unit = 'mol'
           label = 'Moles'
           break
+        }
 
-        case 'moles-to-mass':
+        case 'moles-to-mass': {
           const molarMass2 = parseFloat(molarMassInput)
           conversionResult = molesToMass(value, molarMass2)
 
           if (showUncertainty) {
-            // Propagate uncertainty: m = n × M
-            const relativeUnc = Math.sqrt(
-              Math.pow(valueUnc / value, 2) +
-              Math.pow(parseFloat(molarMassInputUnc) / molarMass2, 2)
-            )
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateMultiplication(value, valueUnc, molarMass2, parseFloat(molarMassInputUnc))
+            uncertainty = result.uncertainty
           }
 
           unit = 'g'
           label = 'Mass'
           break
+        }
 
-        case 'moles-to-molecules':
+        case 'moles-to-molecules': {
           conversionResult = molesToMolecules(value)
 
           if (showUncertainty) {
-            // Propagate uncertainty: N = n × NA
-            const relativeUnc = valueUnc / value
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateConstantMultiplication(value, valueUnc, AVOGADRO_CONSTANT)
+            uncertainty = result.uncertainty
           }
 
           unit = 'molecules'
           label = 'Number of Molecules'
           break
+        }
 
-        case 'molecules-to-moles':
+        case 'molecules-to-moles': {
           conversionResult = moleculesToMoles(value)
 
           if (showUncertainty) {
-            // Propagate uncertainty: n = N / NA
-            const relativeUnc = valueUnc / value
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateConstantDivision(value, valueUnc, AVOGADRO_CONSTANT)
+            uncertainty = result.uncertainty
           }
 
           unit = 'mol'
           label = 'Moles'
           break
+        }
 
-        case 'moles-to-volume':
+        case 'moles-to-volume': {
           conversionResult = molesToVolumeSTP(value)
 
           if (showUncertainty) {
-            // Propagate uncertainty: V = n × 22.414
-            const relativeUnc = valueUnc / value
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateConstantMultiplication(value, valueUnc, STP.molarVolume)
+            uncertainty = result.uncertainty
           }
 
           unit = 'L'
           label = 'Volume at STP'
           break
+        }
 
-        case 'volume-to-moles':
+        case 'volume-to-moles': {
           conversionResult = volumeSTPToMoles(value)
 
           if (showUncertainty) {
-            // Propagate uncertainty: n = V / 22.414
-            const relativeUnc = valueUnc / value
-            uncertainty = relativeUnc * conversionResult
+            const result = propagateConstantDivision(value, valueUnc, STP.molarVolume)
+            uncertainty = result.uncertainty
           }
 
           unit = 'mol'
           label = 'Moles'
           break
+        }
       }
 
       const citation = getCitationForCalculation('stoichiometry')
@@ -358,22 +358,22 @@ export default function EnhancedStoichiometryPage() {
     try {
       const theoretical = parseFloat(theoreticalYield)
       const actual = parseFloat(actualYield)
+      const theoreticalUnc = parseFloat(theoreticalYieldUnc)
+      const actualUncValue = parseFloat(actualYieldUnc)
 
       const percentYieldValue = calculatePercentYield(actual, theoretical)
+      const citation = getCitationForCalculation('percent_yield')
+
+      // Determine efficiency rating
+      const efficiency = percentYieldValue > 90 ? 'Excellent' :
+                        percentYieldValue > 70 ? 'Good' :
+                        percentYieldValue > 50 ? 'Fair' : 'Poor'
 
       if (showUncertainty) {
-        // Propagate uncertainty for percent yield
-        const theoreticalUnc = parseFloat(theoreticalYieldUnc)
-        const actualUncValue = parseFloat(actualYieldUnc)
-
-        const relativeUnc = Math.sqrt(
-          Math.pow(actualUncValue / actual, 2) +
-          Math.pow(theoreticalUnc / theoretical, 2)
-        )
-
-        const uncertainty = relativeUnc * percentYieldValue
-
-        const citation = getCitationForCalculation('percent_yield')
+        // Propagate uncertainty for percent yield using division formula
+        // % yield = (actual / theoretical) × 100
+        const uncResult = propagateDivision(actual, actualUncValue, theoretical, theoreticalUnc)
+        const uncertainty = uncResult.relativeUncertainty * percentYieldValue
 
         setResult({
           value: percentYieldValue,
@@ -385,14 +385,10 @@ export default function EnhancedStoichiometryPage() {
           additionalInfo: {
             theoreticalYield: `${theoretical} ± ${theoreticalUnc} g`,
             actualYield: `${actual} ± ${actualUncValue} g`,
-            efficiency: percentYieldValue > 90 ? 'Excellent' :
-                       percentYieldValue > 70 ? 'Good' :
-                       percentYieldValue > 50 ? 'Fair' : 'Poor'
+            efficiency
           }
         })
       } else {
-        const citation = getCitationForCalculation('percent_yield')
-
         setResult({
           value: percentYieldValue,
           unit: '%',
@@ -402,9 +398,7 @@ export default function EnhancedStoichiometryPage() {
           additionalInfo: {
             theoreticalYield: `${theoretical} g`,
             actualYield: `${actual} g`,
-            efficiency: percentYieldValue > 90 ? 'Excellent' :
-                       percentYieldValue > 70 ? 'Good' :
-                       percentYieldValue > 50 ? 'Fair' : 'Poor'
+            efficiency
           }
         })
       }

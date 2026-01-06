@@ -32,16 +32,26 @@ export function PreferencesProvider({
 
   // Load preferences on mount
   useEffect(() => {
+    type CleanupableStorage = {
+      cleanup?: () => void;
+    };
+
+    const previousStorage = storageRef.current as unknown as CleanupableStorage;
+    previousStorage.cleanup?.();
+
+    const storage = createPreferencesStorage(storageType, encryptionEnabled);
+    storageRef.current = storage;
+
     const loadPreferences = async () => {
       try {
         setIsLoading(true);
-        const stored = storageRef.current.getPreferences();
+        const stored = await storage.getPreferences();
         
         if (stored) {
           setPreferences(stored);
         } else {
           // Save defaults if no preferences exist
-          storageRef.current.setPreferences(DEFAULT_PREFERENCES);
+          await storage.setPreferences(DEFAULT_PREFERENCES);
         }
       } catch (error) {
         console.error('Failed to load preferences:', error);
@@ -50,7 +60,12 @@ export function PreferencesProvider({
       }
     };
 
-    loadPreferences();
+    void loadPreferences();
+
+    return () => {
+      const currentStorage = storage as unknown as CleanupableStorage;
+      currentStorage.cleanup?.();
+    };
   }, [storageType, encryptionEnabled]);
 
   // Sync with theme context
@@ -92,8 +107,15 @@ export function PreferencesProvider({
     }
 
     timeoutRef.current = setTimeout(() => {
-      storageRef.current.setPreferences(preferences);
-      setHasChanges(false);
+      void (async () => {
+        try {
+          await storageRef.current.setPreferences(preferences);
+        } catch (error) {
+          console.error('Failed to auto-save preferences:', error);
+        } finally {
+          setHasChanges(false);
+        }
+      })();
     }, 500); // Debounce for 500ms
 
     return () => {
@@ -107,10 +129,9 @@ export function PreferencesProvider({
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'verchem-preferences' && event.newValue) {
-        const updated = storageRef.current.getPreferences();
-        if (updated) {
-          setPreferences(updated);
-        }
+        void storageRef.current.getPreferences().then((updated) => {
+          if (updated) setPreferences(updated);
+        });
       }
     };
 
@@ -173,7 +194,7 @@ export function PreferencesProvider({
 
   const resetPreferences = useCallback(() => {
     setPreferences(DEFAULT_PREFERENCES);
-    storageRef.current.setPreferences(DEFAULT_PREFERENCES);
+    void storageRef.current.setPreferences(DEFAULT_PREFERENCES);
     setHasChanges(false);
   }, []);
 
@@ -187,10 +208,10 @@ export function PreferencesProvider({
     return storageRef.current.exportPreferences();
   }, []);
 
-  const importPreferences = useCallback((data: string) => {
-    const success = storageRef.current.importPreferences(data);
+  const importPreferences = useCallback(async (data: string) => {
+    const success = await storageRef.current.importPreferences(data);
     if (success) {
-      const imported = storageRef.current.getPreferences();
+      const imported = await storageRef.current.getPreferences();
       if (imported) {
         setPreferences(imported);
         setHasChanges(false);

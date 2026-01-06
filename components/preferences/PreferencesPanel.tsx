@@ -87,28 +87,33 @@ export function PreferencesPanel({ open, onClose, defaultCategory = 'general' }:
   if (!open) return null;
 
   const handleExport = () => {
-    const data = exportPreferences();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `verchem-preferences-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    void (async () => {
+      const data = await exportPreferences();
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `verchem-preferences-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    })();
   };
 
   const handleImport = () => {
-    if (importData.trim()) {
-      const success = importPreferences(importData);
+    void (async () => {
+      if (!importData.trim()) return;
+
+      const success = await importPreferences(importData);
       if (success) {
         setShowImportDialog(false);
         setImportData('');
-      } else {
-        alert('Failed to import preferences. Please check the file format.');
+        return;
       }
-    }
+
+      alert('Failed to import preferences. Please check the file format.');
+    })();
   };
 
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {

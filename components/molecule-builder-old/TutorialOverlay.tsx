@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 /**
@@ -97,44 +97,48 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
   const progress = ((currentStep + 1) / TUTORIAL_STEPS.length) * 100
 
   // Update target element position when step changes
-  useEffect(() => {
+  // Using useLayoutEffect for DOM measurements with deferred setState
+  useLayoutEffect(() => {
     if (step.target) {
       const element = document.querySelector(step.target)
       if (element) {
         const rect = element.getBoundingClientRect()
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTargetPosition(rect)
+        // Defer setState to avoid cascading renders
+        requestAnimationFrame(() => {
+          setTargetPosition(rect)
+        })
         // Scroll element into view
         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTargetPosition(null)
+      requestAnimationFrame(() => {
+        setTargetPosition(null)
+      })
     }
   }, [currentStep, step.target])
 
   // Handler functions
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!isLast) {
       setCurrentStep(currentStep + 1)
     }
-  }
+  }, [currentStep, isLast])
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (!isFirst) {
       setCurrentStep(currentStep - 1)
     }
-  }
+  }, [currentStep, isFirst])
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     if (confirm('Are you sure you want to skip the tutorial? You can restart it anytime from the help menu.')) {
       onComplete()
     }
-  }
+  }, [onComplete])
 
-  const handleComplete = () => {
+  const handleComplete = useCallback(() => {
     onComplete()
-  }
+  }, [onComplete])
 
   // Keyboard navigation
   useEffect(() => {
@@ -154,7 +158,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentStep, isFirst, isLast])
+  }, [currentStep, isFirst, isLast, handleComplete, handleNext, handlePrevious, handleSkip])
 
   // Calculate tooltip position based on target and position preference
   const getTooltipStyle = (): React.CSSProperties => {
@@ -169,7 +173,6 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
     }
 
     const margin = 20
-    const tooltipWidth = 400
 
     switch (step.position) {
       case 'top':

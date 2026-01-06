@@ -21,7 +21,6 @@ import type {
   AiTutorAction,
   CalculatorContext,
   AiTutorMessage,
-  UsageQuota,
   AiTutorChatResponse,
 } from '@/lib/ai-tutor'
 

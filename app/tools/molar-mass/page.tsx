@@ -63,11 +63,7 @@ function parseFormula(formula: string): ElementCount[] | null {
   }))
 }
 
-function calculateMolarMass(formula: string): number | null {
-  const elements = parseFormula(formula)
-  if (!elements) return null
-  return elements.reduce((sum, el) => sum + el.mass * el.count, 0)
-}
+
 
 export default function MolarMassCalculatorPage() {
   const [formula, setFormula] = useState('')

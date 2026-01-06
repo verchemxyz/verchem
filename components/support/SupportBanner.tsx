@@ -21,7 +21,6 @@ interface SupportBannerProps {
 export function SupportBanner({
   delay = 30000, // 30 seconds default
   position = 'bottom',
-  variant = 'subtle',
 }: SupportBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);

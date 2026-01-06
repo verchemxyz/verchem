@@ -34,7 +34,6 @@ const anthropic = new Anthropic({
 
 // SECURITY: Message length limits (Dec 2025 - 4-AI Audit)
 const MAX_MESSAGE_LENGTH = 4000 // Prevent token abuse
-const MAX_CONVERSATION_HISTORY = 6 // Already limited in code
 
 // Session verification helper
 async function verifySession(): Promise<{

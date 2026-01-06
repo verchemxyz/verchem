@@ -8,7 +8,7 @@ A comprehensive user preferences and local storage system for VerChem that provi
 - **9 Preference Categories**: General, Accessibility, Calculator, 3D Viewer, Molecule Builder, Export, Keyboard, UI, and Privacy
 - **7 Language Support**: English, Thai, Chinese, Spanish, German, French, Japanese
 - **3 Theme Options**: Light, Dark, System
-- **Obfuscated Storage**: Optional XOR + Base64 obfuscation for preferences (not strong encryption)
+- **Encrypted Storage**: AES‑GCM (Web Crypto) encryption at rest for preferences (key stored locally; not suitable for secrets)
 - **Cross-Tab Sync**: Automatic synchronization across browser tabs
 - **Version Migration**: Automatic migration between preference versions
 - **Import/Export**: Full backup and restore functionality
@@ -221,7 +221,8 @@ usePreferenceSync({
 ## Storage
 
 ### Local Storage (Default)
-- **Obfuscated**: XOR + Base64 obfuscation (enabled by default)
+- **Encrypted (AES‑GCM)**: Web Crypto encryption at rest (enabled by default; key stored locally)
+- **Fallback**: Base64(encodeURIComponent) encoding when Web Crypto is unavailable; raw JSON when encryption is disabled
 - **Cross-Tab Sync**: Automatic synchronization
 - **Version Migration**: Automatic updates
 - **Quota**: ~5MB typical limit
@@ -232,24 +233,24 @@ usePreferenceSync({
 - **Faster**: No encryption overhead
 
 ### Custom / Secure Storage
-- The built-in storage uses **obfuscation only** and is **not suitable for secrets**.
+- The built-in storage is **not suitable for secrets** (client-side key storage + XSS risk).
 - For highly sensitive data, you should:
   - Store only opaque identifiers client-side, and keep real secrets on a server, **or**
-  - Implement a custom `PreferencesStorage` adapter that uses a vetted crypto solution (e.g. Web Crypto AES‑GCM) and adjust the app to handle async reads.
+  - Store sensitive data server-side with proper encryption and access control.
 
 ## Import/Export
 
 ### Export Preferences
 ```tsx
 const { exportPreferences } = usePreferences();
-const jsonData = exportPreferences();
+const jsonData = await exportPreferences();
 // Download or send to server
 ```
 
 ### Import Preferences
 ```tsx
 const { importPreferences } = usePreferences();
-const success = importPreferences(jsonData);
+const success = await importPreferences(jsonData);
 ```
 
 ### Backup/Restore

@@ -58,12 +58,6 @@ export default function MoleculeCanvasEnhanced({
 
   // Touch support states
   const [touchStartDistance, setTouchStartDistance] = useState<number | null>(null)
-  const [lastTouchPos, setLastTouchPos] = useState<{ x: number; y: number } | null>(null)
-
-  // Lasso selection state
-  const [lassoStart, setLassoStart] = useState<{ x: number; y: number } | null>(null)
-  const [lassoEnd, setLassoEnd] = useState<{ x: number; y: number } | null>(null)
-  const [isLassoActive, setIsLassoActive] = useState(false)
 
   const animationRef = useRef<number | undefined>(undefined)
   const blinkPhase = useRef(0)

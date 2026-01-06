@@ -40,23 +40,22 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
  * ```
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark')
-  const [mounted, setMounted] = useState(false)
+  // Initialize theme from localStorage or system preference during hydration
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('verchem-theme') as Theme | null
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      return stored || systemPreference
+    }
+    return 'dark' // Default for SSR
+  })
 
-  // Initialize theme from localStorage or system preference
+  // Apply theme on client
   useEffect(() => {
-    const stored = localStorage.getItem('verchem-theme') as Theme | null
-    const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light'
-
-    const initialTheme = stored || systemPreference
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setThemeState(initialTheme)
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark')
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
 
   // Update theme
   const setTheme = (newTheme: Theme) => {
@@ -70,10 +69,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>
-  }
+  // For SSR/hydration, return a wrapper that prevents flash
+  // This approach avoids setState in effects
+  return (
+    <div suppressHydrationWarning>
+      {typeof window === 'undefined' ? null : (
+        <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+          {children}
+        </ThemeContext.Provider>
+      )}
+    </div>
+  )
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

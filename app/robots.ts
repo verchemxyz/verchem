@@ -61,6 +61,18 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'cohere-ai',
         allow: '/',
       },
+      {
+        userAgent: 'OAI-SearchBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'CCBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'Amazonbot',
+        allow: '/',
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   }

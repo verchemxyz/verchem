@@ -58,10 +58,6 @@ export function ChemicalInput({
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Mock data (will be replaced with DB queries later)
-  const mockHistory = ['H2O', 'NaCl', 'CO2', 'Ca(OH)2', 'H2SO4'];
-  const mockFavorites = ['H2O', 'NaCl', 'C6H12O6'];
-
   // Filter suggestions based on input
   const filteredSuggestions = useMemo(() => {
     if (!autoComplete || !value) return suggestions.slice(0, 5);
@@ -74,6 +70,10 @@ export function ChemicalInput({
 
   // Combine history, favorites, and suggestions
   const allSuggestions = useMemo(() => {
+    // Mock data (will be replaced with DB queries later)
+    const mockHistory = ['H2O', 'NaCl', 'CO2', 'Ca(OH)2', 'H2SO4'];
+    const mockFavorites = ['H2O', 'NaCl', 'C6H12O6'];
+
     const items: Array<{ value: string; type: 'history' | 'favorite' | 'suggestion' }> = [];
 
     if (showFavorites && value.length === 0) {
@@ -97,7 +97,7 @@ export function ChemicalInput({
       seen.add(item.value);
       return true;
     });
-  }, [showFavorites, showHistory, filteredSuggestions, value, mockFavorites, mockHistory]);
+  }, [showFavorites, showHistory, filteredSuggestions, value]);
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback((suggestion: string) => {

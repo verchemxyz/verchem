@@ -7,7 +7,6 @@ import {
   selectAll,
   invertSelection,
   announceSelection,
-  selectByLasso,
   drawLassoPolygon,
 } from '@/lib/utils/selection'
 import {
@@ -15,9 +14,6 @@ import {
   hapticBondCreate,
   hapticDelete,
   hapticSelect,
-  hapticMoleculeStable,
-  hapticMoleculeInvalid,
-  hapticUndoRedo,
   hapticLight,
   hapticMedium,
 } from '@/lib/utils/haptics'
@@ -28,7 +24,6 @@ import {
   depthSort,
   getDepthScale,
   getDepthBrightness,
-  type Point3D,
   type RotationAngles,
 } from '@/lib/utils/3d-projection'
 
@@ -134,10 +129,8 @@ export default function MoleculeCanvas({
   const [showBondAngles, setShowBondAngles] = useState(false)
   const [lassoPoints, setLassoPoints] = useState<Array<{ x: number; y: number }>>([])
   const [isLassoMode, setIsLassoMode] = useState(false)
-  const [isDrawingLasso, setIsDrawingLasso] = useState(false)
   const [is3DMode, setIs3DMode] = useState(false)
   const [rotation3D, setRotation3D] = useState({ x: 20, y: 30, z: 0 })
-  const rotationStartRef = useRef<{ x: number; y: number; rotation: { x: number; y: number; z: number } } | null>(null)
 
   const touchStartRef = useRef<{ touches: React.Touch[]; time: number } | null>(null)
   const touchHoldTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -1332,7 +1325,6 @@ export default function MoleculeCanvas({
           }`}
           onClick={() => {
             setIsLassoMode(!isLassoMode)
-            setIsDrawingLasso(false)
             setLassoPoints([])
             hapticLight()
           }}

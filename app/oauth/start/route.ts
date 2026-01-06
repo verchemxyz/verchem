@@ -48,12 +48,16 @@ export async function GET(request: NextRequest) {
 
   const response = NextResponse.redirect(`${authorizeUrl}?${params.toString()}`)
 
+  // IMPORTANT: domain must be set to share cookies between www and non-www
+  const isProduction = process.env.NODE_ENV === 'production'
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     sameSite: 'lax' as const,
     path: '/',
     maxAge: 10 * 60, // 10 minutes
+    // Share cookies across www and non-www subdomains
+    ...(isProduction && { domain: '.verchem.xyz' }),
   }
 
   response.cookies.set('oauth_state', state, cookieOptions)

@@ -10,9 +10,7 @@
 import type {
   Subscription,
   SubscriptionTier,
-  SubscriptionStatus,
   FeatureAccess,
-  UserSession,
 } from './types'
 import { TIER_HIERARCHY, FEATURE_LIMITS } from './constants'
 

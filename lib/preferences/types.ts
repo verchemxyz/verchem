@@ -101,13 +101,13 @@ export interface UserPreferences {
 }
 
 export interface PreferencesStorage {
-  getPreferences(): UserPreferences | null;
-  setPreferences(preferences: UserPreferences): void;
-  clearPreferences(): void;
-  exportPreferences(): string;
-  importPreferences(data: string): boolean;
-  backupPreferences(): string;
-  restorePreferences(backup: string): boolean;
+  getPreferences(): Promise<UserPreferences | null>;
+  setPreferences(preferences: UserPreferences): Promise<void>;
+  clearPreferences(): Promise<void>;
+  exportPreferences(): Promise<string>;
+  importPreferences(data: string): Promise<boolean>;
+  backupPreferences(): Promise<string>;
+  restorePreferences(backup: string): Promise<boolean>;
 }
 
 export interface PreferencesMigration {
@@ -143,8 +143,8 @@ export interface PreferencesContextType {
   ) => void;
   resetPreferences: () => void;
   resetCategory: (category: PreferenceCategory) => void;
-  exportPreferences: () => string;
-  importPreferences: (data: string) => boolean;
+  exportPreferences: () => Promise<string>;
+  importPreferences: (data: string) => Promise<boolean>;
   isLoading: boolean;
   hasChanges: boolean;
 }
