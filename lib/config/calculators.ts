@@ -142,6 +142,14 @@ export const VERCHEM_CALCULATORS: Calculator[] = [
     path: '/tools/vsepr',
     icon: '🔺',
   },
+  {
+    id: 'water-quality',
+    name: 'Water Quality Calculator',
+    description: 'BOD, COD, Thai effluent standards compliance, 9 calculation modes',
+    tier: 'free',
+    path: '/tools/water-quality',
+    icon: '💧',
+  },
 ]
 
 /**
