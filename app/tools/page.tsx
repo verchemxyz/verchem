@@ -13,31 +13,43 @@ const TOOL_LINKS = [
     href: '/tools/molar-mass',
     label: 'Molar Mass Calculator',
     description: 'Molecular weight with element-by-element breakdown (NIST-validated atomic masses).',
+    isNew: false,
   },
   {
     href: '/tools/periodic-table',
     label: 'Periodic Table',
     description: 'Interactive periodic table with essential data for all 118 elements.',
+    isNew: false,
   },
   {
     href: '/tools/equation-balancer',
     label: 'Equation Balancer',
     description: 'Balance chemical equations automatically and learn the stoichiometric ratios.',
+    isNew: false,
   },
   {
     href: '/tools/stoichiometry',
     label: 'Stoichiometry Tool',
     description: 'Moles, limiting reagent, and theoretical yield — fast and beginner-friendly.',
+    isNew: false,
   },
   {
     href: '/tools/ph-calculator',
     label: 'pH Calculator',
     description: 'Calculate pH, pOH, and concentrations for common acid/base problems.',
+    isNew: false,
   },
   {
     href: '/tools/gas-laws',
     label: 'Gas Laws Calculator',
     description: 'Ideal gas law and common gas relationships for quick checks.',
+    isNew: false,
+  },
+  {
+    href: '/tools/water-quality',
+    label: 'Water Quality Calculator',
+    description: 'BOD, COD, Thai effluent standards compliance — 9 calculation modes for environmental engineers.',
+    isNew: true,
   },
 ] as const
 
@@ -73,15 +85,32 @@ export default function ToolsPage() {
             <Link
               key={tool.href}
               href={tool.href}
-              className="group rounded-xl border-2 border-border bg-card hover:border-primary-500 hover:shadow-lg transition-all p-6 flex flex-col justify-between"
+              className={`group relative rounded-xl border-2 bg-card hover:shadow-lg transition-all p-6 flex flex-col justify-between ${
+                tool.isNew
+                  ? 'border-teal-500 hover:border-teal-400'
+                  : 'border-border hover:border-primary-500'
+              }`}
             >
+              {tool.isNew && (
+                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
+                  NEW
+                </div>
+              )}
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-card-foreground group-hover:text-primary-600">
-                  {tool.label}
+                <h3 className={`text-xl font-semibold mb-2 ${
+                  tool.isNew
+                    ? 'text-teal-600 dark:text-teal-400'
+                    : 'text-card-foreground group-hover:text-primary-600'
+                }`}>
+                  {tool.isNew && '💧 '}{tool.label}
                 </h3>
                 <p className="text-sm text-muted-foreground">{tool.description}</p>
               </div>
-              <div className="mt-4 text-sm text-primary-600 font-medium">Open tool →</div>
+              <div className={`mt-4 text-sm font-medium ${
+                tool.isNew ? 'text-teal-600' : 'text-primary-600'
+              }`}>
+                Open tool →
+              </div>
             </Link>
           ))}
         </section>

@@ -114,7 +114,7 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Chemical Compounds</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">14</div>
+              <div className="text-5xl font-bold mb-2">15</div>
               <div className="text-primary-100 font-medium">Pro Tools</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
@@ -132,7 +132,7 @@ export default function Home() {
             <span className="text-premium">Everything You Need</span>
           </h2>
           <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            14 professional tools validated against industry standards
+            15 professional tools validated against industry standards
           </p>
         </div>
 
@@ -199,11 +199,36 @@ export default function Home() {
               </div>
             </div>
           </Link>
+
+          {/* Water Quality Calculator - NEW */}
+          <Link href="/tools/water-quality" className="group relative">
+            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
+              🆕 NEW
+            </div>
+            <div className="premium-card p-6 h-full border-2 border-teal-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-teal-600 dark:text-teal-400">
+                💧 Water Quality Calculator
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                BOD, COD, Thai effluent standards compliance with 9 calculation modes
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">Environmental</span>
+                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">Thai PCD</span>
+                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">9 Modes</span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="text-center mt-12">
           <Link href="/calculators" className="btn-premium glow-premium">
-            View All 14 Tools →
+            View All 15 Tools →
           </Link>
         </div>
       </section>
@@ -238,7 +263,7 @@ export default function Home() {
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>All 14 calculators & tools</span>
+                <span>All 15 calculators & tools</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
