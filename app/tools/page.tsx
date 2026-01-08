@@ -51,6 +51,18 @@ const TOOL_LINKS = [
     description: 'BOD, COD, Thai effluent standards compliance — 9 calculation modes for environmental engineers.',
     isNew: true,
   },
+  {
+    href: '/tools/air-quality',
+    label: 'Air Quality Calculator',
+    description: 'AQI, ppm/µg/m³ conversion, Thai PCD standards, Gaussian dispersion — 6 modes for air quality analysis.',
+    isNew: true,
+  },
+  {
+    href: '/tools/soil-quality',
+    label: 'Soil Quality Calculator',
+    description: 'Heavy metal contamination (Thai PCD), pH classification, NPK analysis, CEC, organic matter, texture, salinity — 7 modes.',
+    isNew: true,
+  },
 ] as const
 
 export default function ToolsPage() {
@@ -102,7 +114,10 @@ export default function ToolsPage() {
                     ? 'text-teal-600 dark:text-teal-400'
                     : 'text-card-foreground group-hover:text-primary-600'
                 }`}>
-                  {tool.isNew && '💧 '}{tool.label}
+                  {tool.href === '/tools/water-quality' && '💧 '}
+                  {tool.href === '/tools/air-quality' && '🌬️ '}
+                  {tool.href === '/tools/soil-quality' && '🌱 '}
+                  {tool.label}
                 </h3>
                 <p className="text-sm text-muted-foreground">{tool.description}</p>
               </div>

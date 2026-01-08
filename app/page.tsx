@@ -224,11 +224,61 @@ export default function Home() {
               </div>
             </div>
           </Link>
+
+          {/* Air Quality Calculator - NEW */}
+          <Link href="/tools/air-quality" className="group relative">
+            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
+              🆕 NEW
+            </div>
+            <div className="premium-card p-6 h-full border-2 border-green-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-green-600 dark:text-green-400">
+                🌬️ Air Quality Calculator
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                AQI, unit conversion, Thai PCD standards, Gaussian dispersion modeling
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">Environmental</span>
+                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">Thai PCD</span>
+                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">6 Modes</span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Soil Quality Calculator - NEW */}
+          <Link href="/tools/soil-quality" className="group relative">
+            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
+              🆕 NEW
+            </div>
+            <div className="premium-card p-6 h-full border-2 border-amber-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-amber-600 dark:text-amber-400">
+                🌱 Soil Quality Calculator
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Heavy metals, pH, NPK, CEC, organic matter, texture, salinity analysis
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Environmental</span>
+                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Thai PCD</span>
+                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">7 Modes</span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="text-center mt-12">
           <Link href="/calculators" className="btn-premium glow-premium">
-            View All 15 Tools →
+            View All 17 Tools →
           </Link>
         </div>
       </section>
