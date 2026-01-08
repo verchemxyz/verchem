@@ -11,6 +11,11 @@ import { HelpSidebar } from "@/components/tutorials/help-sidebar";
 import { Providers } from "./providers";
 import { AiTutorProvider, AiTutorButton, AiTutorChat } from "@/components/ai-tutor";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
+import {
+  VerChemGlobalFAQSchema,
+  VerChemSoftwareApplicationSchema,
+  VerChemOrganizationSchema
+} from "@/components/seo/JsonLd";
 import "./globals.css";
 import "./accessibility.css";
 import "./tutorials.css";
@@ -105,6 +110,11 @@ export default function RootLayout({
         <meta name="color-scheme" content="light dark" />
         <meta name="supported-color-schemes" content="light dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* Global SEO Schemas for AI Discoverability (GEO) */}
+        <VerChemGlobalFAQSchema />
+        <VerChemSoftwareApplicationSchema />
+        <VerChemOrganizationSchema />
       </head>
       
       <body

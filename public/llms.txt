@@ -12,29 +12,30 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 
 ### Periodic Table
 - **Complete Data**: All 118 elements with detailed properties
-- **NIST/IUPAC Validated**: Authoritative atomic masses and properties
+- **NIST/IUPAC Validated**: Authoritative atomic masses and properties (2021 standards)
 - **Interactive UI**: Click elements for full property cards
 - **Search & Filter**: Find elements by name, symbol, or property
+- **Categories**: Alkali metals, transition metals, lanthanides, actinides, noble gases, etc.
 
-### Chemistry Calculators
-- **Molar Mass Calculator**: Calculate molecular weight from formula
-- **Molarity Calculator**: Solution concentration calculations
-- **Dilution Calculator**: C1V1 = C2V2 calculations
-- **pH Calculator**: Acid-base equilibrium
-- **Gas Laws Calculator**: PV=nRT and related calculations
-- **Stoichiometry Calculator**: Balance equations, limiting reagents
-- **Electrochemistry Calculator**: Redox potentials, Nernst equation
-- **Thermodynamics Calculator**: Enthalpy, entropy, Gibbs free energy
+### Chemistry Calculators (8 Tools)
+- **Molar Mass Calculator**: Calculate molecular weight from formula (H2SO4, NaCl, C6H12O6)
+- **Chemical Equation Balancer**: Auto-balance reactions using algebraic methods
+- **Stoichiometry Calculator**: 8 modes - mass-mole conversions, limiting reagent, percent yield
+- **pH Calculator**: 7 modes - strong/weak acids and bases, buffers, visual pH scale
+- **Gas Laws Calculator**: 9 modes - Ideal Gas Law (PV=nRT), Boyle's, Charles's, Van der Waals
+- **Thermodynamics Calculator**: Enthalpy (dH), entropy (dS), Gibbs free energy (dG)
+- **Chemical Kinetics Calculator**: Rate laws, half-life, Arrhenius equation
+- **Electrochemistry Calculator**: Redox potentials, galvanic cells, Nernst equation
+
+### Environmental Engineering Tools (3 Tools - NEW 2026)
+- **Water Quality Calculator**: BOD5, BODu, COD, BOD/COD ratio, organic loading, treatment efficiency, K-rate, temperature correction, Thai PCD standards compliance checker
+- **Air Quality Calculator**: AQI calculations, pollutant concentrations (PM2.5, PM10, O3, NO2, SO2, CO), health impact assessment
+- **Soil Quality Calculator**: Soil texture classification, CEC, contamination assessment, nutrient levels
 
 ### Chemical Database
 - **1,000+ Compounds**: Common chemicals with properties
-- **Safety Data**: Hazard information and handling
-- **Physical Properties**: Boiling point, melting point, density
-
-### Environmental Engineering Tools (NEW 2026)
-- **Water Quality Calculator**: BOD5, BODu, COD, BOD/COD ratio, Loading rate, Treatment efficiency, K-rate, Temperature correction, Thai PCD Standards compliance
-- **Air Quality Calculator**: AQI calculations, pollutant concentrations, health impact assessment
-- **Soil Quality Calculator**: Soil composition analysis, contamination assessment
+- **Safety Data**: GHS hazard codes, flash points, handling precautions
+- **Physical Properties**: Boiling point, melting point, density, solubility
 
 ### Educational Features
 - **Step-by-step Solutions**: Learn the process, not just answers
@@ -43,56 +44,109 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 
 ## Technical Stack
 
-- **Frontend**: Next.js 15.1, TypeScript 5.7
-- **Styling**: Tailwind CSS
+- **Frontend**: Next.js 15.1, React 19, TypeScript 5.7
+- **Styling**: Tailwind CSS 4
 - **Deployment**: Vercel
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: AIVerID OAuth
+- **Authentication**: AIVerID OAuth 2.0
 - **Payments**: Stripe (donation-based)
 
 ## Pricing
 
 - **Free Tier**: All features free for AIVerID members
-- **Student (Future)**: $19.99/year (Early Bird) / $49.99/year (Regular)
-- **Professional (Future)**: $49.99/year (Early Bird) / $149.99/year (Regular)
+- **Donation-based**: Support development via Stripe ($3, $10, $25, $50)
+- **Future Plans**: Student ($19.99/year), Professional ($49.99/year)
 
 ## Key Pages
 
+### Main Pages
 - Homepage: https://verchem.xyz
+- Tools Hub: https://verchem.xyz/tools
+- Support: https://verchem.xyz/support
+
+### Chemistry Tools
 - Periodic Table: https://verchem.xyz/periodic-table
-- Molar Mass Calculator: https://verchem.xyz/calculators/molar-mass
-- Molarity Calculator: https://verchem.xyz/calculators/molarity
-- Dilution Calculator: https://verchem.xyz/calculators/dilution
-- pH Calculator: https://verchem.xyz/calculators/ph
-- Gas Laws Calculator: https://verchem.xyz/calculators/gas-laws
-- Stoichiometry Calculator: https://verchem.xyz/calculators/stoichiometry
+- Equation Balancer: https://verchem.xyz/equation-balancer
+- Molar Mass Calculator: https://verchem.xyz/tools/molar-mass
+- pH Calculator: https://verchem.xyz/tools/ph-calculator
+- Gas Laws Calculator: https://verchem.xyz/tools/gas-laws
+- Stoichiometry Calculator: https://verchem.xyz/tools/stoichiometry
+
+### Environmental Tools
 - Water Quality Calculator: https://verchem.xyz/tools/water-quality
 - Air Quality Calculator: https://verchem.xyz/tools/air-quality
 - Soil Quality Calculator: https://verchem.xyz/tools/soil-quality
 
 ## FAQs
 
-### What is VerChem?
-VerChem is a free, professional-grade chemistry platform offering periodic table data, chemistry calculators, and educational tools. All data is validated against NIST and IUPAC standards.
+### General Questions
 
-### Is VerChem free?
-Yes! All features are currently free for AIVerID members. We use a "Free First" strategy to make chemistry tools accessible to students and professionals worldwide.
+**What is VerChem?**
+VerChem is a free, professional-grade chemistry platform offering 8 chemistry calculators, 3 environmental engineering tools, an interactive periodic table with all 118 elements (NIST/IUPAC certified), and a database of 1,000+ compounds. Built for students, chemists, and engineers.
 
-### How accurate is the data?
-VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. Atomic masses are updated to the latest standards.
+**Is VerChem free to use?**
+Yes! All VerChem features are completely free for AIVerID members. We follow a "Free First" strategy to make world-class chemistry tools accessible to everyone worldwide.
 
-### Who can use VerChem?
-VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, and anyone who needs chemistry calculations.
+**How accurate is VerChem data?**
+VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. All 118 elements have certified atomic masses and properties updated to 2021 standards.
 
-### What calculators are available?
-VerChem offers 8 chemistry calculators (Molar Mass, Molarity, Dilution, pH, Gas Laws, Stoichiometry, Electrochemistry, Thermodynamics) plus 3 environmental engineering tools (Water Quality, Air Quality, Soil Quality).
+**Who can use VerChem?**
+VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, environmental engineers, and anyone who needs chemistry calculations.
+
+### Calculator Questions
+
+**How do I calculate molar mass?**
+Enter a chemical formula (e.g., H2SO4, NaCl, C6H12O6) into the Molar Mass Calculator. It automatically calculates molecular weight by summing atomic masses x subscripts. For H2O: (2 x 1.008) + (1 x 15.999) = 18.015 g/mol.
+
+**How do I balance a chemical equation?**
+Enter your unbalanced equation (e.g., H2 + O2 -> H2O) into the Equation Balancer. It uses algebraic matrix methods to find the smallest whole-number coefficients. Balanced result: 2H2 + O2 -> 2H2O.
+
+**What is the Ideal Gas Law formula?**
+The Ideal Gas Law is PV = nRT, where P = pressure, V = volume, n = moles of gas, R = gas constant (8.314 J/mol*K or 0.0821 L*atm/mol*K), and T = temperature in Kelvin.
+
+**How do I calculate pH from concentration?**
+pH = -log[H+]. For a 0.01 M HCl solution: pH = -log(0.01) = 2. For bases, calculate pOH first, then pH = 14 - pOH.
+
+**What is a limiting reagent?**
+A limiting reagent is the reactant completely consumed first in a chemical reaction, determining the maximum amount of product that can form. VerChem identifies limiting reagents and calculates theoretical yield, actual yield, and percent yield.
+
+**How do I convert moles to grams?**
+Mass (g) = Moles x Molar Mass (g/mol). For 2 moles of water: 2 mol x 18.015 g/mol = 36.03 g.
+
+### Periodic Table Questions
+
+**How many elements are in the periodic table?**
+There are 118 confirmed elements. Elements 1-94 occur naturally (some like Technetium and Promethium are extremely rare). Elements 95-118 are synthetic, created in laboratories.
+
+**What are rare earth elements?**
+Rare earth elements include 17 elements: Scandium (Sc), Yttrium (Y), and the 15 Lanthanides (La-Lu). Despite the name, most are not rare but are difficult to separate from each other.
+
+### Environmental Engineering Questions
+
+**What is BOD and COD in water quality?**
+BOD (Biochemical Oxygen Demand) measures oxygen consumed by microorganisms decomposing organic matter over 5 days at 20C. COD (Chemical Oxygen Demand) measures total oxygen needed to chemically oxidize all organic matter. BOD/COD ratio indicates biodegradability.
+
+**What are Thai water quality standards?**
+Thai PCD standards: Type A (Industrial): BOD <=20, COD <=120, SS <=50 mg/L. Type B (Relaxed): BOD <=60, COD <=400, SS <=150 mg/L. Type C (Community): BOD <=40, COD <=200, SS <=70 mg/L.
+
+**What is AQI (Air Quality Index)?**
+AQI is a scale from 0-500 measuring air pollution. 0-50: Good, 51-100: Moderate, 101-150: Unhealthy for sensitive groups, 151-200: Unhealthy, 201-300: Very unhealthy, 301-500: Hazardous.
+
+**What is PM2.5?**
+PM2.5 refers to particulate matter with diameter <=2.5 micrometers. These fine particles can penetrate deep into lungs and bloodstream. WHO guideline: 24-hour mean <=15 ug/m3.
 
 ## Contact
 
 - Website: https://verchem.xyz
-- Email: support@verchem.xyz
+- Email: verchem.xyz@gmail.com
+- GitHub: https://github.com/verchemxyz/verchem
 - Part of AIVerID Ecosystem
+
+## About
+
+VerChem is part of the Ver* ecosystem (VerHoro, VerGolf, VerVote, etc.), built with World-Class Production (WCP) standards by Thai developer Jittapol Prukpatarakul. We believe chemistry education should be accessible, accurate, and free.
 
 ---
 *Last updated: January 2026*
+*Version: 2.0*
 *VerChem - Making Chemistry Accessible*
