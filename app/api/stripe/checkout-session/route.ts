@@ -1,6 +1,17 @@
+/**
+ * Stripe Checkout Session API
+ *
+ * SECURITY (Jan 2026 - Fixed by สมคิด + สมหมาย audit):
+ * - Session verification with HMAC-SHA256 signature
+ * - Rejects unsigned/tampered sessions
+ * - Safe redirect origins only
+ *
+ * Last Updated: 2026-01-09
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { cookies } from 'next/headers';
+import { verifySession } from '@/lib/auth/session';
 
 // SECURITY: Allowed origins for redirect URLs (prevent open redirect attacks)
 const ALLOWED_ORIGINS = [
@@ -17,33 +28,6 @@ if (process.env.NODE_ENV !== 'production') {
 // This is a placeholder. In a real app, you'd fetch this from your database
 // or a more sophisticated pricing configuration.
 const PREMIUM_PLAN_PRICE_ID = 'price_1P6qj3RxH3p0z2nF6Zz2yX7j'; // REPLACE WITH YOUR ACTUAL PRICE ID
-
-// Verify session from our cookie-based auth (not next-auth)
-async function verifySession(): Promise<{ email: string } | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('verchem-session');
-
-    if (!sessionCookie?.value) {
-      return null;
-    }
-
-    const sessionData = JSON.parse(sessionCookie.value);
-
-    // Check expiry
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
-      return null;
-    }
-
-    if (!sessionData.user?.email) {
-      return null;
-    }
-
-    return { email: sessionData.user.email };
-  } catch {
-    return null;
-  }
-}
 
 // Get safe origin for redirects
 function getSafeOrigin(): string {

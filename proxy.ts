@@ -1,5 +1,5 @@
 /**
- * VerChem Proxy (previously middleware)
+ * VerChem Proxy (Next.js 16 Edge Middleware)
  *
  * 🔐 AUTHENTICATION REQUIRED FOR PROTECTED ROUTES
  *
@@ -8,7 +8,7 @@
  * - User MUST be logged in via AIVerID to access protected calculators/tools
  * - Early Bird members (registered before cutoff) get discounted pricing when we monetize
  *
- * Security (Dec 2025 - Fixed by สมหมาย audit):
+ * Security (Jan 2026 - Fixed by สมคิด + สมหมาย audit):
  * - Session cookies are now HMAC-SHA256 signed
  * - Proxy verifies signature before granting access
  * - SESSION_SECRET is required in production
@@ -29,7 +29,7 @@
  * - /challenge
  * - /compounds, /tutorials, /search
  *
- * Last Updated: 2025-12-13
+ * Last Updated: 2026-01-09
  */
 
 import { NextResponse } from 'next/server'

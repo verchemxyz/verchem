@@ -6,16 +6,16 @@
  * Handles AI tutor conversations with context injection
  * Uses Claude Haiku for cost efficiency, Sonnet for complex topics
  *
- * SECURITY (Dec 2025):
+ * SECURITY (Jan 2026 - Fixed by สมคิด + สมหมาย audit):
  * - Rate limiting: 10 requests/minute per user
- * - Session verification with HMAC signature
+ * - Session verification with HMAC-SHA256 signature
  * - Input validation and size limits
+ * - Rejects unsigned/tampered sessions
  *
- * Last Updated: 2025-12-12
+ * Last Updated: 2026-01-09
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import Anthropic from '@anthropic-ai/sdk'
 import {
   AI_TUTOR_LIMITS,
@@ -26,6 +26,7 @@ import {
 import type { AiTutorChatRequest, CalculatorContext } from '@/lib/ai-tutor'
 import type { SubscriptionTier } from '@/lib/vercal/types'
 import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit'
+import { verifySession } from '@/lib/auth/session'
 
 // Initialize Anthropic client
 const anthropic = new Anthropic({
@@ -34,35 +35,6 @@ const anthropic = new Anthropic({
 
 // SECURITY: Message length limits (Dec 2025 - 4-AI Audit)
 const MAX_MESSAGE_LENGTH = 4000 // Prevent token abuse
-
-// Session verification helper
-async function verifySession(): Promise<{
-  userId: string
-  tier: SubscriptionTier
-} | null> {
-  try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('verchem-session')
-
-    if (!sessionCookie) {
-      return null
-    }
-
-    const sessionData = JSON.parse(sessionCookie.value)
-
-    // Check expiry
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
-      return null
-    }
-
-    return {
-      userId: sessionData.user?.sub || sessionData.user?.id || 'anonymous',
-      tier: (sessionData.user?.subscription?.tier as SubscriptionTier) || 'free',
-    }
-  } catch {
-    return null
-  }
-}
 
 // Usage tracking (in-memory for now, should be in database)
 const usageCache = new Map<string, { count: number; resetDate: Date }>()
