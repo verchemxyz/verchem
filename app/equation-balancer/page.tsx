@@ -10,8 +10,6 @@ import {
   EXAMPLE_EQUATIONS,
 } from '@/lib/calculations/equation-balancer'
 import type { BalancedEquation } from '@/lib/types/chemistry'
-import { AiTutorExplainButton } from '@/components/ai-tutor'
-import { contextBuilders } from '@/lib/ai-tutor'
 
 function EquationBalancerContent() {
   const searchParams = useSearchParams()
@@ -217,18 +215,6 @@ function EquationBalancerContent() {
                 </span>
               </div>
 
-              {/* AI Explain Button */}
-              <div className="mt-6 pt-4 border-t border-white/20">
-                <AiTutorExplainButton
-                  context={contextBuilders['equation-balancer']({
-                    equation: equation,
-                    balanced: result.balanced,
-                    coefficients: result.coefficients,
-                    reactionType: identifyReactionType(equation),
-                  })}
-                  className="bg-white/20 hover:bg-white/30 border-white/30 text-white"
-                />
-              </div>
             </div>
 
             {/* Atom Count Verification */}

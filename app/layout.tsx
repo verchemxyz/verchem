@@ -9,7 +9,6 @@ import { TutorialOverlay } from "@/components/tutorials/tutorial-overlay";
 import { HelpButton } from "@/components/tutorials/help-button";
 import { HelpSidebar } from "@/components/tutorials/help-sidebar";
 import { Providers } from "./providers";
-import { AiTutorProvider, AiTutorButton, AiTutorChat } from "@/components/ai-tutor";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
 import {
   VerChemGlobalFAQSchema,
@@ -129,7 +128,6 @@ export default function RootLayout({
           <AccessibilityProvider>
             <TutorialProvider>
               <Providers>
-                <AiTutorProvider>
                 {/* Skip links for keyboard navigation */}
                 <SkipLinks />
                 
@@ -177,13 +175,8 @@ export default function RootLayout({
                 {/* Global keyboard shortcuts dialog */}
                 <KeyboardShortcutsDialog />
 
-                {/* AI Chemistry Tutor */}
-                <AiTutorButton />
-                <AiTutorChat />
-
                 {/* Login Required Modal - Shows when accessing protected routes */}
                 <LoginRequiredModal />
-                </AiTutorProvider>
               </Providers>
             </TutorialProvider>
           </AccessibilityProvider>

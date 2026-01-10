@@ -262,7 +262,7 @@ export default function AccountPage() {
           {[
             { href: '/calculators', icon: '🧮', label: 'Calculators', color: 'from-cyan-500/20 to-blue-500/20', border: 'border-cyan-500/30' },
             { href: '/periodic-table', icon: '⚛️', label: 'Periodic Table', color: 'from-purple-500/20 to-pink-500/20', border: 'border-purple-500/30' },
-            { href: '/practice/ai', icon: '🤖', label: 'AI Practice', color: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500/30' },
+            { href: '/tools', icon: '🔬', label: 'All Tools', color: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500/30' },
             { href: '/support', icon: '💚', label: 'Support Us', color: 'from-pink-500/20 to-red-500/20', border: 'border-pink-500/30' },
           ].map((item) => (
             <Link
