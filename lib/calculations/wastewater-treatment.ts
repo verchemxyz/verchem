@@ -76,10 +76,62 @@ function applyRemoval(
     cod: input.cod * (1 - codRemoval / 100),
     tss: input.tss * (1 - tssRemoval / 100),
     // Nutrients typically follow TSS removal partially
-    tkn: input.tkn ? input.tkn * (1 - tssRemoval * 0.3 / 100) : undefined,
-    totalP: input.totalP ? input.totalP * (1 - tssRemoval * 0.2 / 100) : undefined,
+    tkn: input.tkn !== undefined ? input.tkn * (1 - tssRemoval * 0.3 / 100) : undefined,
+    totalP: input.totalP !== undefined ? input.totalP * (1 - tssRemoval * 0.2 / 100) : undefined,
   }
 }
+
+const MIN_POSITIVE = 1e-6
+
+function normalizePositive(
+  value: number,
+  parameter: string,
+  unit: string,
+  issues: DesignIssue[],
+  fallback: number = MIN_POSITIVE
+): number {
+  if (!Number.isFinite(value) || value <= 0) {
+    issues.push(createIssue('critical', parameter, 'Invalid or non-positive value', Number.isFinite(value) ? value : fallback, unit, 'Enter a value greater than 0'))
+    return fallback
+  }
+  return value
+}
+
+function normalizeNonNegative(
+  value: number,
+  parameter: string,
+  unit: string,
+  issues: DesignIssue[],
+  fallback: number = 0
+): number {
+  if (!Number.isFinite(value) || value < 0) {
+    issues.push(createIssue('critical', parameter, 'Invalid or negative value', Number.isFinite(value) ? value : fallback, unit, 'Enter a value of 0 or higher'))
+    return fallback
+  }
+  return value
+}
+
+function normalizeFraction(
+  value: number,
+  parameter: string,
+  issues: DesignIssue[],
+  fallback: number = 0.5
+): number {
+  if (!Number.isFinite(value) || value <= 0 || value > 1) {
+    issues.push(createIssue('warning', parameter, 'Value should be between 0 and 1', Number.isFinite(value) ? value : fallback, '', 'Use a value between 0 and 1'))
+    return fallback
+  }
+  return value
+}
+
+function calculateRemovalPercent(influentValue: number, effluentValue: number): number {
+  if (!Number.isFinite(influentValue) || influentValue <= 0 || !Number.isFinite(effluentValue)) {
+    return 0
+  }
+  return ((influentValue - effluentValue) / influentValue) * 100
+}
+
+type UnitInputConfig<T> = Omit<T, 'inputQuality'>
 
 /**
  * Determine status from issues
@@ -108,22 +160,28 @@ export function calculateBarScreen(input: BarScreenInput): BarScreenUnit {
   const { inputQuality, barSpacing, channelWidth, channelDepth, screenAngle, barWidth, cleaningType } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
   const Q_m3s = Q / 86400 // m³/s
 
+  const safeBarSpacing = normalizePositive(barSpacing, 'Bar Spacing', 'mm', issues)
+  const safeBarWidth = normalizePositive(barWidth, 'Bar Width', 'mm', issues)
+  const safeChannelWidth = normalizePositive(channelWidth, 'Channel Width', 'm', issues)
+  const safeChannelDepth = normalizePositive(channelDepth, 'Channel Depth', 'm', issues)
+  const safeScreenAngle = normalizePositive(screenAngle, 'Screen Angle', 'degrees', issues, 1)
+
   // Calculate approach velocity
-  const channelArea = channelWidth * channelDepth
+  const channelArea = safeChannelWidth * safeChannelDepth
   const approachVelocity = Q_m3s / channelArea // m/s
 
   // Calculate clear area ratio
-  const clearRatio = barSpacing / (barSpacing + barWidth)
+  const clearRatio = safeBarSpacing / (safeBarSpacing + safeBarWidth)
 
   // Through velocity
   const throughVelocity = approachVelocity / clearRatio
 
   // Head loss (Kirschmer equation)
-  const beta = barWidth / barSpacing
-  const headloss = 1.43 * Math.pow(beta, 4/3) * Math.pow(throughVelocity, 2) / (2 * 9.81) * (1 / Math.sin(screenAngle * Math.PI / 180))
+  const beta = safeBarWidth / safeBarSpacing
+  const headloss = 1.43 * Math.pow(beta, 4/3) * Math.pow(throughVelocity, 2) / (2 * 9.81) * (1 / Math.sin(safeScreenAngle * Math.PI / 180))
 
   // Validate design criteria
   if (approachVelocity < 0.3) {
@@ -140,9 +198,9 @@ export function calculateBarScreen(input: BarScreenInput): BarScreenUnit {
   }
 
   // Typical removal for bar screen
-  const bodRemoval = barSpacing < 10 ? 10 : barSpacing < 25 ? 7 : 5
+  const bodRemoval = safeBarSpacing < 10 ? 10 : safeBarSpacing < 25 ? 7 : 5
   const codRemoval = bodRemoval
-  const tssRemoval = barSpacing < 10 ? 20 : barSpacing < 25 ? 15 : 10
+  const tssRemoval = safeBarSpacing < 10 ? 20 : safeBarSpacing < 25 ? 15 : 10
 
   return {
     id: `bar_screen_${Date.now()}`,
@@ -156,12 +214,12 @@ export function calculateBarScreen(input: BarScreenInput): BarScreenUnit {
     issues,
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
-      barSpacing,
-      barWidth,
+      barSpacing: safeBarSpacing,
+      barWidth: safeBarWidth,
       barDepth: 50,
-      screenAngle,
-      channelWidth,
-      channelDepth,
+      screenAngle: safeScreenAngle,
+      channelWidth: safeChannelWidth,
+      channelDepth: safeChannelDepth,
       approachVelocity,
       throughVelocity,
       headloss,
@@ -186,13 +244,17 @@ export function calculateGritChamber(input: GritChamberInput): GritChamberUnit {
   const { inputQuality, chamberType, length, width, depth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
   const Q_m3s = Q / 86400
 
-  const volume = length * width * depth
+  const safeLength = normalizePositive(length, 'Length', 'm', issues)
+  const safeWidth = normalizePositive(width, 'Width', 'm', issues)
+  const safeDepth = normalizePositive(depth, 'Depth', 'm', issues)
+
+  const volume = safeLength * safeWidth * safeDepth
   const hrt = (volume / Q_m3s) // seconds
-  const horizontalVelocity = Q_m3s / (width * depth) // m/s
-  const surfaceLoading = chamberType === 'aerated' ? Q / (length * width * 24) : 0 // m³/m²·h
+  const horizontalVelocity = Q_m3s / (safeWidth * safeDepth) // m/s
+  const surfaceLoading = chamberType === 'aerated' ? Q / (safeLength * safeWidth * 24) : 0 // m³/m²·h
 
   // Validation
   if (chamberType === 'horizontal_flow') {
@@ -238,9 +300,9 @@ export function calculateGritChamber(input: GritChamberInput): GritChamberUnit {
     removalEfficiency: { bod: 2, cod: 2, tss: tssRemoval },
     design: {
       chamberType,
-      length,
-      width,
-      depth,
+      length: safeLength,
+      width: safeWidth,
+      depth: safeDepth,
       volume,
       hrt,
       horizontalVelocity,
@@ -268,26 +330,36 @@ export function calculatePrimaryClarifier(input: PrimaryClarifierInput): Primary
   const { inputQuality, shape, diameter, length, width, sidewaterDepth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeSidewaterDepth = normalizePositive(sidewaterDepth, 'Sidewater Depth', 'm', issues)
+
+  let safeDiameter = diameter
+  let safeLength = length
+  let safeWidth = width
 
   // Calculate surface area
   let surfaceArea: number
   if (shape === 'circular' && diameter) {
-    surfaceArea = Math.PI * Math.pow(diameter / 2, 2)
+    safeDiameter = normalizePositive(diameter, 'Diameter', 'm', issues)
+    surfaceArea = Math.PI * Math.pow(safeDiameter / 2, 2)
   } else if (length && width) {
-    surfaceArea = length * width
+    safeLength = normalizePositive(length, 'Length', 'm', issues)
+    safeWidth = normalizePositive(width, 'Width', 'm', issues)
+    surfaceArea = safeLength * safeWidth
   } else {
-    throw new Error('Invalid dimensions')
+    safeLength = normalizePositive(length || 0, 'Length', 'm', issues)
+    safeWidth = normalizePositive(width || 0, 'Width', 'm', issues)
+    surfaceArea = safeLength * safeWidth
   }
 
-  const volume = surfaceArea * sidewaterDepth
+  const volume = surfaceArea * safeSidewaterDepth
 
   // Surface overflow rate
   const sor = Q / surfaceArea // m³/m²·day
   const hrt = volume / Q * 24 // hours
 
   // Weir loading (assume peripheral weir for circular)
-  const weirLength = shape === 'circular' && diameter ? Math.PI * diameter : (width || 0) * 2
+  const weirLength = shape === 'circular' && safeDiameter ? Math.PI * safeDiameter : (safeWidth || 0) * 2
   const weirLoading = Q / weirLength // m³/m·day
 
   // Validation
@@ -347,10 +419,10 @@ export function calculatePrimaryClarifier(input: PrimaryClarifierInput): Primary
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
       shape,
-      diameter,
-      length,
-      width,
-      sidewaterDepth,
+      diameter: safeDiameter,
+      length: safeLength,
+      width: safeWidth,
+      sidewaterDepth: safeSidewaterDepth,
       surfaceArea,
       volume,
       surfaceOverflowRate: sor,
@@ -382,28 +454,33 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
   const { inputQuality, processType, volume, mlss, srt, targetDO, aerationType, returnRatio } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeVolume = normalizePositive(volume, 'Volume', 'm³', issues)
+  const safeMlss = normalizePositive(mlss, 'MLSS', 'mg/L', issues)
+  const safeSrt = normalizePositive(srt, 'SRT', 'days', issues)
+  const safeTargetDO = normalizeNonNegative(targetDO, 'Target DO', 'mg/L', issues)
+  const safeReturnRatio = normalizeNonNegative(returnRatio, 'Return Ratio', '', issues)
   const BODin = inputQuality.bod // mg/L
 
   // Calculate HRT
-  const hrt = volume / Q * 24 // hours
+  const hrt = safeVolume / Q * 24 // hours
 
   // MLVSS (assume 75% of MLSS)
-  const mlvss = mlss * 0.75
+  const mlvss = safeMlss * 0.75
 
   // F/M Ratio
   const massFood = BODin * Q / 1000 // kg BOD/day
-  const massMicroorganisms = mlvss * volume / 1000 // kg MLVSS
+  const massMicroorganisms = mlvss * safeVolume / 1000 // kg MLVSS
   const fmRatio = massFood / massMicroorganisms // kg BOD/kg MLVSS·day
 
   // Volumetric loading
-  const volumetricLoading = massFood / volume // kg BOD/m³·day
+  const volumetricLoading = massFood / safeVolume // kg BOD/m³·day
 
   // Expected BOD removal based on F/M
   let bodRemoval = 90
   if (fmRatio < 0.1) bodRemoval = 95
-  else if (fmRatio > 0.6) bodRemoval = 80
   else if (fmRatio > 1.0) bodRemoval = 70
+  else if (fmRatio > 0.6) bodRemoval = 80
 
   // Oxygen requirements
   // O2 = a'(BOD removed) + b'(MLVSS)
@@ -423,14 +500,14 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
 
   // Power estimation (0.018-0.040 kW/m³/h for fine bubble)
   const specificPower = aerationType === 'fine_bubble' ? 25 : aerationType === 'mechanical_surface' ? 30 : 20 // W/m³
-  const aeratorPower = specificPower * volume / 1000 // kW
+  const aeratorPower = specificPower * safeVolume / 1000 // kW
 
   // Sludge production
   const sludgeYield = 0.5 // kg VSS/kg BOD removed (typical)
   const sludgeProduction = sludgeYield * bodRemoved // kg VSS/day
 
   // Waste sludge rate
-  const wasteSludgeRate = volume / srt * (mlss / 1e6) // m³/day approximate
+  const wasteSludgeRate = safeVolume / safeSrt * (safeMlss / 1e6) // m³/day approximate
 
   // Process-specific validation
   const typicalFM: Record<typeof processType, [number, number]> = {
@@ -475,22 +552,22 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
     issues.push(createIssue('info', 'HRT', `Long for ${processType}`, hrt, 'hours', 'Consider reducing volume', (hrtMin + hrtMax) / 2))
   }
 
-  if (srt < srtMin) {
-    issues.push(createIssue('critical', 'SRT', `Too short - sludge washout risk`, srt, 'days', 'Reduce waste sludge rate', (srtMin + srtMax) / 2))
+  if (safeSrt < srtMin) {
+    issues.push(createIssue('critical', 'SRT', `Too short - sludge washout risk`, safeSrt, 'days', 'Reduce waste sludge rate', (srtMin + srtMax) / 2))
   }
-  if (srt > srtMax) {
-    issues.push(createIssue('warning', 'SRT', `Long - old sludge may reduce activity`, srt, 'days', 'Increase waste sludge rate', (srtMin + srtMax) / 2))
-  }
-
-  if (mlss < 2000) {
-    issues.push(createIssue('warning', 'MLSS', 'Low biomass concentration', mlss, 'mg/L', 'Increase to 2500-4000', 3000))
-  }
-  if (mlss > 5000) {
-    issues.push(createIssue('warning', 'MLSS', 'High - may cause settling issues', mlss, 'mg/L', 'Typical max: 4000-5000', 3500))
+  if (safeSrt > srtMax) {
+    issues.push(createIssue('warning', 'SRT', `Long - old sludge may reduce activity`, safeSrt, 'days', 'Increase waste sludge rate', (srtMin + srtMax) / 2))
   }
 
-  if (targetDO < 1.5) {
-    issues.push(createIssue('warning', 'Target DO', 'Low - may limit treatment', targetDO, 'mg/L', 'Maintain 1.5-2.5 mg/L', 2.0))
+  if (safeMlss < 2000) {
+    issues.push(createIssue('warning', 'MLSS', 'Low biomass concentration', safeMlss, 'mg/L', 'Increase to 2500-4000', 3000))
+  }
+  if (safeMlss > 5000) {
+    issues.push(createIssue('warning', 'MLSS', 'High - may cause settling issues', safeMlss, 'mg/L', 'Typical max: 4000-5000', 3500))
+  }
+
+  if (safeTargetDO < 1.5) {
+    issues.push(createIssue('warning', 'Target DO', 'Low - may limit treatment', safeTargetDO, 'mg/L', 'Maintain 1.5-2.5 mg/L', 2.0))
   }
 
   if (volumetricLoading > 1.5) {
@@ -502,7 +579,7 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
 
   // Calculate tank dimensions (assume rectangular)
   const depth = 4.5 // m typical
-  const area = volume / depth
+  const area = safeVolume / depth
   const aspectRatio = 2 // L:W
   const tankWidth = Math.sqrt(area / aspectRatio)
   const tankLength = tankWidth * aspectRatio
@@ -523,11 +600,11 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
       length: tankLength,
       width: tankWidth,
       depth,
-      volume,
+      volume: safeVolume,
       numberOfTanks: 1,
       hrt,
-      srt,
-      mlss,
+      srt: safeSrt,
+      mlss: safeMlss,
       mlvss,
       fmRatio,
       volumetricLoading,
@@ -537,8 +614,8 @@ export function calculateAerationTank(input: AerationTankInput): AerationTankUni
       airFlowRate,
       aeratorPower,
       specificPower: specificPower / 1000 * 1000, // kW/1000 m³
-      targetDO,
-      returnRatio,
+      targetDO: safeTargetDO,
+      returnRatio: safeReturnRatio,
       wasteSludgeRate,
       sludgeYield,
       sludgeProduction,
@@ -565,20 +642,31 @@ export function calculateSecondaryClarifier(input: SecondaryClarifierInput): Sec
   const { inputQuality, shape, diameter, length, width, sidewaterDepth, mlss, returnRatio } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
-  const Qr = Q * returnRatio // return sludge flow
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeMlss = normalizePositive(mlss, 'MLSS', 'mg/L', issues)
+  const safeReturnRatio = normalizePositive(returnRatio, 'Return Ratio', '', issues)
+  const safeSidewaterDepth = normalizePositive(sidewaterDepth, 'Sidewater Depth', 'm', issues)
+  const Qr = Q * safeReturnRatio // return sludge flow
 
   // Calculate surface area
+  let safeDiameter = diameter
+  let safeLength = length
+  let safeWidth = width
   let surfaceArea: number
   if (shape === 'circular' && diameter) {
-    surfaceArea = Math.PI * Math.pow(diameter / 2, 2)
+    safeDiameter = normalizePositive(diameter, 'Diameter', 'm', issues)
+    surfaceArea = Math.PI * Math.pow(safeDiameter / 2, 2)
   } else if (length && width) {
-    surfaceArea = length * width
+    safeLength = normalizePositive(length, 'Length', 'm', issues)
+    safeWidth = normalizePositive(width, 'Width', 'm', issues)
+    surfaceArea = safeLength * safeWidth
   } else {
-    throw new Error('Invalid dimensions')
+    safeLength = normalizePositive(length || 0, 'Length', 'm', issues)
+    safeWidth = normalizePositive(width || 0, 'Width', 'm', issues)
+    surfaceArea = safeLength * safeWidth
   }
 
-  const volume = surfaceArea * sidewaterDepth
+  const volume = surfaceArea * safeSidewaterDepth
 
   // Surface overflow rate (based on Q, not Q+Qr for design)
   const sor = Q / surfaceArea // m³/m²·day
@@ -586,17 +674,17 @@ export function calculateSecondaryClarifier(input: SecondaryClarifierInput): Sec
   const hrt = volume / (Q + Qr) * 24 // hours
 
   // Solids loading rate
-  const solidsMass = mlss * (Q + Qr) / 1000 // kg/day
+  const solidsMass = safeMlss * (Q + Qr) / 1000 // kg/day
   const solidLoading = solidsMass / surfaceArea / 24 // kg/m²·h
   const peakSolidsLoading = solidLoading * 2.5
 
   // Weir loading
-  const weirLength = shape === 'circular' && diameter ? Math.PI * diameter : (width || 0) * 2
+  const weirLength = shape === 'circular' && safeDiameter ? Math.PI * safeDiameter : (safeWidth || 0) * 2
   const weirLoading = Q / weirLength
 
   // RAS concentration
   // Mass balance: Qr * Xr = (Q + Qr) * mlss (simplified)
-  const rasConcentration = mlss * (1 + returnRatio) / returnRatio // mg/L
+  const rasConcentration = safeMlss * (1 + safeReturnRatio) / safeReturnRatio // mg/L
 
   // Validation
   if (sor > 32) {
@@ -625,8 +713,8 @@ export function calculateSecondaryClarifier(input: SecondaryClarifierInput): Sec
     issues.push(createIssue('warning', 'Weir Loading', 'High - may cause turbulence', weirLoading, 'm³/m·day', 'Extend weir length', 150))
   }
 
-  if (sidewaterDepth < 3.5) {
-    issues.push(createIssue('warning', 'Sidewater Depth', 'Shallow for secondary', sidewaterDepth, 'm', 'Typical: 3.5-6 m', 4.5))
+  if (safeSidewaterDepth < 3.5) {
+    issues.push(createIssue('warning', 'Sidewater Depth', 'Shallow for secondary', safeSidewaterDepth, 'm', 'Typical: 3.5-6 m', 4.5))
   }
 
   // Secondary clarifier primarily removes TSS (biomass)
@@ -648,10 +736,10 @@ export function calculateSecondaryClarifier(input: SecondaryClarifierInput): Sec
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
       shape,
-      diameter,
-      length,
-      width,
-      sidewaterDepth,
+      diameter: safeDiameter,
+      length: safeLength,
+      width: safeWidth,
+      sidewaterDepth: safeSidewaterDepth,
       surfaceArea,
       volume,
       surfaceOverflowRate: sor,
@@ -685,24 +773,31 @@ export function calculateChlorination(input: ChlorinationInput): ChlorinationUni
   const { inputQuality, chlorineType, contactTime, chlorineDose, tankLength, tankWidth, tankDepth, baffleEfficiency } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
   const Q_m3min = Q / 1440 // m³/min
 
-  const tankVolume = tankLength * tankWidth * tankDepth
+  const safeTankLength = normalizePositive(tankLength, 'Tank Length', 'm', issues)
+  const safeTankWidth = normalizePositive(tankWidth, 'Tank Width', 'm', issues)
+  const safeTankDepth = normalizePositive(tankDepth, 'Tank Depth', 'm', issues)
+  const safeContactTime = normalizePositive(contactTime, 'Contact Time', 'minutes', issues)
+  const safeChlorineDose = normalizeNonNegative(chlorineDose, 'Chlorine Dose', 'mg/L', issues)
+  const safeBaffleEfficiency = normalizeFraction(baffleEfficiency, 'Baffle Efficiency', issues)
+
+  const tankVolume = safeTankLength * safeTankWidth * safeTankDepth
   const actualHRT = tankVolume / Q_m3min // minutes
-  const effectiveHRT = actualHRT * baffleEfficiency // adjusted for short-circuiting
+  const effectiveHRT = actualHRT * safeBaffleEfficiency // adjusted for short-circuiting
 
   // Chlorine demand (estimate based on water quality)
   const chlorineDemand = (inputQuality.bod * 0.05) + (inputQuality.tss * 0.02) // rough estimate
 
   // Residual
-  const chlorineResidual = chlorineDose - chlorineDemand
+  const chlorineResidual = safeChlorineDose - chlorineDemand
 
   // CT value
   const ctValue = chlorineResidual * effectiveHRT // mg·min/L
 
   // Daily chlorine usage
-  const dailyChlorineUsage = chlorineDose * Q / 1000 // kg/day
+  const dailyChlorineUsage = safeChlorineDose * Q / 1000 // kg/day
 
   // Log removal estimation based on CT
   // EPA guidance: Coliform 3-log at CT ~15, Virus 4-log at CT ~30 for free chlorine
@@ -717,6 +812,9 @@ export function calculateChlorination(input: ChlorinationInput): ChlorinationUni
   if (effectiveHRT < 20) {
     issues.push(createIssue('warning', 'Contact Time', 'Short - monitor residual closely', effectiveHRT, 'minutes', 'Typical: 20-30 min', 25))
   }
+  if (effectiveHRT < safeContactTime) {
+    issues.push(createIssue('warning', 'Contact Time', 'Below target contact time', effectiveHRT, 'minutes', 'Increase volume or improve baffling', safeContactTime))
+  }
 
   if (chlorineResidual < 0.5) {
     issues.push(createIssue('critical', 'Chlorine Residual', 'Too low - increase dose', chlorineResidual, 'mg/L', 'Maintain 0.5-2.0 mg/L', 1.0))
@@ -729,8 +827,8 @@ export function calculateChlorination(input: ChlorinationInput): ChlorinationUni
     issues.push(createIssue('critical', 'CT Value', 'Below minimum for coliform', ctValue, 'mg·min/L', 'Increase dose or contact time', 30))
   }
 
-  if (baffleEfficiency < 0.3) {
-    issues.push(createIssue('warning', 'Baffle Efficiency', 'Low - significant short-circuiting', baffleEfficiency, '', 'Add baffles or improve design', 0.5))
+  if (safeBaffleEfficiency < 0.3) {
+    issues.push(createIssue('warning', 'Baffle Efficiency', 'Low - significant short-circuiting', safeBaffleEfficiency, '', 'Add baffles or improve design', 0.5))
   }
 
   return {
@@ -748,11 +846,11 @@ export function calculateChlorination(input: ChlorinationInput): ChlorinationUni
       chlorineType,
       contactTankVolume: tankVolume,
       contactTime: effectiveHRT,
-      length: tankLength,
-      width: tankWidth,
-      depth: tankDepth,
-      baffleEfficiency,
-      chlorineDose,
+      length: safeTankLength,
+      width: safeTankWidth,
+      depth: safeTankDepth,
+      baffleEfficiency: safeBaffleEfficiency,
+      chlorineDose: safeChlorineDose,
       chlorineResidual,
       chlorineDemand,
       dailyChlorineUsage,
@@ -783,10 +881,13 @@ export function calculateOilSeparator(input: OilSeparatorInput): OilSeparatorUni
   const { inputQuality, separatorType, length, width, depth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
-  const volume = length * width * depth
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeLength = normalizePositive(length, 'Length', 'm', issues)
+  const safeWidth = normalizePositive(width, 'Width', 'm', issues)
+  const safeDepth = normalizePositive(depth, 'Depth', 'm', issues)
+  const volume = safeLength * safeWidth * safeDepth
   const hrt = volume / Q * 24 * 60 // minutes
-  const surfaceArea = length * width
+  const surfaceArea = safeLength * safeWidth
   const surfaceLoadingRate = Q / surfaceArea / 24 // m³/m²·h
 
   if (hrt < 15) {
@@ -813,9 +914,9 @@ export function calculateOilSeparator(input: OilSeparatorInput): OilSeparatorUni
     removalEfficiency: { bod: bodRemoval, cod: bodRemoval, tss: tssRemoval },
     design: {
       separatorType,
-      length,
-      width,
-      depth,
+      length: safeLength,
+      width: safeWidth,
+      depth: safeDepth,
       volume,
       hrt,
       surfaceLoadingRate,
@@ -837,13 +938,16 @@ export function calculateUASB(input: UASBInput): UASBUnit {
   const { inputQuality, volume, height, operatingTemp } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeVolume = normalizePositive(volume, 'Volume', 'm³', issues)
+  const safeHeight = normalizePositive(height, 'Height', 'm', issues)
+  const safeOperatingTemp = normalizeNonNegative(operatingTemp, 'Operating Temperature', '°C', issues)
   const CODin = inputQuality.cod
 
-  const hrt = volume / Q * 24 // hours
-  const area = volume / height
+  const hrt = safeVolume / Q * 24 // hours
+  const area = safeVolume / safeHeight
   const upflowVelocity = Q / area / 24 // m/h
-  const volumetricLoading = CODin * Q / 1000 / volume // kg COD/m³·d
+  const volumetricLoading = CODin * Q / 1000 / safeVolume // kg COD/m³·d
 
   if (hrt < 4) {
     issues.push(createIssue('critical', 'HRT', 'Too short for UASB', hrt, 'hours', 'Increase volume', 8))
@@ -854,8 +958,8 @@ export function calculateUASB(input: UASBInput): UASBUnit {
   if (volumetricLoading > 15) {
     issues.push(createIssue('warning', 'Volumetric Loading', 'High - may overload', volumetricLoading, 'kg COD/m³·d', 'Typical: 2-15', 10))
   }
-  if (operatingTemp < 25) {
-    issues.push(createIssue('warning', 'Temperature', 'Low - reduced methane production', operatingTemp, '°C', 'Optimal: 30-38°C', 35))
+  if (safeOperatingTemp < 25) {
+    issues.push(createIssue('warning', 'Temperature', 'Low - reduced methane production', safeOperatingTemp, '°C', 'Optimal: 30-38°C', 35))
   }
 
   const codRemoval = hrt >= 6 && volumetricLoading <= 10 ? 80 : 65
@@ -880,8 +984,8 @@ export function calculateUASB(input: UASBInput): UASBUnit {
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
       numberOfReactors: 1,
-      height,
-      volume,
+      height: safeHeight,
+      volume: safeVolume,
       hrt,
       volumetricLoading,
       upflowVelocity,
@@ -890,7 +994,7 @@ export function calculateUASB(input: UASBInput): UASBUnit {
       biogasProduction,
       methaneContent: 65,
       codRemoval,
-      operatingTemp,
+      operatingTemp: safeOperatingTemp,
     },
   }
 }
@@ -908,24 +1012,28 @@ export function calculateSBR(input: SBRInput): SBRUnit {
   const { inputQuality, volumePerReactor, numberOfReactors, cycleTime, mlss } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
-  const totalVolume = volumePerReactor * numberOfReactors
-  const cyclesPerDay = 24 / cycleTime
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeVolumePerReactor = normalizePositive(volumePerReactor, 'Volume per Reactor', 'm³', issues)
+  const safeNumberOfReactors = Math.max(1, Math.round(normalizePositive(numberOfReactors, 'Number of Reactors', '', issues, 1)))
+  const safeCycleTime = normalizePositive(cycleTime, 'Cycle Time', 'hours', issues, 1)
+  const safeMlss = normalizePositive(mlss, 'MLSS', 'mg/L', issues)
+  const totalVolume = safeVolumePerReactor * safeNumberOfReactors
+  const cyclesPerDay = 24 / safeCycleTime
 
   // Typical cycle breakdown
-  const fillTime = cycleTime * 0.25
-  const reactTime = cycleTime * 0.35
-  const settleTime = cycleTime * 0.25
-  const decantTime = cycleTime * 0.10
-  const idleTime = cycleTime * 0.05
+  const fillTime = safeCycleTime * 0.25
+  const reactTime = safeCycleTime * 0.35
+  const settleTime = safeCycleTime * 0.25
+  const decantTime = safeCycleTime * 0.10
+  const idleTime = safeCycleTime * 0.05
 
   const decantRatio = 0.3 // typical 25-50%
-  const effectiveVolume = volumePerReactor * decantRatio
-  const dailyCapacity = effectiveVolume * cyclesPerDay * numberOfReactors
+  const effectiveVolume = safeVolumePerReactor * decantRatio
+  const dailyCapacity = effectiveVolume * cyclesPerDay * safeNumberOfReactors
 
   const hrt = totalVolume / Q * 24
   const srt = 15 // typical
-  const mlvss = mlss * 0.75
+  const mlvss = safeMlss * 0.75
   const fmRatio = (inputQuality.bod * Q / 1000) / (mlvss * totalVolume / 1000)
   const volumetricLoading = inputQuality.bod * Q / 1000 / totalVolume
 
@@ -955,8 +1063,8 @@ export function calculateSBR(input: SBRInput): SBRUnit {
     issues,
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
-      numberOfReactors,
-      volumePerReactor,
+      numberOfReactors: safeNumberOfReactors,
+      volumePerReactor: safeVolumePerReactor,
       totalVolume,
       depth: 5,
       fillTime,
@@ -964,11 +1072,11 @@ export function calculateSBR(input: SBRInput): SBRUnit {
       settleTime,
       decantTime,
       idleTime,
-      totalCycleTime: cycleTime,
+      totalCycleTime: safeCycleTime,
       cyclesPerDay,
       hrt,
       srt,
-      mlss,
+      mlss: safeMlss,
       fmRatio,
       volumetricLoading,
       decantRatio,
@@ -991,10 +1099,12 @@ export function calculateOxidationPond(input: OxidationPondInput): OxidationPond
   const { inputQuality, pondType, surfaceArea, depth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
-  const volume = surfaceArea * depth
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeSurfaceArea = normalizePositive(surfaceArea, 'Surface Area', 'm²', issues)
+  const safeDepth = normalizePositive(depth, 'Depth', 'm', issues)
+  const volume = safeSurfaceArea * safeDepth
   const hrt = volume / Q // days
-  const organicLoading = inputQuality.bod * Q / (surfaceArea / 10000) // kg BOD/ha·d
+  const organicLoading = inputQuality.bod * Q / 1000 / (safeSurfaceArea / 10000) // kg BOD/ha·d
 
   const typicalDepth: Record<typeof pondType, [number, number]> = {
     facultative: [1.0, 2.5],
@@ -1013,8 +1123,8 @@ export function calculateOxidationPond(input: OxidationPondInput): OxidationPond
   const [depthMin, depthMax] = typicalDepth[pondType]
   const [loadMin, loadMax] = typicalLoading[pondType]
 
-  if (depth < depthMin || depth > depthMax) {
-    issues.push(createIssue('warning', 'Depth', `Outside typical range for ${pondType}`, depth, 'm', `Typical: ${depthMin}-${depthMax} m`, (depthMin + depthMax) / 2))
+  if (safeDepth < depthMin || safeDepth > depthMax) {
+    issues.push(createIssue('warning', 'Depth', `Outside typical range for ${pondType}`, safeDepth, 'm', `Typical: ${depthMin}-${depthMax} m`, (depthMin + depthMax) / 2))
   }
   if (organicLoading > loadMax) {
     issues.push(createIssue('warning', 'Organic Loading', 'High - may cause odors', organicLoading, 'kg BOD/ha·d', `Typical: ${loadMin}-${loadMax}`, (loadMin + loadMax) / 2))
@@ -1038,7 +1148,7 @@ export function calculateOxidationPond(input: OxidationPondInput): OxidationPond
     tssRemoval = 60
   }
 
-  const landArea = surfaceArea / 10000 * 1.3 // ha with 30% buffer
+  const landArea = safeSurfaceArea / 10000 * 1.3 // ha with 30% buffer
 
   return {
     id: `oxidation_pond_${Date.now()}`,
@@ -1054,15 +1164,15 @@ export function calculateOxidationPond(input: OxidationPondInput): OxidationPond
     design: {
       pondType,
       numberOfPonds: 1,
-      length: Math.sqrt(surfaceArea * 2),
-      width: Math.sqrt(surfaceArea / 2),
-      depth,
-      surfaceArea,
-      totalArea: surfaceArea,
+      length: Math.sqrt(safeSurfaceArea * 2),
+      width: Math.sqrt(safeSurfaceArea / 2),
+      depth: safeDepth,
+      surfaceArea: safeSurfaceArea,
+      totalArea: safeSurfaceArea,
       volume,
       hrt,
       organicLoading,
-      surfaceLoading: Q / surfaceArea * 10000,
+      surfaceLoading: Q / safeSurfaceArea * 10000,
       evaporationLoss: 5,
       landArea,
     },
@@ -1083,12 +1193,15 @@ export function calculateTricklingFilter(input: TricklingFilterInput): Trickling
   const { inputQuality, filterType, diameter, depth, mediaType, recirculationRatio } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeDiameter = normalizePositive(diameter, 'Diameter', 'm', issues)
+  const safeDepth = normalizePositive(depth, 'Depth', 'm', issues)
+  const safeRecirculationRatio = normalizeNonNegative(recirculationRatio, 'Recirculation Ratio', '', issues)
   const BODin = inputQuality.bod
 
-  const surfaceArea = Math.PI * Math.pow(diameter / 2, 2)
-  const volume = surfaceArea * depth
-  const totalFlow = Q * (1 + recirculationRatio)
+  const surfaceArea = Math.PI * Math.pow(safeDiameter / 2, 2)
+  const volume = surfaceArea * safeDepth
+  const totalFlow = Q * (1 + safeRecirculationRatio)
 
   // Hydraulic loading
   const hydraulicLoading = totalFlow / surfaceArea // m³/m²·day
@@ -1136,7 +1249,7 @@ export function calculateTricklingFilter(input: TricklingFilterInput): Trickling
   // BOD removal using NRC equation (simplified)
   // E = 100 / (1 + 0.443 * sqrt(W / V*F))
   // W = BOD load, V = volume, F = recirculation factor
-  const recircFactor = (1 + recirculationRatio) / Math.pow(1 + 0.1 * recirculationRatio, 2)
+  const recircFactor = (1 + safeRecirculationRatio) / Math.pow(1 + 0.1 * safeRecirculationRatio, 2)
   const bodRemovalFactor = 100 / (1 + 0.443 * Math.sqrt(BODin * Q / 1000 / (volume * recircFactor)))
   const bodRemoval = Math.min(85, Math.max(50, bodRemovalFactor))
   const codRemoval = bodRemoval * 0.9
@@ -1156,15 +1269,15 @@ export function calculateTricklingFilter(input: TricklingFilterInput): Trickling
     design: {
       filterType,
       numberOfFilters: 1,
-      diameter,
-      depth,
+      diameter: safeDiameter,
+      depth: safeDepth,
       surfaceArea,
       volume,
       mediaType,
       mediaSpecificArea,
       hydraulicLoading,
       organicLoading,
-      recirculationRatio,
+      recirculationRatio: safeRecirculationRatio,
       totalFlow,
       bodRemovalFactor,
     },
@@ -1187,53 +1300,58 @@ export function calculateMBR(input: MBRInput): MBRUnit {
   const { inputQuality, membraneType, configuration, tankVolume, membraneArea, mlss, srt, flux } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate // m³/day
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeTankVolume = normalizePositive(tankVolume, 'Tank Volume', 'm³', issues)
+  const safeMembraneArea = normalizePositive(membraneArea, 'Membrane Area', 'm²', issues)
+  const safeMlss = normalizePositive(mlss, 'MLSS', 'mg/L', issues)
+  const safeSrt = normalizePositive(srt, 'SRT', 'days', issues)
+  const safeFlux = normalizePositive(flux, 'Flux', 'LMH', issues)
   const BODin = inputQuality.bod
 
   // Calculate HRT
-  const hrt = tankVolume / Q * 24 // hours
+  const hrt = safeTankVolume / Q * 24 // hours
 
   // MLVSS (assume 80% of MLSS for MBR)
-  const mlvss = mlss * 0.8
+  const mlvss = safeMlss * 0.8
 
   // F/M Ratio
   const massFood = BODin * Q / 1000 // kg BOD/day
-  const massMicroorganisms = mlvss * tankVolume / 1000 // kg MLVSS
+  const massMicroorganisms = mlvss * safeTankVolume / 1000 // kg MLVSS
   const fmRatio = massFood / massMicroorganisms
 
   // Check membrane capacity
-  const membraneCapacity = membraneArea * flux * 24 / 1000 // m³/day
+  const membraneCapacity = safeMembraneArea * safeFlux * 24 / 1000 // m³/day
   const capacityRatio = Q / membraneCapacity
 
   // Trans-membrane pressure (estimate)
-  const tmp = flux / 20 * 10 // rough estimate, kPa
+  const tmp = safeFlux / 20 * 10 // rough estimate, kPa
 
   // Permeability
-  const permeability = flux / (tmp / 100) // LMH/bar
+  const permeability = safeFlux / (tmp / 100) // LMH/bar
 
   // Aeration requirements (MBR needs more)
-  const processAeration = tankVolume * 0.02 // m³/min
-  const membraneAeration = membraneArea * 0.01 // m³/min for scouring
+  const processAeration = safeTankVolume * 0.02 // m³/min
+  const membraneAeration = safeMembraneArea * 0.01 // m³/min for scouring
   const totalAirFlow = processAeration + membraneAeration
   const aeratorPower = totalAirFlow * 0.5 // rough kW estimate
 
   // Number of modules
   const moduleArea = membraneType === 'hollow_fiber' ? 35 : 15 // m² per module typical
-  const numberOfModules = Math.ceil(membraneArea / moduleArea)
+  const numberOfModules = Math.ceil(safeMembraneArea / moduleArea)
 
   // Validation
-  if (mlss < 8000) {
-    issues.push(createIssue('warning', 'MLSS', 'Low for MBR', mlss, 'mg/L', 'Typical: 8000-15000 mg/L', 10000))
+  if (safeMlss < 8000) {
+    issues.push(createIssue('warning', 'MLSS', 'Low for MBR', safeMlss, 'mg/L', 'Typical: 8000-15000 mg/L', 10000))
   }
-  if (mlss > 15000) {
-    issues.push(createIssue('warning', 'MLSS', 'High - may reduce flux', mlss, 'mg/L', 'Typical: 8000-15000 mg/L', 10000))
+  if (safeMlss > 15000) {
+    issues.push(createIssue('warning', 'MLSS', 'High - may reduce flux', safeMlss, 'mg/L', 'Typical: 8000-15000 mg/L', 10000))
   }
 
-  if (flux > 30) {
-    issues.push(createIssue('warning', 'Flux', 'High - membrane fouling risk', flux, 'LMH', 'Typical: 10-30 LMH', 20))
+  if (safeFlux > 30) {
+    issues.push(createIssue('warning', 'Flux', 'High - membrane fouling risk', safeFlux, 'LMH', 'Typical: 10-30 LMH', 20))
   }
-  if (flux < 10) {
-    issues.push(createIssue('info', 'Flux', 'Conservative - oversized membrane', flux, 'LMH', 'Typical: 10-30 LMH', 20))
+  if (safeFlux < 10) {
+    issues.push(createIssue('info', 'Flux', 'Conservative - oversized membrane', safeFlux, 'LMH', 'Typical: 10-30 LMH', 20))
   }
 
   if (capacityRatio > 0.9) {
@@ -1243,8 +1361,8 @@ export function calculateMBR(input: MBRInput): MBRUnit {
     issues.push(createIssue('warning', 'Membrane Capacity', 'High utilization', capacityRatio * 100, '%', 'Consider more membrane area', 75))
   }
 
-  if (srt < 15) {
-    issues.push(createIssue('warning', 'SRT', 'Short for MBR', srt, 'days', 'Typical: 15-50 days', 25))
+  if (safeSrt < 15) {
+    issues.push(createIssue('warning', 'SRT', 'Short for MBR', safeSrt, 'days', 'Typical: 15-50 days', 25))
   }
 
   if (hrt < 4) {
@@ -1275,15 +1393,15 @@ export function calculateMBR(input: MBRInput): MBRUnit {
       membraneType,
       configuration,
       numberOfModules,
-      membraneArea,
-      tankVolume,
+      membraneArea: safeMembraneArea,
+      tankVolume: safeTankVolume,
       tankDepth: 4.5, // typical
-      mlss,
+      mlss: safeMlss,
       mlvss,
-      srt,
+      srt: safeSrt,
       hrt,
       fmRatio,
-      flux,
+      flux: safeFlux,
       tmp,
       permeability,
       membraneAeration,
@@ -1309,13 +1427,17 @@ export function calculateDAF(input: DAFInput): DAFUnit {
   const { inputQuality, length, width, depth, recycleRatio } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
-  const surfaceArea = length * width
-  const volume = surfaceArea * depth
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeLength = normalizePositive(length, 'Length', 'm', issues)
+  const safeWidth = normalizePositive(width, 'Width', 'm', issues)
+  const safeDepth = normalizePositive(depth, 'Depth', 'm', issues)
+  const safeRecycleRatio = normalizeNonNegative(recycleRatio, 'Recycle Ratio', '%', issues)
+  const surfaceArea = safeLength * safeWidth
+  const volume = surfaceArea * safeDepth
 
   const surfaceLoadingRate = Q / surfaceArea / 24 // m³/m²·h
   const hrt = volume / Q * 24 * 60 // minutes
-  const solidsLoadingRate = inputQuality.tss * Q / 1000 / surfaceArea // kg/m²·h
+  const solidsLoadingRate = inputQuality.tss * Q / 1000 / surfaceArea / 24 // kg/m²·h
 
   if (surfaceLoadingRate > 15) {
     issues.push(createIssue('warning', 'Surface Loading', 'High for DAF', surfaceLoadingRate, 'm³/m²·h', 'Typical: 5-15', 10))
@@ -1323,8 +1445,8 @@ export function calculateDAF(input: DAFInput): DAFUnit {
   if (hrt < 20) {
     issues.push(createIssue('warning', 'HRT', 'Short residence time', hrt, 'minutes', 'Typical: 20-40 min', 30))
   }
-  if (recycleRatio < 5) {
-    issues.push(createIssue('warning', 'Recycle Ratio', 'Low - insufficient air', recycleRatio, '%', 'Typical: 5-15%', 10))
+  if (safeRecycleRatio < 5) {
+    issues.push(createIssue('warning', 'Recycle Ratio', 'Low - insufficient air', safeRecycleRatio, '%', 'Typical: 5-15%', 10))
   }
 
   const tssRemoval = 85
@@ -1343,15 +1465,15 @@ export function calculateDAF(input: DAFInput): DAFUnit {
     issues,
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
-      length,
-      width,
-      depth,
+      length: safeLength,
+      width: safeWidth,
+      depth: safeDepth,
       surfaceArea,
       volume,
       surfaceLoadingRate,
       solidsLoadingRate,
       hrt,
-      recycleRatio,
+      recycleRatio: safeRecycleRatio,
       pressureVessel: 5,
       airToSolidsRatio: 0.02,
       saturatorEfficiency: 80,
@@ -1371,8 +1493,10 @@ export function calculateFiltration(input: FiltrationInput): FiltrationUnit {
   const { inputQuality, filterType, totalArea, mediaDepth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
-  const filtrationRate = Q / totalArea / 24 // m³/m²·h
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
+  const safeTotalArea = normalizePositive(totalArea, 'Total Area', 'm²', issues)
+  const safeMediaDepth = normalizePositive(mediaDepth, 'Media Depth', 'm', issues)
+  const filtrationRate = Q / safeTotalArea / 24 // m³/m²·h
 
   const typicalRates: Record<typeof filterType, [number, number]> = {
     rapid_sand: [5, 15],
@@ -1386,8 +1510,8 @@ export function calculateFiltration(input: FiltrationInput): FiltrationUnit {
   if (filtrationRate > rateMax) {
     issues.push(createIssue('warning', 'Filtration Rate', 'High - reduced performance', filtrationRate, 'm³/m²·h', `Typical: ${rateMin}-${rateMax}`, (rateMin + rateMax) / 2))
   }
-  if (mediaDepth < 0.5 && filterType !== 'membrane') {
-    issues.push(createIssue('warning', 'Media Depth', 'Shallow - short filter runs', mediaDepth, 'm', 'Typical: 0.6-1.0 m', 0.8))
+  if (safeMediaDepth < 0.5 && filterType !== 'membrane') {
+    issues.push(createIssue('warning', 'Media Depth', 'Shallow - short filter runs', safeMediaDepth, 'm', 'Typical: 0.6-1.0 m', 0.8))
   }
 
   const tssRemoval = filterType === 'membrane' ? 99 : 70
@@ -1407,10 +1531,10 @@ export function calculateFiltration(input: FiltrationInput): FiltrationUnit {
     removalEfficiency: { bod: bodRemoval, cod: codRemoval, tss: tssRemoval },
     design: {
       filterType,
-      numberOfFilters: Math.ceil(totalArea / 50),
-      surfaceAreaPerFilter: Math.min(50, totalArea),
-      totalArea,
-      mediaDepth,
+      numberOfFilters: Math.ceil(safeTotalArea / 50),
+      surfaceAreaPerFilter: Math.min(50, safeTotalArea),
+      totalArea: safeTotalArea,
+      mediaDepth: safeMediaDepth,
       mediaType: filterType === 'multimedia' ? 'dual_media' : 'sand',
       effectiveSize: 0.5,
       uniformityCoefficient: 1.4,
@@ -1438,32 +1562,37 @@ export function calculateUVDisinfection(input: UVDisinfectionInput): UVDisinfect
   const { inputQuality, uvDose, uvTransmittance, channelLength, channelWidth, channelDepth } = input
   const issues: DesignIssue[] = []
 
-  const Q = inputQuality.flowRate
+  const Q = normalizePositive(inputQuality.flowRate, 'Flow Rate', 'm³/day', issues, 1)
   const Q_m3s = Q / 86400
-  const volume = channelLength * channelWidth * channelDepth
+  const safeChannelLength = normalizePositive(channelLength, 'Channel Length', 'm', issues)
+  const safeChannelWidth = normalizePositive(channelWidth, 'Channel Width', 'm', issues)
+  const safeChannelDepth = normalizePositive(channelDepth, 'Channel Depth', 'm', issues)
+  const safeUvDose = normalizeNonNegative(uvDose, 'UV Dose', 'mJ/cm²', issues)
+  const safeUvTransmittance = normalizeNonNegative(uvTransmittance, 'UV Transmittance', '%', issues)
+  const volume = safeChannelLength * safeChannelWidth * safeChannelDepth
   const contactTime = volume / Q_m3s // seconds
 
   // Estimate lamp requirements
-  const lampsPerBank = Math.ceil(channelWidth / 0.15) // ~15cm spacing
-  const numberOfBanks = Math.ceil(uvDose / 20) // rough estimate
+  const lampsPerBank = Math.ceil(safeChannelWidth / 0.15) // ~15cm spacing
+  const numberOfBanks = Math.ceil(safeUvDose / 20) // rough estimate
   const totalLamps = lampsPerBank * numberOfBanks
   const lampPower = 150 // W typical
   const totalPower = totalLamps * lampPower / 1000 // kW
 
-  if (uvDose < 40) {
-    issues.push(createIssue('warning', 'UV Dose', 'Low - may not achieve disinfection', uvDose, 'mJ/cm²', 'Minimum 40 mJ/cm²', 50))
+  if (safeUvDose < 40) {
+    issues.push(createIssue('warning', 'UV Dose', 'Low - may not achieve disinfection', safeUvDose, 'mJ/cm²', 'Minimum 40 mJ/cm²', 50))
   }
-  if (uvTransmittance < 55) {
-    issues.push(createIssue('critical', 'UV Transmittance', 'Low - need pretreatment', uvTransmittance, '%', 'Minimum 55%, prefer >65%', 65))
+  if (safeUvTransmittance < 55) {
+    issues.push(createIssue('critical', 'UV Transmittance', 'Low - need pretreatment', safeUvTransmittance, '%', 'Minimum 55%, prefer >65%', 65))
   }
   if (contactTime < 5) {
     issues.push(createIssue('warning', 'Contact Time', 'Short exposure', contactTime, 'seconds', 'Increase channel length', 10))
   }
 
   // Log removal based on dose
-  const logColiform = Math.min(6, uvDose / 10)
-  const logEcoli = Math.min(6, uvDose / 8)
-  const logVirus = Math.min(4, uvDose / 30)
+  const logColiform = Math.min(6, safeUvDose / 10)
+  const logEcoli = Math.min(6, safeUvDose / 8)
+  const logVirus = Math.min(4, safeUvDose / 30)
 
   return {
     id: `uv_disinfection_${Date.now()}`,
@@ -1481,13 +1610,13 @@ export function calculateUVDisinfection(input: UVDisinfectionInput): UVDisinfect
       numberOfBanks,
       lampsPerBank,
       totalLamps,
-      uvDose,
-      uvTransmittance,
+      uvDose: safeUvDose,
+      uvTransmittance: safeUvTransmittance,
       lampPower,
       totalPower,
-      channelLength,
-      channelWidth,
-      channelDepth,
+      channelLength: safeChannelLength,
+      channelWidth: safeChannelWidth,
+      channelDepth: safeChannelDepth,
       contactTime,
       logRemoval: {
         coliform: logColiform,
@@ -1511,13 +1640,24 @@ export function calculateTreatmentTrain(
   influent: WastewaterQuality,
   unitConfigs: Array<{
     type: UnitType
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any
+    config: Record<string, unknown>
   }>,
   targetStandard: ThaiEffluentType
 ): TreatmentSystem {
   const units: TreatmentUnit[] = []
-  let currentQuality = { ...influent }
+  const systemIssues: DesignIssue[] = []
+  const safeInfluent: WastewaterQuality = {
+    ...influent,
+    flowRate: normalizePositive(influent.flowRate, 'Influent Flow Rate', 'm³/day', systemIssues, 1),
+    bod: normalizeNonNegative(influent.bod, 'Influent BOD', 'mg/L', systemIssues),
+    cod: normalizeNonNegative(influent.cod, 'Influent COD', 'mg/L', systemIssues),
+    tss: normalizeNonNegative(influent.tss, 'Influent TSS', 'mg/L', systemIssues),
+    tkn: influent.tkn !== undefined ? normalizeNonNegative(influent.tkn, 'Influent TKN', 'mg/L', systemIssues) : undefined,
+    ammonia: influent.ammonia !== undefined ? normalizeNonNegative(influent.ammonia, 'Influent Ammonia', 'mg/L', systemIssues) : undefined,
+    totalP: influent.totalP !== undefined ? normalizeNonNegative(influent.totalP, 'Influent Total P', 'mg/L', systemIssues) : undefined,
+    oilGrease: influent.oilGrease !== undefined ? normalizeNonNegative(influent.oilGrease, 'Influent Oil & Grease', 'mg/L', systemIssues) : undefined,
+  }
+  let currentQuality = { ...safeInfluent }
 
   // Calculate each unit sequentially
   for (const unitConfig of unitConfigs) {
@@ -1526,49 +1666,49 @@ export function calculateTreatmentTrain(
 
     switch (type) {
       case 'bar_screen':
-        unit = calculateBarScreen({ ...config, inputQuality: currentQuality })
+        unit = calculateBarScreen({ ...(config as UnitInputConfig<BarScreenInput>), inputQuality: currentQuality })
         break
       case 'grit_chamber':
-        unit = calculateGritChamber({ ...config, inputQuality: currentQuality })
+        unit = calculateGritChamber({ ...(config as UnitInputConfig<GritChamberInput>), inputQuality: currentQuality })
         break
       case 'primary_clarifier':
-        unit = calculatePrimaryClarifier({ ...config, inputQuality: currentQuality })
+        unit = calculatePrimaryClarifier({ ...(config as UnitInputConfig<PrimaryClarifierInput>), inputQuality: currentQuality })
         break
       case 'oil_separator':
-        unit = calculateOilSeparator({ ...config, inputQuality: currentQuality })
+        unit = calculateOilSeparator({ ...(config as UnitInputConfig<OilSeparatorInput>), inputQuality: currentQuality })
         break
       case 'aeration_tank':
-        unit = calculateAerationTank({ ...config, inputQuality: currentQuality })
+        unit = calculateAerationTank({ ...(config as UnitInputConfig<AerationTankInput>), inputQuality: currentQuality })
         break
       case 'sbr':
-        unit = calculateSBR({ ...config, inputQuality: currentQuality })
+        unit = calculateSBR({ ...(config as UnitInputConfig<SBRInput>), inputQuality: currentQuality })
         break
       case 'uasb':
-        unit = calculateUASB({ ...config, inputQuality: currentQuality })
+        unit = calculateUASB({ ...(config as UnitInputConfig<UASBInput>), inputQuality: currentQuality })
         break
       case 'oxidation_pond':
-        unit = calculateOxidationPond({ ...config, inputQuality: currentQuality })
+        unit = calculateOxidationPond({ ...(config as UnitInputConfig<OxidationPondInput>), inputQuality: currentQuality })
         break
       case 'trickling_filter':
-        unit = calculateTricklingFilter({ ...config, inputQuality: currentQuality })
+        unit = calculateTricklingFilter({ ...(config as UnitInputConfig<TricklingFilterInput>), inputQuality: currentQuality })
         break
       case 'mbr':
-        unit = calculateMBR({ ...config, inputQuality: currentQuality })
+        unit = calculateMBR({ ...(config as UnitInputConfig<MBRInput>), inputQuality: currentQuality })
         break
       case 'secondary_clarifier':
-        unit = calculateSecondaryClarifier({ ...config, inputQuality: currentQuality })
+        unit = calculateSecondaryClarifier({ ...(config as UnitInputConfig<SecondaryClarifierInput>), inputQuality: currentQuality })
         break
       case 'daf':
-        unit = calculateDAF({ ...config, inputQuality: currentQuality })
+        unit = calculateDAF({ ...(config as UnitInputConfig<DAFInput>), inputQuality: currentQuality })
         break
       case 'filtration':
-        unit = calculateFiltration({ ...config, inputQuality: currentQuality })
+        unit = calculateFiltration({ ...(config as UnitInputConfig<FiltrationInput>), inputQuality: currentQuality })
         break
       case 'chlorination':
-        unit = calculateChlorination({ ...config, inputQuality: currentQuality })
+        unit = calculateChlorination({ ...(config as UnitInputConfig<ChlorinationInput>), inputQuality: currentQuality })
         break
       case 'uv_disinfection':
-        unit = calculateUVDisinfection({ ...config, inputQuality: currentQuality })
+        unit = calculateUVDisinfection({ ...(config as UnitInputConfig<UVDisinfectionInput>), inputQuality: currentQuality })
         break
       default:
         continue
@@ -1604,13 +1744,50 @@ export function calculateTreatmentTrain(
         unit: 'mg/L',
         status: currentQuality.tss <= standard.limits.tss ? 'pass' as const : 'fail' as const,
       },
+      {
+        name: 'pH',
+        value: typeof currentQuality.ph === 'number' && Number.isFinite(currentQuality.ph) ? currentQuality.ph : null,
+        limit: `${standard.limits.ph[0]}-${standard.limits.ph[1]}`,
+        unit: '',
+        status: typeof currentQuality.ph === 'number' && Number.isFinite(currentQuality.ph)
+          ? currentQuality.ph >= standard.limits.ph[0] && currentQuality.ph <= standard.limits.ph[1]
+            ? 'pass' as const
+            : 'fail' as const
+          : 'unknown' as const,
+      },
+      {
+        name: 'Temperature',
+        value: typeof currentQuality.temperature === 'number' && Number.isFinite(currentQuality.temperature) ? currentQuality.temperature : null,
+        limit: standard.limits.temperature,
+        unit: '°C',
+        status: typeof currentQuality.temperature === 'number' && Number.isFinite(currentQuality.temperature)
+          ? currentQuality.temperature <= standard.limits.temperature
+            ? 'pass' as const
+            : 'fail' as const
+          : 'unknown' as const,
+      },
     ],
+  }
+
+  if (standard.limits.oilGrease !== undefined) {
+    const oilValue = currentQuality.oilGrease
+    compliance.parameters.push({
+      name: 'Oil & Grease',
+      value: typeof oilValue === 'number' && Number.isFinite(oilValue) ? oilValue : null,
+      limit: standard.limits.oilGrease,
+      unit: 'mg/L',
+      status: typeof oilValue === 'number' && Number.isFinite(oilValue)
+        ? oilValue <= standard.limits.oilGrease
+          ? 'pass' as const
+          : 'fail' as const
+        : 'unknown' as const,
+    })
   }
 
   compliance.isCompliant = compliance.parameters.every(p => p.status === 'pass')
 
   // Calculate overall status
-  const allIssues = units.flatMap(u => u.issues)
+  const allIssues = [...systemIssues, ...units.flatMap(u => u.issues)]
   const overallStatus: UnitStatus = units.some(u => u.status === 'fail')
     ? 'fail'
     : units.some(u => u.status === 'warning')
@@ -1618,9 +1795,9 @@ export function calculateTreatmentTrain(
     : 'pass'
 
   // Calculate summary
-  const totalBODRemoval = ((influent.bod - currentQuality.bod) / influent.bod) * 100
-  const totalCODRemoval = ((influent.cod - currentQuality.cod) / influent.cod) * 100
-  const totalTSSRemoval = ((influent.tss - currentQuality.tss) / influent.tss) * 100
+  const totalBODRemoval = calculateRemovalPercent(safeInfluent.bod, currentQuality.bod)
+  const totalCODRemoval = calculateRemovalPercent(safeInfluent.cod, currentQuality.cod)
+  const totalTSSRemoval = calculateRemovalPercent(safeInfluent.tss, currentQuality.tss)
 
   return {
     id: `system_${Date.now()}`,
@@ -1631,7 +1808,7 @@ export function calculateTreatmentTrain(
     influent: {
       name: 'Influent',
       source: 'custom',
-      quality: influent,
+      quality: safeInfluent,
     },
     units,
     targetStandard,

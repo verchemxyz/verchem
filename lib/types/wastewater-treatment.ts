@@ -726,10 +726,10 @@ export interface TreatmentSystem {
     isCompliant: boolean
     parameters: {
       name: string
-      value: number
-      limit: number
+      value: number | null
+      limit: number | string
       unit: string
-      status: 'pass' | 'fail'
+      status: 'pass' | 'fail' | 'unknown'
     }[]
   }
 
@@ -1247,6 +1247,8 @@ export const DEFAULT_INFLUENT: Record<SystemInfluent['source'], Partial<Wastewat
 export const THAI_EFFLUENT_STANDARDS: Record<ThaiEffluentType, {
   name: string
   nameThai: string
+  source: string
+  referenceNote?: string
   limits: {
     bod: number
     cod: number
@@ -1259,6 +1261,8 @@ export const THAI_EFFLUENT_STANDARDS: Record<ThaiEffluentType, {
   type_a: {
     name: 'Type A - Industrial Estate',
     nameThai: 'ประเภท ก - นิคมอุตสาหกรรม',
+    source: 'PCD (Pollution Control Department)',
+    referenceNote: 'Verify values against the latest PCD notification',
     limits: {
       bod: 20,
       cod: 120,
@@ -1271,6 +1275,8 @@ export const THAI_EFFLUENT_STANDARDS: Record<ThaiEffluentType, {
   type_b: {
     name: 'Type B - General Industrial',
     nameThai: 'ประเภท ข - โรงงานทั่วไป',
+    source: 'PCD (Pollution Control Department)',
+    referenceNote: 'Verify values against the latest PCD notification',
     limits: {
       bod: 60,
       cod: 400,
@@ -1283,6 +1289,8 @@ export const THAI_EFFLUENT_STANDARDS: Record<ThaiEffluentType, {
   type_c: {
     name: 'Type C - Community',
     nameThai: 'ประเภท ค - ชุมชน',
+    source: 'PCD (Pollution Control Department)',
+    referenceNote: 'Verify values against the latest PCD notification',
     limits: {
       bod: 40,
       cod: 200,

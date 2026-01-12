@@ -17,6 +17,8 @@ import {
   calculateUASB,
   calculateSBR,
   calculateOxidationPond,
+  calculateTricklingFilter,
+  calculateMBR,
   calculateDAF,
   calculateFiltration,
   calculateUVDisinfection,
@@ -384,6 +386,42 @@ describe('Oxidation Pond Calculations', () => {
   })
 })
 
+describe('Trickling Filter Calculations', () => {
+  test('calculates trickling filter', () => {
+    const result = calculateTricklingFilter({
+      inputQuality: testInfluent,
+      filterType: 'high_rate',
+      diameter: 8,
+      depth: 4,
+      mediaType: 'plastic',
+      recirculationRatio: 1.0,
+    })
+
+    expect(result.type).toBe('trickling_filter')
+    expect(result.design.hydraulicLoading).toBeGreaterThan(0)
+    expect(result.removalEfficiency.bod).toBeGreaterThan(40)
+  })
+})
+
+describe('MBR Calculations', () => {
+  test('calculates MBR unit', () => {
+    const result = calculateMBR({
+      inputQuality: testInfluent,
+      membraneType: 'hollow_fiber',
+      configuration: 'submerged',
+      tankVolume: 250,
+      membraneArea: 1200,
+      mlss: 10000,
+      srt: 25,
+      flux: 20,
+    })
+
+    expect(result.type).toBe('mbr')
+    expect(result.design.numberOfModules).toBeGreaterThan(0)
+    expect(result.removalEfficiency.tss).toBeGreaterThan(95)
+  })
+})
+
 describe('DAF Calculations', () => {
   test('calculates DAF unit', () => {
     const result = calculateDAF({
@@ -464,7 +502,7 @@ describe('Treatment Train Calculations', () => {
     const result = calculateTreatmentTrain(testInfluent, unitConfigs, 'type_c')
 
     expect(result.compliance).toBeDefined()
-    expect(result.compliance.parameters).toHaveLength(3)
+    expect(result.compliance.parameters).toHaveLength(5)
     expect(result.effluentQuality.bod).toBeLessThan(40)
   })
 
@@ -493,7 +531,7 @@ describe('Default Design Parameters', () => {
     const unitTypes: UnitType[] = [
       'bar_screen', 'grit_chamber', 'primary_clarifier', 'aeration_tank',
       'secondary_clarifier', 'chlorination', 'oil_separator', 'uasb',
-      'sbr', 'oxidation_pond', 'daf', 'filtration', 'uv_disinfection',
+      'sbr', 'oxidation_pond', 'trickling_filter', 'mbr', 'daf', 'filtration', 'uv_disinfection',
     ]
 
     unitTypes.forEach(type => {

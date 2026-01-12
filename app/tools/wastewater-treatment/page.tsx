@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import {
   WastewaterQuality,
@@ -48,7 +48,7 @@ function StatusBadge({ status }: { status: UnitStatus }) {
 
 function FlowArrow({ animated = true }: { animated?: boolean }) {
   return (
-    <div className="flex items-center justify-center w-12 h-full">
+    <div className="flex items-center justify-center w-12 h-full" aria-hidden="true">
       <div className="relative">
         {/* Pipe */}
         <div className="w-12 h-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full relative overflow-hidden">
@@ -89,6 +89,16 @@ function UnitCard({ unit, onEdit, onRemove, isSelected, onClick }: UnitCardProps
   return (
     <div
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
+      aria-label={`${metadata.name} unit`}
       className={`
         relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
         ${statusColors[unit.status]}
@@ -101,7 +111,7 @@ function UnitCard({ unit, onEdit, onRemove, isSelected, onClick }: UnitCardProps
         unit.status === 'pass' ? 'bg-emerald-500' :
         unit.status === 'warning' ? 'bg-amber-500 animate-pulse' :
         unit.status === 'fail' ? 'bg-red-500 animate-pulse' : 'bg-gray-400'
-      }`} />
+      }`} aria-hidden="true" />
 
       {/* Icon */}
       <div className="text-3xl mb-2">{metadata.icon}</div>
@@ -138,12 +148,14 @@ function UnitCard({ unit, onEdit, onRemove, isSelected, onClick }: UnitCardProps
         <button
           onClick={(e) => { e.stopPropagation(); onEdit() }}
           className="flex-1 px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition"
+          aria-label={`Edit ${metadata.name}`}
         >
           Edit
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onRemove() }}
           className="px-2 py-1 text-xs bg-white border border-red-300 text-red-600 rounded hover:bg-red-50 transition"
+          aria-label={`Remove ${metadata.name}`}
         >
           ✕
         </button>
@@ -164,6 +176,8 @@ interface InfluentCardProps {
 }
 
 function InfluentCard({ quality, onChange, source, onSourceChange }: InfluentCardProps) {
+  const idPrefix = 'influent'
+
   return (
     <div className="p-4 rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 min-w-[200px]">
       <div className="flex items-center gap-2 mb-3">
@@ -183,6 +197,7 @@ function InfluentCard({ quality, onChange, source, onSourceChange }: InfluentCar
           onChange({ ...DEFAULT_INFLUENT[newSource], flowRate: quality.flowRate } as WastewaterQuality)
         }}
         className="w-full px-2 py-1 text-xs border border-gray-300 rounded mb-3"
+        aria-label="Select influent source"
       >
         <option value="domestic">Domestic (ชุมชน)</option>
         <option value="industrial">Industrial (อุตสาหกรรม)</option>
@@ -193,42 +208,54 @@ function InfluentCard({ quality, onChange, source, onSourceChange }: InfluentCar
       {/* Key parameters */}
       <div className="space-y-2 text-xs">
         <div className="flex items-center gap-2">
-          <label className="w-16 text-gray-600">Flow:</label>
+          <label htmlFor={`${idPrefix}-flow`} className="w-16 text-gray-600">Flow:</label>
           <input
+            id={`${idPrefix}-flow`}
             type="number"
             value={quality.flowRate}
-            onChange={(e) => onChange({ ...quality, flowRate: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => onChange({ ...quality, flowRate: Math.max(0, parseFloat(e.target.value) || 0) })}
             className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+            min={0}
+            step="any"
           />
           <span className="text-gray-500 w-16">m³/day</span>
         </div>
         <div className="flex items-center gap-2">
-          <label className="w-16 text-gray-600">BOD:</label>
+          <label htmlFor={`${idPrefix}-bod`} className="w-16 text-gray-600">BOD:</label>
           <input
+            id={`${idPrefix}-bod`}
             type="number"
             value={quality.bod}
-            onChange={(e) => onChange({ ...quality, bod: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => onChange({ ...quality, bod: Math.max(0, parseFloat(e.target.value) || 0) })}
             className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+            min={0}
+            step="any"
           />
           <span className="text-gray-500 w-16">mg/L</span>
         </div>
         <div className="flex items-center gap-2">
-          <label className="w-16 text-gray-600">COD:</label>
+          <label htmlFor={`${idPrefix}-cod`} className="w-16 text-gray-600">COD:</label>
           <input
+            id={`${idPrefix}-cod`}
             type="number"
             value={quality.cod}
-            onChange={(e) => onChange({ ...quality, cod: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => onChange({ ...quality, cod: Math.max(0, parseFloat(e.target.value) || 0) })}
             className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+            min={0}
+            step="any"
           />
           <span className="text-gray-500 w-16">mg/L</span>
         </div>
         <div className="flex items-center gap-2">
-          <label className="w-16 text-gray-600">TSS:</label>
+          <label htmlFor={`${idPrefix}-tss`} className="w-16 text-gray-600">TSS:</label>
           <input
+            id={`${idPrefix}-tss`}
             type="number"
             value={quality.tss}
-            onChange={(e) => onChange({ ...quality, tss: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => onChange({ ...quality, tss: Math.max(0, parseFloat(e.target.value) || 0) })}
             className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+            min={0}
+            step="any"
           />
           <span className="text-gray-500 w-16">mg/L</span>
         </div>
@@ -250,6 +277,21 @@ interface EffluentCardProps {
 
 function EffluentCard({ quality, targetStandard, onStandardChange, compliance }: EffluentCardProps) {
   const standard = THAI_EFFLUENT_STANDARDS[targetStandard]
+  const formatValue = (value: number | null) => {
+    if (value === null) return '—'
+    if (Number.isNaN(value)) return '—'
+    return value.toFixed(1)
+  }
+
+  const formatLimit = (limit: number | string) => {
+    return typeof limit === 'number' ? limit.toString() : limit
+  }
+
+  const statusStyles = (status: 'pass' | 'fail' | 'unknown') => {
+    if (status === 'pass') return { icon: '✓', text: 'text-emerald-700', iconColor: 'text-emerald-500' }
+    if (status === 'fail') return { icon: '✗', text: 'text-red-700', iconColor: 'text-red-500' }
+    return { icon: '?', text: 'text-gray-700', iconColor: 'text-gray-400' }
+  }
 
   return (
     <div className={`p-4 rounded-xl border-2 min-w-[200px] ${
@@ -270,6 +312,7 @@ function EffluentCard({ quality, targetStandard, onStandardChange, compliance }:
         value={targetStandard}
         onChange={(e) => onStandardChange(e.target.value as ThaiEffluentType)}
         className="w-full px-2 py-1 text-xs border border-gray-300 rounded mb-3"
+        aria-label="Select Thai effluent standard"
       >
         <option value="type_a">Type A - Industrial Estate</option>
         <option value="type_b">Type B - General Industrial</option>
@@ -278,20 +321,23 @@ function EffluentCard({ quality, targetStandard, onStandardChange, compliance }:
 
       {/* Compliance table */}
       <div className="space-y-1 text-xs">
-        {compliance?.parameters.map((p) => (
-          <div key={p.name} className="flex items-center gap-2">
-            <span className={`w-4 ${p.status === 'pass' ? 'text-emerald-500' : 'text-red-500'}`}>
-              {p.status === 'pass' ? '✓' : '✗'}
-            </span>
-            <span className="w-10 text-gray-600">{p.name}:</span>
-            <span className={`flex-1 font-medium ${p.status === 'pass' ? 'text-emerald-700' : 'text-red-700'}`}>
-              {p.value.toFixed(1)}
-            </span>
-            <span className="text-gray-400">/</span>
-            <span className="w-12 text-gray-500">{p.limit}</span>
-            <span className="text-gray-400">{p.unit}</span>
-          </div>
-        ))}
+        {compliance?.parameters.map((p) => {
+          const style = statusStyles(p.status)
+          return (
+            <div key={p.name} className="flex items-center gap-2">
+              <span className={`w-4 ${style.iconColor}`}>
+                {style.icon}
+              </span>
+              <span className="w-10 text-gray-600">{p.name}:</span>
+              <span className={`flex-1 font-medium ${style.text}`}>
+                {formatValue(p.value)}
+              </span>
+              <span className="text-gray-400">/</span>
+              <span className="w-12 text-gray-500">{formatLimit(p.limit)}</span>
+              <span className="text-gray-400">{p.unit}</span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Standard info */}
@@ -326,10 +372,15 @@ function AddUnitModal({ isOpen, onClose, onAdd, existingTypes }: AddUnitModalPro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+      <div
+        className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-unit-title"
+      >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Add Treatment Unit</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          <h2 id="add-unit-title" className="text-xl font-bold">Add Treatment Unit</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl" aria-label="Close add unit dialog">&times;</button>
         </div>
 
         <div className="space-y-4">
@@ -385,16 +436,16 @@ function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
   const [config, setConfig] = useState<Record<string, unknown>>({})
 
   // Reset config when unit changes
-  useMemo(() => {
+  useEffect(() => {
     if (unit) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setConfig(unit.design as any)
+      setConfig(unit.design as unknown as Record<string, unknown>)
     }
   }, [unit])
 
   if (!isOpen || !unit) return null
 
   const meta = UNIT_METADATA[unit.type]
+  const titleId = `edit-unit-${unit.type}-title`
 
   const handleChange = (key: string, value: string | number) => {
     setConfig(prev => ({ ...prev, [key]: typeof value === 'string' ? parseFloat(value) || value : value }))
@@ -469,13 +520,18 @@ function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+      <div
+        className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{meta.icon}</span>
-            <h2 className="text-xl font-bold">{meta.name}</h2>
+            <h2 id={titleId} className="text-xl font-bold">{meta.name}</h2>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl" aria-label="Close edit unit dialog">&times;</button>
         </div>
 
         {/* Issues display */}
@@ -500,11 +556,13 @@ function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
         <div className="space-y-3">
           {fields.map((field) => {
             if (field.condition && !field.condition()) return null
+            const fieldId = `${unit.type}-${field.key}`
             return (
               <div key={field.key} className="flex items-center gap-3">
-                <label className="w-40 text-sm text-gray-700">{field.label}</label>
+                <label htmlFor={fieldId} className="w-40 text-sm text-gray-700">{field.label}</label>
                 {field.type === 'select' ? (
                   <select
+                    id={fieldId}
                     value={String(config[field.key] || '')}
                     onChange={(e) => handleChange(field.key, e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -517,10 +575,12 @@ function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
                   <div className="flex-1 flex items-center gap-2">
                     <input
                       type="number"
+                      id={fieldId}
                       value={config[field.key] as number || ''}
-                      onChange={(e) => handleChange(field.key, parseFloat(e.target.value) || 0)}
+                      onChange={(e) => handleChange(field.key, Math.max(0, parseFloat(e.target.value) || 0))}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right"
                       step="any"
+                      min={0}
                     />
                     {field.unit && <span className="text-gray-500 text-sm w-12">{field.unit}</span>}
                   </div>
