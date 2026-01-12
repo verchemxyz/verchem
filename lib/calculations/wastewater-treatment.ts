@@ -28,6 +28,9 @@ import {
   OxidationPondUnit,
   OilSeparatorUnit,
   DAFUnit,
+  CostEstimation,
+  UNIT_COST_PARAMS,
+  GENERAL_COST_PARAMS,
   FiltrationUnit,
   UVDisinfectionUnit,
   TricklingFilterUnit,
@@ -1954,5 +1957,189 @@ export function getDefaultDesignParams(type: UnitType, flowRate: number): Record
       }
     default:
       return {}
+  }
+}
+
+// ============================================
+// COST ESTIMATION
+// ============================================
+
+/**
+ * Get estimated volume for a treatment unit based on its design
+ */
+function getUnitVolume(unit: TreatmentUnit): number {
+  const design = unit.design as unknown as Record<string, unknown>
+
+  // Check for explicit volume
+  if (typeof design.tankVolume === 'number') return design.tankVolume
+  if (typeof design.volume === 'number') return design.volume
+
+  // Calculate from dimensions
+  if (typeof design.length === 'number' && typeof design.width === 'number' && typeof design.depth === 'number') {
+    return (design.length as number) * (design.width as number) * (design.depth as number)
+  }
+
+  // Circular tanks
+  if (typeof design.diameter === 'number' && typeof design.depth === 'number') {
+    const radius = (design.diameter as number) / 2
+    return Math.PI * radius * radius * (design.depth as number)
+  }
+
+  // Surface area based
+  if (typeof design.surfaceArea === 'number' && typeof design.depth === 'number') {
+    return (design.surfaceArea as number) * (design.depth as number)
+  }
+
+  // Default estimate based on flow
+  return unit.inputQuality.flowRate * 0.1 // Rough estimate
+}
+
+/**
+ * Get estimated surface area for a treatment unit
+ */
+function getUnitArea(unit: TreatmentUnit): number {
+  const design = unit.design as unknown as Record<string, unknown>
+
+  // Explicit area
+  if (typeof design.surfaceArea === 'number') return design.surfaceArea
+  if (typeof design.totalArea === 'number') return design.totalArea
+
+  // Calculate from dimensions
+  if (typeof design.length === 'number' && typeof design.width === 'number') {
+    return (design.length as number) * (design.width as number)
+  }
+
+  // Circular
+  if (typeof design.diameter === 'number') {
+    const radius = (design.diameter as number) / 2
+    return Math.PI * radius * radius
+  }
+
+  // From volume
+  const volume = getUnitVolume(unit)
+  return volume / 3 // Assume 3m average depth
+}
+
+/**
+ * Calculate cost estimation for a treatment system
+ */
+export function calculateCostEstimation(
+  system: TreatmentSystem,
+  flowRate: number
+): CostEstimation {
+  const { electricityRate, laborRate, landCostPerM2, contingencyFactor, engineeringFactor, installationFactor } = GENERAL_COST_PARAMS
+
+  let totalCivilWorks = 0
+  let totalEquipment = 0
+  let totalLandArea = 0
+  let totalPowerConsumption = 0
+  let totalChemicalCost = 0
+  let totalLaborHours = 0
+  let totalMaintenanceCost = 0
+
+  const unitCosts: CostEstimation['unitCosts'] = []
+
+  // Calculate costs for each unit
+  for (const unit of system.units) {
+    const costParams = UNIT_COST_PARAMS[unit.type]
+    const meta = UNIT_METADATA[unit.type]
+    const volume = getUnitVolume(unit)
+    const area = getUnitArea(unit)
+
+    // Capital cost calculation
+    let civilWorks = costParams.baseCapitalCost
+    civilWorks += volume * costParams.capitalCostPerM3
+    if (costParams.capitalCostPerM2) {
+      civilWorks += area * costParams.capitalCostPerM2
+    }
+
+    const equipment = civilWorks * costParams.equipmentCostFactor
+    const unitCapital = civilWorks + equipment
+
+    // Operating cost calculation (monthly)
+    const dailyFlow = flowRate
+    const monthlyFlow = dailyFlow * 30
+
+    const powerCost = (costParams.powerConsumption * dailyFlow * 30) * electricityRate
+    const chemicalCost = costParams.chemicalCostPerM3 * monthlyFlow
+    const laborCost = costParams.laborHoursPerDay * 30 * laborRate
+    const maintenanceCost = (unitCapital * costParams.maintenanceFactor) / 12
+
+    const unitOperating = powerCost + chemicalCost + laborCost + maintenanceCost
+
+    // Land area
+    const landArea = costParams.landAreaPerM3Flow * dailyFlow
+
+    // Accumulate totals
+    totalCivilWorks += civilWorks
+    totalEquipment += equipment
+    totalLandArea += landArea
+    totalPowerConsumption += costParams.powerConsumption * dailyFlow
+    totalChemicalCost += chemicalCost
+    totalLaborHours += costParams.laborHoursPerDay
+    totalMaintenanceCost += maintenanceCost
+
+    unitCosts.push({
+      unitType: unit.type,
+      unitName: meta.name,
+      capitalCost: unitCapital,
+      operatingCost: unitOperating,
+    })
+  }
+
+  // Calculate totals
+  const subtotalCapital = totalCivilWorks + totalEquipment
+  const engineering = subtotalCapital * engineeringFactor
+  const installation = subtotalCapital * installationFactor
+  const contingency = (subtotalCapital + engineering + installation) * contingencyFactor
+  const landCost = totalLandArea * landCostPerM2
+  const totalCapital = subtotalCapital + engineering + installation + contingency + landCost
+
+  // Monthly operating costs
+  const electricity = totalPowerConsumption * 30 * electricityRate
+  const chemicals = totalChemicalCost
+  const labor = totalLaborHours * 30 * laborRate
+  const maintenance = totalMaintenanceCost
+  const sludgeDisposal = flowRate * 0.5 * 30 // Estimate 0.5 THB/m³ for sludge
+
+  const totalOperating = electricity + chemicals + labor + maintenance + sludgeDisposal
+
+  // Annual costs
+  const annualOperating = totalOperating * 12
+  const annualDepreciation = totalCapital / 20 // 20-year depreciation
+  const totalAnnualCost = annualOperating + annualDepreciation
+
+  // Cost per m³
+  const annualFlow = flowRate * 365
+  const costPerM3 = annualFlow > 0 ? totalAnnualCost / annualFlow : 0
+
+  return {
+    // Capital costs
+    civilWorks: Math.round(totalCivilWorks),
+    equipment: Math.round(totalEquipment),
+    engineering: Math.round(engineering),
+    installation: Math.round(installation),
+    contingency: Math.round(contingency),
+    landCost: Math.round(landCost),
+    totalCapital: Math.round(totalCapital),
+
+    // Operating costs (monthly)
+    electricity: Math.round(electricity),
+    chemicals: Math.round(chemicals),
+    labor: Math.round(labor),
+    maintenance: Math.round(maintenance),
+    sludgeDisposal: Math.round(sludgeDisposal),
+    totalOperating: Math.round(totalOperating),
+
+    // Annual costs
+    annualOperating: Math.round(annualOperating),
+    annualDepreciation: Math.round(annualDepreciation),
+    totalAnnualCost: Math.round(totalAnnualCost),
+
+    // Cost per unit
+    costPerM3: Math.round(costPerM3 * 100) / 100,
+
+    // Breakdown
+    unitCosts,
   }
 }

@@ -15,10 +15,12 @@ import {
   PresetTemplate,
   ThaiEffluentType,
   DesignIssue,
+  CostEstimation,
 } from '@/lib/types/wastewater-treatment'
 import {
   calculateTreatmentTrain,
   getDefaultDesignParams,
+  calculateCostEstimation,
 } from '@/lib/calculations/wastewater-treatment'
 import { WastewaterReportExporter } from '@/lib/export/wastewater-report'
 
@@ -612,6 +614,165 @@ function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
 }
 
 // ============================================
+// COST PANEL COMPONENT
+// ============================================
+
+function formatCurrency(value: number): string {
+  if (value >= 1000000) {
+    return `${(value / 1000000).toFixed(2)} M`
+  } else if (value >= 1000) {
+    return `${(value / 1000).toFixed(0)} K`
+  }
+  return value.toLocaleString()
+}
+
+function CostPanel({ cost }: { cost: CostEstimation }) {
+  const [showBreakdown, setShowBreakdown] = useState(false)
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          💰 Cost Estimation
+          <span className="text-xs font-normal text-gray-400">(Preliminary)</span>
+        </h2>
+        <button
+          onClick={() => setShowBreakdown(!showBreakdown)}
+          className="text-xs text-blue-600 hover:text-blue-800"
+        >
+          {showBreakdown ? 'Hide Details' : 'Show Details'}
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Capital Cost</div>
+          <div className="text-lg font-bold text-blue-700">฿{formatCurrency(cost.totalCapital)}</div>
+          <div className="text-xs text-gray-400">Total Investment</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Monthly Operating</div>
+          <div className="text-lg font-bold text-emerald-700">฿{formatCurrency(cost.totalOperating)}</div>
+          <div className="text-xs text-gray-400">Per Month</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Annual Cost</div>
+          <div className="text-lg font-bold text-purple-700">฿{formatCurrency(cost.totalAnnualCost)}</div>
+          <div className="text-xs text-gray-400">Operating + Depreciation</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Cost per m³</div>
+          <div className="text-lg font-bold text-amber-700">฿{cost.costPerM3.toFixed(2)}</div>
+          <div className="text-xs text-gray-400">Treatment Cost</div>
+        </div>
+      </div>
+
+      {/* Detailed Breakdown */}
+      {showBreakdown && (
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          {/* Capital Cost Breakdown */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-600 mb-2">Capital Cost Breakdown</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Civil Works</span>
+                <span className="font-medium">฿{formatCurrency(cost.civilWorks)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Equipment</span>
+                <span className="font-medium">฿{formatCurrency(cost.equipment)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Engineering</span>
+                <span className="font-medium">฿{formatCurrency(cost.engineering)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Installation</span>
+                <span className="font-medium">฿{formatCurrency(cost.installation)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Contingency</span>
+                <span className="font-medium">฿{formatCurrency(cost.contingency)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">Land Cost</span>
+                <span className="font-medium">฿{formatCurrency(cost.landCost)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Operating Cost Breakdown */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-600 mb-2">Monthly Operating Cost Breakdown</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">⚡ Electricity</span>
+                <span className="font-medium">฿{formatCurrency(cost.electricity)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">🧪 Chemicals</span>
+                <span className="font-medium">฿{formatCurrency(cost.chemicals)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">👷 Labor</span>
+                <span className="font-medium">฿{formatCurrency(cost.labor)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">🔧 Maintenance</span>
+                <span className="font-medium">฿{formatCurrency(cost.maintenance)}</span>
+              </div>
+              <div className="flex justify-between p-2 bg-gray-50 rounded">
+                <span className="text-gray-600">🚛 Sludge Disposal</span>
+                <span className="font-medium">฿{formatCurrency(cost.sludgeDisposal)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Unit Cost Breakdown */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-600 mb-2">Cost by Treatment Unit</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-2 text-gray-500">Unit</th>
+                    <th className="text-right py-2 px-2 text-gray-500">Capital (฿)</th>
+                    <th className="text-right py-2 px-2 text-gray-500">Monthly Op. (฿)</th>
+                    <th className="text-right py-2 px-2 text-gray-500">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cost.unitCosts.map((unit, index) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-2 px-2 font-medium">{unit.unitName}</td>
+                      <td className="py-2 px-2 text-right">{formatCurrency(unit.capitalCost)}</td>
+                      <td className="py-2 px-2 text-right">{formatCurrency(unit.operatingCost)}</td>
+                      <td className="py-2 px-2 text-right text-gray-500">
+                        {((unit.capitalCost / cost.totalCapital) * 100).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+              <strong>⚠️ Disclaimer:</strong> These are preliminary estimates based on typical Thai construction costs (2024-2025).
+              Actual costs may vary ±30% depending on site conditions, equipment brands, and market prices.
+              Consult a professional engineer for detailed cost estimates.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
 // ISSUES PANEL COMPONENT
 // ============================================
 
@@ -1031,6 +1192,16 @@ export default function WastewaterTreatmentPage() {
     }
   }, [influent, unitConfigs, targetStandard])
 
+  // Calculate cost estimation
+  const costEstimation = useMemo(() => {
+    if (!system) return null
+    try {
+      return calculateCostEstimation(system, influent.flowRate)
+    } catch {
+      return null
+    }
+  }, [system, influent.flowRate])
+
   // Add unit
   const handleAddUnit = useCallback((type: UnitType) => {
     const defaultConfig = getDefaultDesignParams(type, influent.flowRate)
@@ -1250,6 +1421,13 @@ export default function WastewaterTreatmentPage() {
             <div className="mb-6">
               <TreatmentGraph system={system} influent={influent} />
             </div>
+
+            {/* Cost Estimation */}
+            {costEstimation && (
+              <div className="mb-6">
+                <CostPanel cost={costEstimation} />
+              </div>
+            )}
 
             {/* Issues Panel */}
             <div className="mb-6">

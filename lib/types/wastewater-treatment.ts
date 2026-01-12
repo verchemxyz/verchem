@@ -1300,3 +1300,279 @@ export const THAI_EFFLUENT_STANDARDS: Record<ThaiEffluentType, {
     },
   },
 }
+
+// ============================================
+// COST ESTIMATION CONSTANTS
+// ============================================
+
+/**
+ * Cost estimation parameters for each treatment unit type
+ * Costs are approximate and based on typical Thai construction costs (2024-2025)
+ * Capital costs in THB, Operating costs in THB/month
+ */
+export interface UnitCostParams {
+  // Capital cost factors
+  baseCapitalCost: number           // Base installation cost (THB)
+  capitalCostPerM3: number          // Cost per m³ of tank volume (THB)
+  capitalCostPerM2?: number         // Cost per m² of surface area (THB)
+  equipmentCostFactor: number       // Equipment as % of civil works (0-1)
+
+  // Operating cost factors
+  powerConsumption: number          // kWh per m³ treated
+  chemicalCostPerM3: number         // Chemical cost per m³ (THB)
+  maintenanceFactor: number         // Maintenance as % of capital/year
+  laborHoursPerDay: number          // Labor hours needed per day
+
+  // Land requirement
+  landAreaPerM3Flow: number         // m² per m³/day capacity
+}
+
+export const UNIT_COST_PARAMS: Record<UnitType, UnitCostParams> = {
+  // Preliminary Treatment
+  bar_screen: {
+    baseCapitalCost: 150000,
+    capitalCostPerM3: 5000,
+    equipmentCostFactor: 0.6,
+    powerConsumption: 0.01,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 0.01,
+  },
+  grit_chamber: {
+    baseCapitalCost: 200000,
+    capitalCostPerM3: 8000,
+    equipmentCostFactor: 0.3,
+    powerConsumption: 0.02,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.02,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 0.02,
+  },
+
+  // Primary Treatment
+  primary_clarifier: {
+    baseCapitalCost: 500000,
+    capitalCostPerM3: 12000,
+    capitalCostPerM2: 25000,
+    equipmentCostFactor: 0.25,
+    powerConsumption: 0.03,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.02,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.05,
+  },
+  oil_separator: {
+    baseCapitalCost: 300000,
+    capitalCostPerM3: 15000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.02,
+    chemicalCostPerM3: 1,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.03,
+  },
+
+  // Biological Treatment
+  aeration_tank: {
+    baseCapitalCost: 800000,
+    capitalCostPerM3: 10000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.5,
+    chemicalCostPerM3: 0.3,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.15,
+  },
+  sbr: {
+    baseCapitalCost: 1200000,
+    capitalCostPerM3: 12000,
+    equipmentCostFactor: 0.6,
+    powerConsumption: 0.4,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.12,
+  },
+  uasb: {
+    baseCapitalCost: 1500000,
+    capitalCostPerM3: 18000,
+    equipmentCostFactor: 0.35,
+    powerConsumption: 0.1,
+    chemicalCostPerM3: 0.2,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 1.5,
+    landAreaPerM3Flow: 0.08,
+  },
+  oxidation_pond: {
+    baseCapitalCost: 300000,
+    capitalCostPerM3: 3000,
+    capitalCostPerM2: 800,
+    equipmentCostFactor: 0.1,
+    powerConsumption: 0.05,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.01,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 2.0,
+  },
+  trickling_filter: {
+    baseCapitalCost: 600000,
+    capitalCostPerM3: 8000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.15,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.1,
+  },
+  mbr: {
+    baseCapitalCost: 2000000,
+    capitalCostPerM3: 25000,
+    equipmentCostFactor: 0.7,
+    powerConsumption: 0.8,
+    chemicalCostPerM3: 2,
+    maintenanceFactor: 0.06,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.05,
+  },
+
+  // Secondary Clarification
+  secondary_clarifier: {
+    baseCapitalCost: 600000,
+    capitalCostPerM3: 12000,
+    capitalCostPerM2: 25000,
+    equipmentCostFactor: 0.3,
+    powerConsumption: 0.03,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.02,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.06,
+  },
+  daf: {
+    baseCapitalCost: 800000,
+    capitalCostPerM3: 20000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.15,
+    chemicalCostPerM3: 3,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 1.5,
+    landAreaPerM3Flow: 0.04,
+  },
+
+  // Tertiary Treatment
+  filtration: {
+    baseCapitalCost: 400000,
+    capitalCostPerM3: 15000,
+    capitalCostPerM2: 30000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.1,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.02,
+  },
+  chlorination: {
+    baseCapitalCost: 200000,
+    capitalCostPerM3: 5000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.02,
+    chemicalCostPerM3: 1.5,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 0.01,
+  },
+  uv_disinfection: {
+    baseCapitalCost: 500000,
+    capitalCostPerM3: 8000,
+    equipmentCostFactor: 0.8,
+    powerConsumption: 0.08,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.05,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 0.005,
+  },
+
+  // Sludge Treatment
+  thickener: {
+    baseCapitalCost: 400000,
+    capitalCostPerM3: 10000,
+    capitalCostPerM2: 20000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.05,
+    chemicalCostPerM3: 1,
+    maintenanceFactor: 0.025,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.02,
+  },
+  digester: {
+    baseCapitalCost: 1500000,
+    capitalCostPerM3: 15000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.1,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.03,
+  },
+  dewatering: {
+    baseCapitalCost: 800000,
+    capitalCostPerM3: 12000,
+    equipmentCostFactor: 0.6,
+    powerConsumption: 0.15,
+    chemicalCostPerM3: 3,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.01,
+  },
+}
+
+/**
+ * General cost parameters
+ */
+export const GENERAL_COST_PARAMS = {
+  electricityRate: 4.5,           // THB/kWh (average industrial rate)
+  laborRate: 500,                 // THB/hour (skilled operator)
+  landCostPerM2: 5000,            // THB/m² (industrial area average)
+  contingencyFactor: 0.15,        // 15% contingency for capital
+  engineeringFactor: 0.10,        // 10% engineering & design
+  installationFactor: 0.12,       // 12% installation
+  inflationRate: 0.03,            // 3% annual inflation
+}
+
+/**
+ * Cost estimation result interface
+ */
+export interface CostEstimation {
+  // Capital costs
+  civilWorks: number
+  equipment: number
+  engineering: number
+  installation: number
+  contingency: number
+  landCost: number
+  totalCapital: number
+
+  // Operating costs (monthly)
+  electricity: number
+  chemicals: number
+  labor: number
+  maintenance: number
+  sludgeDisposal: number
+  totalOperating: number
+
+  // Annual costs
+  annualOperating: number
+  annualDepreciation: number      // 20-year straight line
+  totalAnnualCost: number
+
+  // Cost per unit
+  costPerM3: number               // THB per m³ treated
+
+  // Breakdown by unit
+  unitCosts: {
+    unitType: UnitType
+    unitName: string
+    capitalCost: number
+    operatingCost: number
+  }[]
+}
