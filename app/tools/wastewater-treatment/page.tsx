@@ -20,6 +20,7 @@ import {
   calculateTreatmentTrain,
   getDefaultDesignParams,
 } from '@/lib/calculations/wastewater-treatment'
+import { WastewaterReportExporter } from '@/lib/export/wastewater-report'
 
 // ============================================
 // STATUS BADGE COMPONENT
@@ -730,6 +731,7 @@ export default function WastewaterTreatmentPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingUnit, setEditingUnit] = useState<TreatmentUnit | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Calculate treatment train
   const system = useMemo(() => {
@@ -772,6 +774,41 @@ export default function WastewaterTreatmentPage() {
     setEditingUnit(null)
   }, [selectedUnitIndex])
 
+  // Export PDF report
+  const handleExportPDF = useCallback(async () => {
+    if (!system) return
+
+    setIsExporting(true)
+    try {
+      // Transform compliance data to match export format
+      const complianceData = {
+        overall: system.compliance.isCompliant ? 'pass' as const : 'fail' as const,
+        parameters: system.compliance.parameters.map(p => ({
+          parameter: p.name,
+          actual: p.value ?? undefined,
+          limit: p.limit,
+          unit: p.unit,
+          status: p.status,
+        })),
+      }
+
+      await WastewaterReportExporter.exportReport({
+        projectName: 'Wastewater Treatment Plant',
+        designFlow: influent.flowRate,
+        influentQuality: influent,
+        treatmentTrain: system.units,
+        effluentStandard: targetStandard,
+        compliance: complianceData,
+        generatedDate: new Date(),
+      })
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Failed to export PDF. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }, [system, influent, targetStandard])
+
   // Load preset
   const handleLoadPreset = useCallback((presetId: PresetTemplate) => {
     if (presetId === 'custom') {
@@ -806,7 +843,33 @@ export default function WastewaterTreatmentPage() {
                 <p className="text-sm text-gray-500">ออกแบบระบบบำบัดน้ำเสีย | Design your treatment train</p>
               </div>
             </div>
-            <StatusBadge status={system?.overallStatus || 'not_configured'} />
+            <div className="flex items-center gap-3">
+              <StatusBadge status={system?.overallStatus || 'not_configured'} />
+              {system && (
+                <button
+                  onClick={handleExportPDF}
+                  disabled={isExporting}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-lg transition shadow-sm"
+                >
+                  {isExporting ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export PDF
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
