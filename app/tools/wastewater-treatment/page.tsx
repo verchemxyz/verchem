@@ -16,11 +16,16 @@ import {
   ThaiEffluentType,
   DesignIssue,
   CostEstimation,
+  SludgeProduction,
+  EnergyConsumption,
+  SavedScenario,
 } from '@/lib/types/wastewater-treatment'
 import {
   calculateTreatmentTrain,
   getDefaultDesignParams,
   calculateCostEstimation,
+  calculateSludgeProduction,
+  calculateEnergyConsumption,
 } from '@/lib/calculations/wastewater-treatment'
 import { WastewaterReportExporter } from '@/lib/export/wastewater-report'
 
@@ -773,6 +778,552 @@ function CostPanel({ cost }: { cost: CostEstimation }) {
 }
 
 // ============================================
+// SLUDGE PANEL COMPONENT
+// ============================================
+
+function SludgePanel({ sludge }: { sludge: SludgeProduction }) {
+  const [showBreakdown, setShowBreakdown] = useState(false)
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          🪣 Sludge Production
+          <span className="text-xs font-normal text-gray-400">(Mass Balance)</span>
+        </h2>
+        <button
+          onClick={() => setShowBreakdown(!showBreakdown)}
+          className="text-xs text-blue-600 hover:text-blue-800"
+        >
+          {showBreakdown ? 'Hide Details' : 'Show Details'}
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Primary Sludge</div>
+          <div className="text-lg font-bold text-amber-700">{sludge.primarySludge.toLocaleString()} kg/d</div>
+          <div className="text-xs text-gray-400">{sludge.primarySludgeVolume.toFixed(1)} m³/d (4%)</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Biological Sludge</div>
+          <div className="text-lg font-bold text-green-700">{sludge.biologicalSludge.toLocaleString()} kg/d</div>
+          <div className="text-xs text-gray-400">{sludge.biologicalSludgeVolume.toFixed(1)} m³/d (1%)</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Total Sludge</div>
+          <div className="text-lg font-bold text-blue-700">{sludge.totalSludge.toLocaleString()} kg DS/d</div>
+          <div className="text-xs text-gray-400">{sludge.totalSludgeVolume.toFixed(1)} m³/d total</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Disposal</div>
+          <div className="text-lg font-bold text-purple-700">
+            {sludge.cakeMass ? `${(sludge.cakeMass/1000).toFixed(1)} ton/d` : `${sludge.totalSludgeVolume.toFixed(1)} m³/d`}
+          </div>
+          <div className="text-xs text-gray-400">
+            {sludge.dewateredSludge ? 'Dewatered cake' : 'Liquid sludge'}
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Breakdown */}
+      {showBreakdown && (
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          {/* Sludge by Unit */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-600 mb-2">Sludge Production by Unit</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-2 text-gray-500">Unit</th>
+                    <th className="text-right py-2 px-2 text-gray-500">Sludge (kg DS/d)</th>
+                    <th className="text-left py-2 px-2 text-gray-500">Type</th>
+                    <th className="text-right py-2 px-2 text-gray-500">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sludge.unitSludge.filter(u => u.sludgeProduced > 0).map((unit, index) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-2 px-2 font-medium">{unit.unitName}</td>
+                      <td className="py-2 px-2 text-right">{unit.sludgeProduced.toLocaleString()}</td>
+                      <td className="py-2 px-2">
+                        <span className={`px-2 py-0.5 rounded text-xs ${
+                          unit.sludgeType === 'primary' ? 'bg-amber-100 text-amber-700' :
+                          unit.sludgeType === 'biological' ? 'bg-green-100 text-green-700' :
+                          unit.sludgeType === 'chemical' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {unit.sludgeType}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-right text-gray-500">
+                        {sludge.totalSludge > 0 ? ((unit.sludgeProduced / sludge.totalSludge) * 100).toFixed(1) : 0}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Biogas Recovery (if applicable) */}
+          {sludge.biogasProduction && sludge.biogasProduction > 0 && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="text-xs font-bold text-green-800 mb-2">🔥 Biogas Recovery</h4>
+              <div className="grid grid-cols-3 gap-4 text-xs">
+                <div>
+                  <span className="text-gray-600">Production:</span>
+                  <span className="font-medium ml-1">{sludge.biogasProduction} m³/d</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">CH₄ Content:</span>
+                  <span className="font-medium ml-1">{sludge.methaneContent}%</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Energy:</span>
+                  <span className="font-medium ml-1">{sludge.energyRecovery} kWh/d</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// ENERGY PANEL COMPONENT
+// ============================================
+
+function EnergyPanel({ energy }: { energy: EnergyConsumption }) {
+  const [showBreakdown, setShowBreakdown] = useState(false)
+
+  // Create pie chart segments
+  const categories = [
+    { name: 'Aeration', value: energy.aeration, color: '#3B82F6' },
+    { name: 'Pumping', value: energy.pumping, color: '#10B981' },
+    { name: 'Mixing', value: energy.mixing, color: '#8B5CF6' },
+    { name: 'Disinfection', value: energy.disinfection, color: '#F59E0B' },
+    { name: 'Other', value: energy.other + energy.lighting, color: '#6B7280' },
+  ].filter(c => c.value > 0)
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          ⚡ Energy Dashboard
+          <span className="text-xs font-normal text-gray-400">(Power Analysis)</span>
+        </h2>
+        <button
+          onClick={() => setShowBreakdown(!showBreakdown)}
+          className="text-xs text-blue-600 hover:text-blue-800"
+        >
+          {showBreakdown ? 'Hide Details' : 'Show Details'}
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Daily Usage</div>
+          <div className="text-lg font-bold text-amber-700">{energy.totalDaily.toLocaleString()} kWh</div>
+          <div className="text-xs text-gray-400">฿{energy.dailyCost.toLocaleString()}/day</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Monthly Usage</div>
+          <div className="text-lg font-bold text-orange-700">{energy.totalMonthly.toLocaleString()} kWh</div>
+          <div className="text-xs text-gray-400">฿{energy.monthlyCost.toLocaleString()}/mo</div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+          <div className="text-xs text-gray-500 mb-1">Efficiency</div>
+          <div className="text-lg font-bold text-blue-700">{energy.kWhPerM3} kWh/m³</div>
+          <div className="text-xs text-gray-400">{energy.kWhPerKgBOD} kWh/kg BOD</div>
+        </div>
+        <div className={`p-4 rounded-xl ${
+          energy.netEnergy !== undefined && energy.netEnergy < 0
+            ? 'bg-gradient-to-br from-green-50 to-emerald-50'
+            : 'bg-gradient-to-br from-gray-50 to-slate-50'
+        }`}>
+          <div className="text-xs text-gray-500 mb-1">
+            {energy.biogasEnergy ? 'Net Energy' : 'Annual Cost'}
+          </div>
+          <div className={`text-lg font-bold ${
+            energy.netEnergy !== undefined && energy.netEnergy < 0 ? 'text-green-700' : 'text-gray-700'
+          }`}>
+            {energy.biogasEnergy
+              ? `${energy.netEnergy?.toLocaleString()} kWh/d`
+              : `฿${(energy.annualCost / 1000000).toFixed(2)}M`
+            }
+          </div>
+          <div className="text-xs text-gray-400">
+            {energy.biogasEnergy ? `Biogas: ${energy.biogasEnergy} kWh/d` : 'Per year'}
+          </div>
+        </div>
+      </div>
+
+      {/* Energy Distribution Chart */}
+      <div className="flex items-center gap-6 mb-4">
+        <div className="flex-1">
+          <div className="h-4 rounded-full overflow-hidden flex bg-gray-200">
+            {categories.map((cat, i) => (
+              <div
+                key={i}
+                style={{
+                  width: `${(cat.value / energy.totalDaily) * 100}%`,
+                  backgroundColor: cat.color
+                }}
+                className="h-full"
+                title={`${cat.name}: ${cat.value.toFixed(1)} kWh/d`}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3 mt-2">
+            {categories.map((cat, i) => (
+              <div key={i} className="flex items-center gap-1 text-xs">
+                <div className="w-3 h-3 rounded" style={{ backgroundColor: cat.color }} />
+                <span className="text-gray-600">{cat.name}</span>
+                <span className="text-gray-400">({((cat.value / energy.totalDaily) * 100).toFixed(0)}%)</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Breakdown */}
+      {showBreakdown && (
+        <div className="space-y-4 pt-4 border-t border-gray-100">
+          {/* Energy by Unit */}
+          <div>
+            <h3 className="text-xs font-bold text-gray-600 mb-2">Energy Consumption by Unit</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-2 text-gray-500">Unit</th>
+                    <th className="text-right py-2 px-2 text-gray-500">kWh/day</th>
+                    <th className="text-left py-2 px-2 text-gray-500">Category</th>
+                    <th className="text-right py-2 px-2 text-gray-500">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {energy.unitEnergy.map((unit, index) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-2 px-2 font-medium">{unit.unitName}</td>
+                      <td className="py-2 px-2 text-right">{unit.dailyConsumption.toLocaleString()}</td>
+                      <td className="py-2 px-2">
+                        <span className={`px-2 py-0.5 rounded text-xs ${
+                          unit.category === 'aeration' ? 'bg-blue-100 text-blue-700' :
+                          unit.category === 'pumping' ? 'bg-green-100 text-green-700' :
+                          unit.category === 'mixing' ? 'bg-purple-100 text-purple-700' :
+                          unit.category === 'disinfection' ? 'bg-amber-100 text-amber-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {unit.category}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2 text-right text-gray-500">{unit.percentage}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Efficiency Benchmarks */}
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="text-xs font-bold text-blue-800 mb-2">📊 Efficiency Benchmarks</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div>
+                <span className="text-gray-600">Your System:</span>
+                <span className="font-bold text-blue-700 ml-1">{energy.kWhPerM3} kWh/m³</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Typical AS:</span>
+                <span className="text-gray-500 ml-1">0.3-0.6 kWh/m³</span>
+              </div>
+              <div>
+                <span className="text-gray-600">MBR:</span>
+                <span className="text-gray-500 ml-1">0.6-1.2 kWh/m³</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Pond:</span>
+                <span className="text-gray-500 ml-1">0.05-0.15 kWh/m³</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// SCENARIO MANAGER COMPONENT
+// ============================================
+
+const STORAGE_KEY = 'verchem_wastewater_scenarios'
+
+function loadScenarios(): SavedScenario[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (!data) return []
+    return JSON.parse(data).map((s: SavedScenario) => ({
+      ...s,
+      createdAt: new Date(s.createdAt),
+      updatedAt: new Date(s.updatedAt),
+    }))
+  } catch {
+    return []
+  }
+}
+
+function saveScenarios(scenarios: SavedScenario[]) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios))
+}
+
+interface ScenarioManagerProps {
+  currentDesign: {
+    source: 'domestic' | 'industrial' | 'combined' | 'custom'
+    influent: WastewaterQuality
+    targetStandard: ThaiEffluentType
+    unitConfigs: Array<{ type: UnitType; config: Record<string, unknown> }>
+  }
+  onLoadScenario: (scenario: SavedScenario) => void
+  system: TreatmentSystem | null
+  costEstimation: CostEstimation | null
+}
+
+function ScenarioManager({ currentDesign, onLoadScenario, system, costEstimation }: ScenarioManagerProps) {
+  const [scenarios, setScenarios] = useState<SavedScenario[]>([])
+  const [showComparison, setShowComparison] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+
+  // Load scenarios on mount
+  useEffect(() => {
+    setScenarios(loadScenarios())
+  }, [])
+
+  const handleSave = () => {
+    if (!newName.trim() || !system) return
+
+    const newScenario: SavedScenario = {
+      id: Date.now().toString(),
+      name: newName.trim(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      source: currentDesign.source,
+      influent: currentDesign.influent,
+      targetStandard: currentDesign.targetStandard,
+      unitConfigs: currentDesign.unitConfigs,
+      effluentQuality: system.effluentQuality,
+      compliance: {
+        isCompliant: system.compliance.isCompliant,
+        parameters: system.compliance.parameters.map(p => ({ name: p.name, status: p.status })),
+      },
+      totalCost: costEstimation?.totalCapital,
+      costPerM3: costEstimation?.costPerM3,
+    }
+
+    const updated = [...scenarios, newScenario]
+    setScenarios(updated)
+    saveScenarios(updated)
+    setNewName('')
+    setShowSaveDialog(false)
+  }
+
+  const handleDelete = (id: string) => {
+    const updated = scenarios.filter(s => s.id !== id)
+    setScenarios(updated)
+    saveScenarios(updated)
+  }
+
+  return (
+    <div className="p-6 bg-white rounded-xl shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          📁 Scenario Manager
+          <span className="text-xs font-normal text-gray-400">({scenarios.length} saved)</span>
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowSaveDialog(true)}
+            disabled={!system || currentDesign.unitConfigs.length === 0}
+            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+          >
+            💾 Save Current
+          </button>
+          {scenarios.length >= 2 && (
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+            >
+              📊 {showComparison ? 'Hide' : 'Compare'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Save Dialog */}
+      {showSaveDialog && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Enter scenario name..."
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded"
+              autoFocus
+            />
+            <button
+              onClick={handleSave}
+              disabled={!newName.trim()}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setShowSaveDialog(false)}
+              className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Saved Scenarios List */}
+      {scenarios.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {scenarios.map((scenario) => (
+            <div
+              key={scenario.id}
+              className={`p-3 border rounded-lg ${
+                scenario.compliance?.isCompliant
+                  ? 'border-emerald-200 bg-emerald-50'
+                  : 'border-red-200 bg-red-50'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="font-medium text-gray-900 text-sm">{scenario.name}</h3>
+                  <p className="text-xs text-gray-500">
+                    {new Date(scenario.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded ${
+                  scenario.compliance?.isCompliant
+                    ? 'bg-emerald-200 text-emerald-800'
+                    : 'bg-red-200 text-red-800'
+                }`}>
+                  {scenario.compliance?.isCompliant ? 'PASS' : 'FAIL'}
+                </span>
+              </div>
+              <div className="text-xs text-gray-600 mb-2">
+                <div>Flow: {scenario.influent.flowRate.toLocaleString()} m³/d</div>
+                <div>Units: {scenario.unitConfigs.length}</div>
+                {scenario.costPerM3 && <div>Cost: ฿{scenario.costPerM3.toFixed(2)}/m³</div>}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onLoadScenario(scenario)}
+                  className="flex-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                >
+                  Load
+                </button>
+                <button
+                  onClick={() => handleDelete(scenario.id)}
+                  className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 text-center py-4">
+          No saved scenarios. Create a design and click &quot;Save Current&quot; to save it.
+        </p>
+      )}
+
+      {/* Comparison Table */}
+      {showComparison && scenarios.length >= 2 && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-bold text-gray-700 mb-3">📊 Scenario Comparison</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-2 text-gray-500">Metric</th>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <th key={s.id} className="text-right py-2 px-2 text-gray-700">{s.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 px-2 text-gray-600">Flow Rate</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">{s.influent.flowRate.toLocaleString()} m³/d</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 px-2 text-gray-600">Treatment Units</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">{s.unitConfigs.length}</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 px-2 text-gray-600">Effluent BOD</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">{s.effluentQuality?.bod.toFixed(1) || '-'} mg/L</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 px-2 text-gray-600">Capital Cost</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">
+                      {s.totalCost ? `฿${(s.totalCost / 1000000).toFixed(1)}M` : '-'}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 px-2 text-gray-600">Cost per m³</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">
+                      {s.costPerM3 ? `฿${s.costPerM3.toFixed(2)}` : '-'}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="py-2 px-2 text-gray-600">Compliance</td>
+                  {scenarios.slice(0, 3).map((s) => (
+                    <td key={s.id} className="py-2 px-2 text-right">
+                      <span className={`px-2 py-0.5 rounded ${
+                        s.compliance?.isCompliant ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {s.compliance?.isCompliant ? '✓ PASS' : '✗ FAIL'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
 // ISSUES PANEL COMPONENT
 // ============================================
 
@@ -1202,6 +1753,26 @@ export default function WastewaterTreatmentPage() {
     }
   }, [system, influent.flowRate])
 
+  // Calculate sludge production
+  const sludgeProduction = useMemo(() => {
+    if (!system) return null
+    try {
+      return calculateSludgeProduction(system, influent)
+    } catch {
+      return null
+    }
+  }, [system, influent])
+
+  // Calculate energy consumption
+  const energyConsumption = useMemo(() => {
+    if (!system) return null
+    try {
+      return calculateEnergyConsumption(system, influent)
+    } catch {
+      return null
+    }
+  }, [system, influent])
+
   // Add unit
   const handleAddUnit = useCallback((type: UnitType) => {
     const defaultConfig = getDefaultDesignParams(type, influent.flowRate)
@@ -1283,6 +1854,15 @@ export default function WastewaterTreatmentPage() {
       setUnitConfigs(configs)
     }
   }, [influent.flowRate])
+
+  // Load scenario from saved
+  const handleLoadScenario = useCallback((scenario: SavedScenario) => {
+    setSource(scenario.source)
+    setInfluent(scenario.influent)
+    setTargetStandard(scenario.targetStandard)
+    setUnitConfigs(scenario.unitConfigs)
+    setSelectedUnitIndex(null)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -1428,6 +2008,30 @@ export default function WastewaterTreatmentPage() {
                 <CostPanel cost={costEstimation} />
               </div>
             )}
+
+            {/* Sludge Production */}
+            {sludgeProduction && (
+              <div className="mb-6">
+                <SludgePanel sludge={sludgeProduction} />
+              </div>
+            )}
+
+            {/* Energy Dashboard */}
+            {energyConsumption && (
+              <div className="mb-6">
+                <EnergyPanel energy={energyConsumption} />
+              </div>
+            )}
+
+            {/* Scenario Manager */}
+            <div className="mb-6">
+              <ScenarioManager
+                currentDesign={{ source, influent, targetStandard, unitConfigs }}
+                onLoadScenario={handleLoadScenario}
+                system={system}
+                costEstimation={costEstimation}
+              />
+            </div>
 
             {/* Issues Panel */}
             <div className="mb-6">

@@ -35,6 +35,8 @@ import {
   UVDisinfectionUnit,
   TricklingFilterUnit,
   MBRUnit,
+  SludgeProduction,
+  EnergyConsumption,
 } from '../types/wastewater-treatment'
 
 // ============================================
@@ -2141,5 +2143,380 @@ export function calculateCostEstimation(
 
     // Breakdown
     unitCosts,
+  }
+}
+
+// ============================================
+// SLUDGE PRODUCTION CALCULATIONS
+// ============================================
+
+/**
+ * Sludge yield coefficients for different processes
+ */
+const SLUDGE_YIELD = {
+  // Primary sludge: fraction of TSS removed that becomes sludge
+  primary_clarifier: 0.65,        // 65% of TSS → primary sludge
+  oil_separator: 0.10,            // 10% oil/grease
+
+  // Biological yield coefficient (kg VSS/kg BOD removed)
+  aeration_tank: 0.50,            // Conventional AS
+  sbr: 0.45,                      // SBR (slightly lower due to extended aeration)
+  mbr: 0.40,                      // MBR (lower due to longer SRT)
+  trickling_filter: 0.55,         // Trickling filter
+  oxidation_pond: 0.30,           // Lower due to algae consumption
+  uasb: 0.15,                     // Anaerobic (much lower yield)
+
+  // Chemical sludge
+  daf: 0.20,                      // Chemical + flotation
+  filtration: 0.05,               // Backwash sludge
+  chlorination: 0.01,             // Minimal
+
+  // Thickening/dewatering solids capture
+  thickener: 0.95,                // 95% solids capture
+  digester: 0.50,                 // 50% VS destruction
+  dewatering: 0.95,               // 95% solids capture
+}
+
+/**
+ * Calculate sludge production for the entire treatment system
+ */
+export function calculateSludgeProduction(
+  system: TreatmentSystem,
+  influent: WastewaterQuality
+): SludgeProduction {
+  const flowRate = influent.flowRate // m³/day
+
+  let primarySludge = 0       // kg DS/day
+  let biologicalSludge = 0    // kg DS/day
+  let chemicalSludge = 0      // kg DS/day
+
+  const unitSludge: SludgeProduction['unitSludge'] = []
+
+  // Track BOD and TSS removal through the system
+  let currentTSS = influent.tss
+  let currentBOD = influent.bod
+
+  for (const unit of system.units) {
+    const meta = UNIT_METADATA[unit.type]
+    let sludgeProduced = 0
+    let sludgeType: 'primary' | 'biological' | 'chemical' | 'none' = 'none'
+
+    switch (unit.type) {
+      case 'primary_clarifier': {
+        // Primary sludge from TSS removal
+        const tssRemoved = currentTSS * (unit.removalEfficiency.tss / 100) // mg/L
+        sludgeProduced = (tssRemoved * flowRate) / 1000 * SLUDGE_YIELD.primary_clarifier
+        primarySludge += sludgeProduced
+        sludgeType = 'primary'
+        currentTSS = unit.outputQuality.tss
+        currentBOD = unit.outputQuality.bod
+        break
+      }
+
+      case 'oil_separator': {
+        // Oil/grease sludge - assume 50 mg/L with 70% removal
+        const oilRemoved = 50 * 0.70 // Typical values
+        sludgeProduced = (oilRemoved * flowRate) / 1000 * 0.9 // Oil is ~90% of weight
+        primarySludge += sludgeProduced
+        sludgeType = 'primary'
+        break
+      }
+
+      case 'aeration_tank':
+      case 'sbr':
+      case 'mbr':
+      case 'trickling_filter': {
+        // Biological sludge (WAS) = Y × BOD removed
+        const bodRemoved = currentBOD * (unit.removalEfficiency.bod / 100) // mg/L
+        const yieldCoeff = SLUDGE_YIELD[unit.type] || 0.5
+        sludgeProduced = (bodRemoved * flowRate) / 1000 * yieldCoeff
+        biologicalSludge += sludgeProduced
+        sludgeType = 'biological'
+        currentBOD = unit.outputQuality.bod
+        currentTSS = unit.outputQuality.tss
+        break
+      }
+
+      case 'oxidation_pond': {
+        // Lower sludge production in ponds
+        const bodRemoved = currentBOD * (unit.removalEfficiency.bod / 100)
+        sludgeProduced = (bodRemoved * flowRate) / 1000 * SLUDGE_YIELD.oxidation_pond
+        biologicalSludge += sludgeProduced
+        sludgeType = 'biological'
+        currentBOD = unit.outputQuality.bod
+        break
+      }
+
+      case 'uasb': {
+        // Anaerobic sludge (very low yield)
+        const bodRemoved = currentBOD * (unit.removalEfficiency.bod / 100)
+        sludgeProduced = (bodRemoved * flowRate) / 1000 * SLUDGE_YIELD.uasb
+        biologicalSludge += sludgeProduced
+        sludgeType = 'biological'
+        currentBOD = unit.outputQuality.bod
+        break
+      }
+
+      case 'daf': {
+        // Chemical/flotation sludge
+        const tssRemoved = currentTSS * (unit.removalEfficiency.tss / 100)
+        sludgeProduced = (tssRemoved * flowRate) / 1000 * SLUDGE_YIELD.daf
+        chemicalSludge += sludgeProduced
+        sludgeType = 'chemical'
+        currentTSS = unit.outputQuality.tss
+        break
+      }
+
+      case 'secondary_clarifier': {
+        // Collects biological sludge - already counted in aeration
+        // But some additional settling
+        sludgeType = 'none'
+        currentTSS = unit.outputQuality.tss
+        break
+      }
+
+      case 'filtration': {
+        // Backwash sludge
+        const tssRemoved = currentTSS * (unit.removalEfficiency.tss / 100)
+        sludgeProduced = (tssRemoved * flowRate) / 1000 * SLUDGE_YIELD.filtration
+        chemicalSludge += sludgeProduced
+        sludgeType = 'chemical'
+        currentTSS = unit.outputQuality.tss
+        break
+      }
+
+      default:
+        // Other units produce minimal sludge
+        sludgeType = 'none'
+        break
+    }
+
+    unitSludge.push({
+      unitType: unit.type,
+      unitName: meta.name,
+      sludgeProduced: Math.round(sludgeProduced * 10) / 10,
+      sludgeType,
+    })
+  }
+
+  // Calculate total sludge
+  const totalSludge = primarySludge + biologicalSludge + chemicalSludge
+
+  // Calculate sludge volumes (based on typical solids concentrations)
+  const primarySludgeVolume = primarySludge / 40    // 4% solids = 40 kg/m³
+  const biologicalSludgeVolume = biologicalSludge / 10  // 1% solids = 10 kg/m³
+  const totalSludgeVolume = primarySludgeVolume + biologicalSludgeVolume
+
+  // Check for sludge handling units (cast to string for future expansion)
+  const unitTypes = system.units.map(u => u.type as string)
+  const hasThickener = unitTypes.includes('thickener')
+  const hasDigester = unitTypes.includes('digester')
+  const hasDewatering = unitTypes.includes('dewatering')
+
+  const result: SludgeProduction = {
+    primarySludge: Math.round(primarySludge * 10) / 10,
+    primarySludgeVolume: Math.round(primarySludgeVolume * 10) / 10,
+    biologicalSludge: Math.round(biologicalSludge * 10) / 10,
+    biologicalSludgeVolume: Math.round(biologicalSludgeVolume * 10) / 10,
+    totalSludge: Math.round(totalSludge * 10) / 10,
+    totalSludgeVolume: Math.round(totalSludgeVolume * 10) / 10,
+    unitSludge,
+  }
+
+  // Thickening (if present)
+  if (hasThickener) {
+    result.thickenedSludge = totalSludge * SLUDGE_YIELD.thickener
+    result.thickenedVolume = result.thickenedSludge / 55 // 5.5% solids after thickening
+  }
+
+  // Digestion (if present)
+  if (hasDigester) {
+    const sludgeToDigest = result.thickenedSludge || totalSludge
+    const vsDestructed = sludgeToDigest * 0.7 * SLUDGE_YIELD.digester // 70% VS, 50% destroyed
+
+    // Biogas production: ~1 m³ biogas per kg VS destroyed
+    result.biogasProduction = Math.round(vsDestructed)
+    result.methaneContent = 65 // Typical 60-70% CH4
+    result.energyRecovery = Math.round(result.biogasProduction * 6.5 * 0.35) // 6.5 kWh/m³, 35% efficiency
+  }
+
+  // Dewatering (if present)
+  if (hasDewatering) {
+    const sludgeToDewater = result.thickenedSludge || totalSludge
+    result.dewateredSludge = sludgeToDewater * SLUDGE_YIELD.dewatering
+    result.dewateredVolume = result.dewateredSludge / 220 // 22% solids after dewatering
+    result.cakeMass = result.dewateredSludge / 0.22 // Total wet cake mass
+  }
+
+  return result
+}
+
+// ============================================
+// ENERGY CONSUMPTION CALCULATIONS
+// ============================================
+
+/**
+ * Energy consumption factors by unit type (kWh/m³ treated)
+ */
+const ENERGY_FACTORS = {
+  // Preliminary (low energy)
+  bar_screen: { factor: 0.01, category: 'other' as const },
+  grit_chamber: { factor: 0.02, category: 'pumping' as const },
+
+  // Primary (low energy)
+  primary_clarifier: { factor: 0.02, category: 'pumping' as const },
+  oil_separator: { factor: 0.03, category: 'pumping' as const },
+
+  // Biological (high energy - aeration)
+  aeration_tank: { factor: 0.35, category: 'aeration' as const },
+  sbr: { factor: 0.30, category: 'aeration' as const },
+  mbr: { factor: 0.80, category: 'aeration' as const },
+  trickling_filter: { factor: 0.15, category: 'pumping' as const },
+  oxidation_pond: { factor: 0.05, category: 'mixing' as const },
+  uasb: { factor: 0.08, category: 'mixing' as const },
+
+  // Secondary
+  secondary_clarifier: { factor: 0.03, category: 'pumping' as const },
+  daf: { factor: 0.15, category: 'pumping' as const },
+
+  // Tertiary
+  filtration: { factor: 0.10, category: 'pumping' as const },
+  chlorination: { factor: 0.02, category: 'disinfection' as const },
+  uv_disinfection: { factor: 0.08, category: 'disinfection' as const },
+
+  // Sludge
+  thickener: { factor: 0.05, category: 'other' as const },
+  digester: { factor: 0.10, category: 'mixing' as const },
+  dewatering: { factor: 0.15, category: 'other' as const },
+}
+
+/**
+ * Calculate energy consumption for the entire treatment system
+ */
+export function calculateEnergyConsumption(
+  system: TreatmentSystem,
+  influent: WastewaterQuality
+): EnergyConsumption {
+  const flowRate = influent.flowRate // m³/day
+  const electricityRate = GENERAL_COST_PARAMS.electricityRate // THB/kWh
+
+  // Category totals
+  let aeration = 0
+  let pumping = 0
+  let mixing = 0
+  let sludgeHandling = 0
+  let disinfection = 0
+  let other = 0
+
+  const unitEnergy: EnergyConsumption['unitEnergy'] = []
+
+  // Calculate energy for each unit
+  for (const unit of system.units) {
+    const meta = UNIT_METADATA[unit.type]
+    const energyConfig = ENERGY_FACTORS[unit.type] || { factor: 0.05, category: 'other' as const }
+
+    const dailyConsumption = energyConfig.factor * flowRate
+
+    // Add to category
+    switch (energyConfig.category) {
+      case 'aeration':
+        aeration += dailyConsumption
+        break
+      case 'pumping':
+        pumping += dailyConsumption
+        break
+      case 'mixing':
+        mixing += dailyConsumption
+        break
+      case 'disinfection':
+        disinfection += dailyConsumption
+        break
+      default:
+        other += dailyConsumption
+    }
+
+    // Sludge handling units
+    if (['thickener', 'digester', 'dewatering'].includes(unit.type)) {
+      sludgeHandling += dailyConsumption
+      other -= dailyConsumption // Don't double count
+    }
+
+    unitEnergy.push({
+      unitType: unit.type,
+      unitName: meta.name,
+      dailyConsumption: Math.round(dailyConsumption * 10) / 10,
+      percentage: 0, // Calculate after totals
+      category: energyConfig.category,
+    })
+  }
+
+  // Add lighting (estimated)
+  const lighting = flowRate * 0.01 // 0.01 kWh/m³
+
+  // Calculate totals
+  const totalDaily = aeration + pumping + mixing + sludgeHandling + disinfection + lighting + other
+  const totalMonthly = totalDaily * 30
+  const totalAnnual = totalDaily * 365
+
+  // Calculate costs
+  const dailyCost = totalDaily * electricityRate
+  const monthlyCost = totalMonthly * electricityRate
+  const annualCost = totalAnnual * electricityRate
+
+  // Update percentages
+  for (const unit of unitEnergy) {
+    unit.percentage = totalDaily > 0 ? Math.round((unit.dailyConsumption / totalDaily) * 1000) / 10 : 0
+  }
+
+  // Efficiency metrics
+  const bodRemoved = influent.bod - (system.effluentQuality.bod || 0)
+  const kgBODRemoved = (bodRemoved * flowRate) / 1000
+
+  const kWhPerM3 = flowRate > 0 ? totalDaily / flowRate : 0
+  const kWhPerKgBOD = kgBODRemoved > 0 ? totalDaily / kgBODRemoved : 0
+
+  // Check for biogas energy recovery (cast to string for future expansion)
+  const energyUnitTypes = system.units.map(u => u.type as string)
+  const hasDigester = energyUnitTypes.includes('digester')
+  let biogasEnergy: number | undefined
+  let netEnergy: number | undefined
+
+  if (hasDigester) {
+    // Estimate biogas energy from sludge production
+    const sludge = calculateSludgeProduction(system, influent)
+    biogasEnergy = sludge.energyRecovery || 0
+    netEnergy = totalDaily - biogasEnergy
+  }
+
+  return {
+    // By category
+    aeration: Math.round(aeration * 10) / 10,
+    pumping: Math.round(pumping * 10) / 10,
+    mixing: Math.round(mixing * 10) / 10,
+    sludgeHandling: Math.round(sludgeHandling * 10) / 10,
+    disinfection: Math.round(disinfection * 10) / 10,
+    lighting: Math.round(lighting * 10) / 10,
+    other: Math.round(other * 10) / 10,
+
+    // Totals
+    totalDaily: Math.round(totalDaily * 10) / 10,
+    totalMonthly: Math.round(totalMonthly),
+    totalAnnual: Math.round(totalAnnual),
+
+    // Costs
+    dailyCost: Math.round(dailyCost),
+    monthlyCost: Math.round(monthlyCost),
+    annualCost: Math.round(annualCost),
+
+    // Efficiency metrics
+    kWhPerM3: Math.round(kWhPerM3 * 1000) / 1000,
+    kWhPerKgBOD: Math.round(kWhPerKgBOD * 100) / 100,
+
+    // Per-unit breakdown
+    unitEnergy,
+
+    // Energy recovery
+    biogasEnergy,
+    netEnergy,
   }
 }

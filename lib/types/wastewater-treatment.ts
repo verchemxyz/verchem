@@ -1576,3 +1576,108 @@ export interface CostEstimation {
     operatingCost: number
   }[]
 }
+
+/**
+ * Sludge production calculation result
+ */
+export interface SludgeProduction {
+  // Primary sludge
+  primarySludge: number           // kg dry solids/day
+  primarySludgeVolume: number     // m³/day (at 4% solids)
+
+  // Biological/secondary sludge
+  biologicalSludge: number        // kg dry solids/day (WAS)
+  biologicalSludgeVolume: number  // m³/day (at 1% solids)
+
+  // Total
+  totalSludge: number             // kg dry solids/day
+  totalSludgeVolume: number       // m³/day (combined)
+
+  // After thickening (if present)
+  thickenedSludge?: number        // kg dry solids/day
+  thickenedVolume?: number        // m³/day (at 5-6% solids)
+
+  // After dewatering (if present)
+  dewateredSludge?: number        // kg dry solids/day
+  dewateredVolume?: number        // m³/day (at 20-25% solids)
+  cakeMass?: number               // kg wet cake/day
+
+  // Biogas (if digester present)
+  biogasProduction?: number       // m³/day
+  methaneContent?: number         // % CH4
+  energyRecovery?: number         // kWh/day
+
+  // Per-unit breakdown
+  unitSludge: {
+    unitType: UnitType
+    unitName: string
+    sludgeProduced: number        // kg DS/day
+    sludgeType: 'primary' | 'biological' | 'chemical' | 'none'
+  }[]
+}
+
+/**
+ * Energy consumption breakdown
+ */
+export interface EnergyConsumption {
+  // By category
+  aeration: number                // kWh/day
+  pumping: number                 // kWh/day
+  mixing: number                  // kWh/day
+  sludgeHandling: number          // kWh/day
+  disinfection: number            // kWh/day
+  lighting: number                // kWh/day
+  other: number                   // kWh/day
+
+  // Totals
+  totalDaily: number              // kWh/day
+  totalMonthly: number            // kWh/month
+  totalAnnual: number             // kWh/year
+
+  // Costs
+  dailyCost: number               // THB/day
+  monthlyCost: number             // THB/month
+  annualCost: number              // THB/year
+
+  // Efficiency metrics
+  kWhPerM3: number                // kWh per m³ treated
+  kWhPerKgBOD: number             // kWh per kg BOD removed
+
+  // Per-unit breakdown
+  unitEnergy: {
+    unitType: UnitType
+    unitName: string
+    dailyConsumption: number      // kWh/day
+    percentage: number            // % of total
+    category: 'aeration' | 'pumping' | 'mixing' | 'disinfection' | 'other'
+  }[]
+
+  // Energy recovery (if applicable)
+  biogasEnergy?: number           // kWh/day from biogas
+  netEnergy?: number              // kWh/day (consumption - recovery)
+}
+
+/**
+ * Saved scenario for comparison
+ */
+export interface SavedScenario {
+  id: string
+  name: string
+  createdAt: Date
+  updatedAt: Date
+
+  // Design parameters
+  source: 'domestic' | 'industrial' | 'combined' | 'custom'
+  influent: WastewaterQuality
+  targetStandard: ThaiEffluentType
+  unitConfigs: Array<{ type: UnitType; config: Record<string, unknown> }>
+
+  // Results (cached)
+  effluentQuality?: WastewaterQuality
+  compliance?: {
+    isCompliant: boolean
+    parameters: Array<{ name: string; status: 'pass' | 'fail' | 'unknown' }>
+  }
+  totalCost?: number
+  costPerM3?: number
+}
