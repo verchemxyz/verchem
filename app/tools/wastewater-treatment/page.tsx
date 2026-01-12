@@ -1,0 +1,973 @@
+'use client'
+
+import { useState, useCallback, useMemo } from 'react'
+import Link from 'next/link'
+import {
+  WastewaterQuality,
+  TreatmentUnit,
+  TreatmentSystem,
+  UnitType,
+  UnitStatus,
+  UNIT_METADATA,
+  PRESET_TEMPLATES,
+  DEFAULT_INFLUENT,
+  THAI_EFFLUENT_STANDARDS,
+  PresetTemplate,
+  ThaiEffluentType,
+  DesignIssue,
+} from '@/lib/types/wastewater-treatment'
+import {
+  calculateTreatmentTrain,
+  getDefaultDesignParams,
+} from '@/lib/calculations/wastewater-treatment'
+
+// ============================================
+// STATUS BADGE COMPONENT
+// ============================================
+
+function StatusBadge({ status }: { status: UnitStatus }) {
+  const config = {
+    pass: { bg: 'bg-emerald-500', text: 'text-white', label: 'PASS', icon: '✓' },
+    warning: { bg: 'bg-amber-500', text: 'text-white', label: 'WARNING', icon: '!' },
+    fail: { bg: 'bg-red-500', text: 'text-white', label: 'FAIL', icon: '✗' },
+    not_configured: { bg: 'bg-gray-400', text: 'text-white', label: 'N/A', icon: '?' },
+  }
+  const c = config[status]
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${c.bg} ${c.text}`}>
+      <span>{c.icon}</span>
+      {c.label}
+    </span>
+  )
+}
+
+// ============================================
+// FLOW ARROW COMPONENT
+// ============================================
+
+function FlowArrow({ animated = true }: { animated?: boolean }) {
+  return (
+    <div className="flex items-center justify-center w-12 h-full">
+      <div className="relative">
+        {/* Pipe */}
+        <div className="w-12 h-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full relative overflow-hidden">
+          {animated && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-flow" />
+          )}
+        </div>
+        {/* Arrow head */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1">
+          <div className="w-0 h-0 border-l-[8px] border-l-blue-500 border-y-[6px] border-y-transparent" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// UNIT CARD COMPONENT
+// ============================================
+
+interface UnitCardProps {
+  unit: TreatmentUnit
+  onEdit: () => void
+  onRemove: () => void
+  isSelected: boolean
+  onClick: () => void
+}
+
+function UnitCard({ unit, onEdit, onRemove, isSelected, onClick }: UnitCardProps) {
+  const metadata = UNIT_METADATA[unit.type]
+  const statusColors = {
+    pass: 'border-emerald-500 bg-emerald-50',
+    warning: 'border-amber-500 bg-amber-50',
+    fail: 'border-red-500 bg-red-50',
+    not_configured: 'border-gray-300 bg-gray-50',
+  }
+
+  return (
+    <div
+      onClick={onClick}
+      className={`
+        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+        ${statusColors[unit.status]}
+        ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:shadow-lg'}
+        min-w-[180px] max-w-[200px]
+      `}
+    >
+      {/* Status indicator dot */}
+      <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${
+        unit.status === 'pass' ? 'bg-emerald-500' :
+        unit.status === 'warning' ? 'bg-amber-500 animate-pulse' :
+        unit.status === 'fail' ? 'bg-red-500 animate-pulse' : 'bg-gray-400'
+      }`} />
+
+      {/* Icon */}
+      <div className="text-3xl mb-2">{metadata.icon}</div>
+
+      {/* Name */}
+      <h3 className="font-bold text-gray-900 text-sm mb-1">{metadata.name}</h3>
+      <p className="text-xs text-gray-600 mb-2">{metadata.nameThai}</p>
+
+      {/* Key metrics */}
+      <div className="space-y-1 text-xs">
+        <div className="flex justify-between">
+          <span className="text-gray-500">BOD:</span>
+          <span className="font-medium text-emerald-600">-{unit.removalEfficiency.bod.toFixed(0)}%</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-500">TSS:</span>
+          <span className="font-medium text-emerald-600">-{unit.removalEfficiency.tss.toFixed(0)}%</span>
+        </div>
+      </div>
+
+      {/* Issues indicator */}
+      {unit.issues.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <div className={`text-xs font-medium ${
+            unit.issues.some(i => i.severity === 'critical') ? 'text-red-600' : 'text-amber-600'
+          }`}>
+            {unit.issues.length} issue{unit.issues.length > 1 ? 's' : ''}
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex gap-1 mt-3">
+        <button
+          onClick={(e) => { e.stopPropagation(); onEdit() }}
+          className="flex-1 px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition"
+        >
+          Edit
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove() }}
+          className="px-2 py-1 text-xs bg-white border border-red-300 text-red-600 rounded hover:bg-red-50 transition"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// INFLUENT CARD COMPONENT
+// ============================================
+
+interface InfluentCardProps {
+  quality: WastewaterQuality
+  onChange: (quality: WastewaterQuality) => void
+  source: 'domestic' | 'industrial' | 'combined' | 'custom'
+  onSourceChange: (source: 'domestic' | 'industrial' | 'combined' | 'custom') => void
+}
+
+function InfluentCard({ quality, onChange, source, onSourceChange }: InfluentCardProps) {
+  return (
+    <div className="p-4 rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 min-w-[200px]">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-2xl">🚰</span>
+        <div>
+          <h3 className="font-bold text-gray-900">Influent</h3>
+          <p className="text-xs text-gray-600">น้ำเสียเข้าระบบ</p>
+        </div>
+      </div>
+
+      {/* Source selector */}
+      <select
+        value={source}
+        onChange={(e) => {
+          const newSource = e.target.value as typeof source
+          onSourceChange(newSource)
+          onChange({ ...DEFAULT_INFLUENT[newSource], flowRate: quality.flowRate } as WastewaterQuality)
+        }}
+        className="w-full px-2 py-1 text-xs border border-gray-300 rounded mb-3"
+      >
+        <option value="domestic">Domestic (ชุมชน)</option>
+        <option value="industrial">Industrial (อุตสาหกรรม)</option>
+        <option value="combined">Combined (รวม)</option>
+        <option value="custom">Custom (กำหนดเอง)</option>
+      </select>
+
+      {/* Key parameters */}
+      <div className="space-y-2 text-xs">
+        <div className="flex items-center gap-2">
+          <label className="w-16 text-gray-600">Flow:</label>
+          <input
+            type="number"
+            value={quality.flowRate}
+            onChange={(e) => onChange({ ...quality, flowRate: parseFloat(e.target.value) || 0 })}
+            className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+          />
+          <span className="text-gray-500 w-16">m³/day</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-16 text-gray-600">BOD:</label>
+          <input
+            type="number"
+            value={quality.bod}
+            onChange={(e) => onChange({ ...quality, bod: parseFloat(e.target.value) || 0 })}
+            className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+          />
+          <span className="text-gray-500 w-16">mg/L</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-16 text-gray-600">COD:</label>
+          <input
+            type="number"
+            value={quality.cod}
+            onChange={(e) => onChange({ ...quality, cod: parseFloat(e.target.value) || 0 })}
+            className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+          />
+          <span className="text-gray-500 w-16">mg/L</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-16 text-gray-600">TSS:</label>
+          <input
+            type="number"
+            value={quality.tss}
+            onChange={(e) => onChange({ ...quality, tss: parseFloat(e.target.value) || 0 })}
+            className="flex-1 px-2 py-1 border border-gray-300 rounded text-right"
+          />
+          <span className="text-gray-500 w-16">mg/L</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// EFFLUENT CARD COMPONENT
+// ============================================
+
+interface EffluentCardProps {
+  quality: WastewaterQuality
+  targetStandard: ThaiEffluentType
+  onStandardChange: (standard: ThaiEffluentType) => void
+  compliance: TreatmentSystem['compliance'] | null
+}
+
+function EffluentCard({ quality, targetStandard, onStandardChange, compliance }: EffluentCardProps) {
+  const standard = THAI_EFFLUENT_STANDARDS[targetStandard]
+
+  return (
+    <div className={`p-4 rounded-xl border-2 min-w-[200px] ${
+      compliance?.isCompliant
+        ? 'border-emerald-400 bg-gradient-to-br from-emerald-50 to-green-50'
+        : 'border-red-400 bg-gradient-to-br from-red-50 to-orange-50'
+    }`}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-2xl">{compliance?.isCompliant ? '✅' : '❌'}</span>
+        <div>
+          <h3 className="font-bold text-gray-900">Effluent</h3>
+          <p className="text-xs text-gray-600">น้ำทิ้งออกระบบ</p>
+        </div>
+      </div>
+
+      {/* Standard selector */}
+      <select
+        value={targetStandard}
+        onChange={(e) => onStandardChange(e.target.value as ThaiEffluentType)}
+        className="w-full px-2 py-1 text-xs border border-gray-300 rounded mb-3"
+      >
+        <option value="type_a">Type A - Industrial Estate</option>
+        <option value="type_b">Type B - General Industrial</option>
+        <option value="type_c">Type C - Community</option>
+      </select>
+
+      {/* Compliance table */}
+      <div className="space-y-1 text-xs">
+        {compliance?.parameters.map((p) => (
+          <div key={p.name} className="flex items-center gap-2">
+            <span className={`w-4 ${p.status === 'pass' ? 'text-emerald-500' : 'text-red-500'}`}>
+              {p.status === 'pass' ? '✓' : '✗'}
+            </span>
+            <span className="w-10 text-gray-600">{p.name}:</span>
+            <span className={`flex-1 font-medium ${p.status === 'pass' ? 'text-emerald-700' : 'text-red-700'}`}>
+              {p.value.toFixed(1)}
+            </span>
+            <span className="text-gray-400">/</span>
+            <span className="w-12 text-gray-500">{p.limit}</span>
+            <span className="text-gray-400">{p.unit}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Standard info */}
+      <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-500">
+        {standard.nameThai}
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// ADD UNIT MODAL
+// ============================================
+
+interface AddUnitModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onAdd: (type: UnitType) => void
+  existingTypes: UnitType[]
+}
+
+function AddUnitModal({ isOpen, onClose, onAdd, existingTypes }: AddUnitModalProps) {
+  if (!isOpen) return null
+
+  const categories = [
+    { id: 'preliminary', name: 'Preliminary', nameThai: 'บำบัดขั้นต้น', types: ['bar_screen', 'grit_chamber'] },
+    { id: 'primary', name: 'Primary', nameThai: 'ขั้นปฐมภูมิ', types: ['primary_clarifier', 'oil_separator'] },
+    { id: 'biological', name: 'Biological', nameThai: 'ชีวภาพ', types: ['aeration_tank', 'sbr', 'uasb', 'oxidation_pond', 'trickling_filter', 'mbr'] },
+    { id: 'secondary', name: 'Secondary', nameThai: 'ขั้นทุติยภูมิ', types: ['secondary_clarifier', 'daf'] },
+    { id: 'tertiary', name: 'Tertiary', nameThai: 'ขั้นตติยภูมิ', types: ['filtration', 'chlorination', 'uv_disinfection'] },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Add Treatment Unit</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+
+        <div className="space-y-4">
+          {categories.map((cat) => (
+            <div key={cat.id}>
+              <h3 className="text-sm font-bold text-gray-700 mb-2">
+                {cat.name} <span className="font-normal text-gray-500">({cat.nameThai})</span>
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {cat.types.map((type) => {
+                  const meta = UNIT_METADATA[type as UnitType]
+                  const isExisting = existingTypes.includes(type as UnitType)
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => { onAdd(type as UnitType); onClose() }}
+                      disabled={isExisting}
+                      className={`
+                        p-3 rounded-lg border-2 text-left transition
+                        ${isExisting
+                          ? 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer'
+                        }
+                      `}
+                    >
+                      <div className="text-xl mb-1">{meta.icon}</div>
+                      <div className="text-xs font-medium text-gray-900">{meta.name}</div>
+                      <div className="text-xs text-gray-500">{meta.nameThai}</div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// EDIT UNIT MODAL
+// ============================================
+
+interface EditUnitModalProps {
+  isOpen: boolean
+  onClose: () => void
+  unit: TreatmentUnit | null
+  onSave: (config: Record<string, unknown>) => void
+}
+
+function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
+  const [config, setConfig] = useState<Record<string, unknown>>({})
+
+  // Reset config when unit changes
+  useMemo(() => {
+    if (unit) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setConfig(unit.design as any)
+    }
+  }, [unit])
+
+  if (!isOpen || !unit) return null
+
+  const meta = UNIT_METADATA[unit.type]
+
+  const handleChange = (key: string, value: string | number) => {
+    setConfig(prev => ({ ...prev, [key]: typeof value === 'string' ? parseFloat(value) || value : value }))
+  }
+
+  const handleSave = () => {
+    onSave(config)
+    onClose()
+  }
+
+  // Define editable fields per unit type
+  const getEditableFields = () => {
+    switch (unit.type) {
+      case 'bar_screen':
+        return [
+          { key: 'barSpacing', label: 'Bar Spacing', unit: 'mm', type: 'number' },
+          { key: 'channelWidth', label: 'Channel Width', unit: 'm', type: 'number' },
+          { key: 'channelDepth', label: 'Channel Depth', unit: 'm', type: 'number' },
+          { key: 'screenAngle', label: 'Screen Angle', unit: '°', type: 'number' },
+          { key: 'cleaningType', label: 'Cleaning Type', type: 'select', options: ['manual', 'mechanical'] },
+        ]
+      case 'grit_chamber':
+        return [
+          { key: 'chamberType', label: 'Chamber Type', type: 'select', options: ['horizontal_flow', 'aerated', 'vortex'] },
+          { key: 'length', label: 'Length', unit: 'm', type: 'number' },
+          { key: 'width', label: 'Width', unit: 'm', type: 'number' },
+          { key: 'depth', label: 'Depth', unit: 'm', type: 'number' },
+        ]
+      case 'primary_clarifier':
+        return [
+          { key: 'shape', label: 'Shape', type: 'select', options: ['circular', 'rectangular'] },
+          { key: 'diameter', label: 'Diameter (circular)', unit: 'm', type: 'number', condition: () => config.shape === 'circular' },
+          { key: 'length', label: 'Length (rectangular)', unit: 'm', type: 'number', condition: () => config.shape === 'rectangular' },
+          { key: 'width', label: 'Width (rectangular)', unit: 'm', type: 'number', condition: () => config.shape === 'rectangular' },
+          { key: 'sidewaterDepth', label: 'Sidewater Depth', unit: 'm', type: 'number' },
+        ]
+      case 'aeration_tank':
+        return [
+          { key: 'processType', label: 'Process Type', type: 'select', options: ['conventional', 'extended_aeration', 'complete_mix'] },
+          { key: 'volume', label: 'Volume', unit: 'm³', type: 'number' },
+          { key: 'mlss', label: 'MLSS', unit: 'mg/L', type: 'number' },
+          { key: 'srt', label: 'SRT', unit: 'days', type: 'number' },
+          { key: 'targetDO', label: 'Target DO', unit: 'mg/L', type: 'number' },
+          { key: 'aerationType', label: 'Aeration Type', type: 'select', options: ['fine_bubble', 'coarse_bubble', 'mechanical_surface'] },
+          { key: 'returnRatio', label: 'Return Ratio (Qr/Q)', unit: '', type: 'number' },
+        ]
+      case 'secondary_clarifier':
+        return [
+          { key: 'shape', label: 'Shape', type: 'select', options: ['circular', 'rectangular'] },
+          { key: 'diameter', label: 'Diameter (circular)', unit: 'm', type: 'number', condition: () => config.shape === 'circular' },
+          { key: 'length', label: 'Length (rectangular)', unit: 'm', type: 'number', condition: () => config.shape === 'rectangular' },
+          { key: 'width', label: 'Width (rectangular)', unit: 'm', type: 'number', condition: () => config.shape === 'rectangular' },
+          { key: 'sidewaterDepth', label: 'Sidewater Depth', unit: 'm', type: 'number' },
+          { key: 'mlss', label: 'MLSS from Aeration', unit: 'mg/L', type: 'number' },
+          { key: 'returnRatio', label: 'Return Ratio', unit: '', type: 'number' },
+        ]
+      case 'chlorination':
+        return [
+          { key: 'chlorineType', label: 'Chlorine Type', type: 'select', options: ['gas', 'hypochlorite', 'chlorine_dioxide'] },
+          { key: 'tankLength', label: 'Tank Length', unit: 'm', type: 'number' },
+          { key: 'tankWidth', label: 'Tank Width', unit: 'm', type: 'number' },
+          { key: 'tankDepth', label: 'Tank Depth', unit: 'm', type: 'number' },
+          { key: 'chlorineDose', label: 'Chlorine Dose', unit: 'mg/L', type: 'number' },
+          { key: 'baffleEfficiency', label: 'Baffle Efficiency', unit: '', type: 'number' },
+        ]
+      default:
+        return []
+    }
+  }
+
+  const fields = getEditableFields()
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{meta.icon}</span>
+            <h2 className="text-xl font-bold">{meta.name}</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+
+        {/* Issues display */}
+        {unit.issues.length > 0 && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <h4 className="font-bold text-amber-800 text-sm mb-2">Design Issues:</h4>
+            <ul className="space-y-1">
+              {unit.issues.map((issue, idx) => (
+                <li key={idx} className={`text-xs ${
+                  issue.severity === 'critical' ? 'text-red-700' : 'text-amber-700'
+                }`}>
+                  <span className="font-medium">{issue.parameter}:</span> {issue.message}
+                  <br />
+                  <span className="text-gray-600">→ {issue.suggestion}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Edit form */}
+        <div className="space-y-3">
+          {fields.map((field) => {
+            if (field.condition && !field.condition()) return null
+            return (
+              <div key={field.key} className="flex items-center gap-3">
+                <label className="w-40 text-sm text-gray-700">{field.label}</label>
+                {field.type === 'select' ? (
+                  <select
+                    value={String(config[field.key] || '')}
+                    onChange={(e) => handleChange(field.key, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    {field.options?.map((opt) => (
+                      <option key={opt} value={opt}>{opt.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="flex-1 flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={config[field.key] as number || ''}
+                      onChange={(e) => handleChange(field.key, parseFloat(e.target.value) || 0)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-right"
+                      step="any"
+                    />
+                    {field.unit && <span className="text-gray-500 text-sm w-12">{field.unit}</span>}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// ISSUES PANEL COMPONENT
+// ============================================
+
+function IssuesPanel({ issues }: { issues: DesignIssue[] }) {
+  if (issues.length === 0) {
+    return (
+      <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+        <span className="text-2xl">✅</span>
+        <p className="text-emerald-700 font-medium mt-1">All design parameters within acceptable ranges</p>
+      </div>
+    )
+  }
+
+  const critical = issues.filter(i => i.severity === 'critical')
+  const warnings = issues.filter(i => i.severity === 'warning')
+
+  return (
+    <div className="space-y-3">
+      {critical.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+          <h4 className="font-bold text-red-800 flex items-center gap-2 mb-2">
+            <span>🚨</span> Critical Issues ({critical.length})
+          </h4>
+          <ul className="space-y-2">
+            {critical.map((issue, idx) => (
+              <li key={idx} className="text-sm">
+                <span className="font-medium text-red-700">{issue.parameter}:</span>
+                <span className="text-red-600 ml-1">{issue.message}</span>
+                <br />
+                <span className="text-xs text-gray-600">
+                  Current: {issue.currentValue.toFixed(2)} {issue.unit}
+                  {issue.recommendedValue && ` → Recommended: ${issue.recommendedValue.toFixed(2)} ${issue.unit}`}
+                </span>
+                <br />
+                <span className="text-xs text-blue-600">💡 {issue.suggestion}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {warnings.length > 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <h4 className="font-bold text-amber-800 flex items-center gap-2 mb-2">
+            <span>⚠️</span> Warnings ({warnings.length})
+          </h4>
+          <ul className="space-y-2">
+            {warnings.map((issue, idx) => (
+              <li key={idx} className="text-sm">
+                <span className="font-medium text-amber-700">{issue.parameter}:</span>
+                <span className="text-amber-600 ml-1">{issue.message}</span>
+                <br />
+                <span className="text-xs text-gray-600">
+                  Current: {issue.currentValue.toFixed(2)} {issue.unit}
+                  {issue.recommendedValue && ` → Suggested: ${issue.recommendedValue.toFixed(2)} ${issue.unit}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// SUMMARY PANEL COMPONENT
+// ============================================
+
+function SummaryPanel({ system }: { system: TreatmentSystem }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+        <div className="text-2xl mb-1">💧</div>
+        <div className="text-xs text-gray-500">Total BOD Removal</div>
+        <div className="text-xl font-bold text-blue-700">{system.summary.totalBODRemoval.toFixed(1)}%</div>
+      </div>
+      <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl">
+        <div className="text-2xl mb-1">🧪</div>
+        <div className="text-xs text-gray-500">Total COD Removal</div>
+        <div className="text-xl font-bold text-emerald-700">{system.summary.totalCODRemoval.toFixed(1)}%</div>
+      </div>
+      <div className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl">
+        <div className="text-2xl mb-1">🔬</div>
+        <div className="text-xs text-gray-500">Total TSS Removal</div>
+        <div className="text-xl font-bold text-purple-700">{system.summary.totalTSSRemoval.toFixed(1)}%</div>
+      </div>
+      <div className={`p-4 rounded-xl ${
+        system.compliance.isCompliant
+          ? 'bg-gradient-to-br from-emerald-100 to-green-100'
+          : 'bg-gradient-to-br from-red-100 to-orange-100'
+      }`}>
+        <div className="text-2xl mb-1">{system.compliance.isCompliant ? '✅' : '❌'}</div>
+        <div className="text-xs text-gray-500">Thai Standard</div>
+        <div className={`text-xl font-bold ${system.compliance.isCompliant ? 'text-emerald-700' : 'text-red-700'}`}>
+          {system.compliance.isCompliant ? 'COMPLIANT' : 'NON-COMPLIANT'}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// MAIN PAGE COMPONENT
+// ============================================
+
+export default function WastewaterTreatmentPage() {
+  // State
+  const [source, setSource] = useState<'domestic' | 'industrial' | 'combined' | 'custom'>('domestic')
+  const [influent, setInfluent] = useState<WastewaterQuality>({
+    ...DEFAULT_INFLUENT.domestic,
+    flowRate: 1000,
+  } as WastewaterQuality)
+  const [targetStandard, setTargetStandard] = useState<ThaiEffluentType>('type_c')
+  const [unitConfigs, setUnitConfigs] = useState<Array<{ type: UnitType; config: Record<string, unknown> }>>([])
+  const [selectedUnitIndex, setSelectedUnitIndex] = useState<number | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingUnit, setEditingUnit] = useState<TreatmentUnit | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Calculate treatment train
+  const system = useMemo(() => {
+    if (unitConfigs.length === 0) return null
+    try {
+      return calculateTreatmentTrain(influent, unitConfigs, targetStandard)
+    } catch {
+      return null
+    }
+  }, [influent, unitConfigs, targetStandard])
+
+  // Add unit
+  const handleAddUnit = useCallback((type: UnitType) => {
+    const defaultConfig = getDefaultDesignParams(type, influent.flowRate)
+    setUnitConfigs(prev => [...prev, { type, config: defaultConfig }])
+  }, [influent.flowRate])
+
+  // Remove unit
+  const handleRemoveUnit = useCallback((index: number) => {
+    setUnitConfigs(prev => prev.filter((_, i) => i !== index))
+    setSelectedUnitIndex(null)
+  }, [])
+
+  // Edit unit
+  const handleEditUnit = useCallback((index: number) => {
+    if (system && system.units[index]) {
+      setEditingUnit(system.units[index])
+      setShowEditModal(true)
+      setSelectedUnitIndex(index)
+    }
+  }, [system])
+
+  // Save unit config
+  const handleSaveUnit = useCallback((config: Record<string, unknown>) => {
+    if (selectedUnitIndex !== null) {
+      setUnitConfigs(prev => prev.map((item, i) =>
+        i === selectedUnitIndex ? { ...item, config } : item
+      ))
+    }
+    setEditingUnit(null)
+  }, [selectedUnitIndex])
+
+  // Load preset
+  const handleLoadPreset = useCallback((presetId: PresetTemplate) => {
+    if (presetId === 'custom') {
+      setUnitConfigs([])
+      return
+    }
+    const preset = PRESET_TEMPLATES.find(p => p.id === presetId)
+    if (preset) {
+      const configs = preset.unitTypes.map(type => ({
+        type,
+        config: getDefaultDesignParams(type, influent.flowRate),
+      }))
+      setUnitConfigs(configs)
+    }
+  }, [influent.flowRate])
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/tools" className="text-gray-500 hover:text-gray-700">
+                ← Tools
+              </Link>
+              <span className="text-gray-300">|</span>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  🏭 Wastewater Treatment System Builder
+                </h1>
+                <p className="text-sm text-gray-500">ออกแบบระบบบำบัดน้ำเสีย | Design your treatment train</p>
+              </div>
+            </div>
+            <StatusBadge status={system?.overallStatus || 'not_configured'} />
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Preset Templates */}
+        <div className="mb-6 p-4 bg-white rounded-xl shadow-sm">
+          <h2 className="text-sm font-bold text-gray-700 mb-3">Quick Start Templates</h2>
+          <div className="flex flex-wrap gap-2">
+            {PRESET_TEMPLATES.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => handleLoadPreset(preset.id)}
+                className="px-3 py-2 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition"
+              >
+                <span className="font-medium">{preset.name}</span>
+                <span className="text-gray-400 ml-1">({preset.nameThai})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Treatment Train Visualization */}
+        <div className="mb-6 p-6 bg-white rounded-xl shadow-sm overflow-x-auto">
+          <h2 className="text-sm font-bold text-gray-700 mb-4">Treatment Train</h2>
+
+          <div className="flex items-stretch gap-2 min-w-max pb-2">
+            {/* Influent */}
+            <InfluentCard
+              quality={influent}
+              onChange={setInfluent}
+              source={source}
+              onSourceChange={setSource}
+            />
+
+            {/* Flow arrow to first unit */}
+            {unitConfigs.length > 0 && <FlowArrow />}
+
+            {/* Treatment Units */}
+            {system?.units.map((unit, index) => (
+              <div key={unit.id} className="flex items-stretch">
+                <UnitCard
+                  unit={unit}
+                  onEdit={() => handleEditUnit(index)}
+                  onRemove={() => handleRemoveUnit(index)}
+                  isSelected={selectedUnitIndex === index}
+                  onClick={() => setSelectedUnitIndex(index)}
+                />
+                {index < system.units.length - 1 && <FlowArrow />}
+              </div>
+            ))}
+
+            {/* Add unit button */}
+            <div className="flex items-center">
+              {unitConfigs.length > 0 && <FlowArrow animated={false} />}
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="w-[120px] h-[180px] border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-blue-500"
+              >
+                <span className="text-3xl">+</span>
+                <span className="text-xs font-medium">Add Unit</span>
+              </button>
+            </div>
+
+            {/* Flow arrow to effluent */}
+            {unitConfigs.length > 0 && <FlowArrow />}
+
+            {/* Effluent */}
+            {unitConfigs.length > 0 && system && (
+              <EffluentCard
+                quality={system.effluentQuality}
+                targetStandard={targetStandard}
+                onStandardChange={setTargetStandard}
+                compliance={system.compliance}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Results Section */}
+        {system && (
+          <>
+            {/* Summary Cards */}
+            <div className="mb-6">
+              <h2 className="text-sm font-bold text-gray-700 mb-3">System Performance Summary</h2>
+              <SummaryPanel system={system} />
+            </div>
+
+            {/* Issues Panel */}
+            <div className="mb-6">
+              <h2 className="text-sm font-bold text-gray-700 mb-3">Design Issues & Recommendations</h2>
+              <IssuesPanel issues={system.systemIssues} />
+            </div>
+
+            {/* Detailed Results Table */}
+            <div className="p-6 bg-white rounded-xl shadow-sm">
+              <h2 className="text-sm font-bold text-gray-700 mb-4">Water Quality Through Treatment Train</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 px-3 text-gray-500 font-medium">Stage</th>
+                      <th className="text-right py-2 px-3 text-gray-500 font-medium">Flow (m³/d)</th>
+                      <th className="text-right py-2 px-3 text-gray-500 font-medium">BOD (mg/L)</th>
+                      <th className="text-right py-2 px-3 text-gray-500 font-medium">COD (mg/L)</th>
+                      <th className="text-right py-2 px-3 text-gray-500 font-medium">TSS (mg/L)</th>
+                      <th className="text-center py-2 px-3 text-gray-500 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Influent row */}
+                    <tr className="border-b border-gray-100 bg-blue-50">
+                      <td className="py-2 px-3 font-medium">🚰 Influent</td>
+                      <td className="text-right py-2 px-3">{influent.flowRate.toLocaleString()}</td>
+                      <td className="text-right py-2 px-3">{influent.bod.toFixed(1)}</td>
+                      <td className="text-right py-2 px-3">{influent.cod.toFixed(1)}</td>
+                      <td className="text-right py-2 px-3">{influent.tss.toFixed(1)}</td>
+                      <td className="text-center py-2 px-3">-</td>
+                    </tr>
+                    {/* Unit rows */}
+                    {system.units.map((unit) => (
+                      <tr key={unit.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-2 px-3 font-medium">
+                          {UNIT_METADATA[unit.type].icon} {UNIT_METADATA[unit.type].name}
+                        </td>
+                        <td className="text-right py-2 px-3">{unit.outputQuality.flowRate.toLocaleString()}</td>
+                        <td className="text-right py-2 px-3">
+                          {unit.outputQuality.bod.toFixed(1)}
+                          <span className="text-emerald-600 text-xs ml-1">(-{unit.removalEfficiency.bod}%)</span>
+                        </td>
+                        <td className="text-right py-2 px-3">
+                          {unit.outputQuality.cod.toFixed(1)}
+                          <span className="text-emerald-600 text-xs ml-1">(-{unit.removalEfficiency.cod}%)</span>
+                        </td>
+                        <td className="text-right py-2 px-3">
+                          {unit.outputQuality.tss.toFixed(1)}
+                          <span className="text-emerald-600 text-xs ml-1">(-{unit.removalEfficiency.tss}%)</span>
+                        </td>
+                        <td className="text-center py-2 px-3">
+                          <StatusBadge status={unit.status} />
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Effluent row */}
+                    <tr className={`${system.compliance.isCompliant ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                      <td className="py-2 px-3 font-bold">
+                        {system.compliance.isCompliant ? '✅' : '❌'} Final Effluent
+                      </td>
+                      <td className="text-right py-2 px-3 font-bold">{system.effluentQuality.flowRate.toLocaleString()}</td>
+                      <td className="text-right py-2 px-3 font-bold">{system.effluentQuality.bod.toFixed(1)}</td>
+                      <td className="text-right py-2 px-3 font-bold">{system.effluentQuality.cod.toFixed(1)}</td>
+                      <td className="text-right py-2 px-3 font-bold">{system.effluentQuality.tss.toFixed(1)}</td>
+                      <td className="text-center py-2 px-3">
+                        <StatusBadge status={system.overallStatus} />
+                      </td>
+                    </tr>
+                    {/* Standard limits row */}
+                    <tr className="bg-gray-100">
+                      <td className="py-2 px-3 text-gray-500 text-xs">
+                        📋 Thai Standard ({THAI_EFFLUENT_STANDARDS[targetStandard].nameThai})
+                      </td>
+                      <td className="text-right py-2 px-3 text-gray-500">-</td>
+                      <td className="text-right py-2 px-3 text-gray-500">≤ {THAI_EFFLUENT_STANDARDS[targetStandard].limits.bod}</td>
+                      <td className="text-right py-2 px-3 text-gray-500">≤ {THAI_EFFLUENT_STANDARDS[targetStandard].limits.cod}</td>
+                      <td className="text-right py-2 px-3 text-gray-500">≤ {THAI_EFFLUENT_STANDARDS[targetStandard].limits.tss}</td>
+                      <td className="text-center py-2 px-3">-</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Empty state */}
+        {!system && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🏭</div>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">Start Building Your Treatment System</h3>
+            <p className="text-gray-500 mb-6">
+              Select a preset template or add units one by one to design your wastewater treatment train
+            </p>
+            <button
+              onClick={() => handleLoadPreset('conventional_as')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Start with Conventional AS System
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      <AddUnitModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddUnit}
+        existingTypes={unitConfigs.map(u => u.type)}
+      />
+
+      <EditUnitModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        unit={editingUnit}
+        onSave={handleSaveUnit}
+      />
+
+      {/* CSS Animation */}
+      <style jsx global>{`
+        @keyframes flow {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-flow {
+          animation: flow 1.5s linear infinite;
+        }
+      `}</style>
+    </div>
+  )
+}

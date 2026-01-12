@@ -63,6 +63,12 @@ const TOOL_LINKS = [
     description: 'Heavy metal contamination (Thai PCD), pH classification, NPK analysis, CEC, organic matter, texture, salinity — 7 modes.',
     isNew: true,
   },
+  {
+    href: '/tools/wastewater-treatment',
+    label: 'Wastewater Treatment System Builder',
+    description: 'Design complete treatment trains with activated sludge, clarifiers, disinfection. Real-time calculations & Thai PCD compliance.',
+    isNew: true,
+  },
 ] as const
 
 export default function ToolsPage() {
@@ -117,6 +123,7 @@ export default function ToolsPage() {
                   {tool.href === '/tools/water-quality' && '💧 '}
                   {tool.href === '/tools/air-quality' && '🌬️ '}
                   {tool.href === '/tools/soil-quality' && '🌱 '}
+                  {tool.href === '/tools/wastewater-treatment' && '🏭 '}
                   {tool.label}
                 </h3>
                 <p className="text-sm text-muted-foreground">{tool.description}</p>
