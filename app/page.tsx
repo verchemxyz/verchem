@@ -114,7 +114,7 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Chemical Compounds</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">15</div>
+              <div className="text-5xl font-bold mb-2">18</div>
               <div className="text-primary-100 font-medium">Pro Tools</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
@@ -132,7 +132,7 @@ export default function Home() {
             <span className="text-premium">Everything You Need</span>
           </h2>
           <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            15 professional tools validated against industry standards
+            18 professional tools validated against industry standards
           </p>
         </div>
 
@@ -302,6 +302,17 @@ export default function Home() {
                 <p className="text-gray-600 text-sm">AQI, Gaussian dispersion • 6 modes</p>
               </div>
             </Link>
+
+            {/* Soil Quality */}
+            <Link href="/tools/soil-quality" className="group">
+              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-amber-200 p-5 hover:border-amber-400 hover:shadow-lg transition-all">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                  🌱
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">Soil Quality</h3>
+                <p className="text-gray-600 text-sm">Heavy metals, pH, NPK • 7 modes</p>
+              </div>
+            </Link>
           </div>
 
           {/* CTA */}
@@ -349,7 +360,7 @@ export default function Home() {
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>All 15 calculators & tools</span>
+                <span>All 18 tools & calculators</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -361,7 +372,7 @@ export default function Home() {
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>AI Chemistry Tutor</span>
+                <span>Environmental Engineering Tools</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -474,7 +485,7 @@ export default function Home() {
             <div className="text-sm text-muted-foreground">Elements</div>
           </div>
           <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">14</div>
+            <div className="text-3xl font-bold text-primary-600 mb-2">18</div>
             <div className="text-sm text-muted-foreground">Pro Tools</div>
           </div>
           <div className="premium-card p-6 text-center">

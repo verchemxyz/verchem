@@ -222,7 +222,7 @@ export default function EnvironmentalPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">5</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">4</div>
               <div className="text-emerald-100 font-medium">Pro Tools</div>
             </div>
             <div>
