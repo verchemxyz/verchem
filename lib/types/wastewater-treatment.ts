@@ -1681,3 +1681,1076 @@ export interface SavedScenario {
   totalCost?: number
   costPerM3?: number
 }
+
+// ============================================
+// PHASE 2: SENSITIVITY ANALYSIS TYPES
+// ============================================
+
+/**
+ * Parameters that can be varied in sensitivity analysis
+ */
+export type SensitivityParameter =
+  | 'flowRate'           // Q - m³/day
+  | 'bod'                // BOD5 - mg/L
+  | 'cod'                // COD - mg/L
+  | 'tss'                // TSS - mg/L
+  | 'tkn'                // TKN - mg/L
+  | 'ammonia'            // NH3-N - mg/L
+  | 'totalP'             // Total P - mg/L
+  | 'temperature'        // °C
+  | 'mlss'               // MLSS - mg/L (for biological units)
+  | 'srt'                // SRT - days
+  | 'hrt'                // HRT - hours
+  | 'returnRatio'        // RAS ratio
+  | 'electricityRate'    // THB/kWh
+  | 'laborRate'          // THB/hour
+
+/**
+ * Output metrics affected by sensitivity
+ */
+export type SensitivityOutput =
+  | 'effluentBOD'
+  | 'effluentCOD'
+  | 'effluentTSS'
+  | 'effluentTKN'
+  | 'effluentNH3'
+  | 'effluentTP'
+  | 'bodRemoval'
+  | 'codRemoval'
+  | 'tssRemoval'
+  | 'nitrogenRemoval'
+  | 'phosphorusRemoval'
+  | 'totalCapitalCost'
+  | 'totalOperatingCost'
+  | 'costPerM3'
+  | 'energyConsumption'
+  | 'kWhPerM3'
+  | 'sludgeProduction'
+  | 'complianceStatus'
+
+/**
+ * Range specification for sensitivity analysis
+ */
+export interface SensitivityRange {
+  min: number           // Minimum value (e.g., -30%)
+  max: number           // Maximum value (e.g., +30%)
+  steps: number         // Number of steps (e.g., 7 for -30, -20, -10, 0, +10, +20, +30)
+  type: 'percentage' | 'absolute'
+}
+
+/**
+ * Single sensitivity data point
+ */
+export interface SensitivityDataPoint {
+  inputValue: number          // Actual input value
+  inputVariation: number      // % variation from baseline
+  outputs: Record<SensitivityOutput, number>
+  compliance: boolean
+  issues: number              // Count of design issues
+}
+
+/**
+ * Result of sensitivity analysis for one parameter
+ */
+export interface SensitivityResult {
+  parameter: SensitivityParameter
+  parameterName: string
+  parameterNameThai: string
+  unit: string
+  baselineValue: number
+  dataPoints: SensitivityDataPoint[]
+
+  // Impact assessment
+  impactRanking: number        // 1 = highest impact
+  criticalThreshold?: {
+    direction: 'above' | 'below'
+    value: number
+    reason: string
+  }
+
+  // Statistical summary
+  elasticity: Record<SensitivityOutput, number>  // % change in output per 1% change in input
+}
+
+/**
+ * Complete sensitivity analysis
+ */
+export interface SensitivityAnalysis {
+  timestamp: Date
+  systemName: string
+
+  // Baseline scenario
+  baselineInfluent: WastewaterQuality
+  baselineEffluent: WastewaterQuality
+  baselineCost: CostEstimation
+  baselineEnergy: EnergyConsumption
+  baselineCompliance: boolean
+
+  // Results by parameter
+  results: SensitivityResult[]
+
+  // Summary
+  summary: {
+    mostSensitiveParameters: SensitivityParameter[]
+    leastSensitiveParameters: SensitivityParameter[]
+    criticalRisks: {
+      parameter: SensitivityParameter
+      threshold: number
+      consequence: string
+    }[]
+    robustnessScore: number     // 0-100, higher = more robust
+    recommendations: string[]
+  }
+
+  // Tornado chart data (sorted by impact)
+  tornadoData: {
+    parameter: SensitivityParameter
+    parameterName: string
+    lowValue: number
+    highValue: number
+    lowImpact: number           // % change in cost/compliance at low value
+    highImpact: number          // % change at high value
+    baselineValue: number
+  }[]
+}
+
+// ============================================
+// PHASE 2: AERATION SYSTEM DESIGN TYPES
+// ============================================
+
+/**
+ * Diffuser types with characteristics
+ */
+export type DiffuserType =
+  | 'fine_bubble_disc'       // Most common, 2-5mm bubbles
+  | 'fine_bubble_tube'       // Tube diffusers
+  | 'fine_bubble_panel'      // Panel/strip diffusers
+  | 'coarse_bubble'          // Large bubbles, mixing
+  | 'jet_aerator'            // High velocity jets
+  | 'mechanical_surface'     // Surface aerators
+  | 'brush_aerator'          // Oxidation ditch
+
+/**
+ * Diffuser specifications
+ */
+export interface DiffuserSpec {
+  type: DiffuserType
+  name: string
+  nameThai: string
+
+  // Performance
+  sote: number                // Standard Oxygen Transfer Efficiency (%)
+  alpha: number               // Process water/clean water ratio (0.4-0.8)
+  beta: number                // Salinity factor (0.95-0.99)
+  theta: number               // Temperature coefficient (1.024 typical)
+
+  // Physical
+  airflowPerUnit: {
+    min: number               // Nm³/h per diffuser
+    max: number
+    optimal: number
+  }
+  pressureDrop: number        // kPa at design airflow
+  submergence: number         // Typical submergence (m)
+
+  // Coverage
+  coveragePerUnit: number     // m² per diffuser
+
+  // Cost & maintenance
+  unitCost: number            // THB per diffuser
+  lifespan: number            // years
+  maintenanceInterval: number // months
+}
+
+/**
+ * Blower types
+ */
+export type BlowerType =
+  | 'positive_displacement'   // PD blowers
+  | 'multistage_centrifugal'  // Centrifugal blowers
+  | 'single_stage_turbo'      // High-speed turbo
+  | 'screw'                   // Screw compressors
+
+/**
+ * Blower specifications
+ */
+export interface BlowerSpec {
+  type: BlowerType
+  name: string
+
+  // Capacity
+  capacity: number            // Nm³/h
+  dischargePressure: number   // kPa
+  turndown: number            // % minimum flow
+
+  // Power
+  motorPower: number          // kW
+  specificPower: number       // kW per 100 Nm³/h
+  efficiency: number          // %
+
+  // Cost
+  capitalCost: number         // THB
+  operatingCost: number       // THB/year (maintenance)
+}
+
+/**
+ * DO (Dissolved Oxygen) profile point
+ */
+export interface DOProfilePoint {
+  position: number            // Distance from inlet (m or %)
+  depth: number               // Depth from surface (m)
+  doConcentration: number     // mg/L
+  oxygenUptakeRate: number    // mg/L·h
+  isAnoxic: boolean           // DO < 0.5 mg/L
+}
+
+/**
+ * Oxygen transfer calculation parameters
+ */
+export interface OxygenTransferParams {
+  // Standard conditions
+  sotr: number                // Standard Oxygen Transfer Rate (kg O₂/h)
+  sote: number                // Standard Oxygen Transfer Efficiency (%)
+  sor: number                 // Standard Oxygen Requirement (kg O₂/day)
+
+  // Actual conditions
+  aotr: number                // Actual Oxygen Transfer Rate (kg O₂/h)
+  aote: number                // Actual Oxygen Transfer Efficiency (%)
+  aor: number                 // Actual Oxygen Requirement (kg O₂/day)
+
+  // Correction factors
+  alpha: number               // Wastewater/clean water (0.4-0.9)
+  beta: number                // Salinity (0.95-0.99)
+  theta: number               // Temperature (1.024)
+  F: number                   // Fouling factor (0.65-0.9)
+
+  // Operating conditions
+  temperature: number         // °C
+  elevation: number           // m above sea level
+  csInf: number               // Saturated DO at infinite time (mg/L)
+  cs20: number                // Saturated DO at 20°C (mg/L)
+  doOperating: number         // Operating DO (mg/L)
+}
+
+/**
+ * Complete aeration system design
+ */
+export interface AerationSystemDesign {
+  // Basic parameters
+  tankVolume: number          // m³
+  tankDepth: number           // m
+  tankArea: number            // m²
+  numberOfZones: number       // For step aeration
+
+  // Oxygen requirements
+  oxygenDemand: {
+    carbonaceous: number      // kg O₂/day for BOD
+    nitrogenous: number       // kg O₂/day for nitrification
+    endogenous: number        // kg O₂/day for endogenous respiration
+    total: number             // kg O₂/day
+    peakFactor: number        // Peak/average ratio
+    peakDemand: number        // kg O₂/day at peak
+  }
+
+  // Oxygen transfer
+  transfer: OxygenTransferParams
+
+  // Diffuser system
+  diffuserSystem: {
+    type: DiffuserType
+    spec: DiffuserSpec
+    numberOfDiffusers: number
+    diffuserDensity: number   // diffusers/m²
+    gridLayout: {
+      rows: number
+      columns: number
+      spacing: number         // m between diffusers
+    }
+    airflowPerDiffuser: number // Nm³/h
+    totalAirflow: number      // Nm³/h
+  }
+
+  // Blower system
+  blowerSystem: {
+    type: BlowerType
+    numberOfBlowers: number
+    numberOfStandby: number
+    capacityPerBlower: number // Nm³/h
+    totalCapacity: number     // Nm³/h
+    dischargePressure: number // kPa
+    motorPower: number        // kW per blower
+    totalPower: number        // kW
+    turndownRatio: number     // %
+    vfdRequired: boolean
+  }
+
+  // Piping
+  pipingSystem: {
+    mainHeaderDiameter: number    // mm
+    dropPipeDiameter: number      // mm
+    mainHeaderLength: number      // m
+    numberOfDropPipes: number
+    totalPressureDrop: number     // kPa
+    airVelocity: number           // m/s in header
+  }
+
+  // Control
+  controlSystem: {
+    doControl: 'manual' | 'on_off' | 'pid' | 'advanced'
+    doSetpoint: number            // mg/L
+    doSensors: number
+    airflowControl: 'manual' | 'vfd' | 'valve'
+  }
+
+  // DO profile (optional)
+  doProfile?: DOProfilePoint[]
+
+  // Energy
+  energyConsumption: {
+    blowerPower: number           // kW
+    dailyEnergy: number           // kWh/day
+    annualEnergy: number          // kWh/year
+    kWhPerKgO2: number            // Efficiency
+    kWhPerM3: number              // Per volume treated
+    annualCost: number            // THB/year
+  }
+
+  // Cost
+  capitalCost: {
+    diffusers: number             // THB
+    blowers: number               // THB
+    piping: number                // THB
+    controls: number              // THB
+    installation: number          // THB
+    total: number                 // THB
+  }
+
+  // Design validation
+  validation: {
+    isValid: boolean
+    issues: DesignIssue[]
+    warnings: string[]
+    recommendations: string[]
+  }
+}
+
+// ============================================
+// PHASE 2: BNR (BIOLOGICAL NUTRIENT REMOVAL) TYPES
+// ============================================
+
+/**
+ * BNR process configurations
+ */
+export type BNRProcessType =
+  | 'mle'                     // Modified Ludzack-Ettinger (N removal)
+  | 'a2o'                     // Anaerobic-Anoxic-Oxic (N+P removal)
+  | 'bardenpho_4stage'        // 4-stage Bardenpho (N removal)
+  | 'bardenpho_5stage'        // 5-stage Bardenpho (N+P removal)
+  | 'uct'                     // University of Cape Town (N+P)
+  | 'vip'                     // Virginia Initiative Plant (N+P)
+  | 'johannesburg'            // Johannesburg Process (N+P)
+  | 'step_feed'               // Step-feed BNR
+  | 'sbr_bnr'                 // SBR with nutrient removal
+
+/**
+ * BNR process configuration metadata
+ */
+export interface BNRProcessConfig {
+  type: BNRProcessType
+  name: string
+  nameThai: string
+  description: string
+
+  // Process capabilities
+  nitrogenRemoval: boolean
+  phosphorusRemoval: boolean
+  typicalTNRemoval: [number, number]     // % range
+  typicalTPRemoval: [number, number]     // % range
+
+  // Zone configuration
+  zones: Array<{
+    name: string
+    type: 'anaerobic' | 'anoxic' | 'aerobic'
+    hrtFraction: number          // Fraction of total HRT
+    doRange: [number, number]    // mg/L
+    purpose: string
+  }>
+
+  // Recycle streams
+  recycles: Array<{
+    name: string
+    from: string
+    to: string
+    typicalRatio: number         // Q_recycle / Q_influent
+  }>
+
+  // Design criteria
+  designCriteria: {
+    totalHRT: [number, number]   // hours
+    srt: [number, number]        // days
+    mlss: [number, number]       // mg/L
+    fmRatio: [number, number]    // kg BOD/kg MLVSS·d
+  }
+
+  // Suitability
+  suitableFor: string[]
+  complexity: 'low' | 'medium' | 'high'
+  footprint: 'compact' | 'medium' | 'large'
+  energyIntensity: 'low' | 'medium' | 'high'
+}
+
+/**
+ * Nitrification design parameters
+ */
+export interface NitrificationParams {
+  // Influent nitrogen
+  tknInfluent: number           // mg/L
+  ammoniaInfluent: number       // mg/L
+  organicN: number              // mg/L (TKN - NH3)
+
+  // Nitrifier kinetics (Monod)
+  muMaxAOB: number              // Max specific growth rate AOB (day⁻¹)
+  muMaxNOB: number              // Max specific growth rate NOB (day⁻¹)
+  ksNH4: number                 // Half-saturation NH4 (mg/L)
+  ksO2: number                  // Half-saturation O2 (mg/L)
+  kdAOB: number                 // Decay rate AOB (day⁻¹)
+  kdNOB: number                 // Decay rate NOB (day⁻¹)
+
+  // Temperature correction
+  temperature: number           // °C
+  thetaMu: number               // Temperature coefficient for mu
+  thetaKd: number               // Temperature coefficient for kd
+
+  // Calculated rates
+  muNetAOB: number              // Net growth rate at operating T
+  muNetNOB: number              // Net growth rate at operating T
+  minSRT: number                // Minimum SRT for nitrification (days)
+  designSRT: number             // Design SRT with safety factor (days)
+  safetyFactor: number          // Typically 1.5-2.5
+
+  // Oxygen requirement
+  o2PerNH4: number              // kg O2/kg NH4-N oxidized (4.57)
+
+  // Alkalinity consumption
+  alkPerNH4: number             // mg CaCO3/mg NH4-N (7.14)
+  alkalinityRequired: number    // mg/L as CaCO3
+
+  // Effluent quality
+  effluentNH3: number           // mg/L
+  nitrificationEfficiency: number // %
+}
+
+/**
+ * Denitrification design parameters
+ */
+export interface DenitrificationParams {
+  // Nitrate loading
+  nitrateInfluent: number       // mg/L (from nitrification or external)
+  nitrateToRemove: number       // mg/L
+
+  // Carbon source
+  carbonSource: 'wastewater' | 'methanol' | 'acetate' | 'glycerol' | 'external'
+  rbCODInfluent: number         // Readily biodegradable COD (mg/L)
+  carbonRequired: number        // mg COD/mg NO3-N
+  externalCarbonDose?: number   // mg/L (if external)
+
+  // Denitrifier kinetics
+  sdnr: number                  // Specific Denitrification Rate (g NO3-N/g MLVSS·d)
+  temperature: number           // °C
+  sdnrCorrected: number         // Temperature-corrected SDNR
+
+  // Zone design
+  anoxicVolume: number          // m³
+  anoxicHRT: number             // hours
+  anoxicFraction: number        // % of total volume
+
+  // Recycle
+  internalRecycleRatio: number  // IR ratio (Q_recycle/Q)
+  nitrateFeedback: number       // mg/L NO3-N in return
+
+  // Oxygen equivalent
+  o2EquivalentPerNO3: number    // kg O2-eq/kg NO3-N (2.86)
+  o2Savings: number             // kg O2/day saved
+
+  // Alkalinity recovery
+  alkRecoveryPerNO3: number     // mg CaCO3/mg NO3-N (3.57)
+  alkalinityRecovered: number   // mg/L as CaCO3
+
+  // Effluent quality
+  effluentNO3: number           // mg/L
+  denitrificationEfficiency: number // %
+}
+
+/**
+ * Phosphorus removal parameters
+ */
+export interface PhosphorusRemovalParams {
+  // Influent phosphorus
+  totalPInfluent: number        // mg/L
+  orthoPInfluent: number        // mg/L (soluble reactive P)
+  particulateP: number          // mg/L
+
+  // Biological P removal (EBPR)
+  ebprEnabled: boolean
+  paoGrowthRate: number         // day⁻¹
+  pContent: number              // P content in PAO biomass (%)
+  vfaRequired: number           // mg VFA/mg P removed
+  vfaAvailable: number          // mg/L in wastewater
+  anaerobicHRT: number          // hours (typically 1-2h)
+  anaerobicVolume: number       // m³
+
+  // Biological P removal capacity
+  bioP: {
+    removal: number             // mg/L P removed biologically
+    efficiency: number          // %
+    sludgeP: number             // kg P/day in WAS
+  }
+
+  // Chemical P removal (supplemental or primary)
+  chemPEnabled: boolean
+  chemical: 'alum' | 'ferric_chloride' | 'ferric_sulfate' | 'lime' | 'pac'
+  chemicalDose: number          // mg/L as metal or chemical
+  molarRatio: number            // Moles metal / moles P
+  chemPRecipitated: number      // mg/L P removed chemically
+  sludgeIncrease: number        // % increase in sludge from chemical
+
+  // Chemical properties
+  chemicalProperties: {
+    molecularWeight: number
+    metalContent: number        // % (for Fe or Al compounds)
+    costPerKg: number           // THB/kg
+    pHEffect: number            // Approximate pH drop per mg/L
+  }
+
+  // Effluent quality
+  effluentTP: number            // mg/L
+  effluentOrthoP: number        // mg/L
+  totalPRemoval: number         // %
+
+  // Operating costs
+  chemicalCost: number          // THB/day
+  alkalinityLoss: number        // mg/L as CaCO3
+}
+
+/**
+ * Complete BNR design
+ */
+export interface BNRDesign {
+  // Process selection
+  processType: BNRProcessType
+  processConfig: BNRProcessConfig
+
+  // Design basis
+  flowRate: number              // m³/day
+  temperature: number           // °C design temperature
+
+  // Influent characteristics
+  influent: {
+    bod: number
+    cod: number
+    tss: number
+    tkn: number
+    ammonia: number
+    totalP: number
+    alkalinity: number
+    rbCOD: number               // Readily biodegradable COD
+    vfa: number                 // Volatile Fatty Acids
+    codToN: number              // COD:TKN ratio
+    codToP: number              // COD:TP ratio
+  }
+
+  // Target effluent
+  target: {
+    bod: number
+    tss: number
+    ammonia: number
+    totalN: number
+    totalP: number
+  }
+
+  // Zone volumes and HRTs
+  zones: Array<{
+    name: string
+    type: 'anaerobic' | 'anoxic' | 'aerobic' | 'reaeration'
+    volume: number              // m³
+    hrt: number                 // hours
+    dimensions: {
+      length: number
+      width: number
+      depth: number
+    }
+    mixerPower?: number         // kW (for anoxic/anaerobic)
+    aerationCapacity?: number   // kg O2/day (for aerobic)
+    doSetpoint?: number         // mg/L
+  }>
+
+  // Total system
+  totalVolume: number           // m³
+  totalHRT: number              // hours
+  srt: number                   // days
+  mlss: number                  // mg/L
+  mlvss: number                 // mg/L
+
+  // Recycle streams
+  recycles: Array<{
+    name: string
+    from: string
+    to: string
+    flowRate: number            // m³/day
+    ratio: number               // Multiple of Q
+    pumpCapacity: number        // m³/h
+    pumpHead: number            // m
+    pumpPower: number           // kW
+  }>
+
+  // Nitrification design
+  nitrification: NitrificationParams
+
+  // Denitrification design
+  denitrification: DenitrificationParams
+
+  // P removal design
+  phosphorusRemoval: PhosphorusRemovalParams
+
+  // Overall performance
+  performance: {
+    bodRemoval: number          // %
+    codRemoval: number          // %
+    tssRemoval: number          // %
+    tknRemoval: number          // %
+    ammoniaRemoval: number      // %
+    totalNRemoval: number       // %
+    totalPRemoval: number       // %
+  }
+
+  // Effluent quality
+  effluent: {
+    bod: number
+    cod: number
+    tss: number
+    ammonia: number
+    nitrate: number
+    totalN: number
+    totalP: number
+  }
+
+  // Oxygen requirements
+  oxygenDemand: {
+    carbonaceous: number        // kg O2/day
+    nitrogenous: number         // kg O2/day
+    denitrificationCredit: number // kg O2/day saved
+    totalGross: number          // kg O2/day before credit
+    totalNet: number            // kg O2/day after credit
+    peakFactor: number
+    peakDemand: number
+  }
+
+  // Alkalinity balance
+  alkalinityBalance: {
+    influent: number            // mg/L as CaCO3
+    consumedNitrification: number // mg/L
+    recoveredDenitrification: number // mg/L
+    consumedChemP: number       // mg/L
+    netBalance: number          // mg/L
+    supplementRequired: number  // kg/day of alkalinity
+    chemicalType: 'lime' | 'soda_ash' | 'sodium_bicarbonate'
+    chemicalDose: number        // kg/day
+  }
+
+  // Sludge production
+  sludgeProduction: {
+    heterotrophic: number       // kg VSS/day
+    autotrophic: number         // kg VSS/day (nitrifiers)
+    paoSludge: number           // kg VSS/day
+    chemicalSludge: number      // kg SS/day
+    totalVSS: number            // kg VSS/day
+    totalTSS: number            // kg TSS/day
+    observedYield: number       // kg TSS/kg BOD removed
+  }
+
+  // Energy
+  energy: {
+    aerationPower: number       // kW
+    mixingPower: number         // kW
+    pumpingPower: number        // kW
+    totalPower: number          // kW
+    dailyEnergy: number         // kWh/day
+    kWhPerM3: number
+    kWhPerKgN: number           // Per kg N removed
+    kWhPerKgP: number           // Per kg P removed
+  }
+
+  // Cost
+  cost: {
+    capital: {
+      tanks: number
+      equipment: number
+      chemical: number
+      total: number
+    }
+    operating: {
+      energy: number            // THB/year
+      chemicals: number         // THB/year
+      sludgeDisposal: number    // THB/year
+      labor: number             // THB/year
+      total: number             // THB/year
+    }
+    costPerM3: number           // THB/m³
+    costPerKgN: number          // THB/kg N removed
+    costPerKgP: number          // THB/kg P removed
+  }
+
+  // Validation
+  validation: {
+    isValid: boolean
+    issues: DesignIssue[]
+    warnings: string[]
+    recommendations: string[]
+  }
+}
+
+/**
+ * BNR process metadata constant
+ */
+export const BNR_PROCESS_CONFIGS: Record<BNRProcessType, BNRProcessConfig> = {
+  mle: {
+    type: 'mle',
+    name: 'Modified Ludzack-Ettinger (MLE)',
+    nameThai: 'ระบบ MLE',
+    description: 'Basic nitrogen removal with anoxic zone before aerobic',
+    nitrogenRemoval: true,
+    phosphorusRemoval: false,
+    typicalTNRemoval: [60, 80],
+    typicalTPRemoval: [15, 30],
+    zones: [
+      { name: 'Anoxic', type: 'anoxic', hrtFraction: 0.3, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'Aerobic', type: 'aerobic', hrtFraction: 0.7, doRange: [1.5, 3.0], purpose: 'BOD removal + Nitrification' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Aerobic', to: 'Anoxic', typicalRatio: 2.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Anoxic', typicalRatio: 0.5 },
+    ],
+    designCriteria: { totalHRT: [8, 16], srt: [10, 20], mlss: [2500, 4000], fmRatio: [0.1, 0.25] },
+    suitableFor: ['Municipal with TN limits', 'Industrial with high nitrogen'],
+    complexity: 'low',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  a2o: {
+    type: 'a2o',
+    name: 'A²/O (Anaerobic-Anoxic-Oxic)',
+    nameThai: 'ระบบ A2O',
+    description: 'Combined nitrogen and phosphorus removal',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [60, 80],
+    typicalTPRemoval: [70, 90],
+    zones: [
+      { name: 'Anaerobic', type: 'anaerobic', hrtFraction: 0.15, doRange: [0, 0.2], purpose: 'VFA uptake by PAOs' },
+      { name: 'Anoxic', type: 'anoxic', hrtFraction: 0.25, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'Aerobic', type: 'aerobic', hrtFraction: 0.6, doRange: [1.5, 3.0], purpose: 'BOD, NH4, P uptake' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Aerobic', to: 'Anoxic', typicalRatio: 2.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Anaerobic', typicalRatio: 0.5 },
+    ],
+    designCriteria: { totalHRT: [10, 20], srt: [12, 25], mlss: [3000, 5000], fmRatio: [0.08, 0.2] },
+    suitableFor: ['Municipal with N&P limits', 'Sensitive receiving waters'],
+    complexity: 'medium',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  bardenpho_4stage: {
+    type: 'bardenpho_4stage',
+    name: '4-Stage Bardenpho',
+    nameThai: 'บาร์เดนโฟ 4 ขั้นตอน',
+    description: 'High nitrogen removal with secondary anoxic zone',
+    nitrogenRemoval: true,
+    phosphorusRemoval: false,
+    typicalTNRemoval: [80, 95],
+    typicalTPRemoval: [20, 40],
+    zones: [
+      { name: 'Primary Anoxic', type: 'anoxic', hrtFraction: 0.25, doRange: [0, 0.5], purpose: 'Primary denitrification' },
+      { name: 'Primary Aerobic', type: 'aerobic', hrtFraction: 0.45, doRange: [1.5, 3.0], purpose: 'BOD + Nitrification' },
+      { name: 'Secondary Anoxic', type: 'anoxic', hrtFraction: 0.2, doRange: [0, 0.5], purpose: 'Secondary denitrification' },
+      { name: 'Reaeration', type: 'aerobic', hrtFraction: 0.1, doRange: [2.0, 4.0], purpose: 'Strip N2, final polish' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Primary Aerobic', to: 'Primary Anoxic', typicalRatio: 4.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Primary Anoxic', typicalRatio: 0.5 },
+    ],
+    designCriteria: { totalHRT: [12, 24], srt: [15, 30], mlss: [3000, 4500], fmRatio: [0.05, 0.15] },
+    suitableFor: ['Stringent TN limits (<5 mg/L)', 'Reuse applications'],
+    complexity: 'high',
+    footprint: 'large',
+    energyIntensity: 'medium',
+  },
+  bardenpho_5stage: {
+    type: 'bardenpho_5stage',
+    name: '5-Stage Bardenpho',
+    nameThai: 'บาร์เดนโฟ 5 ขั้นตอน',
+    description: 'Maximum N&P removal with anaerobic zone',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [85, 95],
+    typicalTPRemoval: [80, 95],
+    zones: [
+      { name: 'Anaerobic', type: 'anaerobic', hrtFraction: 0.1, doRange: [0, 0.2], purpose: 'VFA for PAOs' },
+      { name: 'Primary Anoxic', type: 'anoxic', hrtFraction: 0.2, doRange: [0, 0.5], purpose: 'Primary denit' },
+      { name: 'Primary Aerobic', type: 'aerobic', hrtFraction: 0.4, doRange: [1.5, 3.0], purpose: 'BOD + Nitrif + P' },
+      { name: 'Secondary Anoxic', type: 'anoxic', hrtFraction: 0.2, doRange: [0, 0.5], purpose: 'Secondary denit' },
+      { name: 'Reaeration', type: 'aerobic', hrtFraction: 0.1, doRange: [2.0, 4.0], purpose: 'Final polish' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Primary Aerobic', to: 'Primary Anoxic', typicalRatio: 4.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Anaerobic', typicalRatio: 0.5 },
+    ],
+    designCriteria: { totalHRT: [14, 28], srt: [15, 30], mlss: [3000, 5000], fmRatio: [0.05, 0.12] },
+    suitableFor: ['Most stringent N&P limits', 'Sensitive ecosystems'],
+    complexity: 'high',
+    footprint: 'large',
+    energyIntensity: 'high',
+  },
+  uct: {
+    type: 'uct',
+    name: 'UCT (University of Cape Town)',
+    nameThai: 'ระบบ UCT',
+    description: 'Optimized P removal with separate anoxic RAS return',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [60, 80],
+    typicalTPRemoval: [85, 95],
+    zones: [
+      { name: 'Anaerobic', type: 'anaerobic', hrtFraction: 0.15, doRange: [0, 0.2], purpose: 'VFA for PAOs (no NO3)' },
+      { name: 'Anoxic', type: 'anoxic', hrtFraction: 0.25, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'Aerobic', type: 'aerobic', hrtFraction: 0.6, doRange: [1.5, 3.0], purpose: 'BOD + N + P' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Aerobic', to: 'Anoxic', typicalRatio: 2.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Anoxic', typicalRatio: 1.0 },
+      { name: 'Anoxic Recycle', from: 'Anoxic', to: 'Anaerobic', typicalRatio: 1.0 },
+    ],
+    designCriteria: { totalHRT: [10, 20], srt: [12, 25], mlss: [3000, 5000], fmRatio: [0.08, 0.18] },
+    suitableFor: ['High P removal priority', 'Low rbCOD wastewaters'],
+    complexity: 'high',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  vip: {
+    type: 'vip',
+    name: 'VIP (Virginia Initiative Plant)',
+    nameThai: 'ระบบ VIP',
+    description: 'Similar to UCT with enhanced N removal',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [70, 85],
+    typicalTPRemoval: [80, 95],
+    zones: [
+      { name: 'Anaerobic', type: 'anaerobic', hrtFraction: 0.12, doRange: [0, 0.2], purpose: 'VFA uptake' },
+      { name: 'Primary Anoxic', type: 'anoxic', hrtFraction: 0.25, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'Aerobic', type: 'aerobic', hrtFraction: 0.5, doRange: [1.5, 3.0], purpose: 'BOD + N + P' },
+      { name: 'Secondary Anoxic', type: 'anoxic', hrtFraction: 0.13, doRange: [0, 0.5], purpose: 'Polishing denit' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Aerobic', to: 'Primary Anoxic', typicalRatio: 2.0 },
+      { name: 'RAS', from: 'Clarifier', to: 'Primary Anoxic', typicalRatio: 0.5 },
+      { name: 'Anoxic Recycle', from: 'Primary Anoxic', to: 'Anaerobic', typicalRatio: 1.5 },
+    ],
+    designCriteria: { totalHRT: [12, 24], srt: [15, 30], mlss: [3000, 5000], fmRatio: [0.06, 0.15] },
+    suitableFor: ['Balanced N&P removal', 'Retrofit existing plants'],
+    complexity: 'high',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  johannesburg: {
+    type: 'johannesburg',
+    name: 'Johannesburg Process',
+    nameThai: 'กระบวนการโจฮันเนสเบิร์ก',
+    description: 'Simplified A2O with sidestream fermentation option',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [55, 75],
+    typicalTPRemoval: [70, 90],
+    zones: [
+      { name: 'Anaerobic', type: 'anaerobic', hrtFraction: 0.1, doRange: [0, 0.2], purpose: 'VFA from sidestream' },
+      { name: 'Anoxic', type: 'anoxic', hrtFraction: 0.3, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'Aerobic', type: 'aerobic', hrtFraction: 0.6, doRange: [1.5, 3.0], purpose: 'BOD + N + P' },
+    ],
+    recycles: [
+      { name: 'Internal Recycle', from: 'Aerobic', to: 'Anoxic', typicalRatio: 1.5 },
+      { name: 'RAS', from: 'Clarifier', to: 'Anoxic', typicalRatio: 0.75 },
+    ],
+    designCriteria: { totalHRT: [8, 18], srt: [10, 25], mlss: [2500, 4500], fmRatio: [0.08, 0.2] },
+    suitableFor: ['Low rbCOD influent', 'Primary sludge fermentation available'],
+    complexity: 'medium',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  step_feed: {
+    type: 'step_feed',
+    name: 'Step-Feed BNR',
+    nameThai: 'ระบบป้อนแบบขั้นบันได',
+    description: 'Multiple feed points for carbon distribution',
+    nitrogenRemoval: true,
+    phosphorusRemoval: false,
+    typicalTNRemoval: [70, 90],
+    typicalTPRemoval: [20, 40],
+    zones: [
+      { name: 'Stage 1 Anoxic', type: 'anoxic', hrtFraction: 0.15, doRange: [0, 0.5], purpose: 'Denit with feed 1' },
+      { name: 'Stage 1 Aerobic', type: 'aerobic', hrtFraction: 0.25, doRange: [1.5, 3.0], purpose: 'Nitrification' },
+      { name: 'Stage 2 Anoxic', type: 'anoxic', hrtFraction: 0.15, doRange: [0, 0.5], purpose: 'Denit with feed 2' },
+      { name: 'Stage 2 Aerobic', type: 'aerobic', hrtFraction: 0.25, doRange: [1.5, 3.0], purpose: 'Nitrification' },
+      { name: 'Stage 3 Anoxic', type: 'anoxic', hrtFraction: 0.1, doRange: [0, 0.5], purpose: 'Denit with RAS' },
+      { name: 'Stage 3 Aerobic', type: 'aerobic', hrtFraction: 0.1, doRange: [2.0, 4.0], purpose: 'Polish' },
+    ],
+    recycles: [
+      { name: 'RAS', from: 'Clarifier', to: 'Stage 3 Anoxic', typicalRatio: 0.5 },
+    ],
+    designCriteria: { totalHRT: [10, 20], srt: [12, 25], mlss: [2500, 4000], fmRatio: [0.08, 0.2] },
+    suitableFor: ['Existing plug-flow tanks', 'Good carbon utilization'],
+    complexity: 'medium',
+    footprint: 'medium',
+    energyIntensity: 'medium',
+  },
+  sbr_bnr: {
+    type: 'sbr_bnr',
+    name: 'SBR with BNR',
+    nameThai: 'ระบบ SBR แบบ BNR',
+    description: 'Sequencing batch reactor with nutrient removal',
+    nitrogenRemoval: true,
+    phosphorusRemoval: true,
+    typicalTNRemoval: [70, 90],
+    typicalTPRemoval: [70, 90],
+    zones: [
+      { name: 'Fill/Anaerobic', type: 'anaerobic', hrtFraction: 0.2, doRange: [0, 0.2], purpose: 'VFA uptake' },
+      { name: 'React/Anoxic', type: 'anoxic', hrtFraction: 0.2, doRange: [0, 0.5], purpose: 'Denitrification' },
+      { name: 'React/Aerobic', type: 'aerobic', hrtFraction: 0.35, doRange: [1.5, 3.0], purpose: 'BOD + N + P' },
+      { name: 'Settle', type: 'anoxic', hrtFraction: 0.15, doRange: [0, 0.5], purpose: 'Clarification' },
+      { name: 'Decant/Idle', type: 'anoxic', hrtFraction: 0.1, doRange: [0, 0.5], purpose: 'Discharge' },
+    ],
+    recycles: [],
+    designCriteria: { totalHRT: [12, 24], srt: [15, 30], mlss: [3000, 5000], fmRatio: [0.05, 0.15] },
+    suitableFor: ['Small-medium flows', 'Variable loads', 'Space constraints'],
+    complexity: 'medium',
+    footprint: 'compact',
+    energyIntensity: 'medium',
+  },
+}
+
+/**
+ * Diffuser specifications constant
+ */
+export const DIFFUSER_SPECS: Record<DiffuserType, DiffuserSpec> = {
+  fine_bubble_disc: {
+    type: 'fine_bubble_disc',
+    name: 'Fine Bubble Disc Diffuser',
+    nameThai: 'ดิฟฟิวเซอร์แผ่นกลมฟองละเอียด',
+    sote: 25,
+    alpha: 0.6,
+    beta: 0.98,
+    theta: 1.024,
+    airflowPerUnit: { min: 1.5, max: 8, optimal: 4 },
+    pressureDrop: 3.5,
+    submergence: 4.5,
+    coveragePerUnit: 0.8,
+    unitCost: 2500,
+    lifespan: 8,
+    maintenanceInterval: 24,
+  },
+  fine_bubble_tube: {
+    type: 'fine_bubble_tube',
+    name: 'Fine Bubble Tube Diffuser',
+    nameThai: 'ดิฟฟิวเซอร์ท่อฟองละเอียด',
+    sote: 23,
+    alpha: 0.6,
+    beta: 0.98,
+    theta: 1.024,
+    airflowPerUnit: { min: 3, max: 15, optimal: 8 },
+    pressureDrop: 3.0,
+    submergence: 4.5,
+    coveragePerUnit: 1.2,
+    unitCost: 4000,
+    lifespan: 10,
+    maintenanceInterval: 24,
+  },
+  fine_bubble_panel: {
+    type: 'fine_bubble_panel',
+    name: 'Fine Bubble Panel Diffuser',
+    nameThai: 'ดิฟฟิวเซอร์แผงฟองละเอียด',
+    sote: 28,
+    alpha: 0.55,
+    beta: 0.98,
+    theta: 1.024,
+    airflowPerUnit: { min: 5, max: 25, optimal: 12 },
+    pressureDrop: 4.0,
+    submergence: 4.5,
+    coveragePerUnit: 2.0,
+    unitCost: 8000,
+    lifespan: 10,
+    maintenanceInterval: 36,
+  },
+  coarse_bubble: {
+    type: 'coarse_bubble',
+    name: 'Coarse Bubble Diffuser',
+    nameThai: 'ดิฟฟิวเซอร์ฟองหยาบ',
+    sote: 8,
+    alpha: 0.8,
+    beta: 0.99,
+    theta: 1.024,
+    airflowPerUnit: { min: 10, max: 50, optimal: 25 },
+    pressureDrop: 1.5,
+    submergence: 3.0,
+    coveragePerUnit: 3.0,
+    unitCost: 1500,
+    lifespan: 15,
+    maintenanceInterval: 12,
+  },
+  jet_aerator: {
+    type: 'jet_aerator',
+    name: 'Jet Aerator',
+    nameThai: 'เครื่องเติมอากาศแบบเจ็ท',
+    sote: 20,
+    alpha: 0.7,
+    beta: 0.98,
+    theta: 1.024,
+    airflowPerUnit: { min: 50, max: 300, optimal: 150 },
+    pressureDrop: 15,
+    submergence: 3.5,
+    coveragePerUnit: 25,
+    unitCost: 150000,
+    lifespan: 15,
+    maintenanceInterval: 12,
+  },
+  mechanical_surface: {
+    type: 'mechanical_surface',
+    name: 'Mechanical Surface Aerator',
+    nameThai: 'เครื่องเติมอากาศผิวน้ำ',
+    sote: 15,
+    alpha: 0.85,
+    beta: 0.99,
+    theta: 1.024,
+    airflowPerUnit: { min: 0, max: 0, optimal: 0 },
+    pressureDrop: 0,
+    submergence: 0.3,
+    coveragePerUnit: 100,
+    unitCost: 250000,
+    lifespan: 15,
+    maintenanceInterval: 6,
+  },
+  brush_aerator: {
+    type: 'brush_aerator',
+    name: 'Brush Aerator',
+    nameThai: 'เครื่องเติมอากาศแบบแปรง',
+    sote: 12,
+    alpha: 0.85,
+    beta: 0.99,
+    theta: 1.024,
+    airflowPerUnit: { min: 0, max: 0, optimal: 0 },
+    pressureDrop: 0,
+    submergence: 0.5,
+    coveragePerUnit: 50,
+    unitCost: 350000,
+    lifespan: 20,
+    maintenanceInterval: 6,
+  },
+}
