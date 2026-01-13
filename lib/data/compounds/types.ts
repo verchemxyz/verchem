@@ -29,7 +29,31 @@ export type CompoundCategory =
   | 'superconductor'
   | 'natural-product'
   | 'solvent'
+  | 'water-treatment'
   | 'other'
+  // Extended categories for comprehensive database
+  | 'carbon'
+  | 'metalloid'
+  | 'metal'
+  | 'alloy'
+  | 'ceramic'
+  | 'glass'
+  | 'sulfide'
+  | 'silicate'
+  | 'hydroxide'
+  | 'anhydride'
+  | 'nitrile'
+  | 'isocyanate'
+  | 'halogenated-hydrocarbon'
+  | 'ether'
+  | 'phenol'
+  | 'dye'
+  | 'surfactant'
+  | 'terpenoid'
+  | 'glycoside'
+  | 'complex'
+  | 'quinone'
+  | 'polysaccharide'
 
 export interface Compound {
   id: string
@@ -42,6 +66,7 @@ export interface Compound {
   casNumber?: string
   cas?: string // legacy alias
   category: CompoundCategory
+  subcategory?: string // finer classification
   physicalState: PhysicalState
   meltingPoint?: number
   boilingPoint?: number
@@ -52,6 +77,7 @@ export interface Compound {
   pKa?: number
   pKb?: number
   hazards?: string[] | Array<{ type?: string; ghsCode?: string; severity?: string }>
+  ghs?: string[] // GHS pictogram codes (GHS01-GHS09)
   uses?: string[]
 }
 

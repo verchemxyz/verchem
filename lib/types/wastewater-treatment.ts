@@ -101,9 +101,13 @@ export type UnitType =
   // Preliminary
   | 'bar_screen'
   | 'grit_chamber'
+  | 'equalization_tank'
+  | 'fine_screen'
   // Primary
   | 'primary_clarifier'
   | 'oil_separator'
+  | 'imhoff_tank'
+  | 'api_separator'
   // Biological
   | 'aeration_tank'
   | 'sbr'
@@ -111,6 +115,14 @@ export type UnitType =
   | 'oxidation_pond'
   | 'trickling_filter'
   | 'mbr'
+  | 'mbbr'
+  | 'ifas'
+  | 'bardenpho'
+  | 'a2o'
+  | 'rbc'
+  | 'constructed_wetland'
+  | 'aerated_lagoon'
+  | 'contact_stabilization'
   // Secondary
   | 'secondary_clarifier'
   | 'daf'
@@ -118,10 +130,18 @@ export type UnitType =
   | 'filtration'
   | 'chlorination'
   | 'uv_disinfection'
+  | 'ozonation'
+  | 'membrane_filtration'
+  | 'activated_carbon'
+  | 'coagulation_flocculation'
+  | 'advanced_oxidation'
   // Sludge
   | 'thickener'
   | 'digester'
   | 'dewatering'
+  | 'belt_filter_press'
+  | 'centrifuge_dewatering'
+  | 'sludge_drying_bed'
 
 /**
  * Base treatment unit interface
@@ -671,25 +691,792 @@ export interface UVDisinfectionUnit extends TreatmentUnitBase {
 }
 
 // ============================================
+// NEW PRELIMINARY UNITS
+// ============================================
+
+/**
+ * Equalization Tank Design Parameters
+ * Flow and load equalization
+ */
+export interface EqualizationTankDesign {
+  tankType: 'in_line' | 'side_line' | 'offline'
+  shape: 'circular' | 'rectangular'
+  length?: number           // m (rectangular)
+  width?: number            // m (rectangular)
+  diameter?: number         // m (circular)
+  depth: number             // m (3-5)
+  volume: number            // m³
+  surfaceArea: number       // m²
+
+  // Equalization Parameters
+  hrt: number               // hours (6-12)
+  peakDampingFactor: number // reduction in peak flow
+  mixingType: 'mechanical' | 'aeration' | 'jet'
+  mixingPower: number       // kW
+
+  // Aeration (if used)
+  airFlow?: number          // m³/h
+  doMaintained?: number     // mg/L (0.5-1.0)
+}
+
+export interface EqualizationTankUnit extends TreatmentUnitBase {
+  type: 'equalization_tank'
+  category: 'preliminary'
+  design: EqualizationTankDesign
+}
+
+/**
+ * Fine Screen Design Parameters
+ * Micro-screening for primary treatment bypass
+ */
+export interface FineScreenDesign {
+  screenType: 'drum' | 'step' | 'disk' | 'band'
+  openingSize: number       // mm (0.25-6)
+  screenArea: number        // m²
+  numberOfUnits: number
+
+  // Hydraulics
+  hydraulicCapacity: number // m³/h
+  headloss: number          // mm
+  bypassCapacity: number    // m³/h
+
+  // Drive
+  drumDiameter?: number     // m (for drum)
+  drumWidth?: number        // m
+  rotationalSpeed: number   // rpm
+  motorPower: number        // kW
+
+  // Washing
+  washWaterRate: number     // L/s
+  washWaterPressure: number // bar
+}
+
+export interface FineScreenUnit extends TreatmentUnitBase {
+  type: 'fine_screen'
+  category: 'preliminary'
+  design: FineScreenDesign
+}
+
+// ============================================
+// NEW PRIMARY UNITS
+// ============================================
+
+/**
+ * Imhoff Tank Design Parameters
+ * Combined sedimentation and digestion
+ */
+export interface ImhoffTankDesign {
+  numberOfTanks: number
+  length: number            // m
+  width: number             // m
+  totalDepth: number        // m (7-10)
+
+  // Settling Compartment
+  settlingCompartmentDepth: number  // m (2-3)
+  settlingArea: number              // m²
+  surfaceOverflowRate: number       // m³/m²·day (24-32)
+  settlingHRT: number               // hours (2-4)
+  slotWidth: number                 // m (0.15-0.3)
+
+  // Digestion Compartment
+  digestionVolume: number           // m³
+  digestionCapacity: number         // L/capita
+  sludgeDrawoff: number             // L/capita·day
+
+  // Gas Venting
+  gasVentArea: number               // m²
+  gasProduction?: number            // m³/day
+}
+
+export interface ImhoffTankUnit extends TreatmentUnitBase {
+  type: 'imhoff_tank'
+  category: 'primary'
+  design: ImhoffTankDesign
+}
+
+/**
+ * API Separator Design Parameters
+ * American Petroleum Institute oil-water separator
+ */
+export interface APISeparatorDesign {
+  numberOfChannels: number
+  channelLength: number     // m (6-30)
+  channelWidth: number      // m (1.8-6)
+  channelDepth: number      // m (0.75-2.4)
+  totalVolume: number       // m³
+
+  // Hydraulics
+  horizontalVelocity: number // m/min (<15)
+  hrt: number               // minutes
+  surfaceLoadingRate: number // m³/m²·h
+
+  // Oil Removal
+  designOilDropletSize: number  // microns (150)
+  oilSpecificGravity: number    // (0.85-0.95)
+  riseRate: number              // mm/s
+  oilSkimmerType: 'weir' | 'belt' | 'drum' | 'rope'
+
+  // Sludge
+  sludgeHopper: boolean
+  sludgeRemoval: 'manual' | 'mechanical'
+}
+
+export interface APISeparatorUnit extends TreatmentUnitBase {
+  type: 'api_separator'
+  category: 'primary'
+  design: APISeparatorDesign
+}
+
+// ============================================
+// NEW BIOLOGICAL UNITS
+// ============================================
+
+/**
+ * MBBR Design Parameters
+ * Moving Bed Biofilm Reactor
+ */
+export interface MBBRDesign {
+  numberOfReactors: number
+  reactorVolume: number     // m³
+  effectiveVolume: number   // m³ (after media)
+  depth: number             // m
+
+  // Media
+  mediaType: 'K1' | 'K3' | 'K5' | 'BiofilmChip' | 'AnoxKaldnes'
+  mediaFillFraction: number // % (25-67)
+  mediaVolume: number       // m³
+  specificSurfaceArea: number // m²/m³ (500-1200)
+  totalBiofilmArea: number  // m²
+
+  // Loading
+  volumetricLoading: number // kg BOD/m³·day
+  surfaceLoading: number    // g BOD/m²·day (5-20)
+  hrt: number               // hours (1-6)
+
+  // Aeration
+  airFlowRate: number       // m³/h
+  oxygenTransferRate: number // kg O2/h
+  mixingEnergy: number      // W/m³
+}
+
+export interface MBBRUnit extends TreatmentUnitBase {
+  type: 'mbbr'
+  category: 'biological'
+  design: MBBRDesign
+}
+
+/**
+ * IFAS Design Parameters
+ * Integrated Fixed-film Activated Sludge
+ */
+export interface IFASDesign {
+  numberOfTanks: number
+  tankVolume: number        // m³
+  mediaZoneVolume: number   // m³
+  aerobicVolume: number     // m³
+  anoxicVolume?: number     // m³
+
+  // Suspended Growth
+  mlss: number              // mg/L (2000-4000)
+  mlvss: number             // mg/L
+  srt: number               // days (8-15)
+  fmRatio: number           // kg BOD/kg MLVSS·day
+
+  // Attached Growth (Media)
+  mediaType: string
+  mediaFillFraction: number // % (20-50)
+  specificSurfaceArea: number // m²/m³
+  biofilmArea: number       // m²
+  attachedBiomass: number   // kg
+
+  // Combined Parameters
+  totalBiomass: number      // kg (suspended + attached)
+  effectiveSRT: number      // days (including biofilm)
+  combinedFM: number        // effective F/M
+}
+
+export interface IFASUnit extends TreatmentUnitBase {
+  type: 'ifas'
+  category: 'biological'
+  design: IFASDesign
+}
+
+/**
+ * Bardenpho Design Parameters
+ * 5-Stage Biological Nutrient Removal
+ */
+export interface BardenphoDesign {
+  stages: 5 | 4            // 5-stage or modified 4-stage
+  totalVolume: number      // m³
+  totalHRT: number         // hours (10-25)
+
+  // Stage Volumes & HRT
+  anaerobicVolume: number  // m³ (1st anaerobic)
+  anaerobicHRT: number     // hours (0.5-1.5)
+  firstAnoxicVolume: number // m³
+  firstAnoxicHRT: number   // hours (1-3)
+  firstAerobicVolume: number // m³
+  firstAerobicHRT: number  // hours (4-12)
+  secondAnoxicVolume: number // m³
+  secondAnoxicHRT: number  // hours (2-4)
+  secondAerobicVolume?: number // m³ (5-stage only)
+  secondAerobicHRT?: number // hours (0.5-1)
+
+  // Operating Parameters
+  mlss: number             // mg/L (3000-5000)
+  srt: number              // days (10-25)
+  internalRecycle: number  // % of Q (200-400)
+  rasRecycle: number       // % of Q (50-100)
+
+  // Nutrient Removal
+  nitrogenRemoval: number  // % (70-95)
+  phosphorusRemoval: number // % (70-95)
+}
+
+export interface BardenphoUnit extends TreatmentUnitBase {
+  type: 'bardenpho'
+  category: 'biological'
+  design: BardenphoDesign
+}
+
+/**
+ * A2O Design Parameters
+ * Anaerobic-Anoxic-Oxic Process
+ */
+export interface A2ODesign {
+  totalVolume: number      // m³
+  totalHRT: number         // hours (6-12)
+
+  // Zone Volumes
+  anaerobicVolume: number  // m³ (10-25% of total)
+  anaerobicHRT: number     // hours (0.5-1.5)
+  anoxicVolume: number     // m³ (15-25% of total)
+  anoxicHRT: number        // hours (1-2)
+  aerobicVolume: number    // m³ (50-60% of total)
+  aerobicHRT: number       // hours (4-8)
+
+  // Operating Parameters
+  mlss: number             // mg/L (3000-4000)
+  srt: number              // days (10-25)
+  internalRecycle: number  // % of Q (100-300)
+  rasRecycle: number       // % of Q (25-75)
+
+  // Performance
+  nitrogenRemoval: number  // % (70-85)
+  phosphorusRemoval: number // % (85-95)
+  bodRemoval: number       // %
+}
+
+export interface A2OUnit extends TreatmentUnitBase {
+  type: 'a2o'
+  category: 'biological'
+  design: A2ODesign
+}
+
+/**
+ * RBC Design Parameters
+ * Rotating Biological Contactor
+ */
+export interface RBCDesign {
+  numberOfStages: number   // 3-4 typically
+  numberOfShafts: number
+  discsPerShaft: number
+  discDiameter: number     // m (1-3.6)
+  discSpacing: number      // mm (20-30)
+
+  // Surface Area
+  surfaceAreaPerShaft: number // m²
+  totalSurfaceArea: number    // m²
+
+  // Loading
+  hydraulicLoading: number    // m³/m²·day (0.03-0.08)
+  organicLoading: number      // g BOD/m²·day (4-10 secondary)
+  firstStageLoading: number   // g BOD/m²·day (<20)
+
+  // Drive
+  rotationalSpeed: number     // rpm (1-2)
+  submergence: number         // % (35-40)
+  driveType: 'mechanical' | 'air'
+  motorPower: number          // kW
+
+  // Tank
+  tankVolume: number          // m³
+  tankLength: number          // m
+  tankWidth: number           // m
+}
+
+export interface RBCUnit extends TreatmentUnitBase {
+  type: 'rbc'
+  category: 'biological'
+  design: RBCDesign
+}
+
+/**
+ * Constructed Wetland Design Parameters
+ */
+export interface ConstructedWetlandDesign {
+  wetlandType: 'surface_flow' | 'subsurface_horizontal' | 'subsurface_vertical' | 'hybrid'
+  numberOfCells: number
+  totalArea: number        // m² (1-5 m²/PE)
+  areaPerCell: number      // m²
+  length: number           // m (L:W = 3:1 to 4:1)
+  width: number            // m
+  depth: number            // m (0.3-0.6)
+
+  // Media (for subsurface)
+  mediaType?: 'gravel' | 'sand' | 'expanded_clay'
+  mediaDepth?: number      // m
+  porosity?: number        // (0.3-0.45)
+  hydraulicConductivity?: number // m/day
+
+  // Loading
+  hydraulicLoading: number    // m/day (0.04-0.1)
+  organicLoading: number      // kg BOD/ha·day (100-400)
+  hrt: number                 // days (3-7)
+
+  // Vegetation
+  plantSpecies: string[]
+  plantDensity: number        // plants/m²
+}
+
+export interface ConstructedWetlandUnit extends TreatmentUnitBase {
+  type: 'constructed_wetland'
+  category: 'biological'
+  design: ConstructedWetlandDesign
+}
+
+/**
+ * Aerated Lagoon Design Parameters
+ */
+export interface AeratedLagoonDesign {
+  lagoonType: 'completely_mixed' | 'partial_mix' | 'facultative_aerated'
+  numberOfLagoons: number
+  totalVolume: number      // m³
+  totalArea: number        // m²
+  depth: number            // m (2-6)
+  length: number           // m
+  width: number            // m
+
+  // Aeration
+  aeratorType: 'surface' | 'diffused' | 'jet'
+  numberOfAerators: number
+  oxygenRequirement: number   // kg O2/day
+  installedPower: number      // kW
+  powerPerVolume: number      // W/m³ (5-20 complete, 1-4 partial)
+
+  // Design Parameters
+  hrt: number                 // days (3-10)
+  bodVolumetricLoading: number // kg BOD/m³·day
+  temperature: number         // °C
+  kRate: number               // day⁻¹ (reaction rate)
+
+  // Solids
+  effluentTSS: number         // mg/L (80-250)
+  sludgeAccumulation: number  // m³/year
+}
+
+export interface AeratedLagoonUnit extends TreatmentUnitBase {
+  type: 'aerated_lagoon'
+  category: 'biological'
+  design: AeratedLagoonDesign
+}
+
+/**
+ * Contact Stabilization Design Parameters
+ */
+export interface ContactStabilizationDesign {
+  contactTankVolume: number    // m³
+  contactHRT: number           // hours (0.5-1.5)
+  stabilizationTankVolume: number // m³
+  stabilizationHRT: number     // hours (3-6)
+  totalVolume: number          // m³
+  totalHRT: number             // hours
+
+  // Operating Parameters
+  contactMLSS: number          // mg/L (1000-3000)
+  stabilizationMLSS: number    // mg/L (4000-10000)
+  fmRatio: number              // kg BOD/kg MLVSS·day
+  srt: number                  // days (5-15)
+
+  // Return Sludge
+  rasRatio: number             // % of Q (25-100)
+  rasConcentration: number     // mg/L
+
+  // Advantages
+  tankSizeReduction: number    // % vs conventional
+  shockLoadCapacity: number    // % overload tolerance
+}
+
+export interface ContactStabilizationUnit extends TreatmentUnitBase {
+  type: 'contact_stabilization'
+  category: 'biological'
+  design: ContactStabilizationDesign
+}
+
+// ============================================
+// NEW TERTIARY UNITS
+// ============================================
+
+/**
+ * Ozonation Design Parameters
+ */
+export interface OzonationDesign {
+  contactorType: 'bubble_diffuser' | 'injector' | 'turbine'
+  numberOfContactors: number
+  contactorVolume: number     // m³
+  totalVolume: number         // m³
+
+  // Ozone Generation
+  ozoneDose: number           // mg/L (5-15 disinfection, 20-50 oxidation)
+  ozoneProduction: number     // kg O3/day
+  generatorCapacity: number   // kg O3/h
+  oxygenSource: 'air' | 'LOX' | 'PSA'
+  specificEnergy: number      // kWh/kg O3 (8-17)
+
+  // Contact Chamber
+  contactTime: number         // minutes (10-20)
+  transferEfficiency: number  // % (85-95)
+  residualOzone: number       // mg/L
+  ctValue: number             // mg·min/L
+
+  // Off-gas Treatment
+  offGasTreatment: 'thermal' | 'catalytic' | 'GAC'
+  destructorCapacity: number  // kg O3/h
+
+  // Performance
+  logRemoval: {
+    bacteria: number
+    virus: number
+    cryptosporidium: number
+    giardia: number
+  }
+}
+
+export interface OzonationUnit extends TreatmentUnitBase {
+  type: 'ozonation'
+  category: 'tertiary'
+  design: OzonationDesign
+}
+
+/**
+ * Membrane Filtration Design Parameters
+ */
+export interface MembraneFiltrationDesign {
+  membraneType: 'mf' | 'uf' | 'nf' | 'ro'
+  configuration: 'hollow_fiber' | 'spiral_wound' | 'tubular' | 'flat_sheet'
+  numberOfTrains: number
+  modulesPerTrain: number
+  totalMembraneArea: number   // m²
+
+  // Membrane Specifications
+  poreSize: number            // microns (MF: 0.1-10, UF: 0.001-0.1)
+  nominalMWCO?: number        // Da (for UF/NF)
+  materialType: 'PVDF' | 'PES' | 'CA' | 'PA' | 'ceramic'
+
+  // Operating Parameters
+  flux: number                // L/m²·h (LMH)
+  tmp: number                 // kPa
+  recovery: number            // %
+  crossFlowVelocity?: number  // m/s
+
+  // Cleaning
+  backwashFrequency: number   // per day
+  backwashDuration: number    // seconds
+  cebFrequency: number        // chemically enhanced backwash per day
+  cipInterval: number         // days
+
+  // Energy
+  feedPumpPressure: number    // bar
+  specificEnergy: number      // kWh/m³
+}
+
+export interface MembraneFiltrationUnit extends TreatmentUnitBase {
+  type: 'membrane_filtration'
+  category: 'tertiary'
+  design: MembraneFiltrationDesign
+}
+
+/**
+ * Activated Carbon Adsorption Design Parameters
+ */
+export interface ActivatedCarbonDesign {
+  carbonType: 'GAC' | 'PAC'
+  applicationMode: 'adsorption_column' | 'contact_tank' | 'filter_adsorber'
+
+  // For GAC Columns
+  numberOfColumns?: number
+  columnDiameter?: number     // m
+  bedDepth?: number           // m (1-4)
+  bedVolume?: number          // m³
+  ebct?: number               // minutes (5-30)
+  surfaceLoading?: number     // m/h (5-15)
+  carbonMass?: number         // kg
+
+  // For PAC
+  contactTime?: number        // minutes (30-60)
+  pacDose?: number            // mg/L (10-100)
+  pacConsumption?: number     // kg/day
+
+  // Carbon Properties
+  iodineNumber: number        // mg/g (800-1200)
+  surfaceArea: number         // m²/g (800-1500)
+  bulkDensity: number         // kg/m³ (400-500)
+
+  // Regeneration
+  regenerationFrequency?: number // months
+  carbonLife: number          // kg water treated/kg carbon
+  breakthroughCapacity: number // kg adsorbate/kg carbon
+}
+
+export interface ActivatedCarbonUnit extends TreatmentUnitBase {
+  type: 'activated_carbon'
+  category: 'tertiary'
+  design: ActivatedCarbonDesign
+}
+
+/**
+ * Coagulation-Flocculation Design Parameters
+ */
+export interface CoagulationFlocculationDesign {
+  // Rapid Mix
+  rapidMixType: 'mechanical' | 'in_line' | 'hydraulic'
+  rapidMixVolume: number      // m³
+  rapidMixTime: number        // seconds (10-60)
+  rapidMixG: number           // s⁻¹ (500-1500)
+  rapidMixPower: number       // kW
+
+  // Flocculation
+  flocculationType: 'mechanical' | 'hydraulic' | 'baffled'
+  numberOfStages: number      // 2-3
+  flocculationVolume: number  // m³
+  flocculationTime: number    // minutes (20-40)
+  flocculationG: number[]     // s⁻¹ per stage (tapered: 60→30→15)
+
+  // Chemicals
+  primaryCoagulant: 'alum' | 'ferric_chloride' | 'ferric_sulfate' | 'PAC'
+  coagulantDose: number       // mg/L
+  coagulantAidType?: 'polymer' | 'silica'
+  coagulantAidDose?: number   // mg/L
+  phAdjustment: 'lime' | 'caustic' | 'acid' | 'none'
+  targetPH: number
+
+  // Sludge
+  sludgeProduction: number    // kg/m³ treated
+  sludgeConcentration: number // % solids
+}
+
+export interface CoagulationFlocculationUnit extends TreatmentUnitBase {
+  type: 'coagulation_flocculation'
+  category: 'tertiary'
+  design: CoagulationFlocculationDesign
+}
+
+/**
+ * Advanced Oxidation Process (AOP) Design Parameters
+ */
+export interface AdvancedOxidationDesign {
+  aopType: 'UV_H2O2' | 'O3_H2O2' | 'Fenton' | 'photo_Fenton' | 'UV_TiO2'
+
+  // UV/H2O2 Parameters
+  uvDose?: number             // mJ/cm²
+  h2o2Dose?: number           // mg/L (10-100)
+  uvLampPower?: number        // kW
+
+  // Ozone/H2O2 Parameters
+  ozoneDose?: number          // mg/L
+  o3H2o2Ratio?: number        // mol/mol
+
+  // Fenton Parameters
+  fe2Dose?: number            // mg/L (50-500)
+  feFe2Ratio?: number         // mol/mol
+  reactionPH?: number         // (2.8-3.5 optimal)
+  reactionTime?: number       // minutes
+
+  // Reactor
+  reactorVolume: number       // m³
+  hrt: number                 // minutes
+  numberOfReactors: number
+
+  // Target Compounds
+  targetContaminants: string[]
+  removalEfficiency: number   // %
+  hydroxylRadicalConcentration?: number // mol/L
+
+  // Energy
+  electricalEnergy: number    // kWh/m³
+  eeoPer90: number            // kWh/m³/order (EE/O)
+}
+
+export interface AdvancedOxidationUnit extends TreatmentUnitBase {
+  type: 'advanced_oxidation'
+  category: 'tertiary'
+  design: AdvancedOxidationDesign
+}
+
+// ============================================
+// NEW SLUDGE UNITS
+// ============================================
+
+/**
+ * Belt Filter Press Design Parameters
+ */
+export interface BeltFilterPressDesign {
+  numberOfUnits: number
+  beltWidth: number           // m (1-3)
+  beltSpeed: number           // m/min (1-5)
+  effectiveBeltArea: number   // m²
+
+  // Hydraulic Loading
+  hydraulicLoading: number    // m³/m·h (2-6)
+  solidsLoading: number       // kg DS/m·h (200-500)
+  sludgeFlow: number          // m³/h
+
+  // Performance
+  feedSolids: number          // % (1-6)
+  cakeSolids: number          // % (15-30)
+  solidsCapture: number       // % (90-98)
+  filtrateTSS: number         // mg/L
+
+  // Polymer
+  polymerType: 'cationic' | 'anionic' | 'nonionic'
+  polymerDose: number         // kg/ton DS (2-8)
+  polymerConsumption: number  // kg/day
+
+  // Wash Water
+  washWaterFlow: number       // L/min per meter
+  washWaterPressure: number   // bar
+}
+
+export interface BeltFilterPressUnit extends TreatmentUnitBase {
+  type: 'belt_filter_press'
+  category: 'sludge'
+  design: BeltFilterPressDesign
+}
+
+/**
+ * Centrifuge Dewatering Design Parameters
+ */
+export interface CentrifugeDewateringDesign {
+  centrifugeType: 'solid_bowl' | 'basket' | 'disk_stack'
+  numberOfUnits: number
+  bowlDiameter: number        // mm (150-1400)
+  bowlLength?: number         // mm (for decanter)
+
+  // Operating Parameters
+  rotationalSpeed: number     // rpm (1500-4000)
+  gForce: number              // g (1500-4000)
+  differentialSpeed: number   // rpm (2-50)
+  poolDepth: number           // mm
+
+  // Capacity
+  hydraulicCapacity: number   // m³/h
+  solidsCapacity: number      // kg DS/h
+
+  // Performance
+  feedSolids: number          // % (1-10)
+  cakeSolids: number          // % (20-35)
+  solidsRecovery: number      // % (90-99)
+  centrateTSS: number         // mg/L
+
+  // Polymer
+  polymerDose: number         // kg/ton DS (2-10)
+
+  // Energy
+  installedPower: number      // kW
+  specificEnergy: number      // kWh/m³
+}
+
+export interface CentrifugeDewateringUnit extends TreatmentUnitBase {
+  type: 'centrifuge_dewatering'
+  category: 'sludge'
+  design: CentrifugeDewateringDesign
+}
+
+/**
+ * Sludge Drying Bed Design Parameters
+ */
+export interface SludgeDryingBedDesign {
+  bedType: 'sand' | 'paved' | 'artificial_media' | 'vacuum_assisted'
+  numberOfBeds: number
+  bedLength: number           // m
+  bedWidth: number            // m
+  bedArea: number             // m² per bed
+  totalArea: number           // m²
+
+  // Media Layers
+  sandDepth: number           // mm (100-300)
+  gravelDepth: number         // mm (200-450)
+  drainSpacing: number        // m
+
+  // Loading
+  sludgeDepth: number         // mm (200-300)
+  solidsLoading: number       // kg DS/m²·year (100-200)
+  cycleTime: number           // days (10-40)
+  dryingTime: number          // days per cycle
+
+  // Performance
+  initialSolids: number       // % (2-8)
+  finalSolids: number         // % (20-40)
+  volumeReduction: number     // %
+
+  // Environmental
+  drainageRate: number        // L/m²·day
+  evaporationRate: number     // mm/day
+  coverType: 'open' | 'greenhouse' | 'solar'
+}
+
+export interface SludgeDryingBedUnit extends TreatmentUnitBase {
+  type: 'sludge_drying_bed'
+  category: 'sludge'
+  design: SludgeDryingBedDesign
+}
+
+// ============================================
 // UNION TYPES FOR ALL UNITS
 // ============================================
 
 export type TreatmentUnit =
+  // Preliminary
   | BarScreenUnit
   | GritChamberUnit
+  | EqualizationTankUnit
+  | FineScreenUnit
+  // Primary
   | PrimaryClarifierUnit
   | OilSeparatorUnit
+  | ImhoffTankUnit
+  | APISeparatorUnit
+  // Biological
   | AerationTankUnit
   | SBRUnit
   | UASBUnit
   | OxidationPondUnit
   | TricklingFilterUnit
   | MBRUnit
+  | MBBRUnit
+  | IFASUnit
+  | BardenphoUnit
+  | A2OUnit
+  | RBCUnit
+  | ConstructedWetlandUnit
+  | AeratedLagoonUnit
+  | ContactStabilizationUnit
+  // Secondary
   | SecondaryClarifierUnit
   | DAFUnit
+  // Tertiary
   | FiltrationUnit
   | ChlorinationUnit
   | UVDisinfectionUnit
+  | OzonationUnit
+  | MembraneFiltrationUnit
+  | ActivatedCarbonUnit
+  | CoagulationFlocculationUnit
+  | AdvancedOxidationUnit
+  // Sludge
+  | BeltFilterPressUnit
+  | CentrifugeDewateringUnit
+  | SludgeDryingBedUnit
 
 // ============================================
 // TREATMENT SYSTEM (TRAIN)
@@ -1093,6 +1880,343 @@ export const UNIT_METADATA: Record<UnitType, UnitMetadata> = {
       { parameter: 'Cake Solids', typical: '15-35', unit: '%' },
     ],
     color: '#92400E', // amber dark
+  },
+
+  // ============================================
+  // NEW PRELIMINARY UNITS
+  // ============================================
+  equalization_tank: {
+    type: 'equalization_tank',
+    category: 'preliminary',
+    name: 'Equalization Tank',
+    nameThai: 'ถังปรับเสถียร',
+    icon: '🔄',
+    description: 'Flow and load equalization',
+    descriptionThai: 'ปรับสมดุลการไหลและภาระบำบัด',
+    typicalRemoval: { bod: [0, 5], cod: [0, 5], tss: [5, 15] },
+    designCriteria: [
+      { parameter: 'HRT', typical: '6-12', unit: 'hours' },
+      { parameter: 'Mixing Power', typical: '5-10', unit: 'W/m³' },
+    ],
+    color: '#6366F1', // indigo
+  },
+  fine_screen: {
+    type: 'fine_screen',
+    category: 'preliminary',
+    name: 'Fine Screen',
+    nameThai: 'ตะแกรงละเอียด',
+    icon: '🔲',
+    description: 'Fine/micro screening for primary bypass',
+    descriptionThai: 'กรองละเอียดสำหรับบายพาสขั้นต้น',
+    typicalRemoval: { bod: [10, 25], cod: [10, 20], tss: [15, 40] },
+    designCriteria: [
+      { parameter: 'Opening Size', typical: '0.25-6', unit: 'mm' },
+      { parameter: 'Head Loss', typical: '100-300', unit: 'mm' },
+    ],
+    color: '#64748B', // slate
+  },
+
+  // ============================================
+  // NEW PRIMARY UNITS
+  // ============================================
+  imhoff_tank: {
+    type: 'imhoff_tank',
+    category: 'primary',
+    name: 'Imhoff Tank',
+    nameThai: 'ถังอิมฮอฟ',
+    icon: '🏛️',
+    description: 'Combined sedimentation and digestion',
+    descriptionThai: 'รวมการตกตะกอนและย่อยสลาย',
+    typicalRemoval: { bod: [25, 35], cod: [20, 30], tss: [50, 65] },
+    designCriteria: [
+      { parameter: 'Settling HRT', typical: '2-4', unit: 'hours' },
+      { parameter: 'Overflow Rate', typical: '24-32', unit: 'm³/m²·day' },
+    ],
+    color: '#0891B2', // cyan
+  },
+  api_separator: {
+    type: 'api_separator',
+    category: 'primary',
+    name: 'API Separator',
+    nameThai: 'บ่อแยกน้ำมัน API',
+    icon: '🛢️',
+    description: 'API oil-water separator for petroleum',
+    descriptionThai: 'แยกน้ำมันจากน้ำตามมาตรฐาน API',
+    typicalRemoval: { bod: [15, 30], cod: [20, 35], tss: [20, 40] },
+    designCriteria: [
+      { parameter: 'Horizontal Velocity', typical: '<15', unit: 'm/min' },
+      { parameter: 'Rise Rate', typical: '0.15-0.5', unit: 'mm/s' },
+    ],
+    color: '#D97706', // amber
+  },
+
+  // ============================================
+  // NEW BIOLOGICAL UNITS
+  // ============================================
+  mbbr: {
+    type: 'mbbr',
+    category: 'biological',
+    name: 'MBBR',
+    nameThai: 'เอ็มบีบีอาร์',
+    icon: '🔵',
+    description: 'Moving Bed Biofilm Reactor',
+    descriptionThai: 'ถังปฏิกิริยาไบโอฟิล์มแบบเคลื่อนที่',
+    typicalRemoval: { bod: [85, 95], cod: [80, 90], tss: [80, 90] },
+    designCriteria: [
+      { parameter: 'Media Fill', typical: '25-67', unit: '%' },
+      { parameter: 'Surface Loading', typical: '5-20', unit: 'g BOD/m²·day' },
+      { parameter: 'HRT', typical: '1-6', unit: 'hours' },
+    ],
+    color: '#0EA5E9', // sky
+  },
+  ifas: {
+    type: 'ifas',
+    category: 'biological',
+    name: 'IFAS',
+    nameThai: 'ไอฟาส',
+    icon: '🔷',
+    description: 'Integrated Fixed-film Activated Sludge',
+    descriptionThai: 'ระบบตะกอนเร่งผสมไบโอฟิล์ม',
+    typicalRemoval: { bod: [90, 98], cod: [85, 95], tss: [90, 98] },
+    designCriteria: [
+      { parameter: 'MLSS', typical: '2000-4000', unit: 'mg/L' },
+      { parameter: 'Media Fill', typical: '20-50', unit: '%' },
+      { parameter: 'SRT', typical: '8-15', unit: 'days' },
+    ],
+    color: '#06B6D4', // cyan
+  },
+  bardenpho: {
+    type: 'bardenpho',
+    category: 'biological',
+    name: 'Bardenpho (5-Stage)',
+    nameThai: 'บาร์เดนโฟ',
+    icon: '🌊',
+    description: '5-Stage Biological Nutrient Removal',
+    descriptionThai: 'กำจัดไนโตรเจนและฟอสฟอรัส 5 ขั้นตอน',
+    typicalRemoval: { bod: [90, 98], cod: [85, 95], tss: [90, 98] },
+    designCriteria: [
+      { parameter: 'Total HRT', typical: '10-25', unit: 'hours' },
+      { parameter: 'SRT', typical: '10-25', unit: 'days' },
+      { parameter: 'N Removal', typical: '70-95', unit: '%' },
+      { parameter: 'P Removal', typical: '70-95', unit: '%' },
+    ],
+    color: '#059669', // emerald
+  },
+  a2o: {
+    type: 'a2o',
+    category: 'biological',
+    name: 'A2O Process',
+    nameThai: 'เอทูโอ',
+    icon: '🔶',
+    description: 'Anaerobic-Anoxic-Oxic Process',
+    descriptionThai: 'กระบวนการแอนแอโรบิก-แอน็อกซิก-ออกซิก',
+    typicalRemoval: { bod: [85, 95], cod: [80, 92], tss: [85, 95] },
+    designCriteria: [
+      { parameter: 'Total HRT', typical: '6-12', unit: 'hours' },
+      { parameter: 'MLSS', typical: '3000-4000', unit: 'mg/L' },
+      { parameter: 'Internal Recycle', typical: '100-300', unit: '% Q' },
+    ],
+    color: '#16A34A', // green
+  },
+  rbc: {
+    type: 'rbc',
+    category: 'biological',
+    name: 'RBC',
+    nameThai: 'อาร์บีซี',
+    icon: '⚙️',
+    description: 'Rotating Biological Contactor',
+    descriptionThai: 'จานหมุนชีวภาพ',
+    typicalRemoval: { bod: [80, 95], cod: [75, 90], tss: [80, 90] },
+    designCriteria: [
+      { parameter: 'Hydraulic Loading', typical: '0.03-0.08', unit: 'm³/m²·day' },
+      { parameter: 'Organic Loading', typical: '4-10', unit: 'g BOD/m²·day' },
+      { parameter: 'Rotation Speed', typical: '1-2', unit: 'rpm' },
+    ],
+    color: '#7C3AED', // violet
+  },
+  constructed_wetland: {
+    type: 'constructed_wetland',
+    category: 'biological',
+    name: 'Constructed Wetland',
+    nameThai: 'บึงประดิษฐ์',
+    icon: '🌿',
+    description: 'Natural treatment with vegetation',
+    descriptionThai: 'บำบัดธรรมชาติด้วยพืช',
+    typicalRemoval: { bod: [70, 90], cod: [60, 85], tss: [70, 95] },
+    designCriteria: [
+      { parameter: 'Area', typical: '1-5', unit: 'm²/PE' },
+      { parameter: 'HRT', typical: '3-7', unit: 'days' },
+      { parameter: 'Organic Loading', typical: '100-400', unit: 'kg BOD/ha·day' },
+    ],
+    color: '#22C55E', // green
+  },
+  aerated_lagoon: {
+    type: 'aerated_lagoon',
+    category: 'biological',
+    name: 'Aerated Lagoon',
+    nameThai: 'บ่อเติมอากาศ',
+    icon: '💨',
+    description: 'Mechanically aerated lagoon',
+    descriptionThai: 'บ่อบำบัดแบบเติมอากาศ',
+    typicalRemoval: { bod: [80, 95], cod: [70, 90], tss: [60, 85] },
+    designCriteria: [
+      { parameter: 'HRT', typical: '3-10', unit: 'days' },
+      { parameter: 'Power', typical: '5-20', unit: 'W/m³' },
+      { parameter: 'Depth', typical: '2-6', unit: 'm' },
+    ],
+    color: '#14B8A6', // teal
+  },
+  contact_stabilization: {
+    type: 'contact_stabilization',
+    category: 'biological',
+    name: 'Contact Stabilization',
+    nameThai: 'คอนแทคสเตบิไลเซชัน',
+    icon: '🔁',
+    description: 'Contact stabilization activated sludge',
+    descriptionThai: 'ระบบตะกอนเร่งแบบสัมผัส-คงตัว',
+    typicalRemoval: { bod: [85, 95], cod: [80, 90], tss: [85, 95] },
+    designCriteria: [
+      { parameter: 'Contact HRT', typical: '0.5-1.5', unit: 'hours' },
+      { parameter: 'Stabilization HRT', typical: '3-6', unit: 'hours' },
+      { parameter: 'SRT', typical: '5-15', unit: 'days' },
+    ],
+    color: '#8B5CF6', // violet
+  },
+
+  // ============================================
+  // NEW TERTIARY UNITS
+  // ============================================
+  ozonation: {
+    type: 'ozonation',
+    category: 'tertiary',
+    name: 'Ozonation',
+    nameThai: 'โอโซเนชัน',
+    icon: 'O₃',
+    description: 'Ozone disinfection and oxidation',
+    descriptionThai: 'ฆ่าเชื้อและออกซิเดชันด้วยโอโซน',
+    typicalRemoval: { bod: [30, 60], cod: [30, 50], tss: [0, 10] },
+    designCriteria: [
+      { parameter: 'Ozone Dose', typical: '5-15', unit: 'mg/L' },
+      { parameter: 'Contact Time', typical: '10-20', unit: 'minutes' },
+      { parameter: 'CT Value', typical: '1.6-4', unit: 'mg·min/L' },
+    ],
+    color: '#818CF8', // indigo
+  },
+  membrane_filtration: {
+    type: 'membrane_filtration',
+    category: 'tertiary',
+    name: 'Membrane Filtration',
+    nameThai: 'เมมเบรนฟิลเตรชัน',
+    icon: '🔬',
+    description: 'MF/UF/NF membrane filtration',
+    descriptionThai: 'กรองด้วยเมมเบรน MF/UF/NF',
+    typicalRemoval: { bod: [60, 90], cod: [50, 85], tss: [99, 99.9] },
+    designCriteria: [
+      { parameter: 'Flux', typical: '20-60', unit: 'LMH' },
+      { parameter: 'TMP', typical: '10-100', unit: 'kPa' },
+      { parameter: 'Recovery', typical: '85-95', unit: '%' },
+    ],
+    color: '#A855F7', // purple
+  },
+  activated_carbon: {
+    type: 'activated_carbon',
+    category: 'tertiary',
+    name: 'Activated Carbon',
+    nameThai: 'ถ่านกัมมันต์',
+    icon: '⬛',
+    description: 'GAC/PAC adsorption',
+    descriptionThai: 'ดูดซับด้วยถ่านกัมมันต์',
+    typicalRemoval: { bod: [50, 80], cod: [50, 85], tss: [30, 60] },
+    designCriteria: [
+      { parameter: 'EBCT', typical: '5-30', unit: 'minutes' },
+      { parameter: 'Surface Loading', typical: '5-15', unit: 'm/h' },
+      { parameter: 'Bed Depth', typical: '1-4', unit: 'm' },
+    ],
+    color: '#374151', // gray
+  },
+  coagulation_flocculation: {
+    type: 'coagulation_flocculation',
+    category: 'tertiary',
+    name: 'Coagulation-Flocculation',
+    nameThai: 'โคแอกกูเลชัน-ฟล็อคคูเลชัน',
+    icon: '🧪',
+    description: 'Chemical coagulation and flocculation',
+    descriptionThai: 'การรวมตะกอนและตกผลึกทางเคมี',
+    typicalRemoval: { bod: [40, 70], cod: [50, 80], tss: [80, 95] },
+    designCriteria: [
+      { parameter: 'Rapid Mix G', typical: '500-1500', unit: 's⁻¹' },
+      { parameter: 'Flocculation Time', typical: '20-40', unit: 'minutes' },
+      { parameter: 'Coagulant Dose', typical: '20-100', unit: 'mg/L' },
+    ],
+    color: '#F97316', // orange
+  },
+  advanced_oxidation: {
+    type: 'advanced_oxidation',
+    category: 'tertiary',
+    name: 'Advanced Oxidation (AOP)',
+    nameThai: 'ออกซิเดชันขั้นสูง',
+    icon: '⚡',
+    description: 'UV/H2O2, Ozone/H2O2, Fenton',
+    descriptionThai: 'ออกซิเดชันขั้นสูง UV/โอโซน/เฟนตัน',
+    typicalRemoval: { bod: [60, 95], cod: [70, 98], tss: [10, 30] },
+    designCriteria: [
+      { parameter: 'H2O2 Dose', typical: '10-100', unit: 'mg/L' },
+      { parameter: 'UV Dose', typical: '100-500', unit: 'mJ/cm²' },
+      { parameter: 'HRT', typical: '15-60', unit: 'minutes' },
+    ],
+    color: '#EAB308', // yellow
+  },
+
+  // ============================================
+  // NEW SLUDGE UNITS
+  // ============================================
+  belt_filter_press: {
+    type: 'belt_filter_press',
+    category: 'sludge',
+    name: 'Belt Filter Press',
+    nameThai: 'เครื่องรีดสายพาน',
+    icon: '🔧',
+    description: 'Belt press sludge dewatering',
+    descriptionThai: 'รีดน้ำตะกอนด้วยสายพานกรอง',
+    typicalRemoval: { bod: [0, 0], cod: [0, 0], tss: [0, 0] },
+    designCriteria: [
+      { parameter: 'Belt Width', typical: '1-3', unit: 'm' },
+      { parameter: 'Cake Solids', typical: '15-30', unit: '%' },
+      { parameter: 'Polymer Dose', typical: '2-8', unit: 'kg/ton DS' },
+    ],
+    color: '#78716C', // stone
+  },
+  centrifuge_dewatering: {
+    type: 'centrifuge_dewatering',
+    category: 'sludge',
+    name: 'Centrifuge',
+    nameThai: 'เครื่องหมุนเหวี่ยง',
+    icon: '🔄',
+    description: 'Centrifuge sludge dewatering',
+    descriptionThai: 'รีดน้ำตะกอนด้วยเครื่องหมุนเหวี่ยง',
+    typicalRemoval: { bod: [0, 0], cod: [0, 0], tss: [0, 0] },
+    designCriteria: [
+      { parameter: 'G-Force', typical: '1500-4000', unit: 'g' },
+      { parameter: 'Cake Solids', typical: '20-35', unit: '%' },
+      { parameter: 'Solids Recovery', typical: '90-99', unit: '%' },
+    ],
+    color: '#A1A1AA', // zinc
+  },
+  sludge_drying_bed: {
+    type: 'sludge_drying_bed',
+    category: 'sludge',
+    name: 'Sludge Drying Bed',
+    nameThai: 'ลานตากตะกอน',
+    icon: '☀️',
+    description: 'Solar sludge drying',
+    descriptionThai: 'ตากแห้งตะกอนด้วยแสงอาทิตย์',
+    typicalRemoval: { bod: [0, 0], cod: [0, 0], tss: [0, 0] },
+    designCriteria: [
+      { parameter: 'Loading Rate', typical: '100-200', unit: 'kg DS/m²·year' },
+      { parameter: 'Drying Time', typical: '10-40', unit: 'days' },
+      { parameter: 'Final Solids', typical: '20-40', unit: '%' },
+    ],
+    color: '#F59E0B', // amber
   },
 }
 
@@ -1523,6 +2647,226 @@ export const UNIT_COST_PARAMS: Record<UnitType, UnitCostParams> = {
     maintenanceFactor: 0.04,
     laborHoursPerDay: 2,
     landAreaPerM3Flow: 0.01,
+  },
+
+  // ============================================
+  // NEW PRELIMINARY UNITS
+  // ============================================
+  equalization_tank: {
+    baseCapitalCost: 300000,
+    capitalCostPerM3: 800,
+    equipmentCostFactor: 0.25,
+    powerConsumption: 0.05,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.015,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 0.15,
+  },
+  fine_screen: {
+    baseCapitalCost: 400000,
+    capitalCostPerM3: 2500,
+    equipmentCostFactor: 0.7,
+    powerConsumption: 0.02,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.005,
+  },
+
+  // ============================================
+  // NEW PRIMARY UNITS
+  // ============================================
+  imhoff_tank: {
+    baseCapitalCost: 400000,
+    capitalCostPerM3: 3000,
+    equipmentCostFactor: 0.15,
+    powerConsumption: 0.01,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.015,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.08,
+  },
+  api_separator: {
+    baseCapitalCost: 600000,
+    capitalCostPerM3: 4000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.02,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.02,
+    laborHoursPerDay: 1.5,
+    landAreaPerM3Flow: 0.05,
+  },
+
+  // ============================================
+  // NEW BIOLOGICAL UNITS
+  // ============================================
+  mbbr: {
+    baseCapitalCost: 1500000,
+    capitalCostPerM3: 12000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.35,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.025,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.02,
+  },
+  ifas: {
+    baseCapitalCost: 2000000,
+    capitalCostPerM3: 15000,
+    equipmentCostFactor: 0.5,
+    powerConsumption: 0.4,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.025,
+    laborHoursPerDay: 2.5,
+    landAreaPerM3Flow: 0.025,
+  },
+  bardenpho: {
+    baseCapitalCost: 3000000,
+    capitalCostPerM3: 18000,
+    equipmentCostFactor: 0.45,
+    powerConsumption: 0.5,
+    chemicalCostPerM3: 2,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 4,
+    landAreaPerM3Flow: 0.06,
+  },
+  a2o: {
+    baseCapitalCost: 2500000,
+    capitalCostPerM3: 16000,
+    equipmentCostFactor: 0.45,
+    powerConsumption: 0.45,
+    chemicalCostPerM3: 1.5,
+    maintenanceFactor: 0.028,
+    laborHoursPerDay: 3.5,
+    landAreaPerM3Flow: 0.05,
+  },
+  rbc: {
+    baseCapitalCost: 1200000,
+    capitalCostPerM3: 10000,
+    equipmentCostFactor: 0.6,
+    powerConsumption: 0.15,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.03,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.04,
+  },
+  constructed_wetland: {
+    baseCapitalCost: 200000,
+    capitalCostPerM3: 500,
+    equipmentCostFactor: 0.05,
+    powerConsumption: 0.01,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.01,
+    laborHoursPerDay: 0.5,
+    landAreaPerM3Flow: 2.0,
+  },
+  aerated_lagoon: {
+    baseCapitalCost: 300000,
+    capitalCostPerM3: 600,
+    equipmentCostFactor: 0.3,
+    powerConsumption: 0.2,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.015,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 0.5,
+  },
+  contact_stabilization: {
+    baseCapitalCost: 1800000,
+    capitalCostPerM3: 12000,
+    equipmentCostFactor: 0.45,
+    powerConsumption: 0.35,
+    chemicalCostPerM3: 0.5,
+    maintenanceFactor: 0.025,
+    laborHoursPerDay: 3,
+    landAreaPerM3Flow: 0.03,
+  },
+
+  // ============================================
+  // NEW TERTIARY UNITS
+  // ============================================
+  ozonation: {
+    baseCapitalCost: 2500000,
+    capitalCostPerM3: 20000,
+    equipmentCostFactor: 0.7,
+    powerConsumption: 0.3,
+    chemicalCostPerM3: 5,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.01,
+  },
+  membrane_filtration: {
+    baseCapitalCost: 3000000,
+    capitalCostPerM3: 25000,
+    equipmentCostFactor: 0.6,
+    powerConsumption: 0.4,
+    chemicalCostPerM3: 3,
+    maintenanceFactor: 0.05,
+    laborHoursPerDay: 2.5,
+    landAreaPerM3Flow: 0.01,
+  },
+  activated_carbon: {
+    baseCapitalCost: 1000000,
+    capitalCostPerM3: 8000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.05,
+    chemicalCostPerM3: 8,
+    maintenanceFactor: 0.02,
+    laborHoursPerDay: 1.5,
+    landAreaPerM3Flow: 0.015,
+  },
+  coagulation_flocculation: {
+    baseCapitalCost: 800000,
+    capitalCostPerM3: 5000,
+    equipmentCostFactor: 0.4,
+    powerConsumption: 0.08,
+    chemicalCostPerM3: 4,
+    maintenanceFactor: 0.025,
+    laborHoursPerDay: 2,
+    landAreaPerM3Flow: 0.02,
+  },
+  advanced_oxidation: {
+    baseCapitalCost: 3500000,
+    capitalCostPerM3: 30000,
+    equipmentCostFactor: 0.65,
+    powerConsumption: 0.5,
+    chemicalCostPerM3: 10,
+    maintenanceFactor: 0.045,
+    laborHoursPerDay: 2.5,
+    landAreaPerM3Flow: 0.015,
+  },
+
+  // ============================================
+  // NEW SLUDGE UNITS
+  // ============================================
+  belt_filter_press: {
+    baseCapitalCost: 1200000,
+    capitalCostPerM3: 15000,
+    equipmentCostFactor: 0.65,
+    powerConsumption: 0.1,
+    chemicalCostPerM3: 4,
+    maintenanceFactor: 0.04,
+    laborHoursPerDay: 3,
+    landAreaPerM3Flow: 0.02,
+  },
+  centrifuge_dewatering: {
+    baseCapitalCost: 1500000,
+    capitalCostPerM3: 18000,
+    equipmentCostFactor: 0.7,
+    powerConsumption: 0.2,
+    chemicalCostPerM3: 3.5,
+    maintenanceFactor: 0.045,
+    laborHoursPerDay: 2.5,
+    landAreaPerM3Flow: 0.01,
+  },
+  sludge_drying_bed: {
+    baseCapitalCost: 150000,
+    capitalCostPerM3: 300,
+    equipmentCostFactor: 0.05,
+    powerConsumption: 0.01,
+    chemicalCostPerM3: 0,
+    maintenanceFactor: 0.01,
+    laborHoursPerDay: 1,
+    landAreaPerM3Flow: 1.5,
   },
 }
 

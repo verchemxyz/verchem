@@ -71,6 +71,18 @@ const ENVIRONMENTAL_TOOLS = [
     borderColor: 'border-amber-400',
     isHot: false,
   },
+  {
+    href: '/tools/asm1-simulator',
+    icon: '🧬',
+    label: 'ASM1 Biokinetic Simulator',
+    labelThai: 'จำลอง ASM1',
+    description: 'IWA Activated Sludge Model No. 1. Research-grade dynamic simulation with 8 biological processes and 13 state variables.',
+    features: ['8 Processes', '13 Variables', 'Dynamic Sim', 'RK4 Solver'],
+    gradient: 'from-purple-600 to-indigo-600',
+    bgGradient: 'from-purple-50 to-indigo-50',
+    borderColor: 'border-purple-400',
+    isHot: true,
+  },
 ] as const
 
 // ============================================
@@ -110,6 +122,7 @@ const COMPARISON = [
   { feature: 'Cost Estimation', verchem: true, competitor: true },
   { feature: 'Sludge Mass Balance', verchem: true, competitor: true },
   { feature: 'Energy Analysis', verchem: true, competitor: true },
+  { feature: 'ASM1 Biokinetic Model', verchem: true, competitor: true },
   { feature: 'Web-based (No Install)', verchem: true, competitor: false },
   { feature: 'Free Forever', verchem: true, competitor: false },
   { feature: 'Price', verchem: '$0', competitor: '$5,000-15,000' },

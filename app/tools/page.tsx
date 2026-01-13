@@ -87,6 +87,13 @@ const ENVIRONMENTAL_TOOLS: Array<{
     label: 'Soil Quality Calculator',
     description: 'Heavy metal contamination (Thai PCD), pH classification, NPK analysis, CEC — 7 modes.',
   },
+  {
+    href: '/tools/asm1-simulator',
+    icon: '🧬',
+    label: 'ASM1 Biokinetic Simulator',
+    description: 'IWA Activated Sludge Model No. 1. Research-grade simulation with 8 processes, 13 state variables.',
+    isHot: true,
+  },
 ]
 
 // ============================================

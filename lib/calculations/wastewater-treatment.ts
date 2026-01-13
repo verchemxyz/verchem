@@ -2358,36 +2358,56 @@ export function calculateSludgeProduction(
 /**
  * Energy consumption factors by unit type (kWh/m³ treated)
  */
-const ENERGY_FACTORS = {
+const ENERGY_FACTORS: Record<UnitType, { factor: number; category: 'aeration' | 'pumping' | 'mixing' | 'disinfection' | 'other' }> = {
   // Preliminary (low energy)
-  bar_screen: { factor: 0.01, category: 'other' as const },
-  grit_chamber: { factor: 0.02, category: 'pumping' as const },
+  bar_screen: { factor: 0.01, category: 'other' },
+  grit_chamber: { factor: 0.02, category: 'pumping' },
+  equalization_tank: { factor: 0.05, category: 'mixing' },
+  fine_screen: { factor: 0.02, category: 'other' },
 
   // Primary (low energy)
-  primary_clarifier: { factor: 0.02, category: 'pumping' as const },
-  oil_separator: { factor: 0.03, category: 'pumping' as const },
+  primary_clarifier: { factor: 0.02, category: 'pumping' },
+  oil_separator: { factor: 0.03, category: 'pumping' },
+  imhoff_tank: { factor: 0.01, category: 'other' },
+  api_separator: { factor: 0.02, category: 'pumping' },
 
   // Biological (high energy - aeration)
-  aeration_tank: { factor: 0.35, category: 'aeration' as const },
-  sbr: { factor: 0.30, category: 'aeration' as const },
-  mbr: { factor: 0.80, category: 'aeration' as const },
-  trickling_filter: { factor: 0.15, category: 'pumping' as const },
-  oxidation_pond: { factor: 0.05, category: 'mixing' as const },
-  uasb: { factor: 0.08, category: 'mixing' as const },
+  aeration_tank: { factor: 0.35, category: 'aeration' },
+  sbr: { factor: 0.30, category: 'aeration' },
+  mbr: { factor: 0.80, category: 'aeration' },
+  trickling_filter: { factor: 0.15, category: 'pumping' },
+  oxidation_pond: { factor: 0.05, category: 'mixing' },
+  uasb: { factor: 0.08, category: 'mixing' },
+  mbbr: { factor: 0.35, category: 'aeration' },
+  ifas: { factor: 0.40, category: 'aeration' },
+  bardenpho: { factor: 0.50, category: 'aeration' },
+  a2o: { factor: 0.45, category: 'aeration' },
+  rbc: { factor: 0.15, category: 'other' },
+  constructed_wetland: { factor: 0.01, category: 'pumping' },
+  aerated_lagoon: { factor: 0.20, category: 'aeration' },
+  contact_stabilization: { factor: 0.35, category: 'aeration' },
 
   // Secondary
-  secondary_clarifier: { factor: 0.03, category: 'pumping' as const },
-  daf: { factor: 0.15, category: 'pumping' as const },
+  secondary_clarifier: { factor: 0.03, category: 'pumping' },
+  daf: { factor: 0.15, category: 'pumping' },
 
   // Tertiary
-  filtration: { factor: 0.10, category: 'pumping' as const },
-  chlorination: { factor: 0.02, category: 'disinfection' as const },
-  uv_disinfection: { factor: 0.08, category: 'disinfection' as const },
+  filtration: { factor: 0.10, category: 'pumping' },
+  chlorination: { factor: 0.02, category: 'disinfection' },
+  uv_disinfection: { factor: 0.08, category: 'disinfection' },
+  ozonation: { factor: 0.30, category: 'disinfection' },
+  membrane_filtration: { factor: 0.40, category: 'pumping' },
+  activated_carbon: { factor: 0.05, category: 'pumping' },
+  coagulation_flocculation: { factor: 0.08, category: 'mixing' },
+  advanced_oxidation: { factor: 0.50, category: 'disinfection' },
 
   // Sludge
-  thickener: { factor: 0.05, category: 'other' as const },
-  digester: { factor: 0.10, category: 'mixing' as const },
-  dewatering: { factor: 0.15, category: 'other' as const },
+  thickener: { factor: 0.05, category: 'other' },
+  digester: { factor: 0.10, category: 'mixing' },
+  dewatering: { factor: 0.15, category: 'other' },
+  belt_filter_press: { factor: 0.10, category: 'other' },
+  centrifuge_dewatering: { factor: 0.20, category: 'other' },
+  sludge_drying_bed: { factor: 0.01, category: 'other' },
 }
 
 /**

@@ -28,6 +28,7 @@ import {
   calculateEnergyConsumption,
 } from '@/lib/calculations/wastewater-treatment'
 import { WastewaterReportExporter } from '@/lib/export/wastewater-report'
+import RealTimeVisualization from '@/components/wastewater/RealTimeVisualization'
 
 // ============================================
 // STATUS BADGE COMPONENT
@@ -2002,6 +2003,15 @@ export default function WastewaterTreatmentPage() {
             {/* Treatment Performance Graph */}
             <div className="mb-6">
               <TreatmentGraph system={system} influent={influent} />
+            </div>
+
+            {/* Real-Time Simulation */}
+            <div className="mb-6">
+              <RealTimeVisualization
+                system={system}
+                influent={influent}
+                targetStandard={targetStandard}
+              />
             </div>
 
             {/* Cost Estimation */}
