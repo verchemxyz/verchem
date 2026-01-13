@@ -33,7 +33,8 @@ function DiffuserGridVisualization({ layout, tankArea }: DiffuserGridProps) {
 
   return (
     <div className="inline-block border-2 border-blue-300 rounded bg-blue-50 p-2">
-      <svg width={width} height={height} className="block">
+      <svg width={width} height={height} className="block" role="img" aria-label="Diffuser grid layout">
+        <title>Diffuser grid layout</title>
         {/* Tank outline */}
         <rect x={0} y={0} width={width} height={height} fill="none" stroke="#93c5fd" strokeWidth={2} />
 
@@ -88,7 +89,8 @@ function DOProfileChart({ profile, setpoint }: DOProfileChartProps) {
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
 
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className="overflow-visible" role="img" aria-label="Dissolved oxygen profile along tank">
+      <title>Dissolved oxygen profile along tank</title>
       {/* Axes */}
       <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e5e7eb" />
       <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e5e7eb" />
@@ -118,7 +120,9 @@ function DOProfileChart({ profile, setpoint }: DOProfileChartProps) {
           cy={p.y}
           r={3}
           fill={p.isAnoxic ? '#ef4444' : '#3b82f6'}
-        />
+        >
+          <title>{p.isAnoxic ? 'Anoxic' : 'Aerobic'}</title>
+        </circle>
       ))}
 
       {/* Labels */}
@@ -281,32 +285,49 @@ export default function AerationDesigner({
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Tank Parameters</h4>
             <div>
-              <label className="block text-xs text-gray-600">Volume (m³)</label>
+              <label htmlFor="aeration-tank-volume" className="block text-xs text-gray-600">Volume (m³)</label>
               <input
+                id="aeration-tank-volume"
                 type="number"
                 value={tankVolume}
-                onChange={(e) => setTankVolume(Number(e.target.value))}
+                onChange={(e) => setTankVolume(Math.max(1, Number(e.target.value) || 0))}
+                min={1}
+                max={100000}
+                step={10}
+                aria-describedby="aeration-tank-volume-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-tank-volume-hint" className="sr-only">Valid range: 1 to 100,000 m³</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">Depth (m)</label>
+              <label htmlFor="aeration-tank-depth" className="block text-xs text-gray-600">Depth (m)</label>
               <input
+                id="aeration-tank-depth"
                 type="number"
                 value={tankDepth}
-                onChange={(e) => setTankDepth(Number(e.target.value))}
-                step="0.5"
+                onChange={(e) => setTankDepth(Math.max(0.5, Number(e.target.value) || 0))}
+                min={0.5}
+                max={10}
+                step={0.5}
+                aria-describedby="aeration-tank-depth-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-tank-depth-hint" className="sr-only">Valid range: 0.5 to 10 m</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">MLSS (mg/L)</label>
+              <label htmlFor="aeration-mlss" className="block text-xs text-gray-600">MLSS (mg/L)</label>
               <input
+                id="aeration-mlss"
                 type="number"
                 value={mlss}
-                onChange={(e) => setMlss(Number(e.target.value))}
+                onChange={(e) => setMlss(Math.max(500, Number(e.target.value) || 0))}
+                min={500}
+                max={10000}
+                step={100}
+                aria-describedby="aeration-mlss-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-mlss-hint" className="sr-only">Valid range: 500 to 10,000 mg/L</span>
             </div>
           </div>
 
@@ -314,32 +335,49 @@ export default function AerationDesigner({
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Oxygen Demand</h4>
             <div>
-              <label className="block text-xs text-gray-600">BOD Removed (kg/day)</label>
+              <label htmlFor="aeration-bod-removed" className="block text-xs text-gray-600">BOD Removed (kg/day)</label>
               <input
+                id="aeration-bod-removed"
                 type="number"
                 value={bodRemoved.toFixed(1)}
-                onChange={(e) => setBodRemoved(Number(e.target.value))}
+                onChange={(e) => setBodRemoved(Math.max(0, Number(e.target.value) || 0))}
+                min={0}
+                max={100000}
+                step={10}
+                aria-describedby="aeration-bod-removed-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-bod-removed-hint" className="sr-only">Valid range: 0 to 100,000 kg/day</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">N Oxidized (kg/day)</label>
+              <label htmlFor="aeration-n-oxidized" className="block text-xs text-gray-600">N Oxidized (kg/day)</label>
               <input
+                id="aeration-n-oxidized"
                 type="number"
                 value={nitrogenOxidized.toFixed(1)}
-                onChange={(e) => setNitrogenOxidized(Number(e.target.value))}
+                onChange={(e) => setNitrogenOxidized(Math.max(0, Number(e.target.value) || 0))}
+                min={0}
+                max={50000}
+                step={1}
+                aria-describedby="aeration-n-oxidized-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-n-oxidized-hint" className="sr-only">Valid range: 0 to 50,000 kg/day</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">Peak Factor</label>
+              <label htmlFor="aeration-peak-factor" className="block text-xs text-gray-600">Peak Factor</label>
               <input
+                id="aeration-peak-factor"
                 type="number"
                 value={peakFactor}
-                onChange={(e) => setPeakFactor(Number(e.target.value))}
-                step="0.1"
+                onChange={(e) => setPeakFactor(Math.max(1, Number(e.target.value) || 1))}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-describedby="aeration-peak-factor-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-peak-factor-hint" className="sr-only">Valid range: 1 to 3</span>
             </div>
           </div>
 
@@ -347,32 +385,49 @@ export default function AerationDesigner({
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Conditions</h4>
             <div>
-              <label className="block text-xs text-gray-600">Temperature (°C)</label>
+              <label htmlFor="aeration-temperature" className="block text-xs text-gray-600">Temperature (°C)</label>
               <input
+                id="aeration-temperature"
                 type="number"
                 value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
+                onChange={(e) => setTemperature(Math.max(0, Number(e.target.value) || 0))}
+                min={0}
+                max={45}
+                step={1}
+                aria-describedby="aeration-temperature-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-temperature-hint" className="sr-only">Valid range: 0 to 45 °C</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">Elevation (m)</label>
+              <label htmlFor="aeration-elevation" className="block text-xs text-gray-600">Elevation (m)</label>
               <input
+                id="aeration-elevation"
                 type="number"
                 value={elevation}
-                onChange={(e) => setElevation(Number(e.target.value))}
+                onChange={(e) => setElevation(Math.max(0, Number(e.target.value) || 0))}
+                min={0}
+                max={5000}
+                step={50}
+                aria-describedby="aeration-elevation-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-elevation-hint" className="sr-only">Valid range: 0 to 5,000 m above sea level</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">DO Setpoint (mg/L)</label>
+              <label htmlFor="aeration-do-setpoint" className="block text-xs text-gray-600">DO Setpoint (mg/L)</label>
               <input
+                id="aeration-do-setpoint"
                 type="number"
                 value={doSetpoint}
-                onChange={(e) => setDoSetpoint(Number(e.target.value))}
-                step="0.5"
+                onChange={(e) => setDoSetpoint(Math.max(0.5, Number(e.target.value) || 0.5))}
+                min={0.5}
+                max={8}
+                step={0.5}
+                aria-describedby="aeration-do-setpoint-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
+              <span id="aeration-do-setpoint-hint" className="sr-only">Valid range: 0.5 to 8 mg/L</span>
             </div>
           </div>
         </div>
@@ -380,8 +435,9 @@ export default function AerationDesigner({
         {/* Equipment Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Diffuser Type</label>
+            <label htmlFor="aeration-diffuser-type" className="block text-sm font-medium text-gray-700 mb-2">Diffuser Type</label>
             <select
+              id="aeration-diffuser-type"
               value={diffuserType}
               onChange={(e) => setDiffuserType(e.target.value as DiffuserType)}
               className="w-full px-3 py-2 border rounded"
@@ -394,8 +450,9 @@ export default function AerationDesigner({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Blower Redundancy</label>
+            <label htmlFor="aeration-blower-redundancy" className="block text-sm font-medium text-gray-700 mb-2">Blower Redundancy</label>
             <select
+              id="aeration-blower-redundancy"
               value={blowerRedundancy}
               onChange={(e) => setBlowerRedundancy(e.target.value as 'n' | 'n+1' | 'n+2')}
               className="w-full px-3 py-2 border rounded"
@@ -412,43 +469,49 @@ export default function AerationDesigner({
           <h4 className="text-sm font-medium text-gray-700 mb-3">Oxygen Transfer Correction Factors</h4>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs text-gray-600">Alpha (α)</label>
+              <label htmlFor="aeration-alpha" className="block text-xs text-gray-600">Alpha (α)</label>
               <input
+                id="aeration-alpha"
                 type="number"
                 value={alpha}
-                onChange={(e) => setAlpha(Number(e.target.value))}
-                step="0.05"
-                min="0.3"
-                max="0.9"
+                onChange={(e) => setAlpha(Math.max(0.3, Math.min(0.9, Number(e.target.value) || 0.6)))}
+                step={0.05}
+                min={0.3}
+                max={0.9}
+                aria-describedby="aeration-alpha-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
-              <span className="text-xs text-gray-500">Wastewater/clean water (0.4-0.9)</span>
+              <span id="aeration-alpha-hint" className="text-xs text-gray-500">Wastewater/clean water (0.4-0.9)</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">Beta (β)</label>
+              <label htmlFor="aeration-beta" className="block text-xs text-gray-600">Beta (β)</label>
               <input
+                id="aeration-beta"
                 type="number"
                 value={beta}
-                onChange={(e) => setBeta(Number(e.target.value))}
-                step="0.01"
-                min="0.9"
-                max="1.0"
+                onChange={(e) => setBeta(Math.max(0.9, Math.min(1.0, Number(e.target.value) || 0.98)))}
+                step={0.01}
+                min={0.9}
+                max={1.0}
+                aria-describedby="aeration-beta-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
-              <span className="text-xs text-gray-500">Salinity factor (0.95-0.99)</span>
+              <span id="aeration-beta-hint" className="text-xs text-gray-500">Salinity factor (0.95-0.99)</span>
             </div>
             <div>
-              <label className="block text-xs text-gray-600">Fouling (F)</label>
+              <label htmlFor="aeration-fouling" className="block text-xs text-gray-600">Fouling (F)</label>
               <input
+                id="aeration-fouling"
                 type="number"
                 value={foulingFactor}
-                onChange={(e) => setFoulingFactor(Number(e.target.value))}
-                step="0.05"
-                min="0.5"
-                max="1.0"
+                onChange={(e) => setFoulingFactor(Math.max(0.5, Math.min(1.0, Number(e.target.value) || 0.8)))}
+                step={0.05}
+                min={0.5}
+                max={1.0}
+                aria-describedby="aeration-fouling-hint"
                 className="w-full px-3 py-1.5 border rounded text-sm"
               />
-              <span className="text-xs text-gray-500">Membrane fouling (0.65-0.9)</span>
+              <span id="aeration-fouling-hint" className="text-xs text-gray-500">Membrane fouling (0.65-0.9)</span>
             </div>
           </div>
         </div>

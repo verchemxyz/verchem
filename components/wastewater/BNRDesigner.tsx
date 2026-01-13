@@ -59,7 +59,10 @@ function ProcessSelector({
         return (
           <button
             key={type}
+            type="button"
             onClick={() => onSelect(type)}
+            aria-pressed={isSelected}
+            aria-label={`Select ${config.name} process`}
             className={`p-4 rounded-lg border-2 text-left transition-all ${
               isSelected
                 ? 'border-blue-500 bg-blue-50 shadow-md'
@@ -1024,46 +1027,55 @@ export default function BNRDesigner({
         <h3 className="text-lg font-semibold text-gray-900 mb-4">2. Target Effluent Quality</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="bnr-target-ammonia" className="block text-sm font-medium text-gray-700 mb-1">
               Target NH₃-N (mg/L)
             </label>
             <input
+              id="bnr-target-ammonia"
               type="number"
               value={targetAmmonia}
-              onChange={(e) => setTargetAmmonia(Number(e.target.value))}
-              min="0.1"
-              max="10"
-              step="0.5"
+              onChange={(e) => setTargetAmmonia(Math.max(0.1, Number(e.target.value) || 0.1))}
+              min={0.1}
+              max={10}
+              step={0.5}
+              aria-describedby="bnr-target-ammonia-hint"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+            <span id="bnr-target-ammonia-hint" className="sr-only">Valid range: 0.1 to 10 mg/L</span>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="bnr-target-tn" className="block text-sm font-medium text-gray-700 mb-1">
               Target TN (mg/L)
             </label>
             <input
+              id="bnr-target-tn"
               type="number"
               value={targetTN}
-              onChange={(e) => setTargetTN(Number(e.target.value))}
-              min="3"
-              max="30"
-              step="1"
+              onChange={(e) => setTargetTN(Math.max(3, Number(e.target.value) || 3))}
+              min={3}
+              max={30}
+              step={1}
+              aria-describedby="bnr-target-tn-hint"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+            <span id="bnr-target-tn-hint" className="sr-only">Valid range: 3 to 30 mg/L</span>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="bnr-target-tp" className="block text-sm font-medium text-gray-700 mb-1">
               Target TP (mg/L)
             </label>
             <input
+              id="bnr-target-tp"
               type="number"
               value={targetTP}
-              onChange={(e) => setTargetTP(Number(e.target.value))}
-              min="0.1"
-              max="5"
-              step="0.1"
+              onChange={(e) => setTargetTP(Math.max(0.1, Number(e.target.value) || 0.1))}
+              min={0.1}
+              max={5}
+              step={0.1}
+              aria-describedby="bnr-target-tp-hint"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+            <span id="bnr-target-tp-hint" className="sr-only">Valid range: 0.1 to 5 mg/L</span>
           </div>
         </div>
       </div>
@@ -1082,18 +1094,21 @@ export default function BNRDesigner({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="bnr-mlss" className="block text-sm font-medium text-gray-700 mb-1">
               MLSS (mg/L)
             </label>
             <input
+              id="bnr-mlss"
               type="number"
               value={mlss}
-              onChange={(e) => setMlss(Number(e.target.value))}
-              min="2000"
-              max="6000"
-              step="100"
+              onChange={(e) => setMlss(Math.max(2000, Number(e.target.value) || 2000))}
+              min={2000}
+              max={6000}
+              step={100}
+              aria-describedby="bnr-mlss-hint"
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
+            <span id="bnr-mlss-hint" className="sr-only">Valid range: 2,000 to 6,000 mg/L</span>
           </div>
 
           <div className="flex items-center gap-3 col-span-2">
@@ -1108,17 +1123,21 @@ export default function BNRDesigner({
             </label>
 
             {enableChemP && (
-              <select
-                value={chemPType}
-                onChange={(e) => setChemPType(e.target.value as typeof chemPType)}
-                className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="ferric_chloride">Ferric Chloride</option>
-                <option value="alum">Alum</option>
-                <option value="ferric_sulfate">Ferric Sulfate</option>
-                <option value="pac">PAC</option>
-                <option value="lime">Lime</option>
-              </select>
+              <>
+                <label htmlFor="bnr-chem-type" className="sr-only">Chemical type</label>
+                <select
+                  id="bnr-chem-type"
+                  value={chemPType}
+                  onChange={(e) => setChemPType(e.target.value as typeof chemPType)}
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="ferric_chloride">Ferric Chloride</option>
+                  <option value="alum">Alum</option>
+                  <option value="ferric_sulfate">Ferric Sulfate</option>
+                  <option value="pac">PAC</option>
+                  <option value="lime">Lime</option>
+                </select>
+              </>
             )}
           </div>
         </div>
@@ -1126,34 +1145,40 @@ export default function BNRDesigner({
         {showAdvanced && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="bnr-srt-override" className="block text-sm font-medium text-gray-700 mb-1">
                 SRT Override (days) - Optional
               </label>
               <input
+                id="bnr-srt-override"
                 type="number"
                 value={srtOverride || ''}
-                onChange={(e) => setSrtOverride(e.target.value ? Number(e.target.value) : undefined)}
-                min="5"
-                max="40"
-                step="1"
+                onChange={(e) => setSrtOverride(e.target.value ? Math.max(5, Math.min(40, Number(e.target.value))) : undefined)}
+                min={5}
+                max={40}
+                step={1}
                 placeholder="Auto"
+                aria-describedby="bnr-srt-override-hint"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+              <span id="bnr-srt-override-hint" className="sr-only">Valid range: 5 to 40 days, leave empty for auto</span>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="bnr-ir-override" className="block text-sm font-medium text-gray-700 mb-1">
                 Internal Recycle Ratio (Q) - Optional
               </label>
               <input
+                id="bnr-ir-override"
                 type="number"
                 value={irRatioOverride || ''}
-                onChange={(e) => setIrRatioOverride(e.target.value ? Number(e.target.value) : undefined)}
-                min="0.5"
-                max="6"
-                step="0.5"
+                onChange={(e) => setIrRatioOverride(e.target.value ? Math.max(0.5, Math.min(6, Number(e.target.value))) : undefined)}
+                min={0.5}
+                max={6}
+                step={0.5}
                 placeholder="Auto"
+                aria-describedby="bnr-ir-override-hint"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+              <span id="bnr-ir-override-hint" className="sr-only">Valid range: 0.5 to 6Q, leave empty for auto</span>
             </div>
           </div>
         )}

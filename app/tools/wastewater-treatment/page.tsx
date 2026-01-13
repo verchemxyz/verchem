@@ -441,12 +441,18 @@ interface EditUnitModalProps {
 }
 
 function EditUnitModal({ isOpen, onClose, unit, onSave }: EditUnitModalProps) {
-  const [config, setConfig] = useState<Record<string, unknown>>({})
+  // Initialize config from unit.design
+  const [config, setConfig] = useState<Record<string, unknown>>(() =>
+    unit ? (unit.design as unknown as Record<string, unknown>) : {}
+  )
 
-  // Reset config when unit changes
+  // Reset config when unit changes - deferred to avoid cascade
   useEffect(() => {
     if (unit) {
-      setConfig(unit.design as unknown as Record<string, unknown>)
+      const timer = setTimeout(() => {
+        setConfig(unit.design as unknown as Record<string, unknown>)
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [unit])
 
@@ -1099,15 +1105,11 @@ interface ScenarioManagerProps {
 }
 
 function ScenarioManager({ currentDesign, onLoadScenario, system, costEstimation }: ScenarioManagerProps) {
-  const [scenarios, setScenarios] = useState<SavedScenario[]>([])
+  // Lazy initialization from localStorage
+  const [scenarios, setScenarios] = useState<SavedScenario[]>(() => loadScenarios())
   const [showComparison, setShowComparison] = useState(false)
   const [newName, setNewName] = useState('')
   const [showSaveDialog, setShowSaveDialog] = useState(false)
-
-  // Load scenarios on mount
-  useEffect(() => {
-    setScenarios(loadScenarios())
-  }, [])
 
   const handleSave = () => {
     if (!newName.trim() || !system) return

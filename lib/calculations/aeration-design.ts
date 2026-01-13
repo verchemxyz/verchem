@@ -84,10 +84,52 @@ function elevationPressureFactor(elevation: number): number {
  */
 const AIR_DENSITY_STD = 1.2 // kg/m³ at 20°C, 1 atm
 
+/** Oxygen content in air (20.95%) */
+const O2_FRACTION = 0.2095
+
+/** Minimum positive value to prevent division by zero */
+const MIN_POSITIVE = 1e-6
+
+/** Minimum AOTE percentage to prevent negative values */
+const MIN_AOTE_PERCENT = 0.5
+
+/** Minimum DO deficit ratio */
+const MIN_DO_DEFICIT = 0.05
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
 /**
- * Oxygen content in air
+ * Ensures a value is non-negative and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: 0)
+ * @returns Non-negative finite number
  */
-const O2_FRACTION = 0.2095 // 20.95%
+function safeNonNegative(value: number, fallback = 0): number {
+  return Number.isFinite(value) ? Math.max(0, value) : fallback
+}
+
+/**
+ * Ensures a value is positive and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: MIN_POSITIVE)
+ * @returns Positive finite number
+ */
+function safePositive(value: number, fallback = MIN_POSITIVE): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+/**
+ * Safe division that prevents divide-by-zero errors
+ * @param numerator - The dividend
+ * @param denominator - The divisor
+ * @param fallback - Default value if division is invalid (default: 0)
+ * @returns Result of division or fallback
+ */
+function safeDivide(numerator: number, denominator: number, fallback = 0): number {
+  return Number.isFinite(denominator) && denominator > 0 ? numerator / denominator : fallback
+}
 
 // ============================================
 // OXYGEN TRANSFER CALCULATIONS
@@ -136,14 +178,19 @@ export function calculateOxygenDemand(input: {
   endogenous: number
   total: number
 } {
+  const bodRemoved = safeNonNegative(input.bodRemoved, 0)
+  const nitrogenOxidized = safeNonNegative(input.nitrogenOxidized || 0, 0)
+  const mlvss = safeNonNegative(input.mlvss, 0)
+  const tankVolume = safePositive(input.tankVolume, 1)
+
   // Carbonaceous demand: ~1.0-1.2 kg O2/kg BOD removed
-  const carbonaceous = input.bodRemoved * 1.1
+  const carbonaceous = bodRemoved * 1.1
 
   // Nitrogenous demand: 4.57 kg O2/kg NH4-N oxidized
-  const nitrogenous = (input.nitrogenOxidized || 0) * 4.57
+  const nitrogenous = nitrogenOxidized * 4.57
 
   // Endogenous respiration: ~0.06-0.1 kg O2/kg MLVSS/day
-  const biomass = (input.mlvss * input.tankVolume) / 1000 // kg
+  const biomass = (mlvss * tankVolume) / 1000 // kg
   const endogenous = biomass * 0.08
 
   return {
@@ -185,9 +232,10 @@ export function calculateOxygenTransfer(input: OxygenTransferInput): OxygenTrans
   // Actual Oxygen Transfer Efficiency (AOTE)
   // AOTE = SOTE × α × β × F × θ^(T-20) × (Cs∞ - CL)/(Cs20)
   const tempCorrection = Math.pow(theta, input.temperature - 20)
-  const doDeficit = (csInf - input.doSetpoint) / cs20
-
-  const aote = sote * input.alpha * input.beta * input.foulingFactor * tempCorrection * doDeficit
+  const doDeficitRaw = (csInf - input.doSetpoint) / cs20
+  const doDeficit = Math.max(0.05, doDeficitRaw)
+  const aoteUnclamped = sote * input.alpha * input.beta * input.foulingFactor * tempCorrection * doDeficit
+  const aote = Math.max(MIN_AOTE_PERCENT, aoteUnclamped)
 
   // Oxygen demands (from previous calculation or input)
   // For now, use typical values based on BOD removed
@@ -242,30 +290,36 @@ export function designDiffuserSystem(input: DiffuserSystemInput): AerationSystem
 
   // Calculate total air flow required
   // Air flow = O2 required / (ρ_air × O2_fraction × AOTE)
-  const aote = input.transferParams.aote / 100
+  const aote = Math.max(MIN_AOTE_PERCENT, input.transferParams.aote) / 100
   const airDensityO2 = AIR_DENSITY_STD * O2_FRACTION // kg O2/m³ air
 
   // Daily air requirement (m³/day)
-  const dailyAirRequired = input.oxygenRequired / (airDensityO2 * aote)
+  const oxygenRequired = safeNonNegative(input.oxygenRequired, 0)
+  const dailyAirRequired = safeDivide(oxygenRequired, airDensityO2 * aote, 0)
 
   // Hourly air flow (m³/h = Nm³/h at standard conditions)
   const totalAirflow = dailyAirRequired / 24
 
   // Number of diffusers based on area coverage
-  const diffusersByArea = Math.ceil(input.tankArea / spec.coveragePerUnit)
+  const tankArea = safePositive(input.tankArea, 1)
+  const diffusersByArea = Math.max(1, Math.ceil(tankArea / spec.coveragePerUnit))
 
   // Number of diffusers based on airflow capacity
-  const airflowPerDiffuser = Math.min(
-    spec.airflowPerUnit.max,
-    Math.max(spec.airflowPerUnit.min, totalAirflow / diffusersByArea)
-  )
-  const diffusersByAirflow = Math.ceil(totalAirflow / airflowPerDiffuser)
+  const airflowPerDiffuser = totalAirflow > 0
+    ? Math.min(
+      spec.airflowPerUnit.max,
+      Math.max(spec.airflowPerUnit.min, totalAirflow / diffusersByArea)
+    )
+    : 0
+  const diffusersByAirflow = totalAirflow > 0 && airflowPerDiffuser > 0
+    ? Math.ceil(totalAirflow / airflowPerDiffuser)
+    : diffusersByArea
 
   // Use the higher of the two
-  const numberOfDiffusers = Math.max(diffusersByArea, diffusersByAirflow)
+  const numberOfDiffusers = Math.max(1, Math.max(diffusersByArea, diffusersByAirflow))
 
   // Calculate actual airflow per diffuser
-  const actualAirflowPerDiffuser = totalAirflow / numberOfDiffusers
+  const actualAirflowPerDiffuser = totalAirflow > 0 ? totalAirflow / numberOfDiffusers : 0
 
   // Grid layout (approximately square)
   const aspectRatio = 2 // Typical tank L:W ratio
@@ -273,8 +327,8 @@ export function designDiffuserSystem(input: DiffuserSystemInput): AerationSystem
   const rows = Math.ceil(numberOfDiffusers / columns)
 
   // Spacing
-  const tankLength = Math.sqrt(input.tankArea * aspectRatio)
-  const tankWidth = input.tankArea / tankLength
+  const tankLength = Math.sqrt(tankArea * aspectRatio)
+  const tankWidth = tankArea / tankLength
   const spacing = Math.min(tankLength / (rows + 1), tankWidth / (columns + 1))
 
   return {
@@ -316,16 +370,22 @@ export function designBlowerSystem(
 ): AerationSystemDesign['blowerSystem'] {
   // Calculate total discharge pressure
   // P = Static head + Diffuser pressure drop + Piping losses
-  const staticHead = input.submergence * 9.81 // kPa (water column)
-  const elevation = input.elevationAboveBlower * 0.12 // kPa per meter elevation
-  const totalPressure = staticHead + input.diffuserPressureDrop + input.pipingPressureDrop + elevation
+  const submergence = safeNonNegative(input.submergence, 0)
+  const diffuserPressureDrop = safeNonNegative(input.diffuserPressureDrop, 0)
+  const pipingPressureDrop = safeNonNegative(input.pipingPressureDrop, 0)
+  const elevationAboveBlower = safeNonNegative(input.elevationAboveBlower, 0)
+  const totalAirflow = safePositive(input.totalAirflow, MIN_POSITIVE)
+
+  const staticHead = submergence * 9.81 // kPa (water column)
+  const elevation = elevationAboveBlower * 0.12 // kPa per meter elevation
+  const totalPressure = staticHead + diffuserPressureDrop + pipingPressureDrop + elevation
 
   // Add 10% safety margin
   const designPressure = totalPressure * 1.1
 
   // Determine blower type based on pressure and flow
   let blowerType: BlowerType
-  if (designPressure < 50 && input.totalAirflow < 500) {
+  if (designPressure < 50 && totalAirflow < 500) {
     blowerType = 'positive_displacement'
   } else if (designPressure < 80) {
     blowerType = 'multistage_centrifugal'
@@ -337,15 +397,15 @@ export function designBlowerSystem(
   let numberOfBlowers: number
   let capacityPerBlower: number
 
-  if (input.totalAirflow < 200) {
+  if (totalAirflow < 200) {
     numberOfBlowers = 2
-    capacityPerBlower = input.totalAirflow / 1 // One handles 100%
-  } else if (input.totalAirflow < 1000) {
+    capacityPerBlower = totalAirflow / 1 // One handles 100%
+  } else if (totalAirflow < 1000) {
     numberOfBlowers = 3
-    capacityPerBlower = input.totalAirflow / 2 // Each handles 50%
+    capacityPerBlower = totalAirflow / 2 // Each handles 50%
   } else {
-    numberOfBlowers = Math.ceil(input.totalAirflow / 500) + 1
-    capacityPerBlower = input.totalAirflow / (numberOfBlowers - 1)
+    numberOfBlowers = Math.ceil(totalAirflow / 500) + 1
+    capacityPerBlower = totalAirflow / (numberOfBlowers - 1)
   }
 
   // Standby configuration
@@ -376,7 +436,7 @@ export function designBlowerSystem(
   const totalPower = motorPower * numberOfBlowers // Only running blowers
 
   // VFD requirement
-  const vfdRequired = input.totalAirflow > 300 // VFDs recommended for larger systems
+  const vfdRequired = totalAirflow > 300 // VFDs recommended for larger systems
 
   // Turndown ratio
   const turndownRatio = blowerType === 'positive_displacement' ? 50 : blowerType === 'single_stage_turbo' ? 40 : 60
@@ -412,7 +472,8 @@ export function designPipingSystem(
   const targetVelocity = 15 // m/s
 
   // Flow in m³/s
-  const flowRate = totalAirflow / 3600
+  const safeTotalAirflow = safePositive(totalAirflow, MIN_POSITIVE)
+  const flowRate = safeTotalAirflow / 3600
 
   // Header diameter (circular pipe)
   // A = Q/v, D = sqrt(4A/π)
@@ -428,13 +489,15 @@ export function designPipingSystem(
   const airVelocity = flowRate / actualArea
 
   // Drop pipe sizing (typically 50-80mm)
-  const flowPerDrop = flowRate / numberOfDropPipes
+  const safeDropPipes = Math.max(1, Math.floor(Number.isFinite(numberOfDropPipes) ? numberOfDropPipes : 1))
+  const flowPerDrop = flowRate / safeDropPipes
   const dropArea = flowPerDrop / 15 // 15 m/s target
   const dropDiameterCalc = Math.sqrt((4 * dropArea) / Math.PI) * 1000
   const dropPipeDiameter = standardSizes.find((d) => d >= dropDiameterCalc) || 80
 
   // Main header length (assume runs along tank length)
-  const mainHeaderLength = tankLength * 1.2 // 20% extra for connections
+  const safeTankLength = safePositive(tankLength, 1)
+  const mainHeaderLength = safeTankLength * 1.2 // 20% extra for connections
 
   // Pressure drop calculation (Darcy-Weisbach simplified)
   // ΔP = f × (L/D) × (ρv²/2)
@@ -449,7 +512,7 @@ export function designPipingSystem(
     mainHeaderDiameter,
     dropPipeDiameter,
     mainHeaderLength,
-    numberOfDropPipes,
+    numberOfDropPipes: safeDropPipes,
     totalPressureDrop,
     airVelocity,
   }
@@ -482,14 +545,20 @@ export function calculateDOProfile(
   const hrt = 6 // Assumed HRT in hours
 
   // Oxygen uptake rate (OUR) - kg O2/m³/day
-  const tankVolume = (flowRate * hrt) / 24
-  const our = oxygenDemand / tankVolume // kg O2/m³/day
+  const safeFlowRate = safePositive(flowRate, 1)
+  const tankVolume = (safeFlowRate * hrt) / 24
+  const safeOxygenDemand = safeNonNegative(oxygenDemand, 0)
+  const our = safeDivide(safeOxygenDemand, tankVolume, 0) // kg O2/m³/day
 
   // Convert to mg/L/h
   const ourMgLh = (our * 1000) / 24
 
   // Oxygen transfer rate at each point
-  const otr = (aeration.totalAirflow * AIR_DENSITY_STD * O2_FRACTION * aeration.sote) / 100 / tankVolume * 1000 / 24 // mg/L/h
+  const otr = safeDivide(
+    aeration.totalAirflow * AIR_DENSITY_STD * O2_FRACTION * aeration.sote,
+    100 * tankVolume,
+    0
+  ) * 1000 / 24 // mg/L/h
 
   for (let i = 0; i <= numPoints; i++) {
     const position = (i / numPoints) * tankLength
@@ -571,8 +640,33 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
   const redundancy = input.blowerRedundancy ?? 'n+1'
   const numberOfZones = input.numberOfZones ?? 1
 
+  const tankVolume = safePositive(input.tankVolume, 1)
+  const tankDepth = safePositive(input.tankDepth, 1)
+  if (input.tankVolume <= 0 || !Number.isFinite(input.tankVolume)) {
+    issues.push({
+      severity: 'critical',
+      parameter: 'Tank Volume',
+      message: 'Tank volume must be greater than 0',
+      currentValue: input.tankVolume,
+      recommendedValue: 500,
+      unit: 'm³',
+      suggestion: 'Enter a valid tank volume',
+    })
+  }
+  if (input.tankDepth <= 0 || !Number.isFinite(input.tankDepth)) {
+    issues.push({
+      severity: 'critical',
+      parameter: 'Tank Depth',
+      message: 'Tank depth must be greater than 0',
+      currentValue: input.tankDepth,
+      recommendedValue: 4.5,
+      unit: 'm',
+      suggestion: 'Enter a valid tank depth',
+    })
+  }
+
   // Calculate tank geometry
-  const tankArea = input.tankVolume / input.tankDepth
+  const tankArea = tankVolume / tankDepth
   const tankLength = Math.sqrt(tankArea * 2) // Assume L:W = 2:1
   const tankWidth = tankArea / tankLength
 
@@ -582,7 +676,7 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
     bodRemoved: input.bodRemoved,
     nitrogenOxidized: input.nitrogenOxidized,
     mlvss,
-    tankVolume: input.tankVolume,
+    tankVolume,
   })
 
   const peakDemand = oxygenDemand.total * peakFactor
@@ -592,7 +686,7 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
   const transferParams = calculateOxygenTransfer({
     bodRemoved: input.bodRemoved,
     nitrogenOxidized: input.nitrogenOxidized,
-    biomassVolume: input.mlss * input.tankVolume,
+    biomassVolume: input.mlss * tankVolume,
     temperature: input.temperature,
     elevation,
     alpha,
@@ -607,7 +701,7 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
   // Design diffuser system
   const diffuserSystem = designDiffuserSystem({
     tankArea,
-    tankDepth: input.tankDepth,
+    tankDepth,
     oxygenRequired: peakDemand,
     diffuserType,
     transferParams,
@@ -634,8 +728,8 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
   // Calculate DO profile
   const doProfile = calculateDOProfile(
     tankLength,
-    input.tankDepth,
-    input.tankVolume * 24 / 6, // Approximate flow from HRT
+    tankDepth,
+    tankVolume * 24 / 6, // Approximate flow from HRT
     oxygenDemand.total,
     {
       totalAirflow: diffuserSystem.totalAirflow,
@@ -650,8 +744,8 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
   const blowerPower = blowerSystem.totalPower
   const dailyEnergy = blowerPower * 24
   const annualEnergy = dailyEnergy * 365
-  const kWhPerKgO2 = dailyEnergy / oxygenDemand.total
-  const kWhPerM3 = dailyEnergy / (input.tankVolume * 24 / 6) // Based on flow
+  const kWhPerKgO2 = safeDivide(dailyEnergy, oxygenDemand.total, 0)
+  const kWhPerM3 = safeDivide(dailyEnergy, tankVolume * 24 / 6, 0) // Based on flow
   const electricityRate = 4.5 // THB/kWh
   const annualEnergyCost = annualEnergy * electricityRate
 
@@ -686,7 +780,7 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
     })
   }
 
-  if (diffuserSystem.airflowPerDiffuser < diffuserSpec.airflowPerUnit.min) {
+  if (diffuserSystem.airflowPerDiffuser > 0 && diffuserSystem.airflowPerDiffuser < diffuserSpec.airflowPerUnit.min) {
     issues.push({
       severity: 'info',
       parameter: 'Airflow per Diffuser',
@@ -710,6 +804,18 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
     })
   }
 
+  if (doSetpoint >= transferParams.csInf) {
+    issues.push({
+      severity: 'critical',
+      parameter: 'DO Setpoint',
+      message: 'DO setpoint exceeds saturation at operating conditions',
+      currentValue: doSetpoint,
+      recommendedValue: transferParams.csInf * 0.9,
+      unit: 'mg/L',
+      suggestion: 'Lower the setpoint or reassess temperature/elevation',
+    })
+  }
+
   if (transferParams.aote < 10) {
     warnings.push('Low oxygen transfer efficiency - consider process optimization')
   }
@@ -723,15 +829,15 @@ export function designAerationSystem(input: AerationDesignInput): AerationSystem
     recommendations.push('Upgrade to PID control for energy optimization')
   }
 
-  if (numberOfZones === 1 && input.tankVolume > 500) {
+  if (numberOfZones === 1 && tankVolume > 500) {
     recommendations.push('Consider multiple aeration zones for better DO control')
   }
 
   const isValid = issues.filter((i) => i.severity === 'critical').length === 0
 
   return {
-    tankVolume: input.tankVolume,
-    tankDepth: input.tankDepth,
+    tankVolume,
+    tankDepth,
     tankArea,
     numberOfZones,
     oxygenDemand: {
@@ -787,13 +893,14 @@ export function estimateAerationPower(
   kWhPerM3: number
 } {
   // BOD removed
-  const bodRemoved = ((bodInfluent - bodEffluent) * flowRate) / 1000 // kg/day
+  const safeFlowRate = safePositive(flowRate, 1)
+  const bodRemoved = ((bodInfluent - bodEffluent) * safeFlowRate) / 1000 // kg/day
 
   // Oxygen demand
   let o2Demand = bodRemoved * 1.2 // kg O2/day for carbonaceous
   if (nitrification) {
     // Assume 80% of TKN (estimate 40 mg/L) is nitrified
-    const nOxidized = (40 * 0.8 * flowRate) / 1000 // kg N/day
+    const nOxidized = (40 * 0.8 * safeFlowRate) / 1000 // kg N/day
     o2Demand += nOxidized * 4.57
   }
 
@@ -807,7 +914,7 @@ export function estimateAerationPower(
 
   const power = (airFlowRate * pressure) / (efficiency * 1000)
   const dailyEnergy = power * 24
-  const kWhPerM3 = dailyEnergy / flowRate
+  const kWhPerM3 = safeDivide(dailyEnergy, safeFlowRate, 0)
 
   return {
     power,

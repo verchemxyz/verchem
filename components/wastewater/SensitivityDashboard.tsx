@@ -26,7 +26,9 @@ interface TornadoChartProps {
 }
 
 function TornadoChart({ data, selectedParameter, onSelectParameter }: TornadoChartProps) {
-  const maxImpact = Math.max(...data.flatMap(d => [Math.abs(d.lowImpact), Math.abs(d.highImpact)]))
+  const maxImpact = data.length > 0
+    ? Math.max(...data.flatMap(d => [Math.abs(d.lowImpact), Math.abs(d.highImpact)]))
+    : 0
   const scale = maxImpact > 0 ? 100 / maxImpact : 1
 
   return (
@@ -41,7 +43,10 @@ function TornadoChart({ data, selectedParameter, onSelectParameter }: TornadoCha
         return (
           <button
             key={item.parameter}
+            type="button"
             onClick={() => onSelectParameter(item.parameter)}
+            aria-pressed={isSelected}
+            aria-label={`${item.parameterName} impact range ${Math.abs(item.highImpact - item.lowImpact).toFixed(1)} percent`}
             className={`w-full text-left transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
           >
             <div className="flex items-center gap-2 py-1">
@@ -123,6 +128,8 @@ function SensitivityLineChart({ result, outputMetric }: SensitivityLineChartProp
     compliance: dp.compliance,
   }))
 
+  if (data.length === 0) return null
+
   const minY = Math.min(...data.map(d => d.y))
   const maxY = Math.max(...data.map(d => d.y))
   const rangeY = maxY - minY || 1
@@ -139,8 +146,16 @@ function SensitivityLineChart({ result, outputMetric }: SensitivityLineChartProp
 
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
 
+  const metricLabel = outputMetric === 'costPerM3'
+    ? 'Cost per m3'
+    : outputMetric === 'bodRemoval'
+      ? 'BOD removal'
+      : 'Compliance'
+  const chartLabel = `${result.parameterName} sensitivity - ${metricLabel}`
+
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className="overflow-visible" role="img" aria-label={chartLabel}>
+      <title>{chartLabel}</title>
       {/* Grid lines */}
       <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e5e7eb" />
       <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e5e7eb" />
@@ -168,7 +183,9 @@ function SensitivityLineChart({ result, outputMetric }: SensitivityLineChartProp
           fill={p.compliance ? '#10b981' : '#ef4444'}
           stroke="white"
           strokeWidth={2}
-        />
+        >
+          <title>{p.compliance ? 'Compliant' : 'Non-compliant'}</title>
+        </circle>
       ))}
 
       {/* Y-axis labels */}

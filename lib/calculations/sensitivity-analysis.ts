@@ -27,6 +27,66 @@ import {
 } from './wastewater-treatment'
 
 // ============================================
+// CONSTANTS
+// ============================================
+
+/** Minimum positive value to prevent division by zero */
+const MIN_POSITIVE = 1e-6
+
+/** Maximum Monte Carlo iterations to prevent DoS */
+const MAX_MC_ITERATIONS = 5000
+
+/** Minimum Monte Carlo iterations for statistical validity */
+const MIN_MC_ITERATIONS = 10
+
+/** Default electricity rate (THB/kWh) */
+const DEFAULT_ELECTRICITY_RATE = 4.5
+
+/** Default labor rate (THB/hour) */
+const DEFAULT_LABOR_RATE = 500
+
+/** Civil works cost per m³ (THB) */
+const CIVIL_WORKS_COST_PER_M3 = 15000
+
+/** Equipment cost per kW (THB) */
+const EQUIPMENT_COST_PER_KW = 50000
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Ensures a value is non-negative and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: 0)
+ * @returns Non-negative finite number
+ */
+function safeNonNegative(value: number, fallback = 0): number {
+  return Number.isFinite(value) ? Math.max(0, value) : fallback
+}
+
+/**
+ * Ensures a value is positive and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: MIN_POSITIVE)
+ * @returns Positive finite number
+ */
+function safePositive(value: number, fallback = MIN_POSITIVE): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+/**
+ * Safe division that prevents divide-by-zero errors
+ * @param numerator - The dividend
+ * @param denominator - The divisor
+ * @param fallback - Default value if division is invalid (default: 0)
+ * @returns Result of division or fallback
+ */
+function safeDivide(numerator: number, denominator: number, fallback = 0): number {
+  return Number.isFinite(denominator) && denominator > 0 ? numerator / denominator : fallback
+}
+
+// ============================================
 // PARAMETER METADATA
 // ============================================
 
@@ -151,10 +211,13 @@ function generateVariations(
   range: SensitivityRange
 ): { variation: number; value: number }[] {
   const results: { variation: number; value: number }[] = []
-  const stepSize = (range.max - range.min) / (range.steps - 1)
+  const steps = Math.max(2, Math.floor(Number.isFinite(range.steps) ? range.steps : 2))
+  const min = Number.isFinite(range.min) ? range.min : 0
+  const max = Number.isFinite(range.max) ? range.max : min
+  const stepSize = (max - min) / (steps - 1)
 
-  for (let i = 0; i < range.steps; i++) {
-    const variation = range.min + i * stepSize
+  for (let i = 0; i < steps; i++) {
+    const variation = min + i * stepSize
 
     let value: number
     if (range.type === 'percentage') {
@@ -164,7 +227,7 @@ function generateVariations(
     }
 
     // Ensure positive values for most parameters
-    if (value <= 0) value = baseValue * 0.01
+    if (value <= 0) value = safePositive(baseValue, MIN_POSITIVE) * 0.01
 
     results.push({ variation, value })
   }
@@ -344,7 +407,8 @@ export function analyzeSingleParameter(
       baselineValue = 1
   }
 
-  const variations = generateVariations(baselineValue, range)
+  const baselineValueForCalc = safePositive(baselineValue, MIN_POSITIVE)
+  const variations = generateVariations(baselineValueForCalc, range)
   const dataPoints: SensitivityDataPoint[] = []
 
   for (const { variation, value } of variations) {
@@ -383,16 +447,16 @@ export function analyzeSingleParameter(
       }, 0)
 
       // Simplified cost estimation
-      const electricityRate = 4.5 // THB/kWh
-      const laborRate = 500 // THB/hour
-      const civilWorksCost = totalVolume * 15000 // THB/m³
-      const equipmentCost = totalPower * 50000 // THB/kW
+      const electricityRate = parameter === 'electricityRate' ? safeNonNegative(value, DEFAULT_ELECTRICITY_RATE) : DEFAULT_ELECTRICITY_RATE
+      const laborRate = parameter === 'laborRate' ? safeNonNegative(value, DEFAULT_LABOR_RATE) : DEFAULT_LABOR_RATE
+      const civilWorksCost = totalVolume * CIVIL_WORKS_COST_PER_M3
+      const equipmentCost = totalPower * EQUIPMENT_COST_PER_KW
       const totalCapital = civilWorksCost + equipmentCost
       const monthlyElectricity = totalPower * 24 * 30 * electricityRate
       const monthlyLabor = laborRate * 8 * 30
       const totalOperating = monthlyElectricity + monthlyLabor
       const annualOperating = totalOperating * 12
-      const costPerM3 = annualOperating / (modifiedInfluent.flowRate * 365)
+      const costPerM3 = safeDivide(annualOperating, modifiedInfluent.flowRate * 365, 0)
 
       const cost: CostEstimation = {
         civilWorks: civilWorksCost,
@@ -419,7 +483,10 @@ export function analyzeSingleParameter(
       const dailyEnergy = totalPower * 24
       const monthlyEnergy = dailyEnergy * 30
       const annualEnergy = dailyEnergy * 365
-      const bodRemoved = Math.max(1, (modifiedInfluent.bod - effluent.bod) * modifiedInfluent.flowRate / 1000)
+      const bodRemoved = Math.max(
+        MIN_POSITIVE,
+        ((modifiedInfluent.bod - effluent.bod) * modifiedInfluent.flowRate) / 1000
+      )
 
       const energy: EnergyConsumption = {
         aeration: dailyEnergy * 0.7,
@@ -435,8 +502,8 @@ export function analyzeSingleParameter(
         dailyCost: dailyEnergy * electricityRate,
         monthlyCost: monthlyEnergy * electricityRate,
         annualCost: annualEnergy * electricityRate,
-        kWhPerM3: dailyEnergy / modifiedInfluent.flowRate,
-        kWhPerKgBOD: dailyEnergy / bodRemoved,
+        kWhPerM3: safeDivide(dailyEnergy, modifiedInfluent.flowRate, 0),
+        kWhPerKgBOD: safeDivide(dailyEnergy, bodRemoved, 0),
         unitEnergy: [],
       }
       const compliance = checkCompliance(effluent, input.targetStandard)
@@ -450,14 +517,14 @@ export function analyzeSingleParameter(
         effluentTKN: effluent.tkn || 0,
         effluentNH3: effluent.ammonia || 0,
         effluentTP: effluent.totalP || 0,
-        bodRemoval: ((modifiedInfluent.bod - effluent.bod) / modifiedInfluent.bod) * 100,
-        codRemoval: ((modifiedInfluent.cod - effluent.cod) / modifiedInfluent.cod) * 100,
-        tssRemoval: ((modifiedInfluent.tss - effluent.tss) / modifiedInfluent.tss) * 100,
+        bodRemoval: safeDivide(modifiedInfluent.bod - effluent.bod, modifiedInfluent.bod, 0) * 100,
+        codRemoval: safeDivide(modifiedInfluent.cod - effluent.cod, modifiedInfluent.cod, 0) * 100,
+        tssRemoval: safeDivide(modifiedInfluent.tss - effluent.tss, modifiedInfluent.tss, 0) * 100,
         nitrogenRemoval: modifiedInfluent.tkn
-          ? ((modifiedInfluent.tkn - (effluent.tkn || 0)) / modifiedInfluent.tkn) * 100
+          ? safeDivide(modifiedInfluent.tkn - (effluent.tkn || 0), modifiedInfluent.tkn, 0) * 100
           : 0,
         phosphorusRemoval: modifiedInfluent.totalP
-          ? ((modifiedInfluent.totalP - (effluent.totalP || 0)) / modifiedInfluent.totalP) * 100
+          ? safeDivide(modifiedInfluent.totalP - (effluent.totalP || 0), modifiedInfluent.totalP, 0) * 100
           : 0,
         totalCapitalCost: cost.totalCapital,
         totalOperatingCost: cost.totalOperating,
@@ -482,7 +549,37 @@ export function analyzeSingleParameter(
   }
 
   // Calculate elasticities
-  const elasticity: Record<SensitivityOutput, number> = {} as any
+  const baselineOutputs: Partial<Record<SensitivityOutput, number>> = {
+    effluentBOD: baselineResults.effluent.bod,
+    effluentCOD: baselineResults.effluent.cod,
+    effluentTSS: baselineResults.effluent.tss,
+    effluentTKN: baselineResults.effluent.tkn || 0,
+    effluentNH3: baselineResults.effluent.ammonia || 0,
+    effluentTP: baselineResults.effluent.totalP || 0,
+    bodRemoval: input.influent.bod > 0
+      ? safeDivide(input.influent.bod - baselineResults.effluent.bod, input.influent.bod, 0) * 100
+      : 0,
+    codRemoval: input.influent.cod > 0
+      ? safeDivide(input.influent.cod - baselineResults.effluent.cod, input.influent.cod, 0) * 100
+      : 0,
+    tssRemoval: input.influent.tss > 0
+      ? safeDivide(input.influent.tss - baselineResults.effluent.tss, input.influent.tss, 0) * 100
+      : 0,
+    nitrogenRemoval: input.influent.tkn
+      ? safeDivide((input.influent.tkn || 0) - (baselineResults.effluent.tkn || 0), input.influent.tkn, 0) * 100
+      : 0,
+    phosphorusRemoval: input.influent.totalP
+      ? safeDivide((input.influent.totalP || 0) - (baselineResults.effluent.totalP || 0), input.influent.totalP, 0) * 100
+      : 0,
+    totalCapitalCost: baselineResults.cost.totalCapital,
+    totalOperatingCost: baselineResults.cost.totalOperating,
+    costPerM3: baselineResults.cost.costPerM3,
+    energyConsumption: baselineResults.energy.totalDaily,
+    kWhPerM3: baselineResults.energy.kWhPerM3,
+    complianceStatus: baselineResults.compliance ? 1 : 0,
+    sludgeProduction: 0,
+  }
+
   const outputKeys: SensitivityOutput[] = [
     'effluentBOD',
     'effluentCOD',
@@ -504,9 +601,13 @@ export function analyzeSingleParameter(
     'sludgeProduction',
   ]
 
+  const elasticity = Object.fromEntries(outputKeys.map((key) => [key, 0])) as Record<SensitivityOutput, number>
+
   for (const key of outputKeys) {
     const baseValue =
-      dataPoints.find((p) => Math.abs(p.inputVariation) < 0.001)?.outputs[key] || 1
+      dataPoints.find((p) => Math.abs(p.inputVariation) < 0.001)?.outputs[key] ??
+      baselineOutputs[key] ??
+      1
     elasticity[key] = calculateElasticity(dataPoints, key, baseValue)
   }
 
@@ -548,22 +649,33 @@ function calculateUnitSimplified(
 
   // Simplified calculations based on unit type
   // In production, this would call actual calculation functions
+  // Approximate removal rates for sensitivity analysis
+  // Note: These are simplified estimates; actual rates depend on design and operation
   const removalRates: Record<string, { bod: number; cod: number; tss: number }> = {
     bar_screen: { bod: 5, cod: 5, tss: 10 },
     grit_chamber: { bod: 2, cod: 2, tss: 10 },
     primary_clarifier: { bod: 30, cod: 25, tss: 60 },
     aeration_tank: { bod: 90, cod: 85, tss: 90 },
+    activated_sludge: { bod: 90, cod: 85, tss: 90 }, // Same as aeration_tank
+    extended_aeration: { bod: 95, cod: 90, tss: 93 },
     secondary_clarifier: { bod: 5, cod: 5, tss: 90 },
     sbr: { bod: 92, cod: 88, tss: 94 },
     uasb: { bod: 75, cod: 80, tss: 70 },
     mbr: { bod: 97, cod: 95, tss: 99 },
+    mbbr: { bod: 88, cod: 82, tss: 85 },
     oxidation_pond: { bod: 80, cod: 70, tss: 75 },
+    aerated_lagoon: { bod: 85, cod: 75, tss: 80 },
     trickling_filter: { bod: 75, cod: 70, tss: 80 },
+    rotating_biological_contactor: { bod: 80, cod: 75, tss: 82 },
     daf: { bod: 30, cod: 30, tss: 85 },
     filtration: { bod: 30, cod: 30, tss: 70 },
+    sand_filter: { bod: 20, cod: 20, tss: 80 },
     chlorination: { bod: 2, cod: 2, tss: 0 },
     uv_disinfection: { bod: 0, cod: 0, tss: 0 },
+    ozonation: { bod: 5, cod: 10, tss: 0 },
     oil_separator: { bod: 15, cod: 15, tss: 25 },
+    equalization_tank: { bod: 0, cod: 0, tss: 5 },
+    anaerobic_digester: { bod: 50, cod: 55, tss: 40 },
   }
 
   const rates = removalRates[type] || { bod: 0, cod: 0, tss: 0 }
@@ -634,25 +746,32 @@ export function calculateSensitivityAnalysis(
     const design = u.design as unknown as Record<string, number | undefined>
     return sum + (design?.aeratorPower || 0)
   }, 0)
-  const electricityRate = 4.5
+  const electricityRate = DEFAULT_ELECTRICITY_RATE
+  const laborRate = DEFAULT_LABOR_RATE
+  const civilWorks = baselineTotalVolume * CIVIL_WORKS_COST_PER_M3
+  const equipment = baselineTotalPower * EQUIPMENT_COST_PER_KW
+  const totalCapital = civilWorks + equipment
+  const monthlyElectricity = baselineTotalPower * 24 * 30 * electricityRate
+  const monthlyLabor = laborRate * 8 * 30
+  const totalOperating = monthlyElectricity + monthlyLabor
   const baselineCost: CostEstimation = {
-    civilWorks: baselineTotalVolume * 15000,
-    equipment: baselineTotalPower * 50000,
+    civilWorks,
+    equipment,
     engineering: 0,
     installation: 0,
     contingency: 0,
     landCost: 0,
-    totalCapital: baselineTotalVolume * 15000 + baselineTotalPower * 50000,
-    electricity: baselineTotalPower * 24 * 30 * electricityRate,
+    totalCapital,
+    electricity: monthlyElectricity,
     chemicals: 0,
-    labor: 500 * 8 * 30,
+    labor: monthlyLabor,
     maintenance: 0,
     sludgeDisposal: 0,
-    totalOperating: baselineTotalPower * 24 * 30 * electricityRate + 500 * 8 * 30,
-    annualOperating: (baselineTotalPower * 24 * 30 * electricityRate + 500 * 8 * 30) * 12,
+    totalOperating,
+    annualOperating: totalOperating * 12,
     annualDepreciation: 0,
-    totalAnnualCost: (baselineTotalPower * 24 * 30 * electricityRate + 500 * 8 * 30) * 12,
-    costPerM3: ((baselineTotalPower * 24 * 30 * electricityRate + 500 * 8 * 30) * 12) / (input.influent.flowRate * 365),
+    totalAnnualCost: totalOperating * 12,
+    costPerM3: safeDivide(totalOperating * 12, input.influent.flowRate * 365, 0),
     unitCosts: [],
   }
   const baselineDailyEnergy = baselineTotalPower * 24
@@ -671,8 +790,8 @@ export function calculateSensitivityAnalysis(
     dailyCost: baselineDailyEnergy * electricityRate,
     monthlyCost: baselineDailyEnergy * 30 * electricityRate,
     annualCost: baselineDailyEnergy * 365 * electricityRate,
-    kWhPerM3: baselineDailyEnergy / input.influent.flowRate,
-    kWhPerKgBOD: baselineDailyEnergy / baselineBodRemoved,
+    kWhPerM3: safeDivide(baselineDailyEnergy, input.influent.flowRate, 0),
+    kWhPerKgBOD: safeDivide(baselineDailyEnergy, baselineBodRemoved, 0),
     unitEnergy: [],
   }
   const baselineCompliance = checkCompliance(baselineEffluent, input.targetStandard)
@@ -802,20 +921,25 @@ export function runMonteCarloSimulation(
   }
   iterations: number
 } {
+  const normalizedIterations = Number.isFinite(iterations) ? Math.floor(iterations) : 0
+  const boundedIterations = Math.min(MAX_MC_ITERATIONS, Math.max(1, normalizedIterations))
+  const boundedUncertainty = safeNonNegative(uncertaintyPercent, 20)
+  const uncertainty = Math.min(100, boundedUncertainty)
+
   const costResults: number[] = []
   const bodResults: number[] = []
   let compliantCount = 0
 
-  for (let i = 0; i < iterations; i++) {
+  for (let i = 0; i < boundedIterations; i++) {
     // Generate random variations
-    const variationFactor = 1 + ((Math.random() * 2 - 1) * uncertaintyPercent) / 100
+    const variationFactor = 1 + ((Math.random() * 2 - 1) * uncertainty) / 100
 
     const modifiedInfluent: WastewaterQuality = {
       ...input.influent,
-      flowRate: input.influent.flowRate * variationFactor,
-      bod: input.influent.bod * (1 + ((Math.random() * 2 - 1) * uncertaintyPercent) / 100),
-      cod: input.influent.cod * (1 + ((Math.random() * 2 - 1) * uncertaintyPercent) / 100),
-      tss: input.influent.tss * (1 + ((Math.random() * 2 - 1) * uncertaintyPercent) / 100),
+      flowRate: safePositive(input.influent.flowRate * variationFactor, MIN_POSITIVE),
+      bod: safeNonNegative(input.influent.bod * (1 + ((Math.random() * 2 - 1) * uncertainty) / 100), 0),
+      cod: safeNonNegative(input.influent.cod * (1 + ((Math.random() * 2 - 1) * uncertainty) / 100), 0),
+      tss: safeNonNegative(input.influent.tss * (1 + ((Math.random() * 2 - 1) * uncertainty) / 100), 0),
     }
 
     // Calculate treatment
@@ -838,7 +962,7 @@ export function runMonteCarloSimulation(
       return sum + (design?.aeratorPower || 0)
     }, 0)
     const mcAnnualCost = (mcTotalPower * 24 * 30 * 4.5 + 500 * 8 * 30) * 12
-    const mcCostPerM3 = mcAnnualCost / (modifiedInfluent.flowRate * 365)
+    const mcCostPerM3 = safeDivide(mcAnnualCost, modifiedInfluent.flowRate * 365, 0)
     costResults.push(mcCostPerM3)
     bodResults.push(currentQuality.bod)
 
@@ -863,9 +987,9 @@ export function runMonteCarloSimulation(
   return {
     results: {
       costPerM3: calcStats(costResults),
-      complianceRate: compliantCount / iterations,
+      complianceRate: compliantCount / boundedIterations,
       effluentBOD: calcStats(bodResults),
     },
-    iterations,
+    iterations: boundedIterations,
   }
 }

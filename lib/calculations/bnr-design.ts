@@ -81,6 +81,51 @@ const PHOSPHORUS_KINETICS = {
 }
 
 // ============================================
+// CONSTANTS
+// ============================================
+
+/** Minimum positive value to prevent division by zero */
+const MIN_POSITIVE = 1e-6
+
+/** Minimum bulk ammonia concentration for Monod kinetics (mg/L) */
+const MIN_BULK_AMMONIA = 0.1
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Ensures a value is non-negative and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: 0)
+ * @returns Non-negative finite number
+ */
+function safeNonNegative(value: number, fallback = 0): number {
+  return Number.isFinite(value) ? Math.max(0, value) : fallback
+}
+
+/**
+ * Ensures a value is positive and finite
+ * @param value - The input value to check
+ * @param fallback - Default value if input is invalid (default: MIN_POSITIVE)
+ * @returns Positive finite number
+ */
+function safePositive(value: number, fallback = MIN_POSITIVE): number {
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+/**
+ * Safe division that prevents divide-by-zero errors
+ * @param numerator - The dividend
+ * @param denominator - The divisor
+ * @param fallback - Default value if division is invalid (default: 0)
+ * @returns Result of division or fallback
+ */
+function safeDivide(numerator: number, denominator: number, fallback = 0): number {
+  return Number.isFinite(denominator) && denominator > 0 ? numerator / denominator : fallback
+}
+
+// ============================================
 // NITRIFICATION CALCULATIONS
 // ============================================
 
@@ -111,7 +156,9 @@ export function calculateNitrification(input: NitrificationInput): Nitrification
     phRange = [7.0, 8.5],
   } = input
 
-  const organicN = tknInfluent - ammoniaInfluent
+  const organicN = Math.max(0, tknInfluent - ammoniaInfluent)
+  const ammoniaBulk = Math.max((ammoniaInfluent + targetAmmonia) / 2, 0.1)
+  const doOperatingSafe = safeNonNegative(doOperating, 0)
 
   // Temperature correction for growth rate
   const thetaMu = NITRIFIER_KINETICS.thetaMu
@@ -127,9 +174,9 @@ export function calculateNitrification(input: NitrificationInput): Nitrification
   // Monod kinetics for ammonia oxidation
   // μ_net = μ_max × (NH4/(Ks+NH4)) × (DO/(Ks_O2+DO)) - kd
   const monodNH4 =
-    targetAmmonia / (NITRIFIER_KINETICS.ksNH4 + targetAmmonia)
+    ammoniaBulk / (NITRIFIER_KINETICS.ksNH4 + ammoniaBulk)
   const monodO2 =
-    doOperating / (NITRIFIER_KINETICS.ksO2 + doOperating)
+    doOperatingSafe / (NITRIFIER_KINETICS.ksO2 + doOperatingSafe)
 
   const muNetAOB = muMaxAOB_T * monodNH4 * monodO2 - kdAOB_T
   const muNetNOB = muMaxNOB_T * monodO2 - kdNOB_T
@@ -143,7 +190,7 @@ export function calculateNitrification(input: NitrificationInput): Nitrification
 
   // Oxygen requirement (4.57 kg O2/kg NH4-N oxidized)
   const o2PerNH4 = 4.57
-  const ammoniaOxidized = ammoniaInfluent - targetAmmonia
+  const ammoniaOxidized = Math.max(0, ammoniaInfluent - targetAmmonia)
 
   // Alkalinity consumption (7.14 mg CaCO3/mg NH4-N)
   const alkPerNH4 = 7.14
@@ -151,7 +198,9 @@ export function calculateNitrification(input: NitrificationInput): Nitrification
 
   // Nitrification efficiency
   const nitrificationEfficiency =
-    ((ammoniaInfluent - targetAmmonia) / ammoniaInfluent) * 100
+    ammoniaInfluent > 0
+      ? ((ammoniaInfluent - targetAmmonia) / ammoniaInfluent) * 100
+      : 0
 
   return {
     tknInfluent,
@@ -214,7 +263,10 @@ export function calculateDenitrification(
     internalRecycleRatio = 2.0,
   } = input
 
-  const nitrateToRemove = nitrateInfluent - targetNitrate
+  const nitrateToRemove = Math.max(0, nitrateInfluent - targetNitrate)
+  const safeFlowRate = safePositive(flowRate, 1)
+  const safeRecycleRatio = safeNonNegative(internalRecycleRatio, 0)
+  const safeRbCOD = safeNonNegative(rbCODInfluent, 0)
 
   // Temperature correction for SDNR
   const sdnrCorrected =
@@ -228,26 +280,28 @@ export function calculateDenitrification(
   const carbonRequired = carbonRatio
 
   // Check if wastewater has enough carbon
-  const vfaAvailable = rbCODInfluent * PHOSPHORUS_KINETICS.rbCODToVFA
+  const vfaAvailable = safeRbCOD * PHOSPHORUS_KINETICS.rbCODToVFA
   const carbonNeeded = nitrateToRemove * carbonRequired
   const externalCarbonDose =
-    carbonSource !== 'wastewater' && vfaAvailable < carbonNeeded
+    nitrateToRemove > 0 && carbonSource !== 'wastewater' && vfaAvailable < carbonNeeded
       ? carbonNeeded - vfaAvailable
       : undefined
 
   // Anoxic zone design
   // Mass balance: SDNR × MLVSS × V_anoxic = NO3 removed × Q
-  const no3MassRemoved = (nitrateToRemove * flowRate) / 1000 // kg/day
-  const anoxicVolume =
-    no3MassRemoved / (sdnrCorrected * (mlvss / 1000))
-  const anoxicHRT = (anoxicVolume / flowRate) * 24 // hours
+  const no3MassRemoved = (nitrateToRemove * safeFlowRate) / 1000 // kg/day
+  const mlvssKg = Math.max(MIN_POSITIVE, mlvss / 1000)
+  const anoxicVolume = nitrateToRemove > 0
+    ? safeDivide(no3MassRemoved, sdnrCorrected * mlvssKg, 0)
+    : 0
+  const anoxicHRT = safeDivide(anoxicVolume, safeFlowRate, 0) * 24 // hours
 
   // Nitrate feedback calculation with internal recycle
   // N_eff = N_nitrified / (1 + IR + RAS)
   // Assuming RAS = 0.5
   const rasRatio = 0.5
-  const recycleSum = 1 + internalRecycleRatio + rasRatio
-  const nitrateFeedback = nitrateInfluent / recycleSum
+  const recycleSum = 1 + safeRecycleRatio + rasRatio
+  const nitrateFeedback = safeDivide(nitrateInfluent, recycleSum, 0)
 
   // Oxygen equivalent (2.86 kg O2-eq/kg NO3-N denitrified)
   const o2EquivalentPerNO3 = 2.86
@@ -259,7 +313,9 @@ export function calculateDenitrification(
 
   // Denitrification efficiency
   const denitrificationEfficiency =
-    ((nitrateInfluent - targetNitrate) / nitrateInfluent) * 100
+    nitrateInfluent > 0
+      ? ((nitrateInfluent - targetNitrate) / nitrateInfluent) * 100
+      : 0
 
   // Anoxic fraction (typical 20-40%)
   const totalHRT = 12 // Assume typical
@@ -325,20 +381,21 @@ export function calculatePhosphorusRemoval(
     chemical = 'ferric_chloride',
     anaerobicHRT = 1.5,
   } = input
+  const safeFlowRate = safePositive(flowRate, 1)
 
-  const pToRemove = totalPInfluent - targetTP
+  const pToRemove = Math.max(0, totalPInfluent - targetTP)
   const orthoPInfluent = totalPInfluent * 0.7 // Typical 70% ortho-P
   const particulateP = totalPInfluent * 0.3
 
   // Biological P removal (EBPR)
-  const vfaAvailable = rbCODInfluent * PHOSPHORUS_KINETICS.rbCODToVFA
+  const vfaAvailable = safeNonNegative(rbCODInfluent, 0) * PHOSPHORUS_KINETICS.rbCODToVFA
   const vfaRequired = PHOSPHORUS_KINETICS.vfaRatio
 
   // Calculate anaerobic volume
-  const anaerobicVolume = (anaerobicHRT * flowRate) / 24
+  const anaerobicVolume = (anaerobicHRT * safeFlowRate) / 24
 
   // Bio-P removal capacity
-  let bioP = {
+  const bioP = {
     removal: 0,
     efficiency: 0,
     sludgeP: 0,
@@ -350,16 +407,17 @@ export function calculatePhosphorusRemoval(
 
     // Also limited by PAO biomass capacity
     // Assume PAO yield ~0.4 g VSS/g VFA
-    const paoProduction = (vfaAvailable * PHOSPHORUS_KINETICS.paoYield * flowRate) / 1000 // kg PAO/day
-    const maxPInBiomass = paoProduction * PHOSPHORUS_KINETICS.paoContent * 1000 / flowRate // mg/L
+    const paoProduction = (vfaAvailable * PHOSPHORUS_KINETICS.paoYield * safeFlowRate) / 1000 // kg PAO/day
+    const maxPInBiomass = paoProduction * PHOSPHORUS_KINETICS.paoContent * 1000 / safeFlowRate // mg/L
 
     bioP.removal = Math.min(maxBioPRemoval, maxPInBiomass, pToRemove * 0.8)
-    bioP.efficiency = (bioP.removal / totalPInfluent) * 100
-    bioP.sludgeP = (bioP.removal * flowRate) / 1000 // kg P/day
+    bioP.removal = Math.max(0, bioP.removal)
+    bioP.efficiency = totalPInfluent > 0 ? (bioP.removal / totalPInfluent) * 100 : 0
+    bioP.sludgeP = (bioP.removal * safeFlowRate) / 1000 // kg P/day
   }
 
   // Chemical P removal
-  const remainingP = pToRemove - bioP.removal
+  const remainingP = Math.max(0, pToRemove - bioP.removal)
   let chemPRecipitated = 0
   let chemicalDose = 0
   let molarRatio = 0
@@ -385,16 +443,18 @@ export function calculatePhosphorusRemoval(
     sludgeIncrease = chemicalDose * 2.5 / 1000 // Approximate sludge increase
 
     // Cost
-    const dailyChemical = (chemicalDose * flowRate) / 1000 // kg/day
+    const dailyChemical = (chemicalDose * safeFlowRate) / 1000 // kg/day
     chemicalCost = dailyChemical * chemProps.costPerKg
 
     // Alkalinity loss (approximate)
     alkalinityLoss = chemicalDose * chemProps.pHEffect * 50
   }
 
-  const effluentTP = totalPInfluent - bioP.removal - chemPRecipitated
+  const effluentTP = Math.max(0, totalPInfluent - bioP.removal - chemPRecipitated)
   const effluentOrthoP = Math.max(0, orthoPInfluent - bioP.removal - chemPRecipitated)
-  const totalPRemoval = ((totalPInfluent - effluentTP) / totalPInfluent) * 100
+  const totalPRemoval = totalPInfluent > 0
+    ? ((totalPInfluent - effluentTP) / totalPInfluent) * 100
+    : 0
 
   return {
     totalPInfluent,
@@ -479,6 +539,19 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const issues: DesignIssue[] = []
   const warnings: string[] = []
   const recommendations: string[] = []
+  const flowRate = safePositive(input.flowRate, 1)
+
+  if (input.flowRate <= 0 || !Number.isFinite(input.flowRate)) {
+    issues.push({
+      severity: 'critical',
+      parameter: 'Flow Rate',
+      message: 'Flow rate must be greater than 0',
+      currentValue: input.flowRate,
+      recommendedValue: 1000,
+      unit: 'm³/day',
+      suggestion: 'Enter a valid flow rate',
+    })
+  }
 
   // Default target values
   const target = {
@@ -495,8 +568,8 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
     alkalinity: input.influent.alkalinity ?? 200,
     rbCOD: input.influent.rbCOD ?? input.influent.bod * 0.2,
     vfa: input.influent.vfa ?? input.influent.bod * 0.1,
-    codToN: input.influent.cod / input.influent.tkn,
-    codToP: input.influent.cod / input.influent.totalP,
+    codToN: safeDivide(input.influent.cod, input.influent.tkn, 0),
+    codToP: safeDivide(input.influent.cod, input.influent.totalP, 0),
   }
 
   // Default design parameters
@@ -544,14 +617,14 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
 
   // Calculate denitrification parameters
   const nitrateProduced = influent.ammonia - target.ammonia
-  const targetNitrate = target.totalN - target.ammonia
+  const targetNitrate = Math.max(0, target.totalN - target.ammonia)
 
   const denitrification = calculateDenitrification({
-    nitrateInfluent: nitrateProduced,
-    targetNitrate: Math.max(0, targetNitrate),
+    nitrateInfluent: Math.max(0, nitrateProduced),
+    targetNitrate,
     temperature: input.temperature,
     mlvss,
-    flowRate: input.flowRate,
+    flowRate,
     rbCODInfluent: influent.rbCOD,
     internalRecycleRatio: input.internalRecycleRatio ?? processConfig.recycles.find(r => r.name === 'Internal Recycle')?.typicalRatio ?? 2,
   })
@@ -560,7 +633,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const phosphorusRemoval = calculatePhosphorusRemoval({
     totalPInfluent: influent.totalP,
     targetTP: target.totalP,
-    flowRate: input.flowRate,
+    flowRate,
     rbCODInfluent: influent.rbCOD,
     temperature: input.temperature,
     enableEBPR: processConfig.phosphorusRemoval,
@@ -577,7 +650,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
     (minHRT + maxHRT) / 2
   ))
 
-  const totalVolume = (totalHRT * input.flowRate) / 24
+  const totalVolume = (totalHRT * flowRate) / 24
 
   // Calculate zone volumes and dimensions
   const zones = processConfig.zones.map((zoneConfig) => {
@@ -598,8 +671,8 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
       dimensions: { length, width, depth },
       mixerPower: zoneConfig.type !== 'aerobic' ? volume * 0.005 : undefined, // 5 W/m³ for mixing
       aerationCapacity: zoneConfig.type === 'aerobic' ? calculateAerobicOxygenDemand(
-        influent.bod * (input.flowRate / 1000) * zoneConfig.hrtFraction / 24 * 0.9, // Approximate BOD removed
-        nitrification.ammoniaInfluent * (input.flowRate / 1000) * zoneConfig.hrtFraction / 24 * 0.9
+        influent.bod * (flowRate / 1000) * zoneConfig.hrtFraction / 24 * 0.9, // Approximate BOD removed
+        nitrification.ammoniaInfluent * (flowRate / 1000) * zoneConfig.hrtFraction / 24 * 0.9
       ) : undefined,
       doSetpoint: (zoneConfig.doRange[0] + zoneConfig.doRange[1]) / 2,
     }
@@ -608,7 +681,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   // Calculate recycle streams
   const recycles = processConfig.recycles.map((recycleConfig) => {
     const ratio = input.internalRecycleRatio ?? recycleConfig.typicalRatio
-    const flowRateRecycle = input.flowRate * ratio
+    const flowRateRecycle = flowRate * ratio
     const pumpCapacity = flowRateRecycle / 24 * 1.2 // m³/h with 20% margin
     const pumpHead = 3 // Typical head (m)
     const pumpPower = (pumpCapacity * pumpHead * 9.81) / (0.7 * 3600) // kW
@@ -635,19 +708,19 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const effluentTP = phosphorusRemoval.effluentTP
 
   const performance = {
-    bodRemoval: ((influent.bod - effluentBOD) / influent.bod) * 100,
-    codRemoval: ((influent.cod - effluentCOD) / influent.cod) * 100,
-    tssRemoval: ((influent.tss - effluentTSS) / influent.tss) * 100,
+    bodRemoval: safeDivide(influent.bod - effluentBOD, influent.bod, 0) * 100,
+    codRemoval: safeDivide(influent.cod - effluentCOD, influent.cod, 0) * 100,
+    tssRemoval: safeDivide(influent.tss - effluentTSS, influent.tss, 0) * 100,
     tknRemoval: nitrification.nitrificationEfficiency,
     ammoniaRemoval: nitrification.nitrificationEfficiency,
-    totalNRemoval: ((influent.tkn - effluentTN) / influent.tkn) * 100,
+    totalNRemoval: safeDivide(influent.tkn - effluentTN, influent.tkn, 0) * 100,
     totalPRemoval: phosphorusRemoval.totalPRemoval,
   }
 
   // Calculate oxygen demands
-  const bodRemoved = (influent.bod - effluentBOD) * input.flowRate / 1000
+  const bodRemoved = (influent.bod - effluentBOD) * flowRate / 1000
   const carbonaceousO2 = bodRemoved * 1.1
-  const nitrogenousO2 = (influent.ammonia - effluentAmmonia) * input.flowRate / 1000 * 4.57
+  const nitrogenousO2 = (influent.ammonia - effluentAmmonia) * flowRate / 1000 * 4.57
   const denitrificationCredit = denitrification.o2Savings
 
   const oxygenDemand = {
@@ -666,7 +739,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const alkConsumedChem = phosphorusRemoval.alkalinityLoss
 
   const netAlkalinity = influent.alkalinity - alkConsumedNit + alkRecoveredDenit - alkConsumedChem
-  const supplementRequired = netAlkalinity < 50 ? (50 - netAlkalinity) * input.flowRate / 1000 : 0
+  const supplementRequired = netAlkalinity < 50 ? (50 - netAlkalinity) * flowRate / 1000 : 0
 
   const alkalinityBalance = {
     influent: influent.alkalinity,
@@ -688,9 +761,9 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const heterotrophicYield = 0.5 // kg VSS/kg BOD
   const autotrophicYield = 0.1 // kg VSS/kg N
   const heterotrophic = bodRemoved * heterotrophicYield
-  const autotrophic = (influent.ammonia - effluentAmmonia) * input.flowRate / 1000 * autotrophicYield
+  const autotrophic = (influent.ammonia - effluentAmmonia) * flowRate / 1000 * autotrophicYield
   const paoSludge = phosphorusRemoval.bioP.sludgeP / PHOSPHORUS_KINETICS.paoContent
-  const chemicalSludge = phosphorusRemoval.sludgeIncrease * input.flowRate
+  const chemicalSludge = phosphorusRemoval.sludgeIncrease * flowRate
   const totalVSS = heterotrophic + autotrophic + paoSludge
   const totalTSS = totalVSS / 0.75
 
@@ -701,7 +774,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
     chemicalSludge,
     totalVSS,
     totalTSS,
-    observedYield: totalTSS / bodRemoved,
+    observedYield: safeDivide(totalTSS, bodRemoved, 0),
   }
 
   // Energy calculations
@@ -719,9 +792,9 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
     pumpingPower,
     totalPower,
     dailyEnergy: totalPower * 24,
-    kWhPerM3: (totalPower * 24) / input.flowRate,
-    kWhPerKgN: (totalPower * 24) / ((influent.tkn - effluentTN) * input.flowRate / 1000),
-    kWhPerKgP: (totalPower * 24) / ((influent.totalP - effluentTP) * input.flowRate / 1000),
+    kWhPerM3: safeDivide(totalPower * 24, flowRate, 0),
+    kWhPerKgN: safeDivide(totalPower * 24, ((influent.tkn - effluentTN) * flowRate) / 1000, 0),
+    kWhPerKgP: safeDivide(totalPower * 24, ((influent.totalP - effluentTP) * flowRate) / 1000, 0),
   }
 
   // Cost calculations
@@ -753,9 +826,9 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   const cost = {
     capital: capitalCost,
     operating: operatingCost,
-    costPerM3: operatingCost.total / (input.flowRate * 365),
-    costPerKgN: operatingCost.total / ((influent.tkn - effluentTN) * input.flowRate / 1000 * 365),
-    costPerKgP: operatingCost.total / ((influent.totalP - effluentTP) * input.flowRate / 1000 * 365),
+    costPerM3: safeDivide(operatingCost.total, flowRate * 365, 0),
+    costPerKgN: safeDivide(operatingCost.total, ((influent.tkn - effluentTN) * flowRate) / 1000 * 365, 0),
+    costPerKgP: safeDivide(operatingCost.total, ((influent.totalP - effluentTP) * flowRate) / 1000 * 365, 0),
   }
 
   // Validation
@@ -793,7 +866,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   return {
     processType: input.processType,
     processConfig,
-    flowRate: input.flowRate,
+    flowRate,
     temperature: input.temperature,
     influent,
     target,
