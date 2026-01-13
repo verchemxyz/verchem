@@ -200,77 +200,21 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Water Quality Calculator - NEW */}
-          <Link href="/tools/water-quality" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
-              🆕 NEW
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-teal-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          {/* Calculators */}
+          <Link href="/calculators" className="group">
+            <div className="premium-card p-6 h-full">
+              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-teal-600 dark:text-teal-400">
-                💧 Water Quality Calculator
-              </h3>
+              <h3 className="text-xl font-bold mb-2">All Calculators</h3>
               <p className="text-muted-foreground mb-4">
-                BOD, COD, Thai effluent standards compliance with 9 calculation modes
+                pH, Gas Laws, Stoichiometry, Thermodynamics, and more
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">Environmental</span>
-                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">Thai PCD</span>
-                <span className="badge-premium text-xs bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300">9 Modes</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Air Quality Calculator - NEW */}
-          <Link href="/tools/air-quality" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
-              🆕 NEW
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-green-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-green-600 dark:text-green-400">
-                🌬️ Air Quality Calculator
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                AQI, unit conversion, Thai PCD standards, Gaussian dispersion modeling
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">Environmental</span>
-                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">Thai PCD</span>
-                <span className="badge-premium text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">6 Modes</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Soil Quality Calculator - NEW */}
-          <Link href="/tools/soil-quality" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
-              🆕 NEW
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-amber-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-amber-600 dark:text-amber-400">
-                🌱 Soil Quality Calculator
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Heavy metals, pH, NPK, CEC, organic matter, texture, salinity analysis
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Environmental</span>
-                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">Thai PCD</span>
-                <span className="badge-premium text-xs bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">7 Modes</span>
+                <span className="badge-premium text-xs">8 Calculators</span>
+                <span className="badge-premium text-xs">Step-by-Step</span>
               </div>
             </div>
           </Link>
@@ -278,8 +222,100 @@ export default function Home() {
 
         <div className="text-center mt-12">
           <Link href="/calculators" className="btn-premium glow-premium">
-            View All 17 Tools →
+            View All Chemistry Tools →
           </Link>
+        </div>
+      </section>
+
+      {/* Environmental Engineering Section - NEW */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-20">
+        {/* Background decoration */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-10 left-10 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-400/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 relative">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              🌏 Environmental Engineering Suite
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                Professional Environmental Tools
+              </span>
+            </h2>
+            <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
+              Design wastewater treatment systems, analyze water/air/soil quality with Thai PCD standards compliance.
+            </p>
+          </div>
+
+          {/* Environmental Tools Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Wastewater Treatment - Flagship */}
+            <Link href="/tools/wastewater-treatment" className="group relative md:col-span-2 lg:col-span-2">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full animate-bounce shadow-lg z-10">
+                🔥 FLAGSHIP
+              </div>
+              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-emerald-400 p-6 hover:shadow-xl transition-all group-hover:scale-[1.02]">
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform flex-shrink-0">
+                    🏭
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Wastewater Treatment Designer</h3>
+                    <p className="text-emerald-600 text-sm font-medium mb-2">ออกแบบระบบบำบัดน้ำเสีย</p>
+                    <p className="text-gray-600 text-sm">Design complete treatment trains with 15+ unit processes. Visual builder, cost estimation, sludge balance.</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">15 Units</span>
+                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Visual Builder</span>
+                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Cost Estimation</span>
+                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Thai PCD</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Water Quality */}
+            <Link href="/tools/water-quality" className="group">
+              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-teal-200 p-5 hover:border-teal-400 hover:shadow-lg transition-all">
+                <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                  💧
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">Water Quality</h3>
+                <p className="text-gray-600 text-sm">BOD, COD, Thai effluent standards • 9 modes</p>
+              </div>
+            </Link>
+
+            {/* Air Quality */}
+            <Link href="/tools/air-quality" className="group">
+              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-green-200 p-5 hover:border-green-400 hover:shadow-lg transition-all">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                  🌬️
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">Air Quality</h3>
+                <p className="text-gray-600 text-sm">AQI, Gaussian dispersion • 6 modes</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <Link
+              href="/environmental"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-lg"
+            >
+              Explore Environmental Hub
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -503,7 +539,7 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Tools</h3>
+              <h3 className="font-bold mb-4">Chemistry</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/periodic-table" className="hover:text-primary-600">Periodic Table</Link></li>
                 <li><Link href="/3d-viewer" className="hover:text-primary-600">3D Viewer</Link></li>
@@ -513,21 +549,21 @@ export default function Home() {
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Community</h3>
+              <h3 className="font-bold mb-4">Environmental</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/support" className="hover:text-primary-600">Support Us ♥</Link></li>
-                <li><Link href="/supporters" className="hover:text-primary-600">Our Supporters</Link></li>
-                <li><Link href="/docs" className="hover:text-primary-600">Documentation</Link></li>
-                <li><Link href="/contact" className="hover:text-primary-600">Contact</Link></li>
+                <li><Link href="/environmental" className="hover:text-emerald-600">Environmental Hub</Link></li>
+                <li><Link href="/tools/wastewater-treatment" className="hover:text-emerald-600">Wastewater Treatment</Link></li>
+                <li><Link href="/tools/water-quality" className="hover:text-emerald-600">Water Quality</Link></li>
+                <li><Link href="/tools/air-quality" className="hover:text-emerald-600">Air Quality</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Legal</h3>
+              <h3 className="font-bold mb-4">Support & Legal</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/support" className="hover:text-primary-600">Support Us ♥</Link></li>
                 <li><Link href="/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-primary-600">Terms of Service</Link></li>
-                <li><Link href="/refund" className="hover:text-primary-600">Refund Policy</Link></li>
               </ul>
             </div>
           </div>
