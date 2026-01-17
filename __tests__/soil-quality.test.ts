@@ -20,7 +20,6 @@ import {
 
 import type {
   HeavyMetal,
-  ThaiLandUseType,
 } from '@/lib/types/soil-quality'
 
 type TestFn = () => void | Promise<void>

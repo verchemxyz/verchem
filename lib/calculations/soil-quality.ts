@@ -14,7 +14,6 @@ import type {
   ThaiLandUseType,
   ThaiSoilStandard,
   SoilContaminationResult,
-  SoilpHClass,
   SoilpHClassInfo,
   SoilpHResult,
   NutrientLevel,

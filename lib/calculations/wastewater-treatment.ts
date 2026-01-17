@@ -37,6 +37,11 @@ import {
   MBRUnit,
   SludgeProduction,
   EnergyConsumption,
+  SensitivityParameter,
+  SensitivityOutput,
+  SensitivityDataPoint,
+  SensitivityResult,
+  SensitivityAnalysis,
 } from '../types/wastewater-treatment'
 
 // ============================================
@@ -2538,5 +2543,365 @@ export function calculateEnergyConsumption(
     // Energy recovery
     biogasEnergy,
     netEnergy,
+  }
+}
+
+// ============================================
+// SENSITIVITY ANALYSIS
+// ============================================
+
+/**
+ * Influent-related parameters for sensitivity analysis
+ * Note: Design parameters (mlss, srt, hrt, returnRatio) and cost parameters (electricityRate, laborRate)
+ * are analyzed separately as they require modifying unit configs - future enhancement
+ */
+type InfluentSensitivityParam = 'flowRate' | 'bod' | 'cod' | 'tss' | 'tkn' | 'ammonia' | 'totalP' | 'temperature'
+
+const SENSITIVITY_PARAM_META: Record<InfluentSensitivityParam, {
+  name: string
+  nameThai: string
+  unit: string
+  getFromInfluent: (q: WastewaterQuality) => number
+  setInInfluent: (q: WastewaterQuality, value: number) => WastewaterQuality
+}> = {
+  flowRate: {
+    name: 'Flow Rate',
+    nameThai: 'อัตราการไหล',
+    unit: 'm³/day',
+    getFromInfluent: (q) => q.flowRate,
+    setInInfluent: (q, v) => ({ ...q, flowRate: v }),
+  },
+  bod: {
+    name: 'BOD₅',
+    nameThai: 'บีโอดี',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.bod,
+    setInInfluent: (q, v) => ({ ...q, bod: v }),
+  },
+  cod: {
+    name: 'COD',
+    nameThai: 'ซีโอดี',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.cod,
+    setInInfluent: (q, v) => ({ ...q, cod: v }),
+  },
+  tss: {
+    name: 'TSS',
+    nameThai: 'ของแข็งแขวนลอย',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.tss,
+    setInInfluent: (q, v) => ({ ...q, tss: v }),
+  },
+  tkn: {
+    name: 'TKN',
+    nameThai: 'ไนโตรเจนรวม',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.tkn ?? 0,
+    setInInfluent: (q, v) => ({ ...q, tkn: v > 0 ? v : undefined }),
+  },
+  ammonia: {
+    name: 'Ammonia-N',
+    nameThai: 'แอมโมเนีย',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.ammonia ?? 0,
+    setInInfluent: (q, v) => ({ ...q, ammonia: v > 0 ? v : undefined }),
+  },
+  totalP: {
+    name: 'Total Phosphorus',
+    nameThai: 'ฟอสฟอรัสรวม',
+    unit: 'mg/L',
+    getFromInfluent: (q) => q.totalP ?? 0,
+    setInInfluent: (q, v) => ({ ...q, totalP: v > 0 ? v : undefined }),
+  },
+  temperature: {
+    name: 'Temperature',
+    nameThai: 'อุณหภูมิ',
+    unit: '°C',
+    getFromInfluent: (q) => q.temperature ?? 25,
+    setInInfluent: (q, v) => ({ ...q, temperature: v }),
+  },
+}
+
+/**
+ * Variation percentages for sensitivity analysis
+ */
+const VARIATION_PERCENTAGES = [-20, -15, -10, -5, 0, 5, 10, 15, 20]
+
+/**
+ * Extract output metrics from calculation results
+ */
+function extractOutputs(
+  system: TreatmentSystem,
+  cost: CostEstimation,
+  energy: EnergyConsumption,
+  influent: WastewaterQuality
+): Record<SensitivityOutput, number> {
+  // Calculate removal percentages
+  const bodRemoval = influent.bod > 0 ? ((influent.bod - system.effluentQuality.bod) / influent.bod) * 100 : 0
+  const codRemoval = influent.cod > 0 ? ((influent.cod - system.effluentQuality.cod) / influent.cod) * 100 : 0
+  const tssRemoval = influent.tss > 0 ? ((influent.tss - system.effluentQuality.tss) / influent.tss) * 100 : 0
+  const nitrogenRemoval = (influent.tkn && influent.tkn > 0)
+    ? ((influent.tkn - (system.effluentQuality.tkn ?? 0)) / influent.tkn) * 100 : 0
+  const phosphorusRemoval = (influent.totalP && influent.totalP > 0)
+    ? ((influent.totalP - (system.effluentQuality.totalP ?? 0)) / influent.totalP) * 100 : 0
+
+  return {
+    effluentBOD: system.effluentQuality.bod,
+    effluentCOD: system.effluentQuality.cod,
+    effluentTSS: system.effluentQuality.tss,
+    effluentTKN: system.effluentQuality.tkn ?? 0,
+    effluentNH3: system.effluentQuality.ammonia ?? 0,
+    effluentTP: system.effluentQuality.totalP ?? 0,
+    bodRemoval,
+    codRemoval,
+    tssRemoval,
+    nitrogenRemoval,
+    phosphorusRemoval,
+    totalCapitalCost: cost.totalCapital,
+    totalOperatingCost: cost.totalOperating * 12, // Annual
+    costPerM3: influent.flowRate > 0 ? (cost.totalOperating / influent.flowRate) * 30 : 0,
+    energyConsumption: energy.totalAnnual,
+    kWhPerM3: energy.kWhPerM3,
+    sludgeProduction: 0, // Will be calculated if sludge data available
+    complianceStatus: system.compliance.isCompliant ? 1 : 0,
+  }
+}
+
+/**
+ * Calculate elasticity (% change in output per 1% change in input)
+ */
+function calculateElasticity(
+  dataPoints: SensitivityDataPoint[],
+  baselineOutputs: Record<SensitivityOutput, number>
+): Record<SensitivityOutput, number> {
+  const elasticity: Record<SensitivityOutput, number> = {
+    effluentBOD: 0,
+    effluentCOD: 0,
+    effluentTSS: 0,
+    effluentTKN: 0,
+    effluentNH3: 0,
+    effluentTP: 0,
+    bodRemoval: 0,
+    codRemoval: 0,
+    tssRemoval: 0,
+    nitrogenRemoval: 0,
+    phosphorusRemoval: 0,
+    totalCapitalCost: 0,
+    totalOperatingCost: 0,
+    costPerM3: 0,
+    energyConsumption: 0,
+    kWhPerM3: 0,
+    sludgeProduction: 0,
+    complianceStatus: 0,
+  }
+
+  // Use +10% and -10% points for elasticity calculation
+  const minusPoint = dataPoints.find(p => p.inputVariation === -10)
+  const plusPoint = dataPoints.find(p => p.inputVariation === 10)
+
+  if (!minusPoint || !plusPoint) return elasticity
+
+  const outputKeys: SensitivityOutput[] = [
+    'effluentBOD', 'effluentCOD', 'effluentTSS', 'effluentTKN', 'effluentNH3', 'effluentTP',
+    'bodRemoval', 'codRemoval', 'tssRemoval', 'nitrogenRemoval', 'phosphorusRemoval',
+    'totalCapitalCost', 'totalOperatingCost', 'costPerM3', 'energyConsumption', 'kWhPerM3',
+    'sludgeProduction', 'complianceStatus'
+  ]
+
+  for (const key of outputKeys) {
+    const baseline = baselineOutputs[key]
+    if (baseline === 0) {
+      elasticity[key] = 0
+      continue
+    }
+
+    const deltaOutput = plusPoint.outputs[key] - minusPoint.outputs[key]
+    const deltaInput = 20 // 20% total variation
+
+    // Elasticity = (% change in output) / (% change in input)
+    const pctChangeOutput = (deltaOutput / baseline) * 100
+    elasticity[key] = Math.round((pctChangeOutput / deltaInput) * 100) / 100
+  }
+
+  return elasticity
+}
+
+/**
+ * Determine which influent parameters are active (have non-zero baseline values)
+ */
+function getActiveParameters(influent: WastewaterQuality): InfluentSensitivityParam[] {
+  const active: InfluentSensitivityParam[] = ['flowRate', 'bod', 'cod', 'tss']
+
+  if (influent.tkn && influent.tkn > 0) active.push('tkn')
+  if (influent.ammonia && influent.ammonia > 0) active.push('ammonia')
+  if (influent.totalP && influent.totalP > 0) active.push('totalP')
+  if (influent.temperature && influent.temperature > 0) active.push('temperature')
+
+  return active
+}
+
+/**
+ * Perform sensitivity analysis on a wastewater treatment system
+ */
+export function performSensitivityAnalysis(
+  influent: WastewaterQuality,
+  unitConfigs: Array<{ type: UnitType; config: Record<string, unknown> }>,
+  targetStandard: ThaiEffluentType,
+  systemName: string = 'Treatment System'
+): SensitivityAnalysis {
+  // Calculate baseline
+  const baselineSystem = calculateTreatmentTrain(influent, unitConfigs, targetStandard)
+  const baselineCost = calculateCostEstimation(baselineSystem, influent.flowRate)
+  const baselineEnergy = calculateEnergyConsumption(baselineSystem, influent)
+  const baselineOutputs = extractOutputs(baselineSystem, baselineCost, baselineEnergy, influent)
+
+  // Get active parameters
+  const activeParams = getActiveParameters(influent)
+  const results: SensitivityResult[] = []
+
+  // Analyze each parameter
+  for (const param of activeParams) {
+    const meta = SENSITIVITY_PARAM_META[param]
+    const baselineValue = meta.getFromInfluent(influent)
+
+    if (baselineValue === 0) continue
+
+    const dataPoints: SensitivityDataPoint[] = []
+
+    // Calculate for each variation
+    for (const variation of VARIATION_PERCENTAGES) {
+      const factor = 1 + variation / 100
+      const variedValue = baselineValue * factor
+
+      // Create varied influent
+      const variedInfluent = meta.setInInfluent({ ...influent }, variedValue)
+
+      // Calculate with varied influent
+      const system = calculateTreatmentTrain(variedInfluent, unitConfigs, targetStandard)
+      const cost = calculateCostEstimation(system, variedInfluent.flowRate)
+      const energy = calculateEnergyConsumption(system, variedInfluent)
+      const outputs = extractOutputs(system, cost, energy, variedInfluent)
+
+      dataPoints.push({
+        inputValue: variedValue,
+        inputVariation: variation,
+        outputs,
+        compliance: system.compliance.isCompliant,
+        issues: system.systemIssues.length,
+      })
+    }
+
+    // Calculate elasticity
+    const elasticity = calculateElasticity(dataPoints, baselineOutputs)
+
+    // Find critical threshold (where compliance breaks)
+    let criticalThreshold: SensitivityResult['criticalThreshold'] = undefined
+    const baselineCompliant = baselineSystem.compliance.isCompliant
+
+    if (baselineCompliant) {
+      // Find where compliance breaks
+      for (const point of dataPoints) {
+        if (!point.compliance) {
+          criticalThreshold = {
+            direction: point.inputVariation > 0 ? 'above' : 'below',
+            value: point.inputValue,
+            reason: `System becomes non-compliant when ${meta.name} ${point.inputVariation > 0 ? 'increases' : 'decreases'} by ${Math.abs(point.inputVariation)}%`,
+          }
+          break
+        }
+      }
+    }
+
+    results.push({
+      parameter: param as SensitivityParameter,
+      parameterName: meta.name,
+      parameterNameThai: meta.nameThai,
+      unit: meta.unit,
+      baselineValue,
+      dataPoints,
+      impactRanking: 0, // Will be calculated later
+      criticalThreshold,
+      elasticity,
+    })
+  }
+
+  // Calculate impact ranking based on cost elasticity (use totalOperatingCost for annual impact)
+  const sortedByCostImpact = [...results].sort((a, b) =>
+    Math.abs(b.elasticity.totalOperatingCost) - Math.abs(a.elasticity.totalOperatingCost)
+  )
+  sortedByCostImpact.forEach((r, idx) => {
+    const original = results.find(res => res.parameter === r.parameter)
+    if (original) original.impactRanking = idx + 1
+  })
+
+  // Create tornado data
+  const tornadoData = results.map(r => {
+    const lowPoint = r.dataPoints.find(p => p.inputVariation === -20)
+    const highPoint = r.dataPoints.find(p => p.inputVariation === 20)
+    const baselineCostValue = baselineOutputs.totalOperatingCost || 1 // Avoid division by zero
+
+    return {
+      parameter: r.parameter,
+      parameterName: r.parameterName,
+      lowValue: r.baselineValue * 0.8,
+      highValue: r.baselineValue * 1.2,
+      lowImpact: lowPoint
+        ? ((lowPoint.outputs.totalOperatingCost - baselineOutputs.totalOperatingCost) / baselineCostValue) * 100
+        : 0,
+      highImpact: highPoint
+        ? ((highPoint.outputs.totalOperatingCost - baselineOutputs.totalOperatingCost) / baselineCostValue) * 100
+        : 0,
+      baselineValue: r.baselineValue,
+    }
+  }).sort((a, b) => Math.max(Math.abs(b.lowImpact), Math.abs(b.highImpact)) - Math.max(Math.abs(a.lowImpact), Math.abs(a.highImpact)))
+
+  // Generate summary
+  const criticalRisks = results
+    .filter(r => r.criticalThreshold)
+    .map(r => ({
+      parameter: r.parameter,
+      threshold: r.criticalThreshold!.value,
+      consequence: r.criticalThreshold!.reason,
+    }))
+
+  // Calculate robustness score (0-100)
+  // Higher score = more robust (less sensitive to changes)
+  const avgElasticity = results.length > 0
+    ? results.reduce((sum, r) => sum + Math.abs(r.elasticity.totalOperatingCost), 0) / results.length
+    : 0
+  const robustnessScore = Math.max(0, Math.min(100, Math.round(100 - avgElasticity * 10)))
+
+  // Generate recommendations
+  const recommendations: string[] = []
+  if (criticalRisks.length > 0) {
+    recommendations.push(`⚠️ ${criticalRisks.length} parameter(s) can cause compliance failure - monitor closely`)
+  }
+  if (tornadoData[0] && Math.abs(tornadoData[0].highImpact) > 15) {
+    recommendations.push(`📊 ${tornadoData[0].parameterName} has highest cost impact - consider flow equalization or treatment buffer`)
+  }
+  if (robustnessScore < 50) {
+    recommendations.push(`🔧 System has low robustness - consider adding safety factors to design`)
+  }
+  if (results.find(r => r.parameter === 'flowRate' && r.impactRanking <= 2)) {
+    recommendations.push(`💧 Flow rate highly impacts cost - equalization tank recommended`)
+  }
+
+  return {
+    timestamp: new Date(),
+    systemName,
+    baselineInfluent: influent,
+    baselineEffluent: baselineSystem.effluentQuality,
+    baselineCost,
+    baselineEnergy,
+    baselineCompliance: baselineSystem.compliance.isCompliant,
+    results,
+    summary: {
+      mostSensitiveParameters: sortedByCostImpact.slice(0, 3).map(r => r.parameter),
+      leastSensitiveParameters: sortedByCostImpact.slice(-2).map(r => r.parameter),
+      criticalRisks,
+      robustnessScore,
+      recommendations,
+    },
+    tornadoData,
   }
 }

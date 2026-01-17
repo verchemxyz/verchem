@@ -88,9 +88,9 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   
-  const { 
+  const {
     announceToScreenReader,
-    setShowShortcutsDialog
+    setShowShortcutsDialog: _setShowShortcutsDialog
   } = useAccessibility();
   
   const { addARIAAttributes, handleKeyboardNavigation } = useAccessibilityFeatures(navRef as React.RefObject<HTMLElement>, {

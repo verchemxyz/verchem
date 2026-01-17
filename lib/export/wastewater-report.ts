@@ -198,7 +198,8 @@ export class WastewaterReportExporter {
 
   private addTreatmentTrainVisual(data: WastewaterReportData): void {
     const boxX = this.margin;
-    const boxWidth = this.pageWidth - 2 * this.margin;
+    // boxWidth available for extended train visualization
+    const _boxWidth = this.pageWidth - 2 * this.margin;
 
     this.pdf.setFontSize(12);
     this.pdf.setFont('helvetica', 'bold');
@@ -438,7 +439,8 @@ export class WastewaterReportExporter {
 
     const standard = THAI_EFFLUENT_STANDARDS[data.effluentStandard];
     const lastUnit = data.treatmentTrain[data.treatmentTrain.length - 1];
-    const effluentQuality = lastUnit?.outputQuality || data.influentQuality;
+    // effluentQuality available for detailed quality comparison
+    const _effluentQuality = lastUnit?.outputQuality || data.influentQuality;
 
     // Standard info
     this.pdf.setFontSize(12);

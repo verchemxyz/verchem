@@ -138,7 +138,7 @@ function SensitivityLineChart({ result, outputMetric }: SensitivityLineChartProp
   const height = 150
   const padding = 30
 
-  const points = data.map((d, i) => ({
+  const points = data.map((d) => ({
     x: padding + ((d.x - data[0].x) / (data[data.length - 1].x - data[0].x)) * (width - 2 * padding),
     y: height - padding - ((d.y - minY) / rangeY) * (height - 2 * padding),
     compliance: d.compliance,

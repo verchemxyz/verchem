@@ -131,7 +131,7 @@ export default function AirQualityPage() {
   const [convFromUnit, setConvFromUnit] = useState<'ppm' | 'ppb' | 'µg/m³' | 'mg/m³'>('ppm')
   const [convToUnit, setConvToUnit] = useState<'ppm' | 'ppb' | 'µg/m³' | 'mg/m³'>('µg/m³')
   const [convTemperature, setConvTemperature] = useState('25')
-  const [convPressure, setConvPressure] = useState('1')
+  const [convPressure, _setConvPressure] = useState('1')
 
   // Thai standards inputs
   const [thaiPollutant, setThaiPollutant] = useState<Pollutant>('pm25')
@@ -824,7 +824,7 @@ export default function AirQualityPage() {
             <div className="bg-gray-700/50 rounded-lg p-4">
               <p className="text-sm text-gray-400 mb-3">AQI Scale</p>
               <div className="flex h-8 rounded-lg overflow-hidden">
-                {AQI_CATEGORIES.map((cat, i) => (
+                {AQI_CATEGORIES.map((cat) => (
                   <div
                     key={cat.level}
                     className="flex-1 flex items-center justify-center text-xs font-medium"

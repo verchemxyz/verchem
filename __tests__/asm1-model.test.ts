@@ -30,9 +30,6 @@ import {
   ASM1StoichiometricParameters,
   DEFAULT_ASM1_KINETIC_PARAMS,
   DEFAULT_ASM1_STOICH_PARAMS,
-  DEFAULT_TEMP_COEFFICIENTS,
-  DEFAULT_DOMESTIC_FRACTIONATION,
-  ASM1_STATE_ORDER,
 } from '../lib/types/asm1-model'
 
 import {
@@ -361,7 +358,7 @@ console.log('\n📊 8. ODE Solver Tests\n')
   // Euler should be less accurate
   const eulerError = Math.abs(solution1.states[solution1.states.length - 1][0] - exact)
   const rk4Error = Math.abs(solution2.states[solution2.states.length - 1][0] - exact)
-  const rkf45Error = Math.abs(solution3.states[solution3.states.length - 1][0] - exact)
+  const _rkf45Error = Math.abs(solution3.states[solution3.states.length - 1][0] - exact)
 
   assert(solution1.success, 'Euler solver succeeds')
   assert(solution2.success, 'RK4 solver succeeds')
@@ -610,7 +607,7 @@ console.log('\n📊 16. Mass Balance Tests\n')
   // COD mass balance in stoichiometric matrix
   // Each process should conserve COD (with oxygen as electron acceptor)
   const matrix = buildStoichiometricMatrix(DEFAULT_ASM1_STOICH_PARAMS)
-  const YH = DEFAULT_ASM1_STOICH_PARAMS.YH
+  const _YH = DEFAULT_ASM1_STOICH_PARAMS.YH // Available for detailed COD balance verification
 
   // Process 1: Aerobic heterotroph growth
   // Input: -1/YH SS + -(1-YH)/YH SO

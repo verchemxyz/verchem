@@ -17,7 +17,6 @@ import {
   ASM1StoichiometricParameters,
   ASM1TemperatureCoefficients,
   ASM1ProcessRate,
-  ASM1ProcessType,
   ASM1ReactorConfig,
   ASM1SimulationConfig,
   ASM1SimulationResult,
@@ -104,9 +103,9 @@ function inhibition(S: number, K: number): number {
 export function calculateProcessRates(
   state: ASM1StateVariables,
   kinetic: ASM1KineticParameters,
-  stoich: ASM1StoichiometricParameters
+  _stoich: ASM1StoichiometricParameters // Reserved for extended rate calculations
 ): ASM1ProcessRate[] {
-  const { SI, SS, SO, SNO, SNH, SND, SALK, XI, XS, XBH, XBA, XP, XND } = state
+  const { SS, SO, SNO, SNH, SND, XS, XBH, XBA, XND } = state
   const { muH, KS, KOH, KNO, bH, etaG, etaH, muA, KNH, KOA, bA, kh, KX, ka } = kinetic
 
   // Process 1: Aerobic growth of heterotrophs
@@ -408,7 +407,7 @@ export function fractionateInfluent(
   alkalinity: number,
   fractionation: CODFractionation & NitrogenFractionation = DEFAULT_DOMESTIC_FRACTIONATION
 ): ASM1StateVariables {
-  const { fSI, fSS, fXI, fXS, fSNH, fSND, fXND } = fractionation
+  const { fSI, fSS, fXI, fXS, fSND, fXND } = fractionation
 
   // COD fractionation
   const SI = cod * fSI
@@ -456,7 +455,7 @@ export function fractionateInfluent(
  */
 export function calculateEffluentQuality(
   reactorState: ASM1StateVariables,
-  settlingParams: SettlingParameters = DEFAULT_SETTLING_PARAMS
+  _settlingParams: SettlingParameters = DEFAULT_SETTLING_PARAMS // Reserved for dynamic settling model
 ): {
   COD: number
   BOD5: number
@@ -467,7 +466,7 @@ export function calculateEffluentQuality(
   NO3N: number
   TN: number
 } {
-  const { SI, SS, SO, SNO, SNH, SND, XBH, XBA, XP, XI, XS, XND } = reactorState
+  const { SI, SS, SNO, SNH, SND, XBH, XBA, XP, XI, XS, XND } = reactorState
 
   // Effluent TSS after clarifier (assume 90-95% removal of particulates)
   const particulateCOD = XI + XS + XBH + XBA + XP

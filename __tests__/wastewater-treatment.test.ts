@@ -24,6 +24,7 @@ import {
   calculateUVDisinfection,
   calculateTreatmentTrain,
   getDefaultDesignParams,
+  performSensitivityAnalysis,
 } from '@/lib/calculations/wastewater-treatment'
 import type { WastewaterQuality, UnitType } from '@/lib/types/wastewater-treatment'
 
@@ -60,6 +61,9 @@ function expect(actual: unknown) {
     },
     toBeLessThan(expected: number) {
       assert.ok((actual as number) < expected, `Expected ${actual} < ${expected}`)
+    },
+    toBeLessThanOrEqual(expected: number) {
+      assert.ok((actual as number) <= expected, `Expected ${actual} <= ${expected}`)
     },
     toBeDefined() {
       assert.ok(actual !== undefined, `Expected value to be defined`)
@@ -552,6 +556,109 @@ describe('Default Design Parameters', () => {
 // ============================================
 // RUN TESTS
 // ============================================
+
+// ============================================
+// SENSITIVITY ANALYSIS TESTS
+// ============================================
+
+describe('Sensitivity Analysis', () => {
+  const testInfluent: WastewaterQuality = {
+    flowRate: 1000,
+    bod: 250,
+    cod: 500,
+    tss: 200,
+    temperature: 25,
+  }
+
+  test('performs sensitivity analysis on simple system', () => {
+    const unitConfigs = [
+      { type: 'bar_screen' as UnitType, config: getDefaultDesignParams('bar_screen', testInfluent.flowRate) },
+      { type: 'aeration_tank' as UnitType, config: getDefaultDesignParams('aeration_tank', testInfluent.flowRate) },
+      { type: 'secondary_clarifier' as UnitType, config: getDefaultDesignParams('secondary_clarifier', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Should have results for active parameters
+    expect(analysis.results.length).toBeGreaterThan(0)
+    // Should include flowRate, bod, cod, tss at minimum
+    expect(analysis.results.length).toBeGreaterThanOrEqual(4)
+  })
+
+  test('calculates tornado data correctly', () => {
+    const unitConfigs = [
+      { type: 'aeration_tank' as UnitType, config: getDefaultDesignParams('aeration_tank', testInfluent.flowRate) },
+      { type: 'secondary_clarifier' as UnitType, config: getDefaultDesignParams('secondary_clarifier', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Tornado data should be sorted by impact
+    expect(analysis.tornadoData.length).toBeGreaterThan(0)
+
+    // Each tornado item should have low and high impacts
+    for (const item of analysis.tornadoData) {
+      expect(item.lowValue).toBeLessThan(item.baselineValue)
+      expect(item.highValue).toBeGreaterThan(item.baselineValue)
+    }
+  })
+
+  test('generates valid robustness score', () => {
+    const unitConfigs = [
+      { type: 'aeration_tank' as UnitType, config: getDefaultDesignParams('aeration_tank', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Robustness score should be between 0 and 100
+    expect(analysis.summary.robustnessScore).toBeGreaterThanOrEqual(0)
+    expect(analysis.summary.robustnessScore).toBeLessThanOrEqual(100)
+  })
+
+  test('identifies most and least sensitive parameters', () => {
+    const unitConfigs = [
+      { type: 'aeration_tank' as UnitType, config: getDefaultDesignParams('aeration_tank', testInfluent.flowRate) },
+      { type: 'secondary_clarifier' as UnitType, config: getDefaultDesignParams('secondary_clarifier', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Should identify most sensitive parameters
+    expect(analysis.summary.mostSensitiveParameters.length).toBeGreaterThan(0)
+    expect(analysis.summary.leastSensitiveParameters.length).toBeGreaterThan(0)
+  })
+
+  test('calculates elasticity for each parameter', () => {
+    const unitConfigs = [
+      { type: 'aeration_tank' as UnitType, config: getDefaultDesignParams('aeration_tank', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Each result should have elasticity values
+    for (const result of analysis.results) {
+      expect(result.elasticity).toBeDefined()
+      expect(typeof result.elasticity.totalOperatingCost).toBe('number')
+    }
+  })
+
+  test('generates data points for each variation', () => {
+    const unitConfigs = [
+      { type: 'bar_screen' as UnitType, config: getDefaultDesignParams('bar_screen', testInfluent.flowRate) },
+    ]
+
+    const analysis = performSensitivityAnalysis(testInfluent, unitConfigs, 'type_a', 'Test System')
+
+    // Each result should have 9 data points (-20%, -15%, -10%, -5%, 0%, +5%, +10%, +15%, +20%)
+    for (const result of analysis.results) {
+      expect(result.dataPoints.length).toBe(9)
+
+      // Check that baseline (0%) point exists
+      const baselinePoint = result.dataPoints.find(p => p.inputVariation === 0)
+      expect(baselinePoint).toBeDefined()
+    }
+  })
+})
 
 async function runTests() {
   console.log('\n🏭 VerChem Wastewater Treatment Unit Tests')

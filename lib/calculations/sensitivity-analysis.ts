@@ -36,8 +36,8 @@ const MIN_POSITIVE = 1e-6
 /** Maximum Monte Carlo iterations to prevent DoS */
 const MAX_MC_ITERATIONS = 5000
 
-/** Minimum Monte Carlo iterations for statistical validity */
-const MIN_MC_ITERATIONS = 10
+/** Minimum Monte Carlo iterations for statistical validity - reserved for validation */
+const _MIN_MC_ITERATIONS = 10
 
 /** Default electricity rate (THB/kWh) */
 const DEFAULT_ELECTRICITY_RATE = 4.5

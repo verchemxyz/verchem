@@ -14,9 +14,7 @@ import {
   ASM1StateVariables,
   ASM1ReactorConfig,
   ASM1SimulationResult,
-  ASM1KineticParameters,
   DEFAULT_ASM1_KINETIC_PARAMS,
-  DEFAULT_ASM1_STOICH_PARAMS,
   DEFAULT_DOMESTIC_FRACTIONATION,
   DEFAULT_INDUSTRIAL_FRACTIONATION,
 } from '@/lib/types/asm1-model'

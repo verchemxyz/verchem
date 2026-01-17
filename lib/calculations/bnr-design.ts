@@ -8,9 +8,7 @@
  */
 
 import {
-  WastewaterQuality,
   BNRProcessType,
-  BNRProcessConfig,
   NitrificationParams,
   DenitrificationParams,
   PhosphorusRemovalParams,
@@ -87,8 +85,8 @@ const PHOSPHORUS_KINETICS = {
 /** Minimum positive value to prevent division by zero */
 const MIN_POSITIVE = 1e-6
 
-/** Minimum bulk ammonia concentration for Monod kinetics (mg/L) */
-const MIN_BULK_AMMONIA = 0.1
+/** Minimum bulk ammonia concentration for Monod kinetics (mg/L) - reserved for kinetic model */
+const _MIN_BULK_AMMONIA = 0.1
 
 // ============================================
 // HELPER FUNCTIONS
@@ -153,7 +151,7 @@ export function calculateNitrification(input: NitrificationInput): Nitrification
     temperature,
     doOperating,
     safetyFactor = 2.0,
-    phRange = [7.0, 8.5],
+    phRange: _phRange = [7.0, 8.5], // Reserved for pH optimization
   } = input
 
   const organicN = Math.max(0, tknInfluent - ammoniaInfluent)
@@ -375,7 +373,7 @@ export function calculatePhosphorusRemoval(
     targetTP,
     flowRate,
     rbCODInfluent,
-    temperature,
+    temperature: _temperature, // Reserved for temperature-corrected kinetics
     enableEBPR = true,
     enableChemP = false,
     chemical = 'ferric_chloride',
@@ -578,7 +576,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
 
   // Get design criteria from process config
   const [minHRT, maxHRT] = processConfig.designCriteria.totalHRT
-  const [minSRT, maxSRT] = processConfig.designCriteria.srt
+  const [minSRT, _maxSRT] = processConfig.designCriteria.srt // maxSRT reserved for upper bound check
   const [minMLSS, maxMLSS] = processConfig.designCriteria.mlss
 
   // Validate MLSS
@@ -778,7 +776,7 @@ export function designBNRSystem(input: BNRDesignInput): BNRDesign {
   }
 
   // Energy calculations
-  const aerobicZones = zones.filter(z => z.type === 'aerobic' || z.type === 'reaeration')
+  // aerobicZones reserved for detailed aeration energy model
   const anoxicZones = zones.filter(z => z.type === 'anoxic' || z.type === 'anaerobic')
 
   const aerationPower = oxygenDemand.totalNet / 24 * 1.2 // Approximate kW

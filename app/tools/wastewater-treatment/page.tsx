@@ -19,6 +19,7 @@ import {
   SludgeProduction,
   EnergyConsumption,
   SavedScenario,
+  SensitivityAnalysis,
 } from '@/lib/types/wastewater-treatment'
 import {
   calculateTreatmentTrain,
@@ -26,13 +27,49 @@ import {
   calculateCostEstimation,
   calculateSludgeProduction,
   calculateEnergyConsumption,
+  performSensitivityAnalysis,
 } from '@/lib/calculations/wastewater-treatment'
 import { WastewaterReportExporter } from '@/lib/export/wastewater-report'
 import RealTimeVisualization from '@/components/wastewater/RealTimeVisualization'
+import SensitivityPanel from '@/components/wastewater/SensitivityPanel'
 
 // ============================================
-// STATUS BADGE COMPONENT
+// SCENARIO MANAGER HELPERS
 // ============================================
+
+const STORAGE_KEY = 'verchem_wastewater_scenarios'
+
+function loadScenarios(): SavedScenario[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (!data) return []
+    return JSON.parse(data).map((s: SavedScenario) => ({
+      ...s,
+      createdAt: new Date(s.createdAt),
+      updatedAt: new Date(s.updatedAt),
+    }))
+  } catch {
+    return []
+  }
+}
+
+function saveScenarios(scenarios: SavedScenario[]) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios))
+}
+
+interface ScenarioManagerProps {
+  currentDesign: {
+    source: 'domestic' | 'industrial' | 'combined' | 'custom'
+    influent: WastewaterQuality
+    targetStandard: ThaiEffluentType
+    unitConfigs: Array<{ type: UnitType; config: Record<string, unknown> }>
+  }
+  onLoadScenario: (scenario: SavedScenario) => void
+  system: TreatmentSystem | null
+  costEstimation: CostEstimation | null
+}
 
 function StatusBadge({ status }: { status: UnitStatus }) {
   const config = {
@@ -284,7 +321,7 @@ interface EffluentCardProps {
   compliance: TreatmentSystem['compliance'] | null
 }
 
-function EffluentCard({ quality, targetStandard, onStandardChange, compliance }: EffluentCardProps) {
+function EffluentCard({ quality: _quality, targetStandard, onStandardChange, compliance }: EffluentCardProps) {
   const standard = THAI_EFFLUENT_STANDARDS[targetStandard]
   const formatValue = (value: number | null) => {
     if (value === null) return '—'
@@ -1071,40 +1108,6 @@ function EnergyPanel({ energy }: { energy: EnergyConsumption }) {
 // SCENARIO MANAGER COMPONENT
 // ============================================
 
-const STORAGE_KEY = 'verchem_wastewater_scenarios'
-
-function loadScenarios(): SavedScenario[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const data = localStorage.getItem(STORAGE_KEY)
-    if (!data) return []
-    return JSON.parse(data).map((s: SavedScenario) => ({
-      ...s,
-      createdAt: new Date(s.createdAt),
-      updatedAt: new Date(s.updatedAt),
-    }))
-  } catch {
-    return []
-  }
-}
-
-function saveScenarios(scenarios: SavedScenario[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios))
-}
-
-interface ScenarioManagerProps {
-  currentDesign: {
-    source: 'domestic' | 'industrial' | 'combined' | 'custom'
-    influent: WastewaterQuality
-    targetStandard: ThaiEffluentType
-    unitConfigs: Array<{ type: UnitType; config: Record<string, unknown> }>
-  }
-  onLoadScenario: (scenario: SavedScenario) => void
-  system: TreatmentSystem | null
-  costEstimation: CostEstimation | null
-}
-
 function ScenarioManager({ currentDesign, onLoadScenario, system, costEstimation }: ScenarioManagerProps) {
   // Lazy initialization from localStorage
   const [scenarios, setScenarios] = useState<SavedScenario[]>(() => loadScenarios())
@@ -1776,6 +1779,33 @@ export default function WastewaterTreatmentPage() {
     }
   }, [system, influent])
 
+  // Sensitivity analysis state
+  const [sensitivityAnalysis, setSensitivityAnalysis] = useState<SensitivityAnalysis | null>(null)
+  const [isRunningAnalysis, setIsRunningAnalysis] = useState(false)
+
+  // Run sensitivity analysis
+  const handleRunSensitivityAnalysis = useCallback(() => {
+    if (!system || unitConfigs.length === 0) return
+
+    setIsRunningAnalysis(true)
+    // Use setTimeout to allow UI to update
+    setTimeout(() => {
+      try {
+        const analysis = performSensitivityAnalysis(
+          influent,
+          unitConfigs,
+          targetStandard,
+          'Treatment System'
+        )
+        setSensitivityAnalysis(analysis)
+      } catch (error) {
+        console.error('Sensitivity analysis failed:', error)
+      } finally {
+        setIsRunningAnalysis(false)
+      }
+    }, 100)
+  }, [system, influent, unitConfigs, targetStandard])
+
   // Add unit
   const handleAddUnit = useCallback((type: UnitType) => {
     const defaultConfig = getDefaultDesignParams(type, influent.flowRate)
@@ -2043,6 +2073,45 @@ export default function WastewaterTreatmentPage() {
                 system={system}
                 costEstimation={costEstimation}
               />
+            </div>
+
+            {/* Sensitivity Analysis */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-gray-700">Sensitivity Analysis (What-If)</h2>
+                <button
+                  onClick={handleRunSensitivityAnalysis}
+                  disabled={isRunningAnalysis || unitConfigs.length === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white text-sm font-medium rounded-lg transition shadow-sm"
+                >
+                  {isRunningAnalysis ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      📊 Run Sensitivity Analysis
+                    </>
+                  )}
+                </button>
+              </div>
+              {sensitivityAnalysis ? (
+                <SensitivityPanel analysis={sensitivityAnalysis} />
+              ) : (
+                <div className="p-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 text-center">
+                  <div className="text-3xl mb-2">📊</div>
+                  <p className="text-gray-500 text-sm">
+                    Click &quot;Run Sensitivity Analysis&quot; to see how input variations affect your system
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Analyzes ±20% variation in flow rate, BOD, COD, TSS and other parameters
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Issues Panel */}

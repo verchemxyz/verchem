@@ -12,7 +12,6 @@
 import type {
   Pollutant,
   PollutantInfo,
-  AQICategory,
   AQICategoryInfo,
   AQIBreakpoint,
   AQIInput,
@@ -849,7 +848,8 @@ export function getDispersionCoefficients(
   }
 
   const p = params[stabilityClass]
-  const xKm = distance / 1000  // Convert to km for formula
+  // Note: distance is in meters, formula uses meters directly
+  // const xKm = distance / 1000 // km conversion available if needed
 
   const sigmaY = p.ay * Math.pow(distance, p.by)
   const sigmaZ = p.az * Math.pow(distance, p.bz)

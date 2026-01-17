@@ -17,7 +17,7 @@ import {
   getDOSaturation,
   estimateAerationPower,
 } from '@/lib/calculations/aeration-design'
-import { DIFFUSER_SPECS, OxygenTransferParams } from '@/lib/types/wastewater-treatment'
+import { DIFFUSER_SPECS, OxygenTransferParams, DiffuserType } from '@/lib/types/wastewater-treatment'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -393,7 +393,7 @@ describe('Aeration Power Estimation', () => {
 
 describe('Diffuser Specifications', () => {
   test('has specs for key diffuser types', () => {
-    const diffuserTypes = [
+    const diffuserTypes: DiffuserType[] = [
       'fine_bubble_disc',
       'fine_bubble_tube',
       'coarse_bubble',

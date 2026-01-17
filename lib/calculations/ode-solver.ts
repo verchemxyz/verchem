@@ -277,7 +277,7 @@ function calculateOptimalStep(
   tolerance: number,
   minStep: number,
   maxStep: number,
-  order: number = 4
+  _order: number = 4 // Reserved for higher-order adaptive methods
 ): { newStep: number; accept: boolean } {
   const safety = 0.9 // Safety factor
   const pGrow = 0.2 // Power for step growth

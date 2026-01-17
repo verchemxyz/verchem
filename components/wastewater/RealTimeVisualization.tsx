@@ -204,13 +204,13 @@ function TimeSeriesChart({ data, currentHour, metric, showEffluent = true }: Tim
   const xScale = (hour: number) => padding.left + (hour / 23) * chartWidth
   const yScale = (value: number) => padding.top + chartHeight - (value / maxValue) * chartHeight
 
-  const generatePath = useCallback((isEffluent: boolean) => {
+  const generatePath = (isEffluent: boolean) => {
     return data.map((d, i) => {
       const x = xScale(d.hour)
       const y = yScale(getValue(d, isEffluent))
       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
     }).join(' ')
-  }, [data, getValue])
+  }
 
   const colors = {
     flow: { influent: '#3B82F6', effluent: '#60A5FA', name: 'Flow Rate', unit: 'm³/h' },
@@ -331,7 +331,7 @@ interface ProcessFlowProps {
 
 function ProcessFlowAnimation({ system, currentValues }: ProcessFlowProps) {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; opacity: number }>>([])
-  const animationRef = useRef<number>(0)
+  const _animationRef = useRef<number>(0) // Reserved for future animation control
 
   useEffect(() => {
     let nextId = 0
@@ -379,7 +379,7 @@ function ProcessFlowAnimation({ system, currentValues }: ProcessFlowProps) {
 
         {/* Treatment units indicator */}
         <div className="flex items-center gap-1">
-          {system.units.slice(0, 5).map((unit, i) => (
+          {system.units.slice(0, 5).map((unit) => (
             <div
               key={unit.id}
               className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs
@@ -485,12 +485,12 @@ export default function RealTimeVisualization({
     return data
   }, [selectedPattern, influent, systemEfficiency])
 
-  // Initialize simulation data
+  // Initialize simulation data on mount and when dependencies change
+  // This is a valid use case: regenerating simulation data when input parameters change
   useEffect(() => {
-    setSimulation(prev => ({
-      ...prev,
-      data: generateSimulationData()
-    }))
+    const initialData = generateSimulationData()
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Valid: resetting simulation when params change
+    setSimulation(prev => ({ ...prev, data: initialData, currentHour: 0 }))
   }, [generateSimulationData])
 
   // Simulation control

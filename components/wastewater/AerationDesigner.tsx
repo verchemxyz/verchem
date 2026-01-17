@@ -23,7 +23,7 @@ interface DiffuserGridProps {
   tankArea: number
 }
 
-function DiffuserGridVisualization({ layout, tankArea }: DiffuserGridProps) {
+function DiffuserGridVisualization({ layout, tankArea: _tankArea }: DiffuserGridProps) {
   const aspectRatio = 2 // L:W
   const width = 200
   const height = width / aspectRatio

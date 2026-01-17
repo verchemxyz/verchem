@@ -19,7 +19,7 @@ import {
   type PhosphorusRemovalInput,
   type BNRDesignInput,
 } from '@/lib/calculations/bnr-design'
-import { BNR_PROCESS_CONFIGS } from '@/lib/types/wastewater-treatment'
+import { BNR_PROCESS_CONFIGS, BNRProcessType } from '@/lib/types/wastewater-treatment'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -82,7 +82,7 @@ function expect(actual: unknown) {
 
 describe('BNR Process Configurations', () => {
   test('has all 9 BNR process types', () => {
-    const processTypes = ['mle', 'a2o', 'bardenpho_4stage', 'bardenpho_5stage', 'uct', 'vip', 'johannesburg', 'step_feed', 'sbr_bnr']
+    const processTypes: BNRProcessType[] = ['mle', 'a2o', 'bardenpho_4stage', 'bardenpho_5stage', 'uct', 'vip', 'johannesburg', 'step_feed', 'sbr_bnr']
 
     processTypes.forEach((type) => {
       const config = BNR_PROCESS_CONFIGS[type]

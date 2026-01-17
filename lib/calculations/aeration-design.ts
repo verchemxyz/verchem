@@ -8,11 +8,8 @@
  */
 
 import {
-  WastewaterQuality,
   DiffuserType,
-  DiffuserSpec,
   BlowerType,
-  BlowerSpec,
   DOProfilePoint,
   OxygenTransferParams,
   AerationSystemDesign,
@@ -93,8 +90,8 @@ const MIN_POSITIVE = 1e-6
 /** Minimum AOTE percentage to prevent negative values */
 const MIN_AOTE_PERCENT = 0.5
 
-/** Minimum DO deficit ratio */
-const MIN_DO_DEFICIT = 0.05
+/** Minimum DO deficit ratio (reserved for future use) */
+const _MIN_DO_DEFICIT = 0.05
 
 // ============================================
 // HELPER FUNCTIONS
@@ -466,7 +463,7 @@ export function designPipingSystem(
   totalAirflow: number, // Nm³/h
   numberOfDropPipes: number,
   tankLength: number, // m
-  tankWidth: number // m
+  _tankWidth: number // m - reserved for future layout calculations
 ): AerationSystemDesign['pipingSystem'] {
   // Target velocity in main header: 10-20 m/s
   const targetVelocity = 15 // m/s
