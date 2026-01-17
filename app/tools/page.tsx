@@ -95,6 +95,13 @@ const ENVIRONMENTAL_TOOLS: Array<{
     isHot: true,
   },
   {
+    href: '/tools/asm2d-simulator',
+    icon: '🦠',
+    label: 'ASM2d Phosphorus Removal',
+    description: 'IWA Activated Sludge Model No. 2d. Biological phosphorus removal with PAO/dPAO, 21 processes.',
+    isHot: true,
+  },
+  {
     href: '/tools/adm1-simulator',
     icon: '🔥',
     label: 'ADM1 Anaerobic Digester',
