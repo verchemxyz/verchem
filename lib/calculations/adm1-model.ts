@@ -874,7 +874,7 @@ export function runADM1Simulation(
 
   // Initialize
   let state = { ...config.initialState }
-  let gasPhase = config.initialGasPhase || { ...DEFAULT_INITIAL_GAS_PHASE }
+  const gasPhase = config.initialGasPhase || { ...DEFAULT_INITIAL_GAS_PHASE }
 
   const timeSeries: ADM1TimePoint[] = []
   let totalSteps = 0

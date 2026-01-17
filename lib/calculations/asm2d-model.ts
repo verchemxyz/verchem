@@ -1195,7 +1195,7 @@ export function runASM2dSimulation(
     })
   } else {
     // Dynamic simulation
-    let state = config.initialState
+    const state = config.initialState
 
     const derivativeFunc = (t: number, y: number[]): number[] => {
       const currentState = arrayToState(y)

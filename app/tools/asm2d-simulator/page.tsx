@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import ASM2dSimulator from '@/components/wastewater/ASM2dSimulator'
 
 export const metadata: Metadata = {
@@ -37,15 +38,15 @@ export default function ASM2dSimulatorPage() {
         <nav className="mb-6 text-sm">
           <ol className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <li>
-              <a href="/" className="hover:text-green-600">Home</a>
+              <Link href="/" className="hover:text-green-600">Home</Link>
             </li>
             <li>/</li>
             <li>
-              <a href="/tools" className="hover:text-green-600">Tools</a>
+              <Link href="/tools" className="hover:text-green-600">Tools</Link>
             </li>
             <li>/</li>
             <li>
-              <a href="/environmental" className="hover:text-green-600">Environmental</a>
+              <Link href="/environmental" className="hover:text-green-600">Environmental</Link>
             </li>
             <li>/</li>
             <li className="text-green-600 font-medium">ASM2d Simulator</li>
