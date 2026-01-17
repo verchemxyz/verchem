@@ -47,6 +47,7 @@ import {
   ScenarioManager,
   RealTimeVisualization,
   SensitivityPanel,
+  AerationDesigner,
 } from '@/components/wastewater'
 
 // ============================================
@@ -442,6 +443,18 @@ export default function WastewaterTreatmentPage() {
                 </div>
               )}
             </div>
+
+            {/* Aeration System Design */}
+            {system.units.some(u => ['activated_sludge', 'extended_aeration', 'sbr', 'mbbr', 'mbr'].includes(u.type)) && (
+              <div className="mb-6">
+                <h2 className="text-sm font-bold text-gray-700 mb-3">Aeration System Design</h2>
+                <AerationDesigner
+                  influent={influent}
+                  bodRemoved={(influent.bod - system.effluentQuality.bod) * influent.flowRate / 1000}
+                  nitrogenOxidized={influent.ammonia ? (influent.ammonia - (system.effluentQuality.ammonia || 0)) * influent.flowRate / 1000 : 0}
+                />
+              </div>
+            )}
 
             {/* Issues Panel */}
             <div className="mb-6">
