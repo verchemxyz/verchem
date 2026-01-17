@@ -94,6 +94,13 @@ const ENVIRONMENTAL_TOOLS: Array<{
     description: 'IWA Activated Sludge Model No. 1. Research-grade simulation with 8 processes, 13 state variables.',
     isHot: true,
   },
+  {
+    href: '/tools/adm1-simulator',
+    icon: '🔥',
+    label: 'ADM1 Anaerobic Digester',
+    description: 'IWA Anaerobic Digestion Model No. 1. Biogas production, 24 state variables, 19 processes.',
+    isHot: true,
+  },
 ]
 
 // ============================================
