@@ -25,6 +25,17 @@ export {
   IssuesPanel,
 } from './treatment-panels'
 
+// Graph
+export { TreatmentGraph } from './treatment-graph'
+
+// Scenario Manager
+export {
+  ScenarioManager,
+  loadScenarios,
+  saveScenarios,
+  type ScenarioManagerProps,
+} from './scenario-manager'
+
 // Advanced Components (already existed)
 export { default as RealTimeVisualization } from './RealTimeVisualization'
 export { default as SensitivityPanel } from './SensitivityPanel'
