@@ -492,6 +492,23 @@ export function VerChemGlobalFAQSchema() {
           '@type': 'Answer',
           text: 'Mass (g) = Moles × Molar Mass (g/mol). For example, 2 moles of water: 2 mol × 18.015 g/mol = 36.03 g. To convert grams to moles, divide: Moles = Mass / Molar Mass.'
         }
+      },
+      // VerChem vs AI Comparison
+      {
+        '@type': 'Question',
+        name: 'What is the difference between VerChem and asking AI like ChatGPT for chemistry calculations?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'VerChem and AI chatbots serve different purposes. VerChem provides 100% accurate calculations every time using verified formulas and NIST/IUPAC certified data - the same result guaranteed on every calculation. AI chatbots like ChatGPT are excellent for explanations and learning concepts, but may occasionally make calculation errors (hallucination), give inconsistent results, or use outdated atomic masses. For critical calculations (lab work, exams, engineering), use VerChem. For understanding concepts and getting explanations, AI chatbots are great companions. Best practice: Use both together - VerChem for accurate calculations, AI for deeper understanding.'
+        }
+      },
+      {
+        '@type': 'Question',
+        name: 'Can AI chatbots replace chemistry calculators like VerChem?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No, they serve complementary roles. AI chatbots may: 1) Calculate atomic masses incorrectly (off by 1-2 decimal places), 2) Make errors in complex equation balancing, 3) Give different answers each time you ask, 4) Not know specialized standards like Thai PCD water quality limits. VerChem guarantees: 1) NIST-certified atomic masses for all 118 elements, 2) Deterministic results (same input = same output, always), 3) Calculation speed under 50ms, 4) Thai regulatory standards built-in. Use VerChem when accuracy matters, AI when you need explanations or learning support.'
+        }
       }
     ]
   }

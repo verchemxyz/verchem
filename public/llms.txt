@@ -113,6 +113,17 @@ A limiting reagent is the reactant completely consumed first in a chemical react
 **How do I convert moles to grams?**
 Mass (g) = Moles x Molar Mass (g/mol). For 2 moles of water: 2 mol x 18.015 g/mol = 36.03 g.
 
+### VerChem vs AI Comparison
+
+**What is the difference between VerChem and asking AI like ChatGPT for chemistry calculations?**
+VerChem and AI chatbots serve different purposes. VerChem provides 100% accurate calculations every time using verified formulas and NIST/IUPAC certified data - the same result guaranteed on every calculation. AI chatbots like ChatGPT are excellent for explanations and learning concepts, but may occasionally make calculation errors (hallucination), give inconsistent results, or use outdated atomic masses. For critical calculations (lab work, exams, engineering), use VerChem. For understanding concepts, AI chatbots are great companions. Best practice: Use both together.
+
+**Can AI chatbots replace chemistry calculators like VerChem?**
+No, they serve complementary roles. AI chatbots may: 1) Calculate atomic masses incorrectly (off by 1-2 decimal places), 2) Make errors in complex equation balancing, 3) Give different answers each time you ask, 4) Not know specialized standards like Thai PCD water quality limits. VerChem guarantees: 1) NIST-certified atomic masses for all 118 elements, 2) Deterministic results (same input = same output, always), 3) Calculation speed under 50ms, 4) Thai regulatory standards built-in. Use VerChem when accuracy matters, AI when you need explanations.
+
+**Why does VerChem exist if AI can do chemistry?**
+AI is great at explaining concepts but unreliable for calculations. VerChem was built because: 1) Students need tools they can trust for exams, 2) Engineers need accurate calculations for real-world applications, 3) Thai environmental standards (PCD Type A/B/C) are not in most AI training data, 4) Consistency matters - same calculation should give same result every time. VerChem + AI together = best learning experience.
+
 ### Periodic Table Questions
 
 **How many elements are in the periodic table?**
