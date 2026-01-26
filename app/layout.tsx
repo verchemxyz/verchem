@@ -22,10 +22,10 @@ import "./tutorials.css";
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
   title: {
-    default: "VerChem - World-Class Chemistry Platform",
+    default: "VerChem - Chemistry & Environmental Engineering Platform",
     template: "%s | VerChem"
   },
-  description: "Professional chemistry calculators and interactive tools. Equation balancer, stoichiometry, pH calculator, gas laws, periodic table, 3D molecular viewer, and more. Free and accessible.",
+  description: "Professional chemistry calculators, wastewater treatment design, and process modeling tools. ASM1, ASM2d, ADM1 simulators. Water/Air/Soil quality analysis with Thai PCD standards. Free and accessible.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -40,6 +40,17 @@ export const metadata: Metadata = {
     "3D molecule viewer",
     "Lewis structures",
     "VSEPR geometry",
+    "wastewater treatment",
+    "wastewater design",
+    "ASM1 simulator",
+    "ASM2d model",
+    "ADM1 anaerobic digestion",
+    "biological phosphorus removal",
+    "water quality calculator",
+    "air quality calculator",
+    "soil quality",
+    "Thai PCD standards",
+    "environmental engineering",
     "accessible chemistry",
     "WCAG compliant"
   ],
@@ -56,21 +67,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
-    title: 'VerChem - World-Class Chemistry Platform',
-    description: 'Professional chemistry calculators and interactive tools. Free, accessible, and production-grade.',
+    title: 'VerChem - Chemistry & Environmental Engineering Platform',
+    description: 'Professional chemistry calculators, wastewater treatment design, and ASM/ADM process models. Free and accessible.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'VerChem Chemistry Platform',
+        alt: 'VerChem Chemistry & Environmental Platform',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VerChem - Chemistry Platform',
-    description: 'Professional chemistry calculators and interactive tools. Free and accessible.',
+    title: 'VerChem - Chemistry & Environmental Platform',
+    description: 'Professional calculators, wastewater design, ASM1/ASM2d/ADM1 process models. Free and accessible.',
     images: ['/opengraph-image.png'],
   },
   robots: {

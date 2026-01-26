@@ -22,26 +22,26 @@ export default function Home() {
         <h1 className="text-5xl md:text-7xl font-bold mb-6">
           <span className="text-premium">World-Class</span>
           <br />
-          <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-            Chemistry Platform
+          <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-emerald-600 bg-clip-text text-transparent">
+            Chemistry & Environmental Platform
           </span>
         </h1>
 
         <p className="text-xl md:text-2xl text-secondary-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-          Professional calculators, interactive tools, and 118 elements validated against NIST standards.
+          Professional calculators, wastewater treatment design, and process modeling tools.
           <br />
-          <span className="text-primary-600 font-semibold">Built for students, educators & professionals.</span>
+          <span className="text-primary-600 font-semibold">Built for students, engineers & professionals.</span>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="/periodic-table" className="btn-premium glow-premium px-8 py-4 text-lg">
-            🚀 Get Started Free
+          <Link href="/tools" className="btn-premium glow-premium px-8 py-4 text-lg">
+            🚀 Explore All Tools
           </Link>
           <Link
-            href="/periodic-table"
-            className="px-8 py-4 premium-card rounded-xl font-semibold hover:shadow-lg transition-all text-lg inline-flex items-center justify-center gap-2"
+            href="/tools/wastewater-treatment"
+            className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all text-lg inline-flex items-center justify-center gap-2"
           >
-            <span>Explore Periodic Table</span>
+            <span>🏭 Wastewater Design</span>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -114,7 +114,7 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Chemical Compounds</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">18</div>
+              <div className="text-5xl font-bold mb-2">21</div>
               <div className="text-primary-100 font-medium">Pro Tools</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
@@ -132,7 +132,7 @@ export default function Home() {
             <span className="text-premium">Everything You Need</span>
           </h2>
           <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            18 professional tools validated against industry standards
+            21 professional tools validated against industry standards
           </p>
         </div>
 
@@ -315,6 +315,58 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* Process Models Section */}
+          <div className="mt-8 mb-12">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                🧬 Advanced Process Models • Compete with GPS-X ($15K)
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* ASM1 */}
+              <Link href="/tools/asm1-simulator" className="group relative">
+                <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                  🔥 NEW
+                </div>
+                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-purple-200 p-5 hover:border-purple-400 hover:shadow-lg transition-all">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                    🧫
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">ASM1 Simulator</h3>
+                  <p className="text-gray-600 text-sm">IWA Activated Sludge Model • 8 processes, 13 states</p>
+                </div>
+              </Link>
+
+              {/* ASM2d */}
+              <Link href="/tools/asm2d-simulator" className="group relative">
+                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                  ⭐ 260 Tests
+                </div>
+                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-pink-200 p-5 hover:border-pink-400 hover:shadow-lg transition-all">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                    🦠
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">ASM2d Bio-P Removal</h3>
+                  <p className="text-gray-600 text-sm">Phosphorus removal with PAO • 21 processes</p>
+                </div>
+              </Link>
+
+              {/* ADM1 */}
+              <Link href="/tools/adm1-simulator" className="group relative">
+                <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                  🔥 NEW
+                </div>
+                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-orange-200 p-5 hover:border-orange-400 hover:shadow-lg transition-all">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
+                    🔥
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-1">ADM1 Anaerobic Digester</h3>
+                  <p className="text-gray-600 text-sm">Biogas production • 19 processes, 24 states</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+
           {/* CTA */}
           <div className="text-center">
             <Link
@@ -360,7 +412,7 @@ export default function Home() {
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>All 18 tools & calculators</span>
+                <span>All 21 tools & calculators</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -373,6 +425,12 @@ export default function Home() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span>Environmental Engineering Tools</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>ASM1, ASM2d, ADM1 Process Models</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
