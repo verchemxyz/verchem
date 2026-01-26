@@ -572,7 +572,7 @@ export function PreferencesPanel({ open, onClose, defaultCategory = 'general' }:
                 id="import-data"
                 value={importData}
                 onChange={(e) => setImportData(e.target.value)}
-                className="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-foreground text-sm placeholder:text-muted-foreground"
                 placeholder="Paste your preferences JSON here..."
               />
             </div>

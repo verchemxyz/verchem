@@ -141,11 +141,11 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4">
         {/* Search input */}
-        <div className="relative border-b border-gray-200">
+        <div className="relative border-b border-gray-200 dark:border-gray-700">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
           <input
             ref={inputRef}
@@ -153,12 +153,12 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command or search..."
-            className="block w-full pl-12 pr-12 py-4 text-lg border-0 rounded-t-lg focus:outline-none focus:ring-0 placeholder-gray-500"
+            className="block w-full pl-12 pr-12 py-4 text-lg border-0 rounded-t-lg bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-0 placeholder-gray-500 dark:placeholder-gray-400"
           />
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -168,8 +168,8 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
               <p>No results found</p>
               <p className="text-sm mt-1">Try a different search term</p>
             </div>
@@ -188,7 +188,7 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 text-xs text-gray-500 flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <span>↑↓ Navigate</span>
             <span>↵ Select</span>
@@ -242,8 +242,8 @@ function CommandItem({
       onClick={onClick}
       className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors ${
         isSelected 
-          ? 'bg-blue-50 border-l-4 border-blue-500' 
-          : 'hover:bg-gray-50'
+          ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' 
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
       }`}
     >
       <div className={`flex-shrink-0 ${getItemColor()}`}>
@@ -251,21 +251,21 @@ function CommandItem({
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-900 truncate">
+        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
           {item.title}
         </div>
-        <div className="text-sm text-gray-500 truncate">
+        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
           {item.subtitle}
         </div>
       </div>
       
       <div className="flex-shrink-0">
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-          item.type === 'suggestion' ? 'bg-blue-100 text-blue-800' :
-          item.type === 'recent' ? 'bg-green-100 text-green-800' :
-          item.type === 'popular' ? 'bg-orange-100 text-orange-800' :
-          item.type === 'bookmark' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-purple-100 text-purple-800'
+          item.type === 'suggestion' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200' :
+          item.type === 'recent' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200' :
+          item.type === 'popular' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200' :
+          item.type === 'bookmark' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200' :
+          'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'
         }`}>
           {item.type}
         </span>

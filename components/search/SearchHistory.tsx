@@ -57,8 +57,8 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
     return (
       <div className="text-center py-12">
         <ClockIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No search history</h3>
-        <p className="text-gray-500">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No search history</h3>
+        <p className="text-gray-500 dark:text-gray-400">
           Your search history will appear here once you start searching.
         </p>
       </div>
@@ -69,26 +69,26 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Search History</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Search History</h2>
         <div className="flex items-center space-x-3">
           {/* Search within history */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
             </div>
             <input
               type="text"
               placeholder="Search history..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-48 pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-48 pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           {/* Clear history button */}
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-700 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
             <TrashIcon className="h-4 w-4 mr-1" />
             Clear All
@@ -98,20 +98,20 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
 
       {/* Clear confirmation dialog */}
       {showClearConfirm && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-yellow-800">
+              <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
                 Clear search history?
               </h4>
-              <p className="text-sm text-yellow-700 mt-1">
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                 This will permanently delete all search history items.
               </p>
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-3 py-1.5 text-xs font-medium rounded text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
               >
                 Cancel
               </button>

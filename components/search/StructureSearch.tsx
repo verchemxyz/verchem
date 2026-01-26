@@ -43,12 +43,12 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>
+    <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Structure Search</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Structure Search</h3>
         <button
           onClick={handleClear}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
           title="Clear"
         >
           <XMarkIcon className="h-5 w-5" />
@@ -57,13 +57,13 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
 
       {/* Quick molecule templates */}
       <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-2">Common molecules:</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Common molecules:</p>
         <div className="flex flex-wrap gap-2">
           {molecules.map((molecule) => (
             <button
               key={molecule.name}
               onClick={() => handleQuickSearch(molecule.smiles)}
-              className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+              className="px-3 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-colors"
               title={`${molecule.name} - ${molecule.formula}`}
             >
               {molecule.name}
@@ -75,13 +75,13 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
       {/* Drawing area */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-600">Draw or paste structure:</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Draw or paste structure:</p>
           <button
             onClick={handleDrawStructure}
             className={`px-3 py-1 text-xs rounded transition-colors ${
               isDrawingMode
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
             }`}
           >
             {isDrawingMode ? 'Drawing...' : 'Draw'}
@@ -89,13 +89,13 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
         </div>
         
         {isDrawingMode ? (
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <BeakerIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-sm text-gray-600 mb-2">Click and drag to draw molecules</p>
-            <p className="text-xs text-gray-500">Feature coming soon!</p>
+          <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8 text-center">
+            <BeakerIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Click and drag to draw molecules</p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">Feature coming soon!</p>
             <button
               onClick={() => setIsDrawingMode(false)}
-              className="mt-3 px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+              className="mt-3 px-3 py-1 text-xs bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
               Cancel
             </button>
@@ -105,15 +105,15 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
             value={smiles}
             onChange={(e) => setSmiles(e.target.value)}
             placeholder="Enter SMILES notation or draw structure above..."
-            className="w-full h-24 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            className="w-full h-24 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"
           />
         )}
       </div>
 
       {/* SMILES examples */}
       <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-2">SMILES examples:</p>
-        <div className="space-y-1 text-xs text-gray-500">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">SMILES examples:</p>
+        <div className="space-y-1 text-xs text-gray-500 dark:text-gray-500">
           <div className="flex justify-between">
             <span>Water: O</span>
             <span>Ethanol: CCO</span>
@@ -140,9 +140,9 @@ export function StructureSearch({ onSearch, className = "" }: StructureSearchPro
         <input
           type="checkbox"
           id="substructure"
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
         />
-        <label htmlFor="substructure" className="ml-2 text-sm text-gray-700">
+        <label htmlFor="substructure" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
           Include substructure matches
         </label>
       </div>

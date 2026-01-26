@@ -55,10 +55,10 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
     const isExpanded = expandedSections.has(id)
     
     return (
-      <div className="border-b border-gray-200 pb-4">
+      <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
         <button
           onClick={() => toggleSection(id)}
-          className="flex items-center justify-between w-full text-left font-medium text-gray-900 hover:text-blue-600 transition-colors"
+          className="flex items-center justify-between w-full text-left font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
           <span>{title}</span>
           {isExpanded ? (
@@ -78,11 +78,11 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
   }
 
   const FilterTag = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
-    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
       {label}
       <button
         onClick={onRemove}
-        className="ml-1 inline-flex text-blue-600 hover:text-blue-800"
+        className="ml-1 inline-flex text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
       >
         <XMarkIcon className="h-3 w-3" />
       </button>
@@ -93,12 +93,12 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
     <div className={`${className}`}>
       {/* Active filters summary */}
       {hasActiveFilters && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-900">Active Filters</span>
+            <span className="text-sm font-medium text-blue-900 dark:text-blue-200">Active Filters</span>
             <button
               onClick={clearAllFilters}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
             >
               Clear all
             </button>
@@ -148,9 +148,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                       : current.filter(t => t !== type)
                     updateFilter('type', updated.length > 0 ? updated : undefined)
                   }}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700 capitalize">{type}</span>
+                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">{type}</span>
               </label>
             ))}
           </div>
@@ -160,7 +160,7 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
         <Section title="Compound Properties" id="compound">
           {/* Molecular Weight Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Molecular Weight Range
             </label>
             <div className="flex space-x-2">
@@ -172,9 +172,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                   ...localFilters.molecularWeightRange,
                   min: e.target.value ? parseFloat(e.target.value) : undefined
                 })}
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
               />
-              <span className="self-center text-gray-500">-</span>
+              <span className="self-center text-gray-500 dark:text-gray-400">-</span>
               <input
                 type="number"
                 placeholder="Max"
@@ -183,14 +183,14 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                   ...localFilters.molecularWeightRange,
                   max: e.target.value ? parseFloat(e.target.value) : undefined
                 })}
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Safety Classification */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Safety Classification
             </label>
             <div className="space-y-2">
@@ -206,9 +206,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                         : current.filter(h => h !== hazard)
                       updateFilter('safety', updated.length > 0 ? updated : undefined)
                     }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700 capitalize">{hazard}</span>
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">{hazard}</span>
                 </label>
               ))}
             </div>
@@ -219,7 +219,7 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
         <Section title="Element Properties" id="element">
           {/* Atomic Number Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Atomic Number Range
             </label>
             <div className="flex space-x-2">
@@ -233,9 +233,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                   ...localFilters.atomicNumberRange,
                   min: e.target.value ? parseInt(e.target.value) : undefined
                 })}
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
               />
-              <span className="self-center text-gray-500">-</span>
+              <span className="self-center text-gray-500 dark:text-gray-400">-</span>
               <input
                 type="number"
                 placeholder="Max"
@@ -246,14 +246,14 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                   ...localFilters.atomicNumberRange,
                   max: e.target.value ? parseInt(e.target.value) : undefined
                 })}
-                className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-1 text-sm border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Element Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Element Category
             </label>
             <div className="space-y-2">
@@ -269,9 +269,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                         : current.filter(c => c !== category)
                       updateFilter('elementCategory', updated.length > 0 ? updated : undefined)
                     }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700 capitalize">
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">
                     {category.replace('-', ' ')}
                   </span>
                 </label>
@@ -281,7 +281,7 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
 
           {/* Block */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Block
             </label>
             <div className="space-y-2">
@@ -297,9 +297,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                         : current.filter(b => b !== block)
                       updateFilter('block', updated.length > 0 ? updated : undefined)
                     }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">{block.toUpperCase()} Block</span>
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{block.toUpperCase()} Block</span>
                 </label>
               ))}
             </div>
@@ -309,7 +309,7 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
         {/* Calculator-specific filters */}
         <Section title="Calculator Properties" id="calculator">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Difficulty Level
             </label>
             <div className="space-y-2">
@@ -325,9 +325,9 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
                         : current.filter(d => d !== difficulty)
                       updateFilter('difficulty', updated.length > 0 ? updated : undefined)
                     }}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700 capitalize">{difficulty}</span>
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 capitalize">{difficulty}</span>
                 </label>
               ))}
             </div>

@@ -335,7 +335,7 @@ export function AccessibleInput({
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={`${error ? errorId : ''} ${helperText ? helperId : ''}`.trim() || undefined}
-        className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+        className={`w-full px-4 py-2 border rounded-lg transition-colors text-foreground placeholder:text-muted-foreground ${
           error
             ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-200'
             : 'border-border bg-background focus:border-primary-600 focus:ring-primary-200'
@@ -396,7 +396,7 @@ export function AccessibleSelect({
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={`${error ? errorId : ''} ${helperText ? helperId : ''}`.trim() || undefined}
-        className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+        className={`w-full px-4 py-2 border rounded-lg transition-colors text-foreground ${
           error
             ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-200'
             : 'border-border bg-background focus:border-primary-600 focus:ring-primary-200'

@@ -29,7 +29,7 @@ export function SearchSuggestions({
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} className="font-semibold text-blue-600 bg-blue-50">
+        <span key={index} className="font-semibold text-blue-600 bg-blue-50 dark:text-blue-300 dark:bg-blue-900/40">
           {part}
         </span>
       ) : (
@@ -45,21 +45,21 @@ export function SearchSuggestions({
   }) => (
     <button
       onClick={onClick}
-      className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors duration-150"
+      className="w-full flex items-center space-x-3 px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 focus:bg-gray-50 dark:focus:bg-gray-800 focus:outline-none transition-colors duration-150"
     >
-      <Icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
-      <span className="text-gray-700 text-sm truncate">
+      <Icon className="h-4 w-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+      <span className="text-gray-700 dark:text-gray-200 text-sm truncate">
         {highlightMatch(suggestion, query)}
       </span>
     </button>
   )
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto ${className}`}>
+    <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-96 overflow-y-auto ${className}`}>
       {/* Current suggestions based on query */}
       {suggestions.length > 0 && (
         <div className="py-2">
-          <div className="px-4 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="px-4 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Suggestions
           </div>
           {suggestions.map((suggestion, index) => (
@@ -75,8 +75,8 @@ export function SearchSuggestions({
 
       {/* Recent searches */}
       {recentSearches.length > 0 && !query.trim() && (
-        <div className="py-2 border-t border-gray-100">
-          <div className="px-4 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center">
+        <div className="py-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="px-4 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center">
             <ClockIcon className="h-3 w-3 mr-1" />
             Recent
           </div>
@@ -93,8 +93,8 @@ export function SearchSuggestions({
 
       {/* Popular searches */}
       {popularSearches.length > 0 && !query.trim() && (
-        <div className="py-2 border-t border-gray-100">
-          <div className="px-4 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center">
+        <div className="py-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="px-4 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center">
             <FireIcon className="h-3 w-3 mr-1" />
             Popular
           </div>
@@ -111,33 +111,33 @@ export function SearchSuggestions({
 
       {/* Quick actions when no query */}
       {!query.trim() && (
-        <div className="py-2 border-t border-gray-100">
-          <div className="px-4 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center">
+        <div className="py-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="px-4 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center">
             <BookOpenIcon className="h-3 w-3 mr-1" />
             Quick Access
           </div>
           <div className="grid grid-cols-2 gap-1 px-4 py-2">
             <button
               onClick={() => onSuggestionClick('periodic table')}
-              className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+              className="text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               Periodic Table
             </button>
             <button
               onClick={() => onSuggestionClick('molecular weight calculator')}
-              className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+              className="text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               Molecular Weight
             </button>
             <button
               onClick={() => onSuggestionClick('stoichiometry calculator')}
-              className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+              className="text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               Stoichiometry
             </button>
             <button
               onClick={() => onSuggestionClick('equation balancer')}
-              className="text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+              className="text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               Equation Balancer
             </button>
@@ -147,8 +147,8 @@ export function SearchSuggestions({
 
       {/* Advanced search tips */}
       {query.trim() && query.length > 2 && (
-        <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-          <div className="text-xs text-gray-500">
+        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             <span className="font-medium">Search tips:</span>
             <div className="mt-1 space-y-1">
               <div>

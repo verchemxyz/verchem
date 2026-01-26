@@ -119,7 +119,7 @@ export function SearchBar({
       {/* Main search bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
         </div>
         
         <input
@@ -130,7 +130,7 @@ export function SearchBar({
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}
-          className={`block w-full pl-10 pr-20 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200 ${
+          className={`block w-full pl-10 pr-20 py-2 border border-gray-300 dark:border-gray-700 rounded-lg leading-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200 ${
             compact ? 'text-sm' : 'text-base'
           } ${
             isSearching ? 'opacity-75' : ''
@@ -145,8 +145,8 @@ export function SearchBar({
               onClick={handleVoiceSearch}
               className={`p-2 rounded-md transition-colors ${
                 isListening 
-                  ? 'text-red-500 bg-red-50 hover:bg-red-100' 
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  ? 'text-red-500 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/30 dark:hover:bg-red-900/50' 
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800'
               }`}
               title={isListening ? 'Stop voice search' : 'Start voice search'}
             >
@@ -160,8 +160,8 @@ export function SearchBar({
               onClick={toggleFilters}
               className={`p-2 rounded-md transition-colors ${
                 Object.keys(activeFilters).length > 0
-                  ? 'text-blue-500 bg-blue-50 hover:bg-blue-100'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  ? 'text-blue-500 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800'
               }`}
               title="Advanced filters"
             >
@@ -175,7 +175,7 @@ export function SearchBar({
           {query && (
             <button
               onClick={clearQuery}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 rounded-md transition-colors"
               title="Clear search"
             >
               <XMarkIcon className="h-5 w-5" />
@@ -212,7 +212,7 @@ export function SearchBar({
           <SearchFilters 
             filters={activeFilters}
             onFiltersChange={setActiveFilters}
-            className="bg-white border border-gray-200 rounded-lg shadow-lg p-4"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4"
           />
         </div>
       )}
