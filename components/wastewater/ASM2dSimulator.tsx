@@ -20,12 +20,12 @@ import {
   DEFAULT_ASM2d_STOICH_PARAMS,
   DEFAULT_ASM2d_TEMP_COEFFS,
   DEFAULT_ASM2d_INITIAL_STATE,
-  DEFAULT_A2O_REACTOR_CONFIG,
-  DEFAULT_DOMESTIC_COD_FRACTIONATION,
+  // DEFAULT_A2O_REACTOR_CONFIG, // Reserved for preset reactor configs
+  // DEFAULT_DOMESTIC_COD_FRACTIONATION, // Reserved for auto-fractionation
 } from '@/lib/types/asm2d-model'
 import {
   runASM2dSimulation,
-  fractionateInfluent,
+  // fractionateInfluent, // Reserved for conventional influent conversion
 } from '@/lib/calculations/asm2d-model'
 
 // ============================================

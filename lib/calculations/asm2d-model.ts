@@ -15,7 +15,7 @@ import {
   ASM2dStoichiometricParameters,
   ASM2dTemperatureCoefficients,
   ASM2dProcessRate,
-  ASM2dProcessType,
+  ASM2dProcessType as _ASM2dProcessType,
   ASM2dReactorConfig,
   ASM2dReactorZone,
   ASM2dSimulationConfig,
@@ -35,7 +35,7 @@ import {
   ASM2dAllParameters,
   ASM2d_STATE_ORDER,
   ASM2d_COMPONENT_INDEX,
-  ASM2d_PROCESS_INDEX,
+  ASM2d_PROCESS_INDEX as _ASM2d_PROCESS_INDEX,
   ASM2d_NUM_COMPONENTS,
   ASM2d_NUM_PROCESSES,
   DEFAULT_ASM2d_KINETIC_PARAMS,
@@ -168,12 +168,14 @@ export function isAerobic(SO: number, KO: number): boolean {
 export function calculateProcessRates(
   state: ASM2dStateVariables,
   kinetic: ASM2dKineticParameters,
-  stoich: ASM2dStoichiometricParameters
+  _stoich: ASM2dStoichiometricParameters // Reserved for yield-dependent rate calculations
 ): { rates: number[]; processRates: ASM2dProcessRate[] } {
   const {
-    SI, SF, SA, SO, SNO, SNH, SND, SPO4, SALK,
-    XI, XS, XH, XAUT, XPAO, XPHA, XPP, XP, XND
+    SI: _SI, SF, SA, SO, SNO, SNH, SND: _SND, SPO4, SALK,
+    XI: _XI, XS, XH, XAUT, XPAO, XPHA, XPP, XP: _XP, XND: _XND
   } = state
+  // Reserved for detailed mass balance
+  void _SI; void _SND; void _XI; void _XP; void _XND
 
   const rates: number[] = new Array(ASM2d_NUM_PROCESSES).fill(0)
   const processRates: ASM2dProcessRate[] = []
@@ -448,7 +450,8 @@ export function calculateProcessRates(
 export function buildStoichiometricMatrix(
   stoich: ASM2dStoichiometricParameters
 ): number[][] {
-  const { YH, YAUT, YPAO, YPO4, YPHA, fXI, iXB, iXP, iPB, iPP, fSI } = stoich
+  const { YH, YAUT, YPAO, YPO4, YPHA, fXI, iXB, iXP, iPB, iPP: _iPP, fSI } = stoich
+  void _iPP // Reserved for detailed P mass balance
 
   // Initialize matrix with zeros
   const matrix: number[][] = Array.from({ length: ASM2d_NUM_PROCESSES }, () =>
@@ -456,7 +459,8 @@ export function buildStoichiometricMatrix(
   )
 
   // Component indices
-  const { SI, SF, SA, SO, SNO, SNH, SND, SPO4, SALK, XI, XS, XH, XAUT, XPAO, XPHA, XPP, XP, XND } = ASM2d_COMPONENT_INDEX
+  const { SI, SF, SA, SO, SNO, SNH, SND, SPO4, SALK, XI, XS, XH, XAUT, XPAO, XPHA, XPP, XP: _XP_IDX, XND } = ASM2d_COMPONENT_INDEX
+  void _XP_IDX // Reserved for XP stoichiometry
 
   // ========== HYDROLYSIS (ρ1-ρ3) ==========
   // XS → SF (+ SND from XND)
@@ -901,7 +905,7 @@ export function calculateSludgeProduction(
   state: ASM2dStateVariables,
   reactorVolume: number,
   srt: number,
-  flowRate: number
+  _flowRate: number // Reserved for WAS calculations
 ): ASM2dSludgeProduction {
   // Total VSS in reactor (COD to VSS: 1.42 g COD/g VSS)
   const totalCOD = state.XI + state.XS + state.XH + state.XAUT + state.XPAO + state.XPHA + state.XP

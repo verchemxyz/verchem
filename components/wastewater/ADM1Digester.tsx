@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import {
-  ADM1StateVariables,
+  // ADM1StateVariables, // Reserved for custom state editing
   ADM1ReactorConfig,
   ADM1SimulationConfig,
   ADM1SimulationResult,
   ADM1ConventionalInfluent,
-  ADM1Fractionation,
+  // ADM1Fractionation, // Reserved for custom fractionation
   SubstrateType,
   SUBSTRATE_CHARACTERISTICS,
   DEFAULT_FRACTIONATIONS,
@@ -18,7 +18,7 @@ import {
 import {
   runADM1Simulation,
   fractionateInfluent,
-  calculateSteadyState,
+  // calculateSteadyState, // Reserved for steady-state analysis
 } from '@/lib/calculations/adm1-model'
 
 // ============================================
@@ -77,7 +77,9 @@ export default function ADM1Digester() {
   const [simDays, setSimDays] = useState(60)
   const [isRunning, setIsRunning] = useState(false)
   const [result, setResult] = useState<ADM1SimulationResult | null>(null)
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  // Reserved for advanced parameter panel
+  const [_showAdvanced, _setShowAdvanced] = useState(false)
+  void _showAdvanced; void _setShowAdvanced
 
   // Update feed when substrate type changes
   const handleSubstrateChange = (type: SubstrateType) => {

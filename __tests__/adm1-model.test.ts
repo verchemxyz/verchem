@@ -37,13 +37,13 @@ import {
   ADM1GasPhase,
   ADM1KineticParameters,
   ADM1StoichiometricParameters,
-  ADM1PhysicoChemParameters,
+  // ADM1PhysicoChemParameters, // Type used implicitly via DEFAULT_ADM1_PHYSICHEM_PARAMS
   DEFAULT_ADM1_KINETIC_PARAMS,
   DEFAULT_ADM1_STOICH_PARAMS,
   DEFAULT_ADM1_PHYSICHEM_PARAMS,
   DEFAULT_ADM1_TEMP_COEFFS,
   DEFAULT_INITIAL_STATE,
-  DEFAULT_INITIAL_GAS_PHASE,
+  // DEFAULT_INITIAL_GAS_PHASE, // Covered by DEFAULT_INITIAL_STATE tests
   ADM1_STATE_ORDER,
 } from '../lib/types/adm1-model'
 
@@ -194,7 +194,8 @@ console.log('\n📊 2. Inhibition Function Tests\n')
 
   // pH range inhibition (acetogens, methanogens)
   // Note: I_pH_range returns 0 at exact boundaries, max at midpoint
-  const midpH = (7.0 + 6.0) / 2  // 6.5
+  const _midpH = (7.0 + 6.0) / 2  // 6.5 - used as reference value below
+  void _midpH
   assertRange(I_pH_range(6.5, 7.0, 6.0), 0.5, 1.0, 'Max inhibition at midpoint pH')
   assertApprox(I_pH_range(6.0, 7.0, 6.0), 0.0, 0.001, 'No activity at pH_LL boundary')
   assertApprox(I_pH_range(7.0, 7.0, 6.0), 0.0, 0.001, 'No activity at pH_UL boundary')

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   WastewaterQuality,
   TreatmentUnit,
-  TreatmentSystem,
+  // TreatmentSystem, // Reserved for full system serialization
   UnitType,
   UNIT_METADATA,
   PRESET_TEMPLATES,

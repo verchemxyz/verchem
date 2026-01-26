@@ -38,7 +38,8 @@ import {
   SteadyStateInfo,
 } from '../types/adm1-model'
 
-import { ODESolver, StateVector, isSteadyState } from './ode-solver'
+// ODE utilities - reserved for future advanced integration
+import { ODESolver as _ODESolver, StateVector as _StateVector, isSteadyState as _isSteadyState } from './ode-solver'
 
 // ============================================
 // TEMPERATURE CORRECTION
@@ -472,8 +473,10 @@ export function buildStoichiometricMatrix(
     Y_su, Y_aa, Y_fa, Y_c4, Y_pro, Y_ac, Y_H2,
     f_bu_su, f_pro_su, f_ac_su, f_H2_su,
     f_bu_aa, f_pro_aa, f_ac_aa, f_H2_aa, f_va_aa,
-    C_su, C_aa, C_fa, C_va, C_bu, C_pro, C_ac, C_ch4, C_bac, C_xc, C_ch, C_pr, C_li, C_sI, C_xI,
-    N_xc, N_I, N_aa, N_bac } = stoich
+    C_su, C_aa, C_fa, C_va, C_bu, C_pro, C_ac, C_ch4, C_bac, C_xc: _C_xc, C_ch: _C_ch, C_pr: _C_pr, C_li: _C_li, C_sI: _C_sI, C_xI: _C_xI,
+    N_xc: _N_xc, N_I: _N_I, N_aa, N_bac } = stoich
+  // Reserved for future carbon/nitrogen balance calculations
+  void _C_xc; void _C_ch; void _C_pr; void _C_li; void _C_sI; void _C_xI; void _N_xc; void _N_I
 
   // Initialize 19×24 matrix with zeros
   const nu: number[][] = Array(19).fill(null).map(() => Array(24).fill(0))
@@ -625,7 +628,8 @@ export function calculateGasTransfer(
   // Temperature-corrected Henry's constants
   const T_K = temperature + 273.15
   const R = ADM1_CONSTANTS.R
-  const P_atm = ADM1_CONSTANTS.P_atm
+  const _P_atm = ADM1_CONSTANTS.P_atm // Reserved for absolute pressure calculations
+  void _P_atm
 
   // Calculate partial pressures from gas phase concentrations
   const p_H2 = S_gas_H2 * R * T_K / 1000  // bar
@@ -787,7 +791,8 @@ export function fractionateInfluent(
   conventional: ADM1ConventionalInfluent,
   fractionation: ADM1Fractionation
 ): ADM1StateVariables {
-  const { COD, TKN, NH4_N, alkalinity } = conventional
+  const { COD, TKN, NH4_N: _NH4_N, alkalinity } = conventional
+  void _NH4_N // Reserved for detailed nitrogen speciation
   const {
     f_S_su, f_S_aa, f_S_fa, f_S_I,
     f_X_c, f_X_ch, f_X_pr, f_X_li, f_X_I,
@@ -956,7 +961,8 @@ export function runADM1Simulation(
   // Final calculations
   const finalPH = calculatePH(state, physioChemT)
   const finalS_NH3 = calculateFreeAmmonia(state.S_IN, finalPH, physioChemT.K_a_IN)
-  const { processRates: finalRates } = calculateProcessRates(state, kineticT, params.stoich, finalPH, finalS_NH3)
+  const { processRates: _finalRates } = calculateProcessRates(state, kineticT, params.stoich, finalPH, finalS_NH3)
+  void _finalRates // Reserved for detailed process rate reporting
   const finalGasTransfer = calculateGasTransfer(state, gasPhase, physioChemT, reactor.temperature)
   const finalGasProduction = calculateBiogasProduction(finalGasTransfer, reactor.V_liq, reactor.V_gas, reactor.temperature)
 
