@@ -74,17 +74,21 @@ export const ALL_SHORTCUTS = [
 
 export function matchesShortcut(event: KeyboardEvent, shortcut: Shortcut): boolean {
   const parts = shortcut.key.split('+');
-  const key = parts.pop()!;
+  const rawKey = parts.pop()!;
+  const key = rawKey === 'Space' ? ' ' : rawKey;
   
   const hasCtrl = parts.includes('Ctrl') || parts.includes('Control');
   const hasAlt = parts.includes('Alt');
   const hasShift = parts.includes('Shift');
+  const shiftOptionalKeys = new Set(['?', '+']);
   
   return (
-    event.key.toLowerCase() === key.toLowerCase() &&
+    (key === ' '
+      ? event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space'
+      : event.key.toLowerCase() === key.toLowerCase()) &&
     event.ctrlKey === hasCtrl &&
     event.altKey === hasAlt &&
-    event.shiftKey === hasShift
+    (hasShift ? event.shiftKey : (shiftOptionalKeys.has(key) || !event.shiftKey))
   );
 }
 

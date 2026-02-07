@@ -10,6 +10,9 @@ import { HelpButton } from "@/components/tutorials/help-button";
 import { HelpSidebar } from "@/components/tutorials/help-sidebar";
 import { Providers } from "./providers";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
+import { ServiceWorkerRegistration, InstallPrompt } from "@/components/pwa/ServiceWorkerRegistration";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
   VerChemGlobalFAQSchema,
   VerChemSoftwareApplicationSchema,
@@ -22,10 +25,10 @@ import "./tutorials.css";
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
   title: {
-    default: "VerChem - Chemistry & Environmental Engineering Platform",
+    default: "VerChem - Chemistry Education Platform",
     template: "%s | VerChem"
   },
-  description: "Professional chemistry calculators, wastewater treatment design, and process modeling tools. ASM1, ASM2d, ADM1 simulators. Water/Air/Soil quality analysis with Thai PCD standards. Free and accessible.",
+  description: "Professional chemistry calculators, interactive periodic table, 3D molecular viewer, and educational tools. 118 NIST-validated elements, equation balancer, stoichiometry, pH, gas laws. Free and accessible.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -40,17 +43,6 @@ export const metadata: Metadata = {
     "3D molecule viewer",
     "Lewis structures",
     "VSEPR geometry",
-    "wastewater treatment",
-    "wastewater design",
-    "ASM1 simulator",
-    "ASM2d model",
-    "ADM1 anaerobic digestion",
-    "biological phosphorus removal",
-    "water quality calculator",
-    "air quality calculator",
-    "soil quality",
-    "Thai PCD standards",
-    "environmental engineering",
     "accessible chemistry",
     "WCAG compliant"
   ],
@@ -67,21 +59,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
-    title: 'VerChem - Chemistry & Environmental Engineering Platform',
-    description: 'Professional chemistry calculators, wastewater treatment design, and ASM/ADM process models. Free and accessible.',
+    title: 'VerChem - Chemistry Education Platform',
+    description: 'Professional chemistry calculators, interactive periodic table, 3D molecular viewer. Free and accessible.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'VerChem Chemistry & Environmental Platform',
+        alt: 'VerChem Chemistry Education Platform',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VerChem - Chemistry & Environmental Platform',
-    description: 'Professional calculators, wastewater design, ASM1/ASM2d/ADM1 process models. Free and accessible.',
+    title: 'VerChem - Chemistry Education Platform',
+    description: 'Professional chemistry calculators, periodic table, 3D molecular viewer. Free and accessible.',
     images: ['/opengraph-image.png'],
   },
   robots: {
@@ -120,6 +112,14 @@ export default function RootLayout({
         <meta name="color-scheme" content="light dark" />
         <meta name="supported-color-schemes" content="light dark" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* PWA meta tags */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="VerChem" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
 
         {/* Global SEO Schemas for AI Discoverability (GEO) */}
         <VerChemGlobalFAQSchema />
@@ -188,6 +188,14 @@ export default function RootLayout({
 
                 {/* Login Required Modal - Shows when accessing protected routes */}
                 <LoginRequiredModal />
+
+                {/* PWA Components */}
+                <ServiceWorkerRegistration />
+                <InstallPrompt />
+
+                {/* Vercel Analytics & Speed Insights */}
+                <Analytics />
+                <SpeedInsights />
               </Providers>
             </TutorialProvider>
           </AccessibilityProvider>

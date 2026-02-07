@@ -5,7 +5,7 @@ import Image from 'next/image'
 export const metadata: Metadata = {
   title: 'All Tools | VerChem',
   description:
-    'Free chemistry and environmental engineering tools: calculators, periodic table, equation balancer, wastewater treatment, water/air/soil quality analysis.',
+    'Free chemistry tools: calculators, periodic table, organic chemistry, spectroscopy (IR/NMR/MS), lab safety, nuclear & quantum chemistry, solution prep, and more.',
 }
 
 // ============================================
@@ -52,63 +52,92 @@ const CHEMISTRY_TOOLS = [
 ] as const
 
 // ============================================
-// ENVIRONMENTAL TOOLS
+// ORGANIC CHEMISTRY TOOLS
 // ============================================
 
-const ENVIRONMENTAL_TOOLS: Array<{
-  href: string
-  icon: string
-  label: string
-  description: string
-  isHot?: boolean
-}> = [
+const ORGANIC_TOOLS = [
   {
-    href: '/tools/wastewater-treatment',
-    icon: '🏭',
-    label: 'Wastewater Treatment Designer',
-    description: 'Design complete treatment trains with 15+ units. Visual builder, cost estimation, Thai PCD compliance.',
-    isHot: true,
+    href: '/organic/functional-groups',
+    icon: '🔬',
+    label: 'Functional Groups',
+    description: 'Interactive guide to 22 functional groups with properties, spectroscopy, and reactions.',
   },
   {
-    href: '/tools/water-quality',
-    icon: '💧',
-    label: 'Water Quality Calculator',
-    description: 'BOD, COD, Thai effluent standards compliance — 9 calculation modes for environmental engineers.',
+    href: '/organic/reactions',
+    icon: '⚗️',
+    label: 'Named Reactions',
+    description: '40 named reactions with step-by-step mechanisms, conditions, and examples.',
   },
   {
-    href: '/tools/air-quality',
-    icon: '🌬️',
-    label: 'Air Quality Calculator',
-    description: 'AQI, ppm/µg/m³ conversion, Thai PCD standards, Gaussian dispersion — 6 modes.',
+    href: '/organic/predict',
+    icon: '🎯',
+    label: 'Reaction Predictor',
+    description: 'Select a functional group and reagent to predict the product with mechanism.',
+  },
+] as const
+
+// ============================================
+// SPECTROSCOPY TOOLS
+// ============================================
+
+const SPECTROSCOPY_TOOLS = [
+  {
+    href: '/spectroscopy/ir',
+    icon: '📡',
+    label: 'IR Spectrum Interpreter',
+    description: 'Enter IR peaks (cm⁻¹) to identify functional groups with correlation table.',
   },
   {
-    href: '/tools/soil-quality',
-    icon: '🌱',
-    label: 'Soil Quality Calculator',
-    description: 'Heavy metal contamination (Thai PCD), pH classification, NPK analysis, CEC — 7 modes.',
+    href: '/spectroscopy/nmr',
+    icon: '🧲',
+    label: 'NMR Analyzer',
+    description: '¹H and ¹³C chemical shift lookup with environment identification.',
   },
   {
-    href: '/tools/asm1-simulator',
-    icon: '🧬',
-    label: 'ASM1 Biokinetic Simulator',
-    description: 'IWA Activated Sludge Model No. 1. Research-grade simulation with 8 processes, 13 state variables.',
-    isHot: true,
+    href: '/spectroscopy/mass-spec',
+    icon: '⚡',
+    label: 'Mass Spec Analyzer',
+    description: 'Fragment loss ID, isotope patterns, nitrogen rule, and common ion lookup.',
+  },
+] as const
+
+// ============================================
+// LAB & PRACTICAL TOOLS
+// ============================================
+
+const LAB_TOOLS = [
+  {
+    href: '/tools/solution-prep',
+    icon: '🧫',
+    label: 'Solution Preparation',
+    description: 'Dilution (C₁V₁=C₂V₂), stock solutions, serial dilutions, unit conversion, and mixing.',
   },
   {
-    href: '/tools/asm2d-simulator',
-    icon: '🦠',
-    label: 'ASM2d Phosphorus Removal',
-    description: 'IWA Activated Sludge Model No. 2d. Biological phosphorus removal with PAO/dPAO, 21 processes.',
-    isHot: true,
+    href: '/tools/lab-safety',
+    icon: '🛡️',
+    label: 'Lab Safety & SDS',
+    description: 'GHS pictograms, chemical compatibility, emergency procedures, H/P statements.',
+  },
+] as const
+
+// ============================================
+// ADVANCED CHEMISTRY TOOLS
+// ============================================
+
+const ADVANCED_TOOLS = [
+  {
+    href: '/tools/nuclear',
+    icon: '☢️',
+    label: 'Nuclear Chemistry',
+    description: 'Radioactive decay, half-life, binding energy, mass-energy (E=mc²), isotope database.',
   },
   {
-    href: '/tools/adm1-simulator',
-    icon: '🔥',
-    label: 'ADM1 Anaerobic Digester',
-    description: 'IWA Anaerobic Digestion Model No. 1. Biogas production, 24 state variables, 19 processes.',
-    isHot: true,
+    href: '/tools/quantum',
+    icon: '🔮',
+    label: 'Quantum Chemistry',
+    description: 'Quantum numbers, orbitals, de Broglie wavelength, hydrogen energy levels, Bohr model.',
   },
-]
+] as const
 
 // ============================================
 // MAIN COMPONENT
@@ -144,25 +173,37 @@ export default function ToolsPage() {
         </section>
 
         {/* Quick Navigation */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
           <a
             href="#chemistry"
-            className="px-6 py-2 bg-primary-100 text-primary-700 rounded-full font-medium hover:bg-primary-200 transition-colors"
+            className="px-5 py-2 bg-primary-100 text-primary-700 rounded-full font-medium hover:bg-primary-200 transition-colors text-sm"
           >
             🧪 Chemistry ({CHEMISTRY_TOOLS.length})
           </a>
           <a
-            href="#environmental"
-            className="px-6 py-2 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-colors"
+            href="#organic"
+            className="px-5 py-2 bg-emerald-100 text-emerald-700 rounded-full font-medium hover:bg-emerald-200 transition-colors text-sm"
           >
-            🌍 Environmental ({ENVIRONMENTAL_TOOLS.length})
+            🔬 Organic ({ORGANIC_TOOLS.length})
           </a>
-          <Link
-            href="/environmental"
-            className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-full font-medium hover:shadow-lg transition-all"
+          <a
+            href="#spectroscopy"
+            className="px-5 py-2 bg-violet-100 text-violet-700 rounded-full font-medium hover:bg-violet-200 transition-colors text-sm"
           >
-            Environmental Hub →
-          </Link>
+            📡 Spectroscopy ({SPECTROSCOPY_TOOLS.length})
+          </a>
+          <a
+            href="#lab"
+            className="px-5 py-2 bg-indigo-100 text-indigo-700 rounded-full font-medium hover:bg-indigo-200 transition-colors text-sm"
+          >
+            🧫 Lab & Practical ({LAB_TOOLS.length})
+          </a>
+          <a
+            href="#advanced"
+            className="px-5 py-2 bg-amber-100 text-amber-700 rounded-full font-medium hover:bg-amber-200 transition-colors text-sm"
+          >
+            ☢️ Advanced ({ADVANCED_TOOLS.length})
+          </a>
         </div>
 
         {/* Chemistry Section */}
@@ -201,55 +242,32 @@ export default function ToolsPage() {
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-16"></div>
-
-        {/* Environmental Section */}
-        <section id="environmental" className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center text-xl">
-                🌍
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-foreground">Environmental Engineering</h3>
-                <p className="text-sm text-muted-foreground">Professional tools with Thai PCD standards</p>
-              </div>
+        {/* Organic Chemistry Section */}
+        <section id="organic" className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-xl">
+              🔬
             </div>
-            <Link
-              href="/environmental"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg font-medium hover:bg-emerald-200 transition-colors"
-            >
-              View Hub
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Organic Chemistry</h3>
+              <p className="text-sm text-muted-foreground">Functional groups, named reactions, and reaction prediction</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {ENVIRONMENTAL_TOOLS.map((tool) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ORGANIC_TOOLS.map((tool) => (
               <Link
                 key={tool.href}
                 href={tool.href}
-                className={`group relative rounded-xl border-2 bg-gradient-to-br from-emerald-50 to-teal-50 p-5 hover:shadow-lg transition-all ${
-                  tool.isHot
-                    ? 'border-emerald-500 hover:border-emerald-400'
-                    : 'border-emerald-200 hover:border-emerald-400'
-                }`}
+                className="group rounded-xl border-2 border-border bg-card hover:border-emerald-500 hover:shadow-lg transition-all p-5"
               >
-                {tool.isHot && (
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse z-10">
-                    🔥 HOT
-                  </div>
-                )}
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{tool.icon}</span>
                   <div>
-                    <h4 className="font-semibold text-emerald-800 group-hover:text-emerald-600 transition-colors">
+                    <h4 className="font-semibold text-card-foreground group-hover:text-emerald-600 transition-colors">
                       {tool.label}
                     </h4>
-                    <p className="text-sm text-emerald-700/80 mt-1">{tool.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
                   </div>
                 </div>
                 <div className="mt-3 text-sm text-emerald-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
@@ -259,16 +277,124 @@ export default function ToolsPage() {
             ))}
           </div>
 
-          {/* Environmental CTA */}
-          <div className="mt-6 p-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white text-center">
-            <h4 className="text-lg font-bold mb-2">Looking for comprehensive environmental tools?</h4>
-            <p className="text-emerald-100 mb-4">Visit our Environmental Engineering Hub for full features and documentation.</p>
-            <Link
-              href="/environmental"
-              className="inline-block px-6 py-2 bg-white text-emerald-700 font-semibold rounded-lg hover:bg-emerald-50 transition-colors"
-            >
-              Go to Environmental Hub →
+          <div className="mt-4 text-center">
+            <Link href="/organic" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+              View Organic Chemistry Hub →
             </Link>
+          </div>
+        </section>
+
+        {/* Spectroscopy Section */}
+        <section id="spectroscopy" className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center text-xl">
+              📡
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Spectroscopy Tools</h3>
+              <p className="text-sm text-muted-foreground">IR, NMR, and Mass Spectrometry interpretation</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {SPECTROSCOPY_TOOLS.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group rounded-xl border-2 border-border bg-card hover:border-violet-500 hover:shadow-lg transition-all p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{tool.icon}</span>
+                  <div>
+                    <h4 className="font-semibold text-card-foreground group-hover:text-violet-600 transition-colors">
+                      {tool.label}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open tool →
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 text-center">
+            <Link href="/spectroscopy" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+              View Spectroscopy Hub →
+            </Link>
+          </div>
+        </section>
+
+        {/* Lab & Practical Section */}
+        <section id="lab" className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center text-xl">
+              🧫
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Lab & Practical</h3>
+              <p className="text-sm text-muted-foreground">Solution preparation, safety data, and lab essentials</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {LAB_TOOLS.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group rounded-xl border-2 border-border bg-card hover:border-indigo-500 hover:shadow-lg transition-all p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{tool.icon}</span>
+                  <div>
+                    <h4 className="font-semibold text-card-foreground group-hover:text-indigo-600 transition-colors">
+                      {tool.label}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-indigo-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open tool →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Advanced Chemistry Section */}
+        <section id="advanced" className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center text-xl">
+              ☢️
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Advanced Chemistry</h3>
+              <p className="text-sm text-muted-foreground">Nuclear chemistry and quantum mechanics</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ADVANCED_TOOLS.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group rounded-xl border-2 border-border bg-card hover:border-amber-500 hover:shadow-lg transition-all p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{tool.icon}</span>
+                  <div>
+                    <h4 className="font-semibold text-card-foreground group-hover:text-amber-600 transition-colors">
+                      {tool.label}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mt-1">{tool.description}</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-amber-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open tool →
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
 

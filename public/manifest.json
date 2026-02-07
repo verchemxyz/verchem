@@ -1,0 +1,114 @@
+{
+  "name": "VerChem - Chemistry Education Platform",
+  "short_name": "VerChem",
+  "description": "Professional chemistry calculators, interactive periodic table, 3D molecular viewer. Free and accessible.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "science", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "VerChem Homepage"
+    },
+    {
+      "src": "/screenshots/mobile-calculator.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chemistry Calculator"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Periodic Table",
+      "short_name": "Elements",
+      "description": "Interactive periodic table",
+      "url": "/periodic-table",
+      "icons": [{ "src": "/icons/shortcut-periodic.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Calculators",
+      "short_name": "Calc",
+      "description": "Chemistry calculators",
+      "url": "/calculators",
+      "icons": [{ "src": "/icons/shortcut-calc.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Compounds",
+      "short_name": "Compounds",
+      "description": "Browse chemical compounds",
+      "url": "/compounds",
+      "icons": [{ "src": "/icons/shortcut-water.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=xyz.verchem.app",
+      "id": "xyz.verchem.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/verchem/id123456789"
+    }
+  ],
+  "prefer_related_applications": false
+}

@@ -8,8 +8,6 @@ import { REAGENTS } from './reagents'
 import { SALTS } from './salts'
 import { Compound } from './types'
 import { ORGANIC_COMPOUNDS } from './organic'
-import { WATER_TREATMENT_CHEMICALS } from './water-treatment'
-import { ENVIRONMENTAL_POLLUTANTS } from './pollutants'
 import { GASES } from './gases'
 import { SOLVENTS } from './solvents'
 import { FERTILIZERS } from './fertilizers'
@@ -47,8 +45,6 @@ export const COMPOUND_GROUPS = {
   industrial: INDUSTRIAL,
   pharma: PHARMACEUTICALS,
   reagents: REAGENTS,
-  waterTreatment: WATER_TREATMENT_CHEMICALS,
-  pollutants: ENVIRONMENTAL_POLLUTANTS,
   gases: GASES,
   solvents: SOLVENTS,
   fertilizers: FERTILIZERS,
@@ -87,8 +83,6 @@ export const COMPREHENSIVE_COMPOUNDS: Compound[] = [
   ...COMPOUND_GROUPS.industrial,
   ...COMPOUND_GROUPS.pharma,
   ...COMPOUND_GROUPS.reagents,
-  ...COMPOUND_GROUPS.waterTreatment,
-  ...COMPOUND_GROUPS.pollutants,
   ...COMPOUND_GROUPS.gases,
   ...COMPOUND_GROUPS.solvents,
   ...COMPOUND_GROUPS.fertilizers,

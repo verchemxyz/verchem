@@ -1,0 +1,817 @@
+import type { FunctionalGroup, FunctionalGroupCategory } from '@/lib/types/organic-chemistry'
+
+/**
+ * Comprehensive Functional Groups Database
+ * 22 functional groups with full properties, examples, and spectroscopy data
+ */
+export const FUNCTIONAL_GROUPS: FunctionalGroup[] = [
+  // ============================================
+  // HYDROCARBONS
+  // ============================================
+  {
+    id: 'alkane',
+    name: 'Alkane',
+    category: 'hydrocarbon',
+    generalFormula: 'CₙH₂ₙ₊₂',
+    pattern: 'C-C',
+    structure: 'R-CH₂-R\'',
+    description: 'Saturated hydrocarbons with only single C-C bonds. The simplest organic compounds, also called paraffins.',
+    properties: {
+      polarity: 'nonpolar',
+      hBondDonor: false,
+      hBondAcceptor: false,
+      typicalBoilingPoint: 'Low (increases with chain length)',
+      solubility: 'Insoluble in water, soluble in organic solvents',
+      acidity: 'Not acidic (pKa ~50)',
+    },
+    examples: [
+      { name: 'Methane', formula: 'CH₄', iupac: 'methane' },
+      { name: 'Ethane', formula: 'C₂H₆', iupac: 'ethane' },
+      { name: 'Octane', formula: 'C₈H₁₈', iupac: 'octane' },
+    ],
+    commonReactions: ['Combustion', 'Free radical halogenation', 'Cracking'],
+    spectroscopy: {
+      ir: '2850-2960 cm⁻¹ (C-H stretch)',
+      nmrH: '0.8-1.7 ppm',
+      nmrC: '10-50 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['alkene', 'alkyne', 'cycloalkane'],
+  },
+  {
+    id: 'alkene',
+    name: 'Alkene',
+    category: 'hydrocarbon',
+    generalFormula: 'CₙH₂ₙ',
+    pattern: 'C=C',
+    structure: 'R₂C=CR₂',
+    description: 'Unsaturated hydrocarbons containing at least one C=C double bond. Undergo addition reactions and are key building blocks in synthesis.',
+    properties: {
+      polarity: 'slightly polar',
+      hBondDonor: false,
+      hBondAcceptor: false,
+      typicalBoilingPoint: 'Slightly lower than corresponding alkane',
+      solubility: 'Insoluble in water',
+      acidity: 'Vinylic H pKa ~44',
+    },
+    examples: [
+      { name: 'Ethylene', formula: 'CH₂=CH₂', iupac: 'ethene' },
+      { name: 'Propylene', formula: 'CH₃CH=CH₂', iupac: 'propene' },
+      { name: 'Cyclohexene', formula: 'C₆H₁₀', iupac: 'cyclohexene' },
+    ],
+    commonReactions: [
+      'Electrophilic addition (HX, X₂, H₂O)',
+      'Hydrogenation',
+      'Hydroboration-oxidation',
+      'Epoxidation',
+      'Ozonolysis',
+      'Diels-Alder',
+      'Polymerization',
+    ],
+    spectroscopy: {
+      ir: '1620-1680 cm⁻¹ (C=C stretch), 3020-3100 cm⁻¹ (=C-H stretch)',
+      nmrH: '4.5-6.5 ppm (vinyl H)',
+      nmrC: '100-150 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['alkane', 'alkyne', 'diene'],
+  },
+  {
+    id: 'alkyne',
+    name: 'Alkyne',
+    category: 'hydrocarbon',
+    generalFormula: 'CₙH₂ₙ₋₂',
+    pattern: 'C≡C',
+    structure: 'RC≡CR\'',
+    description: 'Hydrocarbons containing a C≡C triple bond. Terminal alkynes are weakly acidic and versatile in synthesis via acetylide chemistry.',
+    properties: {
+      polarity: 'slightly polar',
+      hBondDonor: false,
+      hBondAcceptor: false,
+      typicalBoilingPoint: 'Similar to corresponding alkene',
+      solubility: 'Insoluble in water',
+      acidity: 'Terminal alkyne pKa ~25',
+    },
+    examples: [
+      { name: 'Acetylene', formula: 'HC≡CH', iupac: 'ethyne' },
+      { name: 'Propyne', formula: 'CH₃C≡CH', iupac: 'propyne' },
+      { name: '1-Hexyne', formula: 'C₄H₉C≡CH', iupac: 'hex-1-yne' },
+    ],
+    commonReactions: [
+      'Electrophilic addition (HX, X₂)',
+      'Hydrogenation (partial → alkene, full → alkane)',
+      'Hydration (Markovnikov → ketone)',
+      'Acetylide formation (NaNH₂)',
+      'Sonogashira coupling',
+    ],
+    spectroscopy: {
+      ir: '2100-2260 cm⁻¹ (C≡C), 3300 cm⁻¹ (≡C-H, terminal)',
+      nmrH: '1.8-3.1 ppm (≡C-H)',
+      nmrC: '65-90 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['alkene', 'nitrile'],
+  },
+  {
+    id: 'arene',
+    name: 'Arene (Aromatic)',
+    category: 'hydrocarbon',
+    generalFormula: 'CₙHₙ (benzene ring)',
+    pattern: 'c1ccccc1',
+    structure: 'Ar-H',
+    description: 'Cyclic, planar, fully conjugated hydrocarbons following Hückel\'s rule (4n+2 π electrons). Exceptionally stable, prefer substitution over addition.',
+    properties: {
+      polarity: 'nonpolar',
+      hBondDonor: false,
+      hBondAcceptor: false,
+      typicalBoilingPoint: 'Moderate (benzene: 80°C)',
+      solubility: 'Slightly soluble in water, miscible with organic solvents',
+      acidity: 'Not acidic (pKa ~43)',
+    },
+    examples: [
+      { name: 'Benzene', formula: 'C₆H₆', iupac: 'benzene' },
+      { name: 'Toluene', formula: 'C₆H₅CH₃', iupac: 'methylbenzene' },
+      { name: 'Naphthalene', formula: 'C₁₀H₈', iupac: 'naphthalene' },
+    ],
+    commonReactions: [
+      'Electrophilic aromatic substitution (EAS)',
+      'Friedel-Crafts alkylation/acylation',
+      'Nitration',
+      'Sulfonation',
+      'Halogenation (with Lewis acid)',
+      'Birch reduction',
+    ],
+    spectroscopy: {
+      ir: '3030 cm⁻¹ (Ar-H), 1450-1600 cm⁻¹ (C=C ring)',
+      nmrH: '6.5-8.5 ppm',
+      nmrC: '110-145 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['alkene', 'phenol'],
+  },
+
+  // ============================================
+  // OXYGEN-CONTAINING
+  // ============================================
+  {
+    id: 'alcohol',
+    name: 'Alcohol',
+    category: 'oxygen-containing',
+    generalFormula: 'R-OH',
+    pattern: 'C-OH',
+    structure: 'R-OH',
+    description: 'Contain a hydroxyl (-OH) group bonded to a saturated carbon. Classified as primary (1°), secondary (2°), or tertiary (3°) based on the carbon bearing -OH.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Higher than corresponding alkane (H-bonding)',
+      solubility: 'Small alcohols miscible with water; decreases with chain length',
+      acidity: 'Weakly acidic (pKa 15-19)',
+    },
+    examples: [
+      { name: 'Methanol', formula: 'CH₃OH', iupac: 'methanol' },
+      { name: 'Ethanol', formula: 'C₂H₅OH', iupac: 'ethanol' },
+      { name: 'Isopropanol', formula: '(CH₃)₂CHOH', iupac: 'propan-2-ol' },
+    ],
+    commonReactions: [
+      'Oxidation (1° → aldehyde → acid, 2° → ketone)',
+      'Dehydration → alkene (E1/E2)',
+      'Ester formation (with carboxylic acid)',
+      'Substitution (SN1/SN2 with HX)',
+      'Tosylation → good leaving group',
+    ],
+    spectroscopy: {
+      ir: '3200-3550 cm⁻¹ (broad O-H), 1050-1150 cm⁻¹ (C-O)',
+      nmrH: '1-5 ppm (O-H, variable), 3.3-4.0 ppm (C-H next to O)',
+      nmrC: '50-90 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['phenol', 'ether', 'aldehyde', 'ketone'],
+  },
+  {
+    id: 'aldehyde',
+    name: 'Aldehyde',
+    category: 'oxygen-containing',
+    generalFormula: 'R-CHO',
+    pattern: 'C(=O)H',
+    structure: 'R-C(=O)H',
+    description: 'Contain a carbonyl group (C=O) at the end of a carbon chain. Highly reactive toward nucleophilic addition. Key intermediates in synthesis.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Lower than corresponding alcohol (no H-bonding)',
+      solubility: 'Small aldehydes soluble in water',
+      acidity: 'α-H pKa ~17 (enolizable)',
+    },
+    examples: [
+      { name: 'Formaldehyde', formula: 'HCHO', iupac: 'methanal' },
+      { name: 'Acetaldehyde', formula: 'CH₃CHO', iupac: 'ethanal' },
+      { name: 'Benzaldehyde', formula: 'C₆H₅CHO', iupac: 'benzaldehyde' },
+    ],
+    commonReactions: [
+      'Nucleophilic addition (Grignard, NaBH₄, HCN)',
+      'Oxidation → carboxylic acid (CrO₃, KMnO₄)',
+      'Aldol condensation',
+      'Wittig reaction → alkene',
+      'Cannizzaro reaction (no α-H)',
+      'Wolff-Kishner / Clemmensen reduction → alkane',
+    ],
+    spectroscopy: {
+      ir: '1720-1740 cm⁻¹ (C=O), 2720 + 2820 cm⁻¹ (aldehyde C-H, two bands)',
+      nmrH: '9.4-10.0 ppm (CHO)',
+      nmrC: '190-205 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['ketone', 'alcohol', 'carboxylic-acid'],
+  },
+  {
+    id: 'ketone',
+    name: 'Ketone',
+    category: 'oxygen-containing',
+    generalFormula: 'R-CO-R\'',
+    pattern: 'C(=O)C',
+    structure: 'R-C(=O)-R\'',
+    description: 'Contain a carbonyl group (C=O) between two carbon groups. Less reactive than aldehydes toward nucleophilic addition due to steric and electronic effects.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Lower than corresponding alcohol',
+      solubility: 'Small ketones soluble in water (acetone is miscible)',
+      acidity: 'α-H pKa ~20',
+    },
+    examples: [
+      { name: 'Acetone', formula: '(CH₃)₂CO', iupac: 'propan-2-one' },
+      { name: 'Cyclohexanone', formula: 'C₆H₁₀O', iupac: 'cyclohexan-1-one' },
+      { name: 'Acetophenone', formula: 'C₆H₅COCH₃', iupac: '1-phenylethan-1-one' },
+    ],
+    commonReactions: [
+      'Nucleophilic addition (Grignard → 3° alcohol)',
+      'Reduction (NaBH₄ → 2° alcohol)',
+      'Aldol condensation',
+      'Wittig reaction → alkene',
+      'Baeyer-Villiger oxidation → ester',
+      'Wolff-Kishner / Clemmensen reduction → alkane',
+    ],
+    spectroscopy: {
+      ir: '1705-1725 cm⁻¹ (C=O)',
+      nmrH: '2.1-2.6 ppm (α-CH)',
+      nmrC: '195-220 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['aldehyde', 'alcohol', 'ester'],
+  },
+  {
+    id: 'carboxylic-acid',
+    name: 'Carboxylic Acid',
+    category: 'oxygen-containing',
+    generalFormula: 'R-COOH',
+    pattern: 'C(=O)OH',
+    structure: 'R-C(=O)-OH',
+    description: 'Contain the carboxyl group (-COOH), combining carbonyl and hydroxyl. The most common organic acid, central to biochemistry and synthesis.',
+    properties: {
+      polarity: 'very polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'High (strong H-bonding, often dimers)',
+      solubility: 'Small acids miscible with water',
+      acidity: 'Acidic (pKa 4-5)',
+    },
+    examples: [
+      { name: 'Formic acid', formula: 'HCOOH', iupac: 'methanoic acid' },
+      { name: 'Acetic acid', formula: 'CH₃COOH', iupac: 'ethanoic acid' },
+      { name: 'Benzoic acid', formula: 'C₆H₅COOH', iupac: 'benzoic acid' },
+    ],
+    commonReactions: [
+      'Ester formation (Fischer esterification)',
+      'Amide formation (with amines + coupling reagent)',
+      'Reduction → alcohol (LiAlH₄)',
+      'Decarboxylation',
+      'Acyl chloride formation (SOCl₂)',
+      'α-Halogenation (Hell-Volhard-Zelinsky)',
+    ],
+    spectroscopy: {
+      ir: '2500-3300 cm⁻¹ (very broad O-H), 1710-1725 cm⁻¹ (C=O)',
+      nmrH: '10-12 ppm (COOH)',
+      nmrC: '170-185 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['ester', 'amide', 'acyl-halide', 'anhydride'],
+  },
+  {
+    id: 'ester',
+    name: 'Ester',
+    category: 'oxygen-containing',
+    generalFormula: 'R-COOR\'',
+    pattern: 'C(=O)OC',
+    structure: 'R-C(=O)-O-R\'',
+    description: 'Derived from carboxylic acids by replacing -OH with -OR. Often have pleasant fruity aromas. Key linkages in fats, oils, and polyesters.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Lower than corresponding acid (no H-bonding)',
+      solubility: 'Slightly soluble in water; small esters are fragrant',
+      acidity: 'α-H pKa ~25',
+    },
+    examples: [
+      { name: 'Ethyl acetate', formula: 'CH₃COOC₂H₅', iupac: 'ethyl ethanoate' },
+      { name: 'Methyl benzoate', formula: 'C₆H₅COOCH₃', iupac: 'methyl benzoate' },
+      { name: 'Aspirin', formula: 'C₉H₈O₄', iupac: '2-acetoxybenzoic acid' },
+    ],
+    commonReactions: [
+      'Hydrolysis → acid + alcohol (acidic or basic/saponification)',
+      'Reduction → alcohol (LiAlH₄ or DIBAL-H)',
+      'Transesterification',
+      'Claisen condensation',
+      'Grignard addition → 3° alcohol',
+    ],
+    spectroscopy: {
+      ir: '1735-1750 cm⁻¹ (C=O), 1000-1300 cm⁻¹ (C-O)',
+      nmrH: '3.7-4.1 ppm (O-CH)',
+      nmrC: '160-175 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['carboxylic-acid', 'anhydride', 'lactone'],
+  },
+  {
+    id: 'ether',
+    name: 'Ether',
+    category: 'oxygen-containing',
+    generalFormula: 'R-O-R\'',
+    pattern: 'C-O-C',
+    structure: 'R-O-R\'',
+    description: 'Two organic groups bonded to oxygen. Relatively inert, making them excellent solvents. Cyclic ethers (epoxides, THF) are more reactive.',
+    properties: {
+      polarity: 'slightly polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Similar to corresponding alkane (no H-bonding)',
+      solubility: 'Slightly soluble in water',
+      acidity: 'Not acidic',
+    },
+    examples: [
+      { name: 'Diethyl ether', formula: '(C₂H₅)₂O', iupac: 'ethoxyethane' },
+      { name: 'THF', formula: 'C₄H₈O', iupac: 'oxolane' },
+      { name: 'Anisole', formula: 'C₆H₅OCH₃', iupac: 'methoxybenzene' },
+    ],
+    commonReactions: [
+      'Cleavage with HI or HBr (strong acid)',
+      'Epoxide ring-opening (nucleophilic)',
+      'Peroxide formation (safety hazard!)',
+      'Williamson ether synthesis (formation)',
+    ],
+    spectroscopy: {
+      ir: '1070-1150 cm⁻¹ (C-O-C)',
+      nmrH: '3.3-3.9 ppm (O-CH)',
+      nmrC: '55-80 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['alcohol', 'epoxide'],
+  },
+  {
+    id: 'epoxide',
+    name: 'Epoxide',
+    category: 'oxygen-containing',
+    generalFormula: 'C₂H₄O (simplest)',
+    pattern: 'C1OC1',
+    structure: '▷O (3-membered ring)',
+    description: 'Three-membered cyclic ethers with high ring strain (~114 kJ/mol). Extremely reactive toward nucleophiles, opening regioselectively.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Moderate',
+      solubility: 'Soluble in water and organic solvents',
+      acidity: 'Not acidic',
+    },
+    examples: [
+      { name: 'Ethylene oxide', formula: 'C₂H₄O', iupac: 'oxirane' },
+      { name: 'Propylene oxide', formula: 'C₃H₆O', iupac: '2-methyloxirane' },
+      { name: 'Styrene oxide', formula: 'C₈H₈O', iupac: '2-phenyloxirane' },
+    ],
+    commonReactions: [
+      'Acid-catalyzed ring opening (Markovnikov, SN1-like)',
+      'Base-catalyzed ring opening (anti-Markovnikov, SN2)',
+      'Grignard opening',
+      'Reduction (LiAlH₄ → alcohol)',
+      'Sharpless epoxidation (formation)',
+    ],
+    spectroscopy: {
+      ir: '750-840 cm⁻¹ (ring breathing)',
+      nmrH: '2.5-3.0 ppm',
+      nmrC: '40-60 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['ether', 'alcohol', 'alkene'],
+  },
+  {
+    id: 'phenol',
+    name: 'Phenol',
+    category: 'oxygen-containing',
+    generalFormula: 'Ar-OH',
+    pattern: 'c-OH',
+    structure: 'Ar-OH',
+    description: 'Hydroxyl group directly attached to an aromatic ring. More acidic than alcohols (pKa ~10) due to resonance stabilization of the phenoxide anion.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'High (H-bonding)',
+      solubility: 'Slightly soluble in water (more than alcohols due to acidity)',
+      acidity: 'Moderately acidic (pKa 8-10)',
+    },
+    examples: [
+      { name: 'Phenol', formula: 'C₆H₅OH', iupac: 'phenol' },
+      { name: 'Cresol', formula: 'CH₃C₆H₄OH', iupac: '4-methylphenol' },
+      { name: 'Hydroquinone', formula: 'C₆H₄(OH)₂', iupac: 'benzene-1,4-diol' },
+    ],
+    commonReactions: [
+      'Electrophilic aromatic substitution (activated ring)',
+      'Kolbe-Schmitt reaction (→ salicylic acid)',
+      'Williamson ether synthesis',
+      'Oxidation → quinone',
+      'Ester formation',
+    ],
+    spectroscopy: {
+      ir: '3200-3550 cm⁻¹ (O-H), 1200-1260 cm⁻¹ (C-O)',
+      nmrH: '4-12 ppm (O-H), 6.5-7.5 ppm (Ar-H)',
+      nmrC: '150-170 ppm (C-OH)',
+    },
+    priority: 'medium',
+    relatedGroups: ['alcohol', 'arene'],
+  },
+
+  // ============================================
+  // NITROGEN-CONTAINING
+  // ============================================
+  {
+    id: 'amine',
+    name: 'Amine',
+    category: 'nitrogen-containing',
+    generalFormula: 'R-NH₂ / R₂NH / R₃N',
+    pattern: 'C-N',
+    structure: 'R-NH₂ (1°), R₂NH (2°), R₃N (3°)',
+    description: 'Organic derivatives of ammonia. Classified as primary, secondary, or tertiary. Important in pharmaceuticals, dyes, and biochemistry (amino acids).',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Higher than alkanes, lower than alcohols',
+      solubility: 'Small amines soluble in water',
+      acidity: 'Basic (pKb 3-4, conjugate acid pKa 10-11)',
+    },
+    examples: [
+      { name: 'Methylamine', formula: 'CH₃NH₂', iupac: 'methanamine' },
+      { name: 'Diethylamine', formula: '(C₂H₅)₂NH', iupac: 'N-ethylethanamine' },
+      { name: 'Aniline', formula: 'C₆H₅NH₂', iupac: 'aniline' },
+    ],
+    commonReactions: [
+      'Alkylation (SN2 with R-X)',
+      'Acylation → amide',
+      'Reductive amination',
+      'Diazotization (1° aromatic → diazonium)',
+      'Hofmann elimination',
+      'Gabriel synthesis (formation)',
+    ],
+    spectroscopy: {
+      ir: '3300-3500 cm⁻¹ (N-H, 1° = two bands, 2° = one band)',
+      nmrH: '0.5-5.0 ppm (N-H, broad)',
+      nmrC: '30-60 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['amide', 'imine', 'nitrile'],
+  },
+  {
+    id: 'amide',
+    name: 'Amide',
+    category: 'nitrogen-containing',
+    generalFormula: 'R-CONH₂',
+    pattern: 'C(=O)N',
+    structure: 'R-C(=O)-NH₂',
+    description: 'Contain a nitrogen bonded to a carbonyl carbon. The peptide bond in proteins is an amide linkage. Very stable due to resonance.',
+    properties: {
+      polarity: 'very polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Very high (strong H-bonding)',
+      solubility: 'Small amides soluble in water',
+      acidity: 'Weakly acidic N-H (pKa ~25), neutral',
+    },
+    examples: [
+      { name: 'Formamide', formula: 'HCONH₂', iupac: 'formamide' },
+      { name: 'Acetamide', formula: 'CH₃CONH₂', iupac: 'ethanamide' },
+      { name: 'DMF', formula: '(CH₃)₂NCHO', iupac: 'N,N-dimethylformamide' },
+    ],
+    commonReactions: [
+      'Hydrolysis → acid + amine (strong acid or base, heat)',
+      'Reduction (LiAlH₄ → amine)',
+      'Hofmann rearrangement → amine (one fewer carbon)',
+      'Dehydration → nitrile (P₂O₅)',
+    ],
+    spectroscopy: {
+      ir: '3350 + 3180 cm⁻¹ (N-H), 1630-1690 cm⁻¹ (C=O, "amide I")',
+      nmrH: '6-8 ppm (N-H, broad)',
+      nmrC: '165-175 ppm',
+    },
+    priority: 'high',
+    relatedGroups: ['carboxylic-acid', 'amine', 'nitrile'],
+  },
+  {
+    id: 'nitrile',
+    name: 'Nitrile',
+    category: 'nitrogen-containing',
+    generalFormula: 'R-C≡N',
+    pattern: 'C#N',
+    structure: 'R-C≡N',
+    description: 'Contain a triple bond between carbon and nitrogen. Versatile in synthesis — can be converted to acids, amides, amines, aldehydes, and ketones.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Higher than expected (dipole-dipole)',
+      solubility: 'Slightly soluble in water',
+      acidity: 'α-H pKa ~25',
+    },
+    examples: [
+      { name: 'Acetonitrile', formula: 'CH₃CN', iupac: 'ethanenitrile' },
+      { name: 'Benzonitrile', formula: 'C₆H₅CN', iupac: 'benzonitrile' },
+      { name: 'Acrylonitrile', formula: 'CH₂=CHCN', iupac: 'prop-2-enenitrile' },
+    ],
+    commonReactions: [
+      'Hydrolysis → amide → carboxylic acid',
+      'Reduction (LiAlH₄ → 1° amine)',
+      'Partial reduction (DIBAL-H → aldehyde)',
+      'Grignard addition → ketone (after hydrolysis)',
+    ],
+    spectroscopy: {
+      ir: '2210-2260 cm⁻¹ (C≡N, sharp)',
+      nmrH: '(no direct signal)',
+      nmrC: '115-120 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['amide', 'carboxylic-acid', 'amine'],
+  },
+  {
+    id: 'imine',
+    name: 'Imine (Schiff Base)',
+    category: 'nitrogen-containing',
+    generalFormula: 'R₂C=NR',
+    pattern: 'C=N',
+    structure: 'R₂C=N-R\'',
+    description: 'Contain a C=N double bond. Formed by condensation of an aldehyde/ketone with a primary amine. Key intermediates in reductive amination and enzymatic reactions.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Moderate',
+      solubility: 'Variable',
+      acidity: 'Basic at nitrogen',
+    },
+    examples: [
+      { name: 'N-Benzylideneaniline', formula: 'C₆H₅CH=NC₆H₅', iupac: 'N-benzylideneaniline' },
+      { name: 'Acetone imine', formula: '(CH₃)₂C=NH', iupac: 'propan-2-imine' },
+      { name: 'Pyridoxal imine', formula: '(enzyme intermediate)', iupac: 'Schiff base' },
+    ],
+    commonReactions: [
+      'Hydrolysis → aldehyde/ketone + amine',
+      'Reduction (NaBH₃CN → amine, reductive amination)',
+      'Nucleophilic addition',
+      'Tautomerization → enamine',
+    ],
+    spectroscopy: {
+      ir: '1620-1690 cm⁻¹ (C=N)',
+      nmrH: '7.5-8.5 ppm (CH=N)',
+      nmrC: '150-170 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['aldehyde', 'ketone', 'amine'],
+  },
+  {
+    id: 'nitro',
+    name: 'Nitro',
+    category: 'nitrogen-containing',
+    generalFormula: 'R-NO₂',
+    pattern: '[N+](=O)[O-]',
+    structure: 'R-NO₂',
+    description: 'Strong electron-withdrawing group containing nitrogen bonded to two oxygens. Powerful meta-director in EAS. Can be reduced to amines.',
+    properties: {
+      polarity: 'very polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'High',
+      solubility: 'Slightly soluble in water',
+      acidity: 'α-H pKa ~10 (very acidic due to stabilization)',
+    },
+    examples: [
+      { name: 'Nitromethane', formula: 'CH₃NO₂', iupac: 'nitromethane' },
+      { name: 'Nitrobenzene', formula: 'C₆H₅NO₂', iupac: 'nitrobenzene' },
+      { name: 'TNT', formula: 'C₆H₂(NO₂)₃CH₃', iupac: '2,4,6-trinitrotoluene' },
+    ],
+    commonReactions: [
+      'Reduction → amine (H₂/Pd, Fe/HCl, Sn/HCl)',
+      'Nitro-aldol (Henry) reaction',
+      'EAS meta-director',
+    ],
+    spectroscopy: {
+      ir: '1515-1560 cm⁻¹ (asymmetric NO₂), 1340-1380 cm⁻¹ (symmetric)',
+      nmrH: '(deshields neighbors)',
+      nmrC: '(deshields neighbors)',
+    },
+    priority: 'medium',
+    relatedGroups: ['amine'],
+  },
+
+  // ============================================
+  // HALOGEN-CONTAINING
+  // ============================================
+  {
+    id: 'alkyl-halide',
+    name: 'Alkyl Halide',
+    category: 'halogen-containing',
+    generalFormula: 'R-X (X = F, Cl, Br, I)',
+    pattern: 'C-X',
+    structure: 'R-X',
+    description: 'Carbon bonded to a halogen atom. Central to substitution (SN1/SN2) and elimination (E1/E2) chemistry. Reactivity: R-I > R-Br > R-Cl > R-F.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: false,
+      typicalBoilingPoint: 'Higher than corresponding alkane',
+      solubility: 'Insoluble in water',
+      acidity: 'Not acidic',
+    },
+    examples: [
+      { name: 'Chloromethane', formula: 'CH₃Cl', iupac: 'chloromethane' },
+      { name: 'Bromoethane', formula: 'C₂H₅Br', iupac: 'bromoethane' },
+      { name: 'tert-Butyl chloride', formula: '(CH₃)₃CCl', iupac: '2-chloro-2-methylpropane' },
+    ],
+    commonReactions: [
+      'SN2 (1° halides + strong nucleophile)',
+      'SN1 (3° halides)',
+      'E2 (strong base, anti-periplanar)',
+      'E1 (3° halides, weak base, heat)',
+      'Grignard reagent formation (Mg)',
+      'Organolithium formation (2 Li)',
+      'Wurtz coupling',
+    ],
+    spectroscopy: {
+      ir: '500-800 cm⁻¹ (C-X)',
+      nmrH: '3.0-4.0 ppm (CH next to X)',
+      nmrC: '10-40 ppm (depends on halogen)',
+    },
+    priority: 'high',
+    relatedGroups: ['acyl-halide', 'alcohol'],
+  },
+  {
+    id: 'acyl-halide',
+    name: 'Acyl Halide (Acid Chloride)',
+    category: 'halogen-containing',
+    generalFormula: 'R-COX',
+    pattern: 'C(=O)Cl',
+    structure: 'R-C(=O)-Cl',
+    description: 'Most reactive carboxylic acid derivative. Reacts vigorously with nucleophiles (water, alcohols, amines). Key intermediate for making esters, amides, and anhydrides.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Moderate',
+      solubility: 'Reacts with water (hydrolyzes)',
+      acidity: 'Not acidic (but reacts with water)',
+    },
+    examples: [
+      { name: 'Acetyl chloride', formula: 'CH₃COCl', iupac: 'ethanoyl chloride' },
+      { name: 'Benzoyl chloride', formula: 'C₆H₅COCl', iupac: 'benzoyl chloride' },
+      { name: 'Oxalyl chloride', formula: '(COCl)₂', iupac: 'oxalyl dichloride' },
+    ],
+    commonReactions: [
+      'Hydrolysis → carboxylic acid',
+      'Alcoholysis → ester',
+      'Aminolysis → amide',
+      'Friedel-Crafts acylation',
+      'Reduction (LiAlH₄ → alcohol)',
+    ],
+    spectroscopy: {
+      ir: '1790-1815 cm⁻¹ (C=O, high frequency)',
+      nmrH: '(no diagnostic signal)',
+      nmrC: '165-170 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['carboxylic-acid', 'ester', 'amide', 'anhydride'],
+  },
+
+  // ============================================
+  // SULFUR-CONTAINING
+  // ============================================
+  {
+    id: 'thiol',
+    name: 'Thiol',
+    category: 'sulfur-containing',
+    generalFormula: 'R-SH',
+    pattern: 'C-SH',
+    structure: 'R-SH',
+    description: 'Sulfur analog of alcohols. More acidic and more nucleophilic than alcohols. Disulfide bonds (R-S-S-R) are crucial for protein structure.',
+    properties: {
+      polarity: 'slightly polar',
+      hBondDonor: true,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Lower than corresponding alcohol (weaker H-bonds)',
+      solubility: 'Low in water',
+      acidity: 'More acidic than alcohols (pKa 8-11)',
+    },
+    examples: [
+      { name: 'Methanethiol', formula: 'CH₃SH', iupac: 'methanethiol' },
+      { name: 'Ethanethiol', formula: 'C₂H₅SH', iupac: 'ethanethiol' },
+      { name: 'Cysteine', formula: 'C₃H₇NO₂S', iupac: 'L-cysteine' },
+    ],
+    commonReactions: [
+      'Oxidation → disulfide (R-S-S-R)',
+      'S-Alkylation → thioether (excellent nucleophile)',
+      'Thioester formation',
+    ],
+    spectroscopy: {
+      ir: '2550-2600 cm⁻¹ (S-H, weak)',
+      nmrH: '1-2 ppm (SH)',
+      nmrC: '(similar to alcohol)',
+    },
+    priority: 'low',
+    relatedGroups: ['alcohol', 'sulfide'],
+  },
+
+  // ============================================
+  // CARBONYL DERIVATIVES
+  // ============================================
+  {
+    id: 'anhydride',
+    name: 'Anhydride',
+    category: 'carbonyl-derived',
+    generalFormula: '(RCO)₂O',
+    pattern: 'C(=O)OC(=O)',
+    structure: 'R-C(=O)-O-C(=O)-R\'',
+    description: 'Two acyl groups joined by an oxygen. Reactive but less so than acyl halides. Acetic anhydride is widely used in acetylation reactions.',
+    properties: {
+      polarity: 'polar',
+      hBondDonor: false,
+      hBondAcceptor: true,
+      typicalBoilingPoint: 'Moderate-high',
+      solubility: 'Reacts with water (slow hydrolysis)',
+      acidity: 'Not acidic',
+    },
+    examples: [
+      { name: 'Acetic anhydride', formula: '(CH₃CO)₂O', iupac: 'ethanoic anhydride' },
+      { name: 'Maleic anhydride', formula: 'C₄H₂O₃', iupac: 'furan-2,5-dione' },
+      { name: 'Phthalic anhydride', formula: 'C₈H₄O₃', iupac: '2-benzofuran-1,3-dione' },
+    ],
+    commonReactions: [
+      'Hydrolysis → 2 carboxylic acids',
+      'Alcoholysis → ester + acid',
+      'Aminolysis → amide + acid',
+      'Friedel-Crafts acylation',
+      'Diels-Alder (maleic anhydride as dienophile)',
+    ],
+    spectroscopy: {
+      ir: '1800-1850 cm⁻¹ + 1740-1790 cm⁻¹ (two C=O bands)',
+      nmrH: '(no diagnostic signal)',
+      nmrC: '165-175 ppm',
+    },
+    priority: 'medium',
+    relatedGroups: ['acyl-halide', 'carboxylic-acid', 'ester'],
+  },
+]
+
+// ============================================
+// Helper functions
+// ============================================
+
+export function getFunctionalGroupById(id: string): FunctionalGroup | undefined {
+  return FUNCTIONAL_GROUPS.find(g => g.id === id)
+}
+
+export function getFunctionalGroupsByCategory(category: FunctionalGroupCategory): FunctionalGroup[] {
+  return FUNCTIONAL_GROUPS.filter(g => g.category === category)
+}
+
+export function searchFunctionalGroups(query: string): FunctionalGroup[] {
+  const q = query.toLowerCase()
+  return FUNCTIONAL_GROUPS.filter(g =>
+    g.name.toLowerCase().includes(q) ||
+    g.generalFormula.toLowerCase().includes(q) ||
+    g.description.toLowerCase().includes(q) ||
+    g.commonReactions.some(r => r.toLowerCase().includes(q))
+  )
+}
+
+export const FUNCTIONAL_GROUP_CATEGORIES: Record<
+  FunctionalGroupCategory,
+  { label: string; icon: string; color: string }
+> = {
+  hydrocarbon: { label: 'Hydrocarbons', icon: '⬡', color: '#64748b' },
+  'oxygen-containing': { label: 'Oxygen-Containing', icon: 'O', color: '#ef4444' },
+  'nitrogen-containing': { label: 'Nitrogen-Containing', icon: 'N', color: '#3b82f6' },
+  'sulfur-containing': { label: 'Sulfur-Containing', icon: 'S', color: '#eab308' },
+  'halogen-containing': { label: 'Halogen-Containing', icon: 'X', color: '#22c55e' },
+  'phosphorus-containing': { label: 'Phosphorus-Containing', icon: 'P', color: '#f97316' },
+  'carbonyl-derived': { label: 'Carbonyl Derivatives', icon: 'C=O', color: '#a855f7' },
+}

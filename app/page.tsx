@@ -23,14 +23,14 @@ export default function Home() {
           <span className="text-premium">World-Class</span>
           <br />
           <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-emerald-600 bg-clip-text text-transparent">
-            Chemistry & Environmental Platform
+            Chemistry Education Platform
           </span>
         </h1>
 
         <p className="text-xl md:text-2xl text-secondary-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-          Professional calculators, wastewater treatment design, and process modeling tools.
+          Professional chemistry calculators, interactive periodic table, and molecular tools.
           <br />
-          <span className="text-primary-600 font-semibold">Built for students, engineers & professionals.</span>
+          <span className="text-primary-600 font-semibold">Built for students, educators & professionals.</span>
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -38,10 +38,10 @@ export default function Home() {
             🚀 Explore All Tools
           </Link>
           <Link
-            href="/tools/wastewater-treatment"
-            className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all text-lg inline-flex items-center justify-center gap-2"
+            href="/organic"
+            className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all text-lg inline-flex items-center justify-center gap-2"
           >
-            <span>🏭 Wastewater Design</span>
+            <span>🧪 Organic Chemistry</span>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -52,7 +52,7 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
           <div className="flex items-center gap-2 badge-premium">
             <svg className="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span className="font-semibold">NIST Validated</span>
           </div>
@@ -64,14 +64,14 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2 badge-premium">
             <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 024 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM24 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
             </svg>
             <span className="font-semibold">Open Source Spirit</span>
           </div>
         </div>
 
         {/* Global Search */}
-        <div className="mt-16 max-w-2xl mx-auto">
+        <div className="mt-24 max-w-2xl mx-auto">
           <div className="premium-card p-2">
             <GlobalSearchBar
               placeholder="🔍 Search compounds, elements, calculators..."
@@ -102,7 +102,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white py-16">
+      <section className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white py-24">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="animate-float-premium">
@@ -114,7 +114,7 @@ export default function Home() {
               <div className="text-primary-100 font-medium">Chemical Compounds</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">21</div>
+              <div className="text-5xl font-bold mb-2">24</div>
               <div className="text-primary-100 font-medium">Pro Tools</div>
             </div>
             <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
@@ -127,12 +127,12 @@ export default function Home() {
 
       {/* Features Grid - PREMIUM CARDS */}
       <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
+        <div className="text-center mb-24">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="text-premium">Everything You Need</span>
           </h2>
           <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            21 professional tools validated against industry standards
+            24 professional tools validated against industry standards
           </p>
         </div>
 
@@ -142,7 +142,7 @@ export default function Home() {
             <div className="premium-card p-6 h-full">
               <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m24 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2">3D Molecular Viewer</h3>
@@ -186,7 +186,7 @@ export default function Home() {
             <div className="premium-card p-6 h-full">
               <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM24 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2">Interactive Periodic Table</h3>
@@ -218,6 +218,74 @@ export default function Home() {
               </div>
             </div>
           </Link>
+
+          {/* Organic Chemistry */}
+          <Link href="/organic" className="group">
+            <div className="premium-card p-6 h-full border-2 border-emerald-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-premium">
+                Organic Chemistry Suite
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                22 functional groups, 40 named reactions with mechanisms, and a reaction predictor
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs">40 Reactions</span>
+                <span className="badge-premium text-xs">Mechanisms</span>
+                <span className="badge-premium text-xs">Predictor</span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Spectroscopy Tools - NEW */}
+          <Link href="/spectroscopy" className="group relative">
+            <div className="absolute -top-2 -right-2 bg-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce z-10">
+              NEW
+            </div>
+            <div className="premium-card p-6 h-full border-2 border-violet-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-white text-xl">📡</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-premium">
+                Spectroscopy Tools
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                IR interpreter, NMR analyzer (¹H & ¹³C), and mass spectrometry tools
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs">IR</span>
+                <span className="badge-premium text-xs">NMR</span>
+                <span className="badge-premium text-xs">Mass Spec</span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Nuclear & Quantum - NEW */}
+          <Link href="/tools/nuclear" className="group relative">
+            <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce z-10">
+              NEW
+            </div>
+            <div className="premium-card p-6 h-full border-2 border-amber-400/50">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-white text-xl">☢️</span>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-premium">
+                Nuclear & Quantum
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Radioactive decay, binding energy, quantum numbers, orbitals, and Bohr model
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="badge-premium text-xs">Decay Calc</span>
+                <span className="badge-premium text-xs">Quantum #s</span>
+                <span className="badge-premium text-xs">Orbitals</span>
+              </div>
+            </div>
+          </Link>
         </div>
 
         <div className="text-center mt-12">
@@ -227,166 +295,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Environmental Engineering Section - NEW */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-20">
-        {/* Background decoration */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-400/20 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 relative">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-medium mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              🌏 Environmental Engineering Suite
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                Professional Environmental Tools
-              </span>
-            </h2>
-            <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-              Design wastewater treatment systems, analyze water/air/soil quality with Thai PCD standards compliance.
-            </p>
-          </div>
-
-          {/* Environmental Tools Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {/* Wastewater Treatment - Flagship */}
-            <Link href="/tools/wastewater-treatment" className="group relative md:col-span-2 lg:col-span-2">
-              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-full animate-bounce shadow-lg z-10">
-                🔥 FLAGSHIP
-              </div>
-              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-emerald-400 p-6 hover:shadow-xl transition-all group-hover:scale-[1.02]">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform flex-shrink-0">
-                    🏭
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Wastewater Treatment Designer</h3>
-                    <p className="text-emerald-600 text-sm font-medium mb-2">ออกแบบระบบบำบัดน้ำเสีย</p>
-                    <p className="text-gray-600 text-sm">Design complete treatment trains with 15+ unit processes. Visual builder, cost estimation, sludge balance.</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">15 Units</span>
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Visual Builder</span>
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Cost Estimation</span>
-                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">Thai PCD</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Water Quality */}
-            <Link href="/tools/water-quality" className="group">
-              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-teal-200 p-5 hover:border-teal-400 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                  💧
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1">Water Quality</h3>
-                <p className="text-gray-600 text-sm">BOD, COD, Thai effluent standards • 9 modes</p>
-              </div>
-            </Link>
-
-            {/* Air Quality */}
-            <Link href="/tools/air-quality" className="group">
-              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-green-200 p-5 hover:border-green-400 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-lime-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                  🌬️
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1">Air Quality</h3>
-                <p className="text-gray-600 text-sm">AQI, Gaussian dispersion • 6 modes</p>
-              </div>
-            </Link>
-
-            {/* Soil Quality */}
-            <Link href="/tools/soil-quality" className="group">
-              <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-amber-200 p-5 hover:border-amber-400 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                  🌱
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1">Soil Quality</h3>
-                <p className="text-gray-600 text-sm">Heavy metals, pH, NPK • 7 modes</p>
-              </div>
-            </Link>
-          </div>
-
-          {/* Process Models Section */}
-          <div className="mt-8 mb-12">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                🧬 Advanced Process Models • Compete with GPS-X ($15K)
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* ASM1 */}
-              <Link href="/tools/asm1-simulator" className="group relative">
-                <div className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                  🔥 NEW
-                </div>
-                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-purple-200 p-5 hover:border-purple-400 hover:shadow-lg transition-all">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                    🧫
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-1">ASM1 Simulator</h3>
-                  <p className="text-gray-600 text-sm">IWA Activated Sludge Model • 8 processes, 13 states</p>
-                </div>
-              </Link>
-
-              {/* ASM2d */}
-              <Link href="/tools/asm2d-simulator" className="group relative">
-                <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                  ⭐ 260 Tests
-                </div>
-                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-pink-200 p-5 hover:border-pink-400 hover:shadow-lg transition-all">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                    🦠
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-1">ASM2d Bio-P Removal</h3>
-                  <p className="text-gray-600 text-sm">Phosphorus removal with PAO • 21 processes</p>
-                </div>
-              </Link>
-
-              {/* ADM1 */}
-              <Link href="/tools/adm1-simulator" className="group relative">
-                <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                  🔥 NEW
-                </div>
-                <div className="h-full bg-white/80 backdrop-blur rounded-2xl border-2 border-orange-200 p-5 hover:border-orange-400 hover:shadow-lg transition-all">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform">
-                    🔥
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-1">ADM1 Anaerobic Digester</h3>
-                  <p className="text-gray-600 text-sm">Biogas production • 19 processes, 24 states</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div className="text-center">
-            <Link
-              href="/environmental"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-lg"
-            >
-              Explore Environmental Hub
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <div className="divider-premium max-w-7xl mx-auto px-4"></div>
-
       {/* Free Forever + Support Section */}
       <section id="pricing" className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
+        <div className="text-center mb-24">
           <div className="badge-premium mb-4">🎁 100% Free</div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="text-premium">Free Forever</span>
@@ -410,37 +321,31 @@ export default function Home() {
             <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>All 21 tools & calculators</span>
+                <span>All 24+ tools & calculators</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span>118 elements (NIST data)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Environmental Engineering Tools</span>
+                <span>3D Molecular Viewer & VSEPR</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>ASM1, ASM2d, ADM1 Process Models</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span>Unlimited calculations</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span>Export to PDF, PNG, SVG</span>
               </li>
@@ -491,7 +396,7 @@ export default function Home() {
 
       {/* Why VerChem Section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
+        <div className="text-center mb-24">
           <div className="badge-premium mb-4">✨ Why VerChem</div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             <span className="text-premium">Built for Learning</span>
@@ -514,7 +419,7 @@ export default function Home() {
           <div className="premium-card p-6">
             <div className="w-12 h-12 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.248 5.477 3 6.253v13C4.248 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.248 5.477 14.754 5 24.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 24.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
             <h3 className="text-xl font-bold mb-2">Step-by-Step Solutions</h3>
@@ -537,13 +442,13 @@ export default function Home() {
         </div>
 
         {/* Real Stats */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="premium-card p-6 text-center">
             <div className="text-3xl font-bold text-primary-600 mb-2">118</div>
             <div className="text-sm text-muted-foreground">Elements</div>
           </div>
           <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">18</div>
+            <div className="text-3xl font-bold text-primary-600 mb-2">24</div>
             <div className="text-sm text-muted-foreground">Pro Tools</div>
           </div>
           <div className="premium-card p-6 text-center">
@@ -611,19 +516,19 @@ export default function Home() {
               <h3 className="font-bold mb-4">Chemistry</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/periodic-table" className="hover:text-primary-600">Periodic Table</Link></li>
-                <li><Link href="/3d-viewer" className="hover:text-primary-600">3D Viewer</Link></li>
+                <li><Link href="/organic" className="hover:text-primary-600">Organic Chemistry</Link></li>
                 <li><Link href="/molecule-builder" className="hover:text-primary-600">Molecule Builder</Link></li>
                 <li><Link href="/calculators" className="hover:text-primary-600">All Calculators</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Environmental</h3>
+              <h3 className="font-bold mb-4">Tools</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/environmental" className="hover:text-emerald-600">Environmental Hub</Link></li>
-                <li><Link href="/tools/wastewater-treatment" className="hover:text-emerald-600">Wastewater Treatment</Link></li>
-                <li><Link href="/tools/water-quality" className="hover:text-emerald-600">Water Quality</Link></li>
-                <li><Link href="/tools/air-quality" className="hover:text-emerald-600">Air Quality</Link></li>
+                <li><Link href="/spectroscopy" className="hover:text-primary-600">Spectroscopy Tools</Link></li>
+                <li><Link href="/tools/lab-safety" className="hover:text-primary-600">Lab Safety & SDS</Link></li>
+                <li><Link href="/tools/nuclear" className="hover:text-primary-600">Nuclear Chemistry</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-600">All Tools</Link></li>
               </ul>
             </div>
 

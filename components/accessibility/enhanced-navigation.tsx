@@ -13,6 +13,7 @@ import { CommandPalette } from '@/components/search/CommandPalette';
 import AuthButton from '@/components/AuthButton';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SupportHeartButton } from '@/components/support/SupportBanner';
+import { UnitSystemToggle } from '@/components/units/UnitSelector';
 
 interface NavigationItem {
   href: string;
@@ -202,6 +203,11 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
             {/* Auth Button */}
             <div className="hidden sm:block">
               <AuthButton />
+            </div>
+
+            {/* Unit System Toggle */}
+            <div className="hidden sm:block">
+              <UnitSystemToggle compact />
             </div>
 
             {/* Theme Toggle */}

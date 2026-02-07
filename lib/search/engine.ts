@@ -34,12 +34,15 @@ export class VerChemSearchEngine {
     // Initialize compound data
     this.compoundData = COMMON_COMPOUNDS.map(compound => {
       // Handle hazards - can be string[] or object[]
-      const hazardTypes = compound.hazards?.map(h =>
+      const hazardTypes = (compound.hazards?.map(h =>
         typeof h === 'string' ? h : (h.type || h.ghsCode || '')
-      ).filter(Boolean) || [];
-      const ghsCodes = compound.hazards?.map(h =>
-        typeof h === 'string' ? h : (h.ghsCode || '')
-      ).filter(Boolean) || [];
+      ).filter(Boolean) || []).map(hazard => hazard.toLowerCase());
+      const ghsCodes = [
+        ...(compound.ghs || []),
+        ...(compound.hazards?.map(h =>
+          typeof h === 'string' && /^ghs\d+/i.test(h) ? h : (typeof h === 'string' ? '' : (h.ghsCode || ''))
+        ).filter(Boolean) || [])
+      ].map(code => code.toUpperCase());
 
       return {
         id: compound.id,
@@ -684,18 +687,20 @@ export class VerChemSearchEngine {
       query = query.replace(/\bNOT\s+\w+/gi, '')
     }
 
-    // Extract ranges (e.g., MW:100-200)
-    const rangeMatches = query.match(/(\w+):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)/g)
+    // Extract ranges (e.g., MW:100-200, MP:-100--50)
+    const rangeRegex = /(\w+):(-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)/g
+    const rangeExtractRegex = /(\w+):(-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)/
+    const rangeMatches = query.match(rangeRegex)
     if (rangeMatches) {
       syntax.ranges = rangeMatches.map(match => {
-        const parsed = match.match(/(\w+):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)/)
+        const parsed = match.match(rangeExtractRegex)
         if (!parsed) {
           return { field: '', min: undefined, max: undefined }
         }
         const [, field, min, max] = parsed
         return { field, min: parseFloat(min), max: parseFloat(max) }
       })
-      query = query.replace(/(\w+):(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)/g, '')
+      query = query.replace(rangeRegex, '')
     }
 
     // Remaining terms: parse field filters, OR groups, and must-include terms
@@ -987,23 +992,23 @@ export class VerChemSearchEngine {
     // Molecular weight range
     if (filters.molecularWeightRange) {
       const { min, max } = filters.molecularWeightRange
-      if ((min && data.molecularMass < min) || (max && data.molecularMass > max)) {
+      if ((min !== undefined && data.molecularMass < min) || (max !== undefined && data.molecularMass > max)) {
         return false
       }
     }
 
     // Melting point range
-    if (filters.meltingPointRange && data.meltingPoint) {
+    if (filters.meltingPointRange && data.meltingPoint !== undefined) {
       const { min, max } = filters.meltingPointRange
-      if ((min && data.meltingPoint < min) || (max && data.meltingPoint > max)) {
+      if ((min !== undefined && data.meltingPoint < min) || (max !== undefined && data.meltingPoint > max)) {
         return false
       }
     }
 
     // Boiling point range
-    if (filters.boilingPointRange && data.boilingPoint) {
+    if (filters.boilingPointRange && data.boilingPoint !== undefined) {
       const { min, max } = filters.boilingPointRange
-      if ((min && data.boilingPoint < min) || (max && data.boilingPoint > max)) {
+      if ((min !== undefined && data.boilingPoint < min) || (max !== undefined && data.boilingPoint > max)) {
         return false
       }
     }
@@ -1011,7 +1016,7 @@ export class VerChemSearchEngine {
     // pKa range
     if (filters.pKaRange && typeof data.pKa === 'number') {
       const { min, max } = filters.pKaRange
-      if ((min && data.pKa < min) || (max && data.pKa > max)) {
+      if ((min !== undefined && data.pKa < min) || (max !== undefined && data.pKa > max)) {
         return false
       }
     }
@@ -1019,23 +1024,25 @@ export class VerChemSearchEngine {
     // pKb range
     if (filters.pKbRange && typeof data.pKb === 'number') {
       const { min, max } = filters.pKbRange
-      if ((min && data.pKb < min) || (max && data.pKb > max)) {
+      if ((min !== undefined && data.pKb < min) || (max !== undefined && data.pKb > max)) {
         return false
       }
     }
 
     // Safety filters
     if (filters.safety && data.hazards) {
-      const hasMatchingHazard = filters.safety.some(safety => 
-        data.hazards!.includes(safety.toLowerCase())
+      const hazardSet = data.hazards.map(hazard => hazard.toLowerCase())
+      const hasMatchingHazard = filters.safety.some(safety =>
+        hazardSet.some(hazard => hazard.includes(safety.toLowerCase()))
       )
       if (!hasMatchingHazard) return false
     }
 
     // GHS codes
     if (filters.ghsCodes && data.ghsCodes) {
+      const codeSet = data.ghsCodes.map(code => code.toUpperCase())
       const hasMatchingCode = filters.ghsCodes.some(code => 
-        data.ghsCodes!.includes(code)
+        codeSet.includes(code.toUpperCase())
       )
       if (!hasMatchingCode) return false
     }
@@ -1057,7 +1064,7 @@ export class VerChemSearchEngine {
     // Atomic number range
     if (filters.atomicNumberRange) {
       const { min, max } = filters.atomicNumberRange
-      if ((min && data.atomicNumber < min) || (max && data.atomicNumber > max)) {
+      if ((min !== undefined && data.atomicNumber < min) || (max !== undefined && data.atomicNumber > max)) {
         return false
       }
     }

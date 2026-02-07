@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
 import { COMPREHENSIVE_COMPOUNDS } from '@/lib/data/compounds'
+import { NAMED_REACTIONS } from '@/lib/data/organic/named-reactions'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://verchem.xyz'
@@ -90,51 +91,81 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
 
-    // Environmental Engineering Hub
+    // Organic Chemistry
     {
-      url: `${baseUrl}/environmental`,
+      url: `${baseUrl}/organic`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/water-quality`,
+      url: `${baseUrl}/organic/functional-groups`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/air-quality`,
+      url: `${baseUrl}/organic/reactions`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/soil-quality`,
+      url: `${baseUrl}/organic/predict`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+
+    // Spectroscopy
+    {
+      url: `${baseUrl}/spectroscopy`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/wastewater-treatment`,
+      url: `${baseUrl}/spectroscopy/ir`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/asm1-simulator`,
+      url: `${baseUrl}/spectroscopy/nmr`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/asm2d-simulator`,
+      url: `${baseUrl}/spectroscopy/mass-spec`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+
+    // Lab & Practical
+    {
+      url: `${baseUrl}/tools/solution-prep`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/tools/adm1-simulator`,
+      url: `${baseUrl}/tools/lab-safety`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+
+    // Advanced Chemistry
+    {
+      url: `${baseUrl}/tools/nuclear`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/quantum`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
       priority: 0.9,
@@ -157,5 +188,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...elementRoutes, ...compoundRoutes]
+  // Dynamic reaction pages (40 reactions)
+  const reactionRoutes: MetadataRoute.Sitemap = NAMED_REACTIONS.map((reaction) => ({
+    url: `${baseUrl}/organic/reactions/${reaction.id}`,
+    lastModified: currentDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  return [...staticRoutes, ...elementRoutes, ...compoundRoutes, ...reactionRoutes]
 }

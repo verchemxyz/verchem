@@ -407,7 +407,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'What calculators does VerChem offer?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (7 modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus 3 environmental tools: Water Quality, Air Quality, and Soil Quality.'
+          text: 'VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (7 modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus interactive tools: 3D Molecular Viewer, Lewis Structures, VSEPR Geometry, and a complete Periodic Table.'
         }
       },
       {
@@ -440,23 +440,6 @@ export function VerChemGlobalFAQSchema() {
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'pH = -log[H+]. For a 0.01 M HCl solution: pH = -log(0.01) = 2. For bases, calculate pOH first, then pH = 14 - pOH. VerChem pH Calculator handles strong/weak acids and bases, buffer solutions, and shows visual pH scale.'
-        }
-      },
-      // Environmental Engineering
-      {
-        '@type': 'Question',
-        name: 'What is BOD and COD in water quality?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'BOD (Biochemical Oxygen Demand) measures oxygen consumed by microorganisms decomposing organic matter over 5 days at 20°C. COD (Chemical Oxygen Demand) measures total oxygen needed to chemically oxidize all organic matter. BOD/COD ratio indicates biodegradability: <0.3 = non-biodegradable, 0.3-0.6 = moderately biodegradable, >0.6 = highly biodegradable.'
-        }
-      },
-      {
-        '@type': 'Question',
-        name: 'What are Thai water quality standards?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Thai PCD (Pollution Control Department) standards: Type ก (Industrial): BOD ≤20, COD ≤120, SS ≤50 mg/L. Type ข (Relaxed Industrial): BOD ≤60, COD ≤400, SS ≤150 mg/L. Type ค (Community): BOD ≤40, COD ≤200, SS ≤70 mg/L. VerChem Water Quality Calculator includes Thai standards compliance checker.'
         }
       },
       // Periodic Table
@@ -533,7 +516,7 @@ export function VerChemSoftwareApplicationSchema() {
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     url: 'https://verchem.xyz',
-    description: 'Free professional-grade chemistry platform with 8 calculators, 3 environmental tools, periodic table (118 elements), and 1,000+ compounds database. NIST/IUPAC certified data.',
+    description: 'Free professional-grade chemistry platform with 8 calculators, interactive periodic table (118 elements), 3D molecular viewer, and 1,000+ compounds database. NIST/IUPAC certified data.',
     offers: [
       {
         '@type': 'Offer',
@@ -551,9 +534,6 @@ export function VerChemSoftwareApplicationSchema() {
       'Thermodynamics Calculator',
       'Chemical Kinetics Calculator',
       'Electrochemistry Calculator',
-      'Water Quality Calculator (BOD/COD, Thai PCD Standards)',
-      'Air Quality Calculator (AQI)',
-      'Soil Quality Calculator',
       'Interactive Periodic Table (118 elements)',
       'Compounds Database (1,000+ chemicals)',
       'Step-by-step Solutions',
@@ -571,158 +551,3 @@ export function VerChemSoftwareApplicationSchema() {
   )
 }
 
-// ============================================
-// Environmental Engineering Tool Schemas
-// ============================================
-
-export function WaterQualitySchema() {
-  const schema = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'Water Quality Calculator',
-      description: 'Calculate BOD5, BODu, COD, BOD/COD ratio, organic loading, treatment efficiency. Includes Thai PCD standards compliance checker.',
-      url: 'https://verchem.xyz/tools/water-quality',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'All',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD'
-      }
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'What is BOD5?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'BOD5 (5-day Biochemical Oxygen Demand) measures the oxygen consumed by microorganisms while decomposing organic matter in water over 5 days at 20°C. It indicates the biodegradable organic pollution level. Standard formula: BOD5 = BODu × (1 - e^(-k×t)) where k is the decay rate.'
-          }
-        },
-        {
-          '@type': 'Question',
-          name: 'What does the BOD/COD ratio indicate?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'BOD/COD ratio indicates biodegradability: <0.3 = non-biodegradable (needs chemical treatment), 0.3-0.6 = moderately biodegradable (biological treatment possible), >0.6 = highly biodegradable (ideal for biological treatment). Domestic wastewater typically has ratio 0.4-0.8.'
-          }
-        },
-        {
-          '@type': 'Question',
-          name: 'What are Thai industrial wastewater standards?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Thai PCD Type ก (Standard Industrial): BOD ≤20 mg/L, COD ≤120 mg/L, SS ≤50 mg/L, TDS ≤3,000 mg/L, pH 5.5-9.0. These are discharge standards for industrial effluent to public water bodies per Ministry of Industry regulations.'
-          }
-        }
-      ]
-    }
-  ]
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
-export function AirQualitySchema() {
-  const schema = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'Air Quality Calculator',
-      description: 'Calculate Air Quality Index (AQI), pollutant concentrations, and health impact assessment for PM2.5, PM10, O3, NO2, SO2, CO.',
-      url: 'https://verchem.xyz/tools/air-quality',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'All',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD'
-      }
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'What is AQI (Air Quality Index)?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'AQI is a scale from 0-500 measuring air pollution levels. 0-50: Good (green), 51-100: Moderate (yellow), 101-150: Unhealthy for sensitive groups (orange), 151-200: Unhealthy (red), 201-300: Very unhealthy (purple), 301-500: Hazardous (maroon).'
-          }
-        },
-        {
-          '@type': 'Question',
-          name: 'What is PM2.5?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'PM2.5 refers to particulate matter with diameter ≤2.5 micrometers. These fine particles can penetrate deep into lungs and bloodstream. WHO guideline: 24-hour mean ≤15 μg/m³, annual mean ≤5 μg/m³. Thailand standard: 24-hour ≤50 μg/m³.'
-          }
-        }
-      ]
-    }
-  ]
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}
-
-export function SoilQualitySchema() {
-  const schema = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'Soil Quality Calculator',
-      description: 'Analyze soil composition, texture classification, contamination assessment, nutrient levels, and CEC calculations.',
-      url: 'https://verchem.xyz/tools/soil-quality',
-      applicationCategory: 'EducationalApplication',
-      operatingSystem: 'All',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD'
-      }
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'What is soil texture?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Soil texture is determined by the proportion of sand (0.05-2mm), silt (0.002-0.05mm), and clay (<0.002mm) particles. The USDA soil texture triangle classifies soils into 12 classes: sand, loamy sand, sandy loam, loam, silt loam, silt, sandy clay loam, clay loam, silty clay loam, sandy clay, silty clay, and clay.'
-          }
-        },
-        {
-          '@type': 'Question',
-          name: 'What is CEC in soil?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'CEC (Cation Exchange Capacity) measures soil ability to hold positively charged ions (Ca²⁺, Mg²⁺, K⁺, Na⁺). Expressed in meq/100g or cmol/kg. Low CEC (<10): sandy soils, poor nutrient retention. Medium (10-20): loamy soils. High (>20): clay soils, good nutrient retention.'
-          }
-        }
-      ]
-    }
-  ]
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  )
-}

@@ -33,7 +33,7 @@ Before starting, you need:
 
 ### 1.1 Go to AIVerID Dashboard
 
-Navigate to: https://aivisibilityrights.com/developers/oauth
+Navigate to: https://aiverid.com/developers/oauth
 
 ### 1.2 Create New Application
 
@@ -53,7 +53,7 @@ You will receive:
 ```
 Client ID: aiverid_xxxxxxxxxxxxx
 Client Secret: secret_xxxxxxxxxxxxx
-Issuer: https://aivisibilityrights.com
+Issuer: https://aiverid.com
 ```
 
 **⚠️ Keep these secret!** Never commit to Git!
@@ -76,7 +76,7 @@ Create `.env.local` (add to `.gitignore`!):
 # AIVerID OAuth
 AIVERID_CLIENT_ID=aiverid_xxxxxxxxxxxxx
 AIVERID_CLIENT_SECRET=secret_xxxxxxxxxxxxx
-AIVERID_ISSUER=https://aivisibilityrights.com
+AIVERID_ISSUER=https://aiverid.com
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -475,7 +475,7 @@ Add to Vercel dashboard:
 ```
 AIVERID_CLIENT_ID=...
 AIVERID_CLIENT_SECRET=...
-AIVERID_ISSUER=https://aivisibilityrights.com
+AIVERID_ISSUER=https://aiverid.com
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...

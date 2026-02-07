@@ -8,19 +8,23 @@
     "build:webpack": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx __tests__/molecule-builder.test.ts && node --import tsx __tests__/uncertainty.test.ts && node --import tsx __tests__/air-quality.test.ts && node --import tsx __tests__/soil-quality.test.ts && node --import tsx __tests__/wastewater-treatment.test.ts && node --import tsx __tests__/adm1-model.test.ts && node --import tsx __tests__/asm2d-model.test.ts",
+    "test": "node --import tsx __tests__/molecule-builder.test.ts && node --import tsx __tests__/uncertainty.test.ts",
     "test:molecules": "node --import tsx __tests__/molecule-builder.test.ts",
     "test:uncertainty": "node --import tsx __tests__/uncertainty.test.ts",
-    "test:air-quality": "node --import tsx __tests__/air-quality.test.ts",
-    "test:soil-quality": "node --import tsx __tests__/soil-quality.test.ts",
-    "test:wastewater": "node --import tsx __tests__/wastewater-treatment.test.ts",
-    "test:adm1": "node --import tsx __tests__/adm1-model.test.ts",
-    "test:asm2d": "node --import tsx __tests__/asm2d-model.test.ts",
     "test:calculations": "node --import tsx scripts/run-calculations-tests.ts",
-    "validate": "node --import tsx scripts/run-validation.ts"
+    "validate": "node --import tsx scripts/run-validation.ts",
+    "cap:sync": "cap sync",
+    "cap:run:ios": "cap run ios",
+    "cap:run:android": "cap run android",
+    "cap:open:ios": "cap open ios",
+    "cap:open:android": "cap open android"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.0",
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -38,6 +42,8 @@
     "@stripe/stripe-js": "^8.5.2",
     "@supabase/supabase-js": "^2.84.0",
     "@types/file-saver": "^2.0.7",
+    "@vercel/analytics": "^1.6.1",
+    "@vercel/speed-insights": "^1.3.1",
     "canvg": "^4.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -73,6 +79,6 @@
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }

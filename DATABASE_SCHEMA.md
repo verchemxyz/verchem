@@ -373,7 +373,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # AIVerID OAuth
 AIVERID_CLIENT_ID=your-client-id
 AIVERID_CLIENT_SECRET=your-client-secret
-AIVERID_ISSUER=https://aivisibilityrights.com
+AIVERID_ISSUER=https://aiverid.com
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000

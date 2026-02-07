@@ -4,7 +4,7 @@
 
 ## Overview
 
-VerChem is a comprehensive chemistry platform designed for students, chemists, chemical engineers, and lab technicians. It provides free access to all 118 elements from the periodic table, powerful calculators for chemistry calculations, and validated data from authoritative sources like NIST and IUPAC.
+VerChem is a chemistry education platform designed for students, chemists, and educators. It provides free access to all 118 elements from the periodic table, powerful calculators for chemistry calculations, and validated data from authoritative sources like NIST and IUPAC.
 
 Built with Next.js 15 and TypeScript, VerChem offers production-quality tools that are both educational and practical. All features are free for AIVerID members, following a "Free First" strategy to make world-class chemistry tools accessible to everyone.
 
@@ -27,11 +27,6 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 - **Chemical Kinetics Calculator**: Rate laws, half-life, Arrhenius equation
 - **Electrochemistry Calculator**: Redox potentials, galvanic cells, Nernst equation
 
-### Environmental Engineering Tools (3 Tools - NEW 2026)
-- **Water Quality Calculator**: BOD5, BODu, COD, BOD/COD ratio, organic loading, treatment efficiency, K-rate, temperature correction, Thai PCD standards compliance checker
-- **Air Quality Calculator**: AQI calculations, pollutant concentrations (PM2.5, PM10, O3, NO2, SO2, CO), health impact assessment
-- **Soil Quality Calculator**: Soil texture classification, CEC, contamination assessment, nutrient levels
-
 ### Chemical Database
 - **1,000+ Compounds**: Common chemicals with properties
 - **Safety Data**: GHS hazard codes, flash points, handling precautions
@@ -41,6 +36,27 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 - **Step-by-step Solutions**: Learn the process, not just answers
 - **Examples**: Pre-filled calculations to learn from
 - **Uncertainty Analysis**: Proper significant figures and error propagation
+
+### Organic Chemistry Suite (NEW)
+- **Functional Groups Reference**: 22 functional groups with structures, properties, spectroscopy (IR/NMR), reactions, and examples
+- **Named Reactions Database**: 40 named reactions (SN1, SN2, E1, E2, Grignard, Aldol, Wittig, Diels-Alder, Suzuki, Heck, etc.) with step-by-step mechanisms, examples, and key study points
+- **Reaction Predictor**: Select a functional group + reagent to predict the product with mechanism explanation
+- **Difficulty Levels**: Introductory (15), Intermediate (15), Advanced (10) reactions
+- **Nobel Prize Reactions**: Grignard (1912), Diels-Alder (1950), Wittig (1979), Brown (1979), Sharpless (2001), Suzuki/Heck (2010), Grubbs (2005)
+- **Categories**: Addition, Elimination, Substitution, Oxidation, Reduction, Condensation, Coupling, Cycloaddition, Radical, Rearrangement, Multicomponent
+
+### Spectroscopy Tools (NEW)
+- **IR Spectrum Interpreter**: Enter wavenumber peaks (4000–400 cm⁻¹) to identify functional groups. 34 IR absorptions across 8 categories with visual correlation chart.
+- **NMR Analyzer**: ¹H NMR (0–14 ppm) and ¹³C NMR (0–220 ppm) chemical shift lookup. 20 proton shifts, 12 carbon shifts, 7 NMR solvent references.
+- **Mass Spec Analyzer**: Fragment loss identification (26 losses), isotope pattern prediction, nitrogen rule checker, common ion lookup (19 ions), McLafferty rearrangement reference.
+
+### Lab & Practical Tools (NEW)
+- **Solution Preparation Calculator**: 5 modes — Dilution (C₁V₁=C₂V₂), stock solution prep, serial dilutions, concentration unit conversion (11 units: mol/L, g/L, mg/L, ppm, ppb, %w/v, %w/w, %v/v, N, mmol/L, μg/L), and mixing calculator.
+- **Lab Safety & SDS Reference**: 9 GHS pictograms with hazard classes, chemical compatibility checker (11 groups), 8 emergency procedures, 28 safety rules, 59 H-statements, 82 P-statements. Interactive compatibility matrix.
+
+### Nuclear & Quantum Chemistry (NEW)
+- **Nuclear Chemistry Calculator**: Radioactive decay (N(t) = N₀(1/2)^(t/t½)), half-life calculator, nuclear equation balancer, binding energy per nucleon, mass-energy equivalence (E=mc²), isotope database (23 common isotopes from H-3 to Cf-252).
+- **Quantum Chemistry Tools**: Quantum number validator (n, l, ml, ms), orbital visualization (s, p, d shapes), de Broglie wavelength, hydrogen energy levels, spectral series transitions (Lyman, Balmer, Paschen), Bohr model calculator.
 
 ## Technical Stack
 
@@ -72,17 +88,32 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 - Gas Laws Calculator: https://verchem.xyz/tools/gas-laws
 - Stoichiometry Calculator: https://verchem.xyz/tools/stoichiometry
 
-### Environmental Tools
-- Water Quality Calculator: https://verchem.xyz/tools/water-quality
-- Air Quality Calculator: https://verchem.xyz/tools/air-quality
-- Soil Quality Calculator: https://verchem.xyz/tools/soil-quality
+### Organic Chemistry
+- Organic Chemistry Hub: https://verchem.xyz/organic
+- Functional Groups Reference: https://verchem.xyz/organic/functional-groups
+- Named Reactions Database: https://verchem.xyz/organic/reactions
+- Reaction Predictor: https://verchem.xyz/organic/predict
+
+### Spectroscopy
+- Spectroscopy Hub: https://verchem.xyz/spectroscopy
+- IR Spectrum Interpreter: https://verchem.xyz/spectroscopy/ir
+- NMR Analyzer: https://verchem.xyz/spectroscopy/nmr
+- Mass Spec Analyzer: https://verchem.xyz/spectroscopy/mass-spec
+
+### Lab & Practical
+- Solution Preparation: https://verchem.xyz/tools/solution-prep
+- Lab Safety & SDS: https://verchem.xyz/tools/lab-safety
+
+### Advanced Chemistry
+- Nuclear Chemistry: https://verchem.xyz/tools/nuclear
+- Quantum Chemistry: https://verchem.xyz/tools/quantum
 
 ## FAQs
 
 ### General Questions
 
 **What is VerChem?**
-VerChem is a free, professional-grade chemistry platform offering 8 chemistry calculators, 3 environmental engineering tools, an interactive periodic table with all 118 elements (NIST/IUPAC certified), and a database of 1,000+ compounds. Built for students, chemists, and engineers.
+VerChem is a free, professional-grade chemistry education platform offering 8 chemistry calculators, an interactive periodic table with all 118 elements (NIST/IUPAC certified), 3D molecular viewer, and a database of 1,000+ compounds. Built for students, chemists, and educators.
 
 **Is VerChem free to use?**
 Yes! All VerChem features are completely free for AIVerID members. We follow a "Free First" strategy to make world-class chemistry tools accessible to everyone worldwide.
@@ -91,7 +122,7 @@ Yes! All VerChem features are completely free for AIVerID members. We follow a "
 VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. All 118 elements have certified atomic masses and properties updated to 2021 standards.
 
 **Who can use VerChem?**
-VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, environmental engineers, and anyone who needs chemistry calculations.
+VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, educators, and anyone who needs chemistry calculations.
 
 ### Calculator Questions
 
@@ -113,6 +144,17 @@ A limiting reagent is the reactant completely consumed first in a chemical react
 **How do I convert moles to grams?**
 Mass (g) = Moles x Molar Mass (g/mol). For 2 moles of water: 2 mol x 18.015 g/mol = 36.03 g.
 
+### Organic Chemistry Questions
+
+**What functional groups does VerChem cover?**
+VerChem covers 22 functional groups across 7 categories: hydrocarbons (alkane, alkene, alkyne, arene), oxygen-containing (alcohol, aldehyde, ketone, carboxylic acid, ester, ether, epoxide, phenol), nitrogen-containing (amine, amide, nitrile, imine, nitro), sulfur-containing (thiol), halogen-containing (alkyl halide, acyl halide), and carbonyl-derived (anhydride). Each includes structure, properties, spectroscopy data (IR, 1H NMR, 13C NMR), and common reactions.
+
+**What named reactions are in VerChem?**
+VerChem includes 40 named organic reactions at three difficulty levels: Introductory (SN1, SN2, E1, E2, Markovnikov/anti-Markovnikov addition, halogenation, hydrogenation, hydration, Fischer esterification, saponification, radical halogenation, dehydration, EAS, hydroboration-oxidation), Intermediate (Grignard, Aldol, Wittig, Diels-Alder, Claisen, Michael, Friedel-Crafts, Williamson, Jones/PCC/Swern oxidation, NaBH4/LiAlH4/Wolff-Kishner reduction), and Advanced (Suzuki, Heck, Sonogashira, Grubbs metathesis, Sharpless epoxidation, Beckmann, Baeyer-Villiger, Robinson annulation, Mannich, Sandmeyer).
+
+**How does the Reaction Predictor work?**
+Select a starting functional group and a reagent/condition. VerChem predicts the product based on known organic reaction rules. It shows the product functional group, mechanism type, explanation of what happens, and selectivity information (e.g., Markovnikov vs anti-Markovnikov).
+
 ### VerChem vs AI Comparison
 
 **What is the difference between VerChem and asking AI like ChatGPT for chemistry calculations?**
@@ -124,6 +166,39 @@ No, they serve complementary roles. AI chatbots may: 1) Calculate atomic masses 
 **Why does VerChem exist if AI can do chemistry?**
 AI is great at explaining concepts but unreliable for calculations. VerChem was built because: 1) Students need tools they can trust for exams, 2) Engineers need accurate calculations for real-world applications, 3) Thai environmental standards (PCD Type A/B/C) are not in most AI training data, 4) Consistency matters - same calculation should give same result every time. VerChem + AI together = best learning experience.
 
+### Spectroscopy Questions
+
+**How do I interpret an IR spectrum?**
+Enter the wavenumber of your IR absorption peak (in cm⁻¹) into VerChem's IR Spectrum Interpreter. It identifies the functional group based on 34 known IR absorptions. Key regions: O-H stretch (3200-3550 cm⁻¹), N-H stretch (3300-3500 cm⁻¹), C-H stretch (2850-3300 cm⁻¹), C=O stretch (1650-1800 cm⁻¹), C=C stretch (1600-1680 cm⁻¹). The tool includes a visual correlation chart and quick presets for common functional groups.
+
+**How do I use NMR chemical shifts?**
+Enter a chemical shift value in ppm into VerChem's NMR Analyzer. For ¹H NMR: TMS reference at 0 ppm, alkyl H (0.8-1.5 ppm), vinyl H (4.5-6.5 ppm), aromatic H (6.5-8.5 ppm), aldehyde H (9-10 ppm), carboxylic acid H (10-13 ppm). For ¹³C NMR: alkyl C (0-50 ppm), aromatic C (110-160 ppm), carbonyl C (170-220 ppm). Includes 7 common NMR solvent references (CDCl3, DMSO-d6, D2O, etc.).
+
+**What is the nitrogen rule in mass spectrometry?**
+The nitrogen rule states that molecules with an odd molecular weight contain an odd number of nitrogen atoms, and molecules with an even molecular weight contain zero or an even number of nitrogen atoms. VerChem's Mass Spec Analyzer includes a nitrogen rule checker, fragment loss identifier (26 common losses like -18 for H2O, -28 for CO), isotope pattern predictor for Cl/Br-containing compounds, and common ion reference.
+
+### Lab & Practical Questions
+
+**How do I prepare a dilution?**
+Use the dilution equation C₁V₁ = C₂V₂. VerChem's Solution Preparation Calculator solves for any unknown variable. Example: To dilute 1.0 M HCl to 0.1 M in 100 mL, you need V₁ = (0.1 M × 100 mL) / 1.0 M = 10 mL of stock solution, then add water to 100 mL. The calculator supports 11 concentration units (mol/L, g/L, mg/L, ppm, ppb, %w/v, %w/w, %v/v, normality, mmol/L, μg/L).
+
+**What do GHS pictograms mean?**
+GHS (Globally Harmonized System) uses 9 pictograms to classify chemical hazards: Flame (flammable), Oxidizer (may cause fire), Compressed Gas, Corrosion, Skull & Crossbones (acute toxicity), Exclamation Mark (irritant), Health Hazard (chronic), Environment (aquatic toxicity), Exploding Bomb. VerChem's Lab Safety tool includes all 9 with hazard classes, signal words, and example chemicals.
+
+**Which chemicals are incompatible for storage?**
+VerChem's Chemical Compatibility Checker covers 11 chemical groups: strong acids, strong bases, oxidizers, reducers, flammables, water-reactive, organic peroxides, compressed gases, toxic substances, corrosives, and pyrophorics. Key incompatibilities: strong acids + strong bases (violent reaction), oxidizers + flammables (fire/explosion), water-reactive + aqueous solutions (gas/heat generation).
+
+### Nuclear & Quantum Questions
+
+**How do I calculate radioactive decay?**
+Use N(t) = N₀ × (1/2)^(t/t½), where N₀ is the initial amount, t is time, and t½ is the half-life. VerChem's Nuclear Chemistry Calculator handles decay calculations, activity (A = λN), specific activity, and includes 23 common isotopes (H-3, C-14, I-131, Co-60, U-235, U-238, Pu-239, etc.) with their half-lives and decay types (alpha, beta⁻, beta⁺, gamma, electron capture).
+
+**What is binding energy per nucleon?**
+Binding energy per nucleon measures nuclear stability. It is calculated from the mass defect: BE = Δm × c². The most stable nuclei (Fe-56, Ni-62) have the highest BE/nucleon (~8.8 MeV). VerChem calculates binding energy for any nucleus given Z (protons) and A (mass number).
+
+**What are valid quantum numbers?**
+Four quantum numbers describe an electron: n (principal, 1,2,3...), l (angular, 0 to n-1), ml (magnetic, -l to +l), ms (spin, +½ or -½). VerChem's Quantum Number Validator checks all rules and shows the orbital name. Example: n=3, l=2, ml=-1, ms=+½ → valid (3d orbital). The tool also calculates de Broglie wavelength (λ = h/mv), hydrogen energy levels (En = -13.6/n² eV), and visualizes s, p, d orbital shapes.
+
 ### Periodic Table Questions
 
 **How many elements are in the periodic table?**
@@ -131,20 +206,6 @@ There are 118 confirmed elements. Elements 1-94 occur naturally (some like Techn
 
 **What are rare earth elements?**
 Rare earth elements include 17 elements: Scandium (Sc), Yttrium (Y), and the 15 Lanthanides (La-Lu). Despite the name, most are not rare but are difficult to separate from each other.
-
-### Environmental Engineering Questions
-
-**What is BOD and COD in water quality?**
-BOD (Biochemical Oxygen Demand) measures oxygen consumed by microorganisms decomposing organic matter over 5 days at 20C. COD (Chemical Oxygen Demand) measures total oxygen needed to chemically oxidize all organic matter. BOD/COD ratio indicates biodegradability.
-
-**What are Thai water quality standards?**
-Thai PCD standards: Type A (Industrial): BOD <=20, COD <=120, SS <=50 mg/L. Type B (Relaxed): BOD <=60, COD <=400, SS <=150 mg/L. Type C (Community): BOD <=40, COD <=200, SS <=70 mg/L.
-
-**What is AQI (Air Quality Index)?**
-AQI is a scale from 0-500 measuring air pollution. 0-50: Good, 51-100: Moderate, 101-150: Unhealthy for sensitive groups, 151-200: Unhealthy, 201-300: Very unhealthy, 301-500: Hazardous.
-
-**What is PM2.5?**
-PM2.5 refers to particulate matter with diameter <=2.5 micrometers. These fine particles can penetrate deep into lungs and bloodstream. WHO guideline: 24-hour mean <=15 ug/m3.
 
 ## Contact
 
@@ -158,6 +219,6 @@ PM2.5 refers to particulate matter with diameter <=2.5 micrometers. These fine p
 VerChem is part of the Ver* ecosystem (VerHoro, VerGolf, VerVote, etc.), built with World-Class Production (WCP) standards by Thai developer Jittapol Prukpatarakul. We believe chemistry education should be accessible, accurate, and free.
 
 ---
-*Last updated: January 2026*
-*Version: 2.0*
+*Last updated: February 2026*
+*Version: 3.0*
 *VerChem - Making Chemistry Accessible*
