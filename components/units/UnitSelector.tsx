@@ -10,7 +10,7 @@
 
 import React, { useState } from 'react';
 import { useUnits } from '@/lib/units';
-import type { UnitSystem, UnitCategory } from '@/lib/units';
+import type { UnitSystem, UnitCategory, ConversionCategory } from '@/lib/units';
 
 // ============================================================================
 // QUICK TOGGLE (SI/Imperial)
@@ -308,7 +308,7 @@ export function UnitValueDisplay({
   const displayValue =
     baseUnit === preferredUnit
       ? value
-      : convertValue(value, baseUnit, preferredUnit, category as any);
+      : convertValue(value, baseUnit, preferredUnit, category as ConversionCategory);
 
   const symbol = getUnitSymbol(preferredUnit, category);
 

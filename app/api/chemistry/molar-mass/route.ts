@@ -26,12 +26,28 @@ function parseMolarMass(formula: string): {
     return null;
   }
 
+  // Reject formulas with characters we can't handle correctly
+  if (/[()]/.test(cleanFormula)) {
+    return null; // Parenthesized formulas like Ca(OH)2 not supported by this simple API
+  }
+
+  // Validate formula only contains element symbols and digits
+  if (!/^([A-Z][a-z]?\d*)+$/.test(cleanFormula)) {
+    return null;
+  }
+
   // Parse formula using regex
   // Matches: Element symbol (1-2 letters, first uppercase) followed by optional number
   const regex = /([A-Z][a-z]?)(\d*)/g;
   const matches = [...cleanFormula.matchAll(regex)];
 
   if (matches.length === 0) {
+    return null;
+  }
+
+  // Verify the parsed tokens reconstruct the full formula
+  const reconstructed = matches.map(m => m[0]).join('');
+  if (reconstructed !== cleanFormula) {
     return null;
   }
 
@@ -106,7 +122,7 @@ export async function GET(request: NextRequest) {
       {
         error: 'Invalid formula or unknown element',
         formula,
-        hint: 'Use standard element symbols (e.g., H, He, Li, Na)',
+        hint: 'Use standard element symbols without parentheses (e.g., H2O, NaCl, H2SO4). Parenthesized formulas like Ca(OH)2 are not supported — use CaO2H2 instead.',
       },
       { status: 400 }
     );

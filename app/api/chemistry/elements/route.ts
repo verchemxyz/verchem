@@ -132,9 +132,10 @@ export async function GET(request: NextRequest) {
   // Filter by category
   let filteredElements = PERIODIC_TABLE;
   if (category) {
-    const categoryLower = category.toLowerCase().replace(/-/g, ' ');
+    const categoryLower = category.toLowerCase();
     filteredElements = PERIODIC_TABLE.filter(
-      (e) => e.category.toLowerCase() === categoryLower
+      (e) => e.category.toLowerCase() === categoryLower ||
+             e.category.toLowerCase().replace(/-/g, ' ') === categoryLower.replace(/-/g, ' ')
     );
 
     if (filteredElements.length === 0) {
@@ -150,7 +151,8 @@ export async function GET(request: NextRequest) {
   }
 
   // Apply limit
-  const maxLimit = limit ? Math.min(parseInt(limit, 10), 118) : 118;
+  const parsedLimit = limit ? parseInt(limit, 10) : 118;
+  const maxLimit = Number.isNaN(parsedLimit) ? 118 : Math.min(parsedLimit, 118);
 
   return NextResponse.json(
     {

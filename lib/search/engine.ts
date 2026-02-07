@@ -213,7 +213,7 @@ export class VerChemSearchEngine {
         difficulty: 'basic',
         educationalLevel: ['middle-school', 'high-school', 'college'],
         tags: ['molecular-weight', 'formula', 'composition', 'molar-mass'],
-        url: '/molecular-weight'
+        url: '/tools/molar-mass'
       },
       {
         id: 'gas-laws',
@@ -372,7 +372,7 @@ export class VerChemSearchEngine {
         content: 'Learn how to use VerChem platform for chemistry calculations and learning',
         category: 'tutorial',
         tags: ['beginner', 'tutorial', 'guide', 'introduction'],
-        url: '/help/getting-started'
+        url: '/tools'
       },
       {
         id: 'chemical-nomenclature',
@@ -380,7 +380,7 @@ export class VerChemSearchEngine {
         content: 'Complete guide to naming chemical compounds and writing formulas',
         category: 'reference',
         tags: ['nomenclature', 'naming', 'formulas', 'compounds', 'ionic', 'covalent'],
-        url: '/help/nomenclature'
+        url: '/organic/functional-groups'
       },
       {
         id: 'periodic-table-guide',
@@ -388,7 +388,7 @@ export class VerChemSearchEngine {
         content: 'Understanding periodic trends, groups, periods, and element properties',
         category: 'reference',
         tags: ['periodic-table', 'trends', 'groups', 'periods', 'elements'],
-        url: '/help/periodic-table'
+        url: '/periodic-table'
       },
       {
         id: 'stoichiometry-guide',
@@ -396,7 +396,7 @@ export class VerChemSearchEngine {
         content: 'Step-by-step guide to solving stoichiometry problems',
         category: 'tutorial',
         tags: ['stoichiometry', 'mole-conversions', 'limiting-reagents', 'yield'],
-        url: '/help/stoichiometry'
+        url: '/tools/stoichiometry'
       },
       {
         id: 'chemical-bonding',
@@ -404,7 +404,7 @@ export class VerChemSearchEngine {
         content: 'Understanding ionic, covalent, and metallic bonding',
         category: 'concept',
         tags: ['bonding', 'ionic', 'covalent', 'metallic', 'lewis-structures'],
-        url: '/help/bonding'
+        url: '/lewis'
       },
       {
         id: 'thermodynamics-basics',
@@ -412,7 +412,7 @@ export class VerChemSearchEngine {
         content: 'Introduction to enthalpy, entropy, and Gibbs free energy',
         category: 'concept',
         tags: ['thermodynamics', 'enthalpy', 'entropy', 'gibbs-free-energy', 'spontaneity'],
-        url: '/help/thermodynamics'
+        url: '/thermodynamics'
       },
       {
         id: 'acid-base-chemistry',
@@ -420,7 +420,7 @@ export class VerChemSearchEngine {
         content: 'Understanding pH, pKa, buffers, and acid-base reactions',
         category: 'concept',
         tags: ['acids', 'bases', 'ph', 'pka', 'buffers', 'neutralization'],
-        url: '/help/acid-base'
+        url: '/tools/ph-calculator'
       },
       {
         id: 'oxidation-reduction',
@@ -428,7 +428,7 @@ export class VerChemSearchEngine {
         content: 'Balancing redox reactions and understanding oxidation states',
         category: 'concept',
         tags: ['redox', 'oxidation', 'reduction', 'half-reactions', 'oxidation-states'],
-        url: '/help/redox'
+        url: '/electrochemistry'
       },
       {
         id: 'organic-chemistry-basics',
@@ -436,7 +436,7 @@ export class VerChemSearchEngine {
         content: 'Introduction to organic molecules, functional groups, and reactions',
         category: 'concept',
         tags: ['organic', 'functional-groups', 'hydrocarbons', 'isomers'],
-        url: '/help/organic'
+        url: '/organic'
       },
       {
         id: 'lab-safety',
@@ -444,7 +444,7 @@ export class VerChemSearchEngine {
         content: 'Essential safety rules and procedures for chemistry laboratories',
         category: 'safety',
         tags: ['safety', 'lab-procedures', 'hazards', 'ppe', 'emergency'],
-        url: '/help/safety'
+        url: '/tools/lab-safety'
       }
     ]
   }

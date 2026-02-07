@@ -8,7 +8,7 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import React, { createContext, useContext, useCallback, useMemo, useEffect, useState } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import type {
   UnitSystem,
   UnitPreferences,
@@ -204,49 +204,37 @@ interface UnitProviderProps {
 }
 
 export function UnitProvider({ children, initialPreferences }: UnitProviderProps) {
-  // Lazy initialization to avoid hydration mismatch
-  const [preferences, setPreferencesState] = useState<UnitPreferences>(() => ({
-    ...DEFAULT_SI_PREFERENCES,
-    ...initialPreferences,
-  }));
-
-  const [isHydrated, setIsHydrated] = useState(() => {
-    // Initialize to true if we're on the client
-    if (typeof window !== 'undefined') {
-      return true;
-    }
-    return false;
-  });
-
-  // Load from localStorage on mount (client-side only)
-  useEffect(() => {
-    // Use a microtask to defer setState after render
-    queueMicrotask(() => {
-      setIsHydrated(true);
-    });
+  // Lazy initialization: load from localStorage if available
+  const [preferences, setPreferencesState] = useState<UnitPreferences>(() => {
+    const base = { ...DEFAULT_SI_PREFERENCES, ...initialPreferences };
+    if (typeof window === 'undefined') return base;
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        setPreferencesState((prev) => ({
-          ...prev,
-          ...parsed,
-        }));
+        return { ...base, ...JSON.parse(stored) };
       }
     } catch {
       // Ignore storage errors
     }
+    return base;
+  });
+
+  const isHydratedRef = useRef(typeof window !== 'undefined');
+
+  // Mark hydrated after mount (for SSR case)
+  useEffect(() => {
+    isHydratedRef.current = true;
   }, []);
 
   // Save to localStorage when preferences change
   useEffect(() => {
-    if (!isHydrated) return;
+    if (!isHydratedRef.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
     } catch {
       // Ignore storage errors
     }
-  }, [preferences, isHydrated]);
+  }, [preferences]);
 
   // Set entire system (SI or Imperial)
   const setSystem = useCallback((system: UnitSystem) => {

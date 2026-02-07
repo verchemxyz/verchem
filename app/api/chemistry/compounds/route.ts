@@ -114,7 +114,8 @@ export async function GET(request: NextRequest) {
   }
 
   // Apply limit
-  const maxLimit = limit ? Math.min(parseInt(limit, 10), 100) : 50;
+  const parsedLimit = limit ? parseInt(limit, 10) : 50;
+  const maxLimit = Number.isNaN(parsedLimit) ? 50 : Math.min(parsedLimit, 100);
 
   // Get all categories
   const categories = [...new Set(COMMON_COMPOUNDS.map((c) => c.category))].sort();

@@ -304,7 +304,7 @@ const DENSITY_TO_KGM3: Record<DensityUnit, number> = {
   kgm3: 1,
   gcm3: 1000, // 1 g/cm³ = 1000 kg/m³
   gmL: 1000, // Same as g/cm³
-  kgL: 1, // 1 kg/L = 1000 kg/m³
+  kgL: 1000, // 1 kg/L = 1000 kg/m³
   lbft3: 16.01846337396, // NIST value
   lbgal: 119.8264273167, // US gallon
 };
