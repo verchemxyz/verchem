@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.html",
+    // Build artifacts and generated code
+    "ios/**",
+    "android/**",
+    "public/sw.js",
   ]),
   {
     rules: {

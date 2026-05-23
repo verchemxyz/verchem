@@ -17,52 +17,9 @@ import {
   deleteMolecule,
 } from '@/lib/supabase/molecules'
 
-const MAX_NAME_LEN = 200
-const MAX_NOTES_LEN = 2000
-const MAX_TAG_LEN = 50
-const MAX_TAGS_COUNT = 20
-
-function validateUpdateInput(body: Record<string, unknown>) {
-  const errors: string[] = []
-
-  if (body.name !== undefined) {
-    if (typeof body.name !== 'string' || body.name.trim().length === 0) {
-      errors.push('Name must be a non-empty string')
-    } else if (body.name.length > MAX_NAME_LEN) {
-      errors.push(`Name must be at most ${MAX_NAME_LEN} characters`)
-    }
-  }
-
-  if (body.notes !== undefined) {
-    if (typeof body.notes !== 'string') {
-      errors.push('Notes must be a string')
-    } else if (body.notes.length > MAX_NOTES_LEN) {
-      errors.push(`Notes must be at most ${MAX_NOTES_LEN} characters`)
-    }
-  }
-
-  if (body.tags !== undefined) {
-    if (!Array.isArray(body.tags)) {
-      errors.push('Tags must be an array')
-    } else {
-      if (body.tags.length > MAX_TAGS_COUNT) {
-        errors.push(`At most ${MAX_TAGS_COUNT} tags allowed`)
-      }
-      for (const tag of body.tags) {
-        if (typeof tag !== 'string' || tag.length > MAX_TAG_LEN) {
-          errors.push(`Each tag must be a string of at most ${MAX_TAG_LEN} characters`)
-          break
-        }
-      }
-    }
-  }
-
-  if (body.is_public !== undefined && typeof body.is_public !== 'boolean') {
-    errors.push('is_public must be a boolean')
-  }
-
-  return errors
-}
+import {
+  validateUpdateMoleculeInput,
+} from '@/lib/molecule/validation'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -126,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Body must be a JSON object' }, { status: 400 })
     }
 
-    const errors = validateUpdateInput(body as Record<string, unknown>)
+    const errors = validateUpdateMoleculeInput(body as Record<string, unknown>)
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join('. ') }, { status: 400 })
     }

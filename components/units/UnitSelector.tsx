@@ -10,7 +10,7 @@
 
 import React, { useState } from 'react';
 import { useUnits } from '@/lib/units';
-import type { UnitSystem, UnitCategory, ConversionCategory } from '@/lib/units';
+import type { UnitCategory, ConversionCategory } from '@/lib/units';
 
 // ============================================================================
 // QUICK TOGGLE (SI/Imperial)
@@ -202,7 +202,7 @@ interface UnitPreferencesPanelProps {
 }
 
 export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitPreferencesPanelProps) {
-  const { system, setSystem, resetToDefaults } = useUnits();
+  const { system, setSystem: _setSystem, resetToDefaults } = useUnits();
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (

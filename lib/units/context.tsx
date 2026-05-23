@@ -12,17 +12,6 @@ import React, { createContext, useContext, useCallback, useMemo, useEffect, useS
 import type {
   UnitSystem,
   UnitPreferences,
-  TemperatureUnit,
-  PressureUnit,
-  VolumeUnit,
-  MassUnit,
-  LengthUnit,
-  EnergyUnit,
-  AmountUnit,
-  ConcentrationUnit,
-  DensityUnit,
-  TimeUnit,
-  FlowRateUnit,
   UnitCategory,
 } from './types';
 import {
@@ -31,8 +20,6 @@ import {
 } from './types';
 import {
   convert,
-  convertTemperature,
-  formatValue,
   formatWithUnit,
   type ConversionCategory,
 } from './conversions';

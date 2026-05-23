@@ -14,7 +14,7 @@ import {
   XCircle,
   Info,
   Flame,
-  Skull,
+
   Droplets,
   Wind,
   Eye,
@@ -36,7 +36,7 @@ import {
   getPStatementCategoryLabel,
 } from '@/lib/data/lab-safety'
 import type {
-  GHSPictogram,
+
   EmergencyProcedure,
   SafetyRule,
   HStatement,
