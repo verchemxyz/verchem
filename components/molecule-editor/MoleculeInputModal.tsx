@@ -116,8 +116,7 @@ export default function MoleculeInputModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="draw-modal-title"
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col animate-in fade-in zoom-in duration-200"
-        style={{ height: '80vh' }}
+        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col animate-in fade-in zoom-in duration-200 h-[80vh] max-h-[calc(100vh-2rem)] min-h-[400px]"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">

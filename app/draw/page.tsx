@@ -40,6 +40,34 @@ export default function DrawPage() {
     setSmiles(newSmiles);
   }, []);
 
+  // Keyboard shortcut: Cmd/Ctrl+S → open save modal
+  const handleSaveClick = useCallback(async () => {
+    try {
+      const res = await fetch('/api/session');
+      if (!res.ok) {
+        router.push('/draw?login_required=1');
+        return;
+      }
+    } catch {
+      router.push('/draw?login_required=1');
+      return;
+    }
+    setSaveError(null);
+    setSaveModalKey((k) => k + 1);
+    setIsSaveModalOpen(true);
+  }, [router]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveClick();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleSaveClick]);
+
   // Preload structure from URL params (?smiles= or ?mol_id=)
   useEffect(() => {
     if (!ketcher) return;
@@ -134,23 +162,6 @@ export default function DrawPage() {
     downloadSvg(text, 'structure.svg');
   };
 
-  const handleSaveClick = async () => {
-    // Check session before opening modal
-    try {
-      const res = await fetch('/api/session');
-      if (!res.ok) {
-        router.push('/draw?login_required=1');
-        return;
-      }
-    } catch {
-      router.push('/draw?login_required=1');
-      return;
-    }
-    setSaveError(null);
-    setSaveModalKey((k) => k + 1);
-    setIsSaveModalOpen(true);
-  };
-
   const handleSave = async (data: SaveMoleculeData) => {
     if (!ketcher) return;
     setSaveLoading(true);
@@ -200,8 +211,6 @@ export default function DrawPage() {
       }
 
       setIsSaveModalOpen(false);
-      // Optionally show a toast here — using simple alert for Day 3-4
-      // Day 6 will add proper toast/i18n
       alert('Molecule saved to library!');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to save molecule';
@@ -222,62 +231,74 @@ export default function DrawPage() {
           <button
             onClick={handleExportSmiles}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Export as SMILES"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             SMILES
           </button>
           <button
             onClick={handleExportMol}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Export as MOL v2000"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             MOL v2000
           </button>
           <button
             onClick={handleExportInchi}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Export as InChI"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             InChI
           </button>
           <button
             onClick={handleExportPng}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Export as PNG image"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             PNG
           </button>
           <button
             onClick={handleExportSvg}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Export as SVG image"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             SVG
           </button>
           <button
             onClick={handleSaveClick}
             disabled={!ketcher}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            aria-label="Save structure to library (Ctrl+S)"
+            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Save to Library
           </button>
         </div>
 
-        <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
           {isLoadingShared && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
               <div className="w-10 h-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
             </div>
           )}
-          <KetcherEditor
-            height={600}
-            onInit={handleInit}
-            onChange={handleChange}
-          />
+          <div className="h-[calc(100vh-280px)] min-h-[400px] sm:h-[600px]">
+            <KetcherEditor
+              height="100%"
+              onInit={handleInit}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         {shareError && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3"
+          >
             <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

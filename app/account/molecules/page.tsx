@@ -206,7 +206,7 @@ export default function MoleculesPage() {
                   Saved on {formatDate(mol.created_at)}
                 </p>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Link
                     href={`/draw?mol_id=${mol.id}`}
                     className="flex-1 text-center px-3 py-2 text-sm font-medium rounded-lg bg-cyan-600/20 text-cyan-400 hover:bg-cyan-600/30 transition-colors"
@@ -216,6 +216,7 @@ export default function MoleculesPage() {
                   <button
                     onClick={() => handleDelete(mol.id)}
                     disabled={deletingId === mol.id}
+                    aria-label={`Delete ${mol.name}`}
                     className="px-3 py-2 text-sm font-medium rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 disabled:opacity-50 transition-colors"
                   >
                     {deletingId === mol.id ? '...' : 'Delete'}
