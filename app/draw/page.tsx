@@ -59,14 +59,25 @@ export default function DrawPage() {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault();
-        handleSaveClick();
+      if (!((e.metaKey || e.ctrlKey) && e.key === 's')) return;
+
+      // Skip if save modal already open — avoid remount that wipes typed state
+      if (isSaveModalOpen) return;
+
+      // Skip when user is typing in a form field or content-editable region
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName?.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        if (target.isContentEditable) return;
       }
+
+      e.preventDefault();
+      handleSaveClick();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [handleSaveClick]);
+  }, [handleSaveClick, isSaveModalOpen]);
 
   // Preload structure from URL params (?smiles= or ?mol_id=)
   useEffect(() => {
