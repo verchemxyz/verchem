@@ -56,3 +56,6 @@ SESSION_SUMMARY*.md
 # Capacitor mobile (regenerable via cap sync)
 /android
 /ios
+
+# RDKit WASM (regenerable via npm postinstall — 6.6 MB)
+/public/rdkit/

@@ -1,6 +1,9 @@
 import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Turbopack config (silences webpack/turbopack mismatch warning in Next.js 16)
+  turbopack: {},
+
   // Compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
@@ -95,6 +98,25 @@ const nextConfig: NextConfig = {
         ],
       },
     ]
+  },
+
+  // WebAssembly support for RDKit
+  webpack(config, { isServer }) {
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    };
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+
+    return config;
   },
 
   // Experimental features for better performance
