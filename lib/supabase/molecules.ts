@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * Molecule CRUD Helpers — Server-only
  *
@@ -76,7 +78,7 @@ export async function createMolecule(input: CreateMoleculeInput): Promise<Molecu
 
   if (error) {
     console.error('createMolecule error:', error)
-    throw new Error(`Failed to create molecule: ${error.message}`)
+    throw new Error('Database error while creating molecule')
   }
 
   return data as Molecule
@@ -93,7 +95,7 @@ export async function listMoleculesByUser(aiverid_id: string): Promise<Molecule[
 
   if (error) {
     console.error('listMoleculesByUser error:', error)
-    throw new Error(`Failed to list molecules: ${error.message}`)
+    throw new Error('Database error while listing molecules')
   }
 
   return (data ?? []) as Molecule[]
@@ -111,7 +113,7 @@ export async function getMoleculeById(id: string): Promise<Molecule | null> {
   if (error) {
     if (error.code === 'PGRST116') return null // no rows
     console.error('getMoleculeById error:', error)
-    throw new Error(`Failed to get molecule: ${error.message}`)
+    throw new Error('Database error while fetching molecule')
   }
 
   return data as Molecule
@@ -133,7 +135,7 @@ export async function getMoleculeForUser(
   if (error) {
     if (error.code === 'PGRST116') return null
     console.error('getMoleculeForUser error:', error)
-    throw new Error(`Failed to get molecule: ${error.message}`)
+    throw new Error('Database error while fetching molecule')
   }
 
   return data as Molecule
@@ -165,7 +167,7 @@ export async function updateMolecule(
 
   if (error) {
     console.error('updateMolecule error:', error)
-    throw new Error(`Failed to update molecule: ${error.message}`)
+    throw new Error('Database error while updating molecule')
   }
 
   return data as Molecule
@@ -186,7 +188,7 @@ export async function deleteMolecule(id: string, aiverid_id: string): Promise<bo
 
   if (error) {
     console.error('deleteMolecule error:', error)
-    throw new Error(`Failed to delete molecule: ${error.message}`)
+    throw new Error('Database error while deleting molecule')
   }
 
   return true

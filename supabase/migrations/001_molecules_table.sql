@@ -23,6 +23,14 @@ CREATE INDEX IF NOT EXISTS idx_molecules_created_at ON molecules(created_at DESC
 
 ALTER TABLE molecules ENABLE ROW LEVEL SECURITY;
 
+-- Defense in depth: explicit privilege grants
+REVOKE ALL ON TABLE molecules FROM anon, authenticated;
+GRANT ALL ON TABLE molecules TO service_role;
+
+-- Idempotent policy/trigger cleanup for re-applies
+DROP POLICY IF EXISTS "Service role full access to molecules" ON molecules;
+DROP TRIGGER IF EXISTS molecules_updated_at_trigger ON molecules;
+
 -- App-level access via API routes (service role). User scoping enforced in app code.
 CREATE POLICY "Service role full access to molecules"
 ON molecules FOR ALL

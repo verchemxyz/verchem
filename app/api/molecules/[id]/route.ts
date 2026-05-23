@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
+import { isValidOrigin } from '@/lib/auth/origin-check'
 import {
   getMoleculeForUser,
   updateMolecule,
@@ -31,20 +32,26 @@ function validateUpdateInput(body: Record<string, unknown>) {
     }
   }
 
-  if (body.notes !== undefined && typeof body.notes === 'string') {
-    if (body.notes.length > MAX_NOTES_LEN) {
+  if (body.notes !== undefined) {
+    if (typeof body.notes !== 'string') {
+      errors.push('Notes must be a string')
+    } else if (body.notes.length > MAX_NOTES_LEN) {
       errors.push(`Notes must be at most ${MAX_NOTES_LEN} characters`)
     }
   }
 
-  if (body.tags !== undefined && Array.isArray(body.tags)) {
-    if (body.tags.length > MAX_TAGS_COUNT) {
-      errors.push(`At most ${MAX_TAGS_COUNT} tags allowed`)
-    }
-    for (const tag of body.tags) {
-      if (typeof tag !== 'string' || tag.length > MAX_TAG_LEN) {
-        errors.push(`Each tag must be at most ${MAX_TAG_LEN} characters`)
-        break
+  if (body.tags !== undefined) {
+    if (!Array.isArray(body.tags)) {
+      errors.push('Tags must be an array')
+    } else {
+      if (body.tags.length > MAX_TAGS_COUNT) {
+        errors.push(`At most ${MAX_TAGS_COUNT} tags allowed`)
+      }
+      for (const tag of body.tags) {
+        if (typeof tag !== 'string' || tag.length > MAX_TAG_LEN) {
+          errors.push(`Each tag must be a string of at most ${MAX_TAG_LEN} characters`)
+          break
+        }
       }
     }
   }
@@ -77,13 +84,16 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(molecule)
   } catch (err: unknown) {
     console.error('GET /api/molecules/[id] error:', err)
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    if (!isValidOrigin(request)) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+    }
+
     const session = await verifySession()
     if (!session?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -91,27 +101,32 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params
 
-    let body: Record<string, unknown>
+    let body: unknown
     try {
       body = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const errors = validateUpdateInput(body)
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Body must be a JSON object' }, { status: 400 })
+    }
+
+    const errors = validateUpdateInput(body as Record<string, unknown>)
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join('. ') }, { status: 400 })
     }
 
+    const record = body as Record<string, unknown>
     const input: { name?: string; tags?: string[]; notes?: string; is_public?: boolean } = {}
-    if (body.name !== undefined) input.name = (body.name as string).trim()
-    if (body.notes !== undefined) input.notes = (body.notes as string).trim()
-    if (body.tags !== undefined) {
-      input.tags = (body.tags as unknown[])
+    if (record.name !== undefined) input.name = (record.name as string).trim()
+    if (record.notes !== undefined) input.notes = (record.notes as string).trim()
+    if (record.tags !== undefined) {
+      input.tags = (record.tags as unknown[])
         .filter((t): t is string => typeof t === 'string')
         .map((t) => t.trim())
     }
-    if (body.is_public !== undefined) input.is_public = body.is_public as boolean
+    if (record.is_public !== undefined) input.is_public = record.is_public as boolean
 
     const updated = await updateMolecule(id, session.userId, input)
 
@@ -122,13 +137,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(updated)
   } catch (err: unknown) {
     console.error('PATCH /api/molecules/[id] error:', err)
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    if (!isValidOrigin(request)) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+    }
+
     const session = await verifySession()
     if (!session?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -144,7 +162,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     console.error('DELETE /api/molecules/[id] error:', err)
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
+import { isValidOrigin } from '@/lib/auth/origin-check'
 import {
   createMolecule,
   listMoleculesByUser,
@@ -36,38 +37,50 @@ function validateCreateInput(body: Record<string, unknown>) {
     errors.push(`SMILES must be at most ${MAX_SMILES_LEN} characters`)
   }
 
-  if (body.mol_block !== undefined && typeof body.mol_block === 'string') {
-    if (body.mol_block.length > MAX_MOL_BLOCK_LEN) {
+  if (body.mol_block !== undefined) {
+    if (typeof body.mol_block !== 'string') {
+      errors.push('MOL block must be a string')
+    } else if (body.mol_block.length > MAX_MOL_BLOCK_LEN) {
       errors.push(`MOL block must be at most ${MAX_MOL_BLOCK_LEN} characters`)
     }
   }
 
-  if (body.inchi !== undefined && typeof body.inchi === 'string') {
-    if (body.inchi.length > MAX_SMILES_LEN) {
+  if (body.inchi !== undefined) {
+    if (typeof body.inchi !== 'string') {
+      errors.push('InChI must be a string')
+    } else if (body.inchi.length > MAX_SMILES_LEN) {
       errors.push(`InChI must be at most ${MAX_SMILES_LEN} characters`)
     }
   }
 
-  if (body.inchi_key !== undefined && typeof body.inchi_key === 'string') {
-    if (body.inchi_key.length > 50) {
+  if (body.inchi_key !== undefined) {
+    if (typeof body.inchi_key !== 'string') {
+      errors.push('InChIKey must be a string')
+    } else if (body.inchi_key.length > 50) {
       errors.push('InChIKey must be at most 50 characters')
     }
   }
 
-  if (body.notes !== undefined && typeof body.notes === 'string') {
-    if (body.notes.length > MAX_NOTES_LEN) {
+  if (body.notes !== undefined) {
+    if (typeof body.notes !== 'string') {
+      errors.push('Notes must be a string')
+    } else if (body.notes.length > MAX_NOTES_LEN) {
       errors.push(`Notes must be at most ${MAX_NOTES_LEN} characters`)
     }
   }
 
-  if (body.tags !== undefined && Array.isArray(body.tags)) {
-    if (body.tags.length > MAX_TAGS_COUNT) {
-      errors.push(`At most ${MAX_TAGS_COUNT} tags allowed`)
-    }
-    for (const tag of body.tags) {
-      if (typeof tag !== 'string' || tag.length > MAX_TAG_LEN) {
-        errors.push(`Each tag must be at most ${MAX_TAG_LEN} characters`)
-        break
+  if (body.tags !== undefined) {
+    if (!Array.isArray(body.tags)) {
+      errors.push('Tags must be an array')
+    } else {
+      if (body.tags.length > MAX_TAGS_COUNT) {
+        errors.push(`At most ${MAX_TAGS_COUNT} tags allowed`)
+      }
+      for (const tag of body.tags) {
+        if (typeof tag !== 'string' || tag.length > MAX_TAG_LEN) {
+          errors.push(`Each tag must be a string of at most ${MAX_TAG_LEN} characters`)
+          break
+        }
       }
     }
   }
@@ -81,42 +94,50 @@ function validateCreateInput(body: Record<string, unknown>) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!isValidOrigin(request)) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+    }
+
     const session = await verifySession()
     if (!session?.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let body: Record<string, unknown>
+    let body: unknown
     try {
       body = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const errors = validateCreateInput(body)
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Body must be a JSON object' }, { status: 400 })
+    }
+
+    const errors = validateCreateInput(body as Record<string, unknown>)
     if (errors.length > 0) {
       return NextResponse.json({ error: errors.join('. ') }, { status: 400 })
     }
 
+    const record = body as Record<string, unknown>
     const molecule = await createMolecule({
       aiverid_id: session.userId,
-      name: (body.name as string).trim(),
-      smiles: (body.smiles as string).trim(),
-      mol_block: typeof body.mol_block === 'string' ? body.mol_block : undefined,
-      inchi: typeof body.inchi === 'string' ? body.inchi : undefined,
-      inchi_key: typeof body.inchi_key === 'string' ? body.inchi_key : undefined,
-      tags: Array.isArray(body.tags)
-        ? body.tags.filter((t): t is string => typeof t === 'string').map((t) => t.trim())
+      name: (record.name as string).trim(),
+      smiles: (record.smiles as string).trim(),
+      mol_block: typeof record.mol_block === 'string' ? record.mol_block : undefined,
+      inchi: typeof record.inchi === 'string' ? record.inchi : undefined,
+      inchi_key: typeof record.inchi_key === 'string' ? record.inchi_key : undefined,
+      tags: Array.isArray(record.tags)
+        ? record.tags.filter((t): t is string => typeof t === 'string').map((t) => t.trim())
         : undefined,
-      notes: typeof body.notes === 'string' ? body.notes.trim() : undefined,
-      is_public: typeof body.is_public === 'boolean' ? body.is_public : false,
+      notes: typeof record.notes === 'string' ? record.notes.trim() : undefined,
+      is_public: typeof record.is_public === 'boolean' ? record.is_public : false,
     })
 
     return NextResponse.json(molecule, { status: 201 })
   } catch (err: unknown) {
     console.error('POST /api/molecules error:', err)
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -131,7 +152,6 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(molecules)
   } catch (err: unknown) {
     console.error('GET /api/molecules error:', err)
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
