@@ -247,7 +247,7 @@ export default function CompoundsPage() {
             <h3 className="text-xl font-semibold mb-2">Diverse Categories</h3>
             <p className="text-gray-600">
               Organic compounds, inorganic compounds, biochemicals, pharmaceuticals, 
-              industrial chemicals, environmental compounds, and materials science.
+              industrial chemicals, polymers, and materials science.
             </p>
           </div>
           

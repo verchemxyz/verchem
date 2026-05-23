@@ -85,7 +85,7 @@ function formatCategory(category: CompoundCategory): string {
     'superconductor': 'Superconductor',
     'natural-product': 'Natural Product',
     'solvent': 'Solvent',
-    'water-treatment': 'Water Treatment Chemical',
+    'water-treatment': 'Industrial Chemical',
     'metal': 'Metal',
     'alloy': 'Alloy',
     'ceramic': 'Ceramic',

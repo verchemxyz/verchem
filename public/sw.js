@@ -29,13 +29,10 @@ const CACHE_ON_VISIT = [
   '/tools/ph-calculator',
   '/tools/gas-laws',
   '/tools/molar-mass',
-  '/tools/wastewater-treatment',
-  '/tools/water-quality',
-  '/tools/air-quality',
-  '/tools/soil-quality',
-  '/tools/asm1-simulator',
-  '/tools/asm2d-simulator',
-  '/tools/adm1-simulator',
+  '/tools/solution-prep',
+  '/tools/lab-safety',
+  '/tools/nuclear',
+  '/tools/quantum',
 ];
 
 // Install event - cache static assets

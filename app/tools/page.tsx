@@ -168,7 +168,7 @@ export default function ToolsPage() {
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-3 text-foreground">All Tools</h2>
           <p className="text-secondary-600 max-w-2xl mx-auto">
-            Professional tools for chemistry and environmental engineering. All free, all world-class quality.
+            Professional tools for chemistry education. All free, all world-class quality.
           </p>
         </section>
 

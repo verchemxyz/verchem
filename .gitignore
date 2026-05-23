@@ -52,3 +52,7 @@ VERCHEM_GEMINI_LOG.md
 AGENTS.md
 SESSION_SUMMARY*.md
 .ai-memory/
+
+# Capacitor mobile (regenerable via cap sync)
+/android
+/ios
