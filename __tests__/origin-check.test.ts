@@ -1,13 +1,15 @@
 /**
  * Origin/Referer validation tests
  *
- * Note: We inline the function here to avoid the `server-only` import
- * which is unavailable in the standalone Node test runner.
+ * Note: This file inlines a 1:1 copy of `isValidOrigin` from
+ * `lib/auth/origin-check.ts`. The lib uses `import 'server-only'`
+ * which throws when imported from the standalone Node test runner.
+ * Keep these implementations in sync — when changing one, change both.
  */
 
 import assert from 'node:assert/strict'
 
-// --- Inline function under test ---
+// --- Inline function under test (mirror of lib/auth/origin-check.ts) ---
 
 function isValidOrigin(
   request: {
@@ -17,12 +19,10 @@ function isValidOrigin(
 ): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
-  const host = request.headers.get('host')
 
-  if (!host) return false
-
-  const protocol = request.headers.get('x-forwarded-proto') ?? 'https'
-  const expectedOrigin = `${protocol}://${host}`
+  // Mirror current lib implementation: use Next's parsed URL origin
+  // (handles HTTPS proxy + local HTTP dev correctly without manual proto)
+  const expectedOrigin = request.nextUrl.origin
 
   if (origin) return origin === expectedOrigin
   if (referer) {
