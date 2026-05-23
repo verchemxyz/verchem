@@ -5,6 +5,7 @@
  *   - Module exports exist and have correct types
  *   - Operation logic patterns (canonicalization, validation, descriptors, fingerprints)
  *   - Memory cleanup (mol.delete() in try/finally)
+ *   - Formula computation from get_json() atom data
  *   - Hook initial state shape
  *   - Pure functions (tanimotoSimilarity)
  *
@@ -81,8 +82,9 @@ interface MockMol {
   get_smiles: () => string
   get_descriptors: () => string
   get_inchi: () => string
-  get_morgan_fp_as_binary_text: (radius: number, len: number) => string
-  get_pattern_fp_as_binary_text: (len: number) => string
+  get_json: () => string
+  get_morgan_fp: (options: string) => string
+  get_pattern_fp: (options: string) => string
   get_substruct_match: (q: MockMol) => string
   delete: () => void
 }
@@ -91,6 +93,13 @@ interface MockRDKitOverrides {
   get_mol?: (smiles: string) => MockMol | null
   get_qmol?: (smarts: string) => MockMol | null
   get_inchikey_for_inchi?: (inchi: string) => string
+}
+
+/** Build a get_json() response for a list of (z, impHs) tuples. */
+function makeMolJson(atoms: Array<{ z: number; impHs: number }>): string {
+  return JSON.stringify({
+    molecules: [{ atoms }],
+  })
 }
 
 function createMockRDKit(overrides: MockRDKitOverrides = {}): RDKitModule {
@@ -115,8 +124,21 @@ function createMockRDKit(overrides: MockRDKitOverrides = {}): RDKitModule {
         CrippenClogP: -0.14,
       }),
       get_inchi: () => 'InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3',
-      get_morgan_fp_as_binary_text: (_radius: number, len: number) => '0'.repeat(len),
-      get_pattern_fp_as_binary_text: (len: number) => '0'.repeat(len),
+      get_json: () => makeMolJson([
+        { z: 6, impHs: 3 },
+        { z: 6, impHs: 2 },
+        { z: 8, impHs: 1 },
+      ]),
+      get_morgan_fp: (options: string) => {
+        const opts = JSON.parse(options) as { nBits?: number }
+        const len = opts.nBits ?? 2048
+        return '0'.repeat(len)
+      },
+      get_pattern_fp: (options: string) => {
+        const opts = JSON.parse(options) as { nBits?: number }
+        const len = opts.nBits ?? 2048
+        return '0'.repeat(len)
+      },
       get_substruct_match: (_q: MockMol) => JSON.stringify({ atoms: [], bonds: [] }),
       delete: () => {
         deletedMols.push(smiles)
@@ -132,8 +154,9 @@ function createMockRDKit(overrides: MockRDKitOverrides = {}): RDKitModule {
       get_smiles: () => smarts,
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => {
         deletedMols.push(`q:${smarts}`)
@@ -152,6 +175,62 @@ function createMockRDKit(overrides: MockRDKitOverrides = {}): RDKitModule {
     },
     get_inchikey_for_inchi: overrides.get_inchikey_for_inchi || ((inchi: string) => `KEY-${inchi.slice(-6)}`),
   } as unknown as RDKitModule
+}
+
+// ---- Formula computation helpers (duplicated from operations.ts for mock tests) ----
+
+function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
+  try {
+    const parsed = JSON.parse(mol.get_json()) as {
+      molecules?: Array<{ atoms?: Array<{ z?: number; impHs?: number }> }>
+    }
+    const atoms = parsed?.molecules?.[0]?.atoms ?? []
+    if (!Array.isArray(atoms) || atoms.length === 0) return ''
+
+    const counts: Record<string, number> = {}
+    let totalH = 0
+
+    for (const atom of atoms) {
+      const z = typeof atom.z === 'number' ? atom.z : 6
+      const impHs = typeof atom.impHs === 'number' ? atom.impHs : 0
+      const symbol = ATOMIC_NUMBER_TO_SYMBOL[z]
+      if (!symbol) continue
+      counts[symbol] = (counts[symbol] ?? 0) + 1
+      totalH += impHs
+    }
+
+    if (totalH > 0) {
+      counts['H'] = (counts['H'] ?? 0) + totalH
+    }
+
+    return formatHillSystem(counts)
+  } catch {
+    return ''
+  }
+}
+
+function formatHillSystem(counts: Record<string, number>): string {
+  const parts: string[] = []
+  if (counts.C > 0) {
+    parts.push(`C${counts.C > 1 ? counts.C : ''}`)
+  }
+  if (counts.H > 0) {
+    parts.push(`H${counts.H > 1 ? counts.H : ''}`)
+  }
+  const rest = Object.keys(counts)
+    .filter((s) => s !== 'C' && s !== 'H' && counts[s] > 0)
+    .sort()
+  for (const symbol of rest) {
+    parts.push(`${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`)
+  }
+  return parts.join('')
+}
+
+const ATOMIC_NUMBER_TO_SYMBOL: Record<number, string> = {
+  1: 'H', 3: 'Li', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F',
+  11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl',
+  19: 'K', 20: 'Ca', 26: 'Fe', 29: 'Cu', 30: 'Zn', 35: 'Br', 53: 'I',
+  79: 'Au', 80: 'Hg',
 }
 
 // ---- Async operation replicas with injected mock (same logic as operations.ts) ----
@@ -217,7 +296,7 @@ async function mockGetDescriptors(
     return {
       molWeight: d.amw ?? 0,
       exactMass: d.exactmw ?? 0,
-      formula: 'C2H6O',
+      formula: computeFormulaFromMolJson(mol),
       logP: d.CrippenClogP ?? 0,
       tpsa: d.tpsa ?? 0,
       hbd: d.NumHBD ?? 0,
@@ -227,6 +306,21 @@ async function mockGetDescriptors(
       ringCount: d.NumRings ?? 0,
       aromaticRingCount: d.NumAromaticRings ?? 0,
     }
+  } finally {
+    mol?.delete()
+  }
+}
+
+async function mockSmilesToFormula(
+  rdkit: RDKitModule,
+  smiles: string
+): Promise<string | null> {
+  if (!smiles || smiles.trim().length === 0) return null
+  let mol: ReturnType<typeof rdkit.get_mol> | null = null
+  try {
+    mol = rdkit.get_mol(smiles)
+    if (!mol || !mol.is_valid()) return null
+    return computeFormulaFromMolJson(mol)
   } finally {
     mol?.delete()
   }
@@ -260,7 +354,9 @@ async function mockGetMorganFingerprint(
   try {
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
-    return mol.get_morgan_fp_as_binary_text(radius, length)
+    const result = mol.get_morgan_fp(JSON.stringify({ radius, nBits: length }))
+    if (typeof result !== 'string' || result.length !== length) return null
+    return result
   } finally {
     mol?.delete()
   }
@@ -276,7 +372,9 @@ async function mockGetPatternFingerprint(
   try {
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
-    return mol.get_pattern_fp_as_binary_text(length)
+    const result = mol.get_pattern_fp(JSON.stringify({ nBits: length }))
+    if (typeof result !== 'string' || result.length !== length) return null
+    return result
   } finally {
     mol?.delete()
   }
@@ -506,11 +604,105 @@ test('getDescriptors: returns null for empty string', async () => {
 
 // --- smilesToFormula ---
 
-test('smilesToFormula: returns formula for valid SMILES', async () => {
+test('smilesToFormula: ethanol CCO → C2H6O', async () => {
   const rdkit = createMockRDKit()
-  const result = await mockGetDescriptors(rdkit, 'CCO')
-  assert.ok(result)
-  assert.equal(result!.formula, 'C2H6O')
+  const result = await mockSmilesToFormula(rdkit, 'CCO')
+  assert.equal(result, 'C2H6O')
+})
+
+test('smilesToFormula: benzene c1ccccc1 → C6H6', async () => {
+  const rdkit = createMockRDKit({
+    get_mol: () => ({
+      is_valid: () => true,
+      get_smiles: () => 'c1ccccc1',
+      get_descriptors: () => '{}',
+      get_inchi: () => '',
+      get_json: () => makeMolJson([
+        { z: 6, impHs: 1 }, { z: 6, impHs: 1 }, { z: 6, impHs: 1 },
+        { z: 6, impHs: 1 }, { z: 6, impHs: 1 }, { z: 6, impHs: 1 },
+      ]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
+      get_substruct_match: () => '{}',
+      delete: () => {},
+    }),
+  })
+  const result = await mockSmilesToFormula(rdkit, 'c1ccccc1')
+  assert.equal(result, 'C6H6')
+})
+
+test('smilesToFormula: acetic acid CC(=O)O → C2H4O2', async () => {
+  const rdkit = createMockRDKit({
+    get_mol: () => ({
+      is_valid: () => true,
+      get_smiles: () => 'CC(=O)O',
+      get_descriptors: () => '{}',
+      get_inchi: () => '',
+      get_json: () => makeMolJson([
+        { z: 6, impHs: 3 },
+        { z: 6, impHs: 0 },
+        { z: 8, impHs: 0 },
+        { z: 8, impHs: 1 },
+      ]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
+      get_substruct_match: () => '{}',
+      delete: () => {},
+    }),
+  })
+  const result = await mockSmilesToFormula(rdkit, 'CC(=O)O')
+  assert.equal(result, 'C2H4O2')
+})
+
+test('smilesToFormula: pyrrole [nH]1cccc1 → C4H5N', async () => {
+  const rdkit = createMockRDKit({
+    get_mol: () => ({
+      is_valid: () => true,
+      get_smiles: () => '[nH]1cccc1',
+      get_descriptors: () => '{}',
+      get_inchi: () => '',
+      get_json: () => makeMolJson([
+        { z: 7, impHs: 1 },
+        { z: 6, impHs: 1 },
+        { z: 6, impHs: 1 },
+        { z: 6, impHs: 1 },
+        { z: 6, impHs: 1 },
+      ]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
+      get_substruct_match: () => '{}',
+      delete: () => {},
+    }),
+  })
+  const result = await mockSmilesToFormula(rdkit, '[nH]1cccc1')
+  assert.equal(result, 'C4H5N')
+})
+
+test('smilesToFormula: NaCl → ClNa (Hill system)', async () => {
+  const rdkit = createMockRDKit({
+    get_mol: () => ({
+      is_valid: () => true,
+      get_smiles: () => '[Na][Cl]',
+      get_descriptors: () => '{}',
+      get_inchi: () => '',
+      get_json: () => makeMolJson([
+        { z: 11, impHs: 0 },
+        { z: 17, impHs: 0 },
+      ]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
+      get_substruct_match: () => '{}',
+      delete: () => {},
+    }),
+  })
+  const result = await mockSmilesToFormula(rdkit, '[Na][Cl]')
+  assert.equal(result, 'ClNa')
+})
+
+test('smilesToFormula: returns null for empty string', async () => {
+  const rdkit = createMockRDKit()
+  const result = await mockSmilesToFormula(rdkit, '')
+  assert.equal(result, null)
 })
 
 // --- smilesToInchi ---
@@ -596,8 +788,9 @@ test('substructureMatch: returns matched + atomIndices', async () => {
       get_smiles: () => 'CCO',
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => JSON.stringify({ atoms: [0, 1], bonds: [0] }),
       delete: () => {},
     }),
@@ -606,8 +799,9 @@ test('substructureMatch: returns matched + atomIndices', async () => {
       get_smiles: () => '[OH]',
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => {},
     }),
@@ -647,8 +841,9 @@ test('substructureMatch: cleans up both query and target mols', async () => {
       get_smiles: () => smiles,
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => JSON.stringify({ atoms: [], bonds: [] }),
       delete: () => { deleted.push(smiles) },
     }),
@@ -657,8 +852,9 @@ test('substructureMatch: cleans up both query and target mols', async () => {
       get_smiles: () => smarts,
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => { deleted.push(`q:${smarts}`) },
     }),
@@ -702,6 +898,79 @@ test('tanimotoSimilarity: empty strings = 0.0', () => {
   assert.equal(tanimotoSimilarity('', ''), 0)
 })
 
+// --- Formula computation unit tests (direct helper testing) ---
+
+test('computeFormulaFromMolJson: ethanol atoms → C2H6O', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 6, impHs: 3 },
+      { z: 6, impHs: 2 },
+      { z: 8, impHs: 1 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'C2H6O')
+})
+
+test('computeFormulaFromMolJson: benzene atoms → C6H6', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 6, impHs: 1 }, { z: 6, impHs: 1 }, { z: 6, impHs: 1 },
+      { z: 6, impHs: 1 }, { z: 6, impHs: 1 }, { z: 6, impHs: 1 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'C6H6')
+})
+
+test('computeFormulaFromMolJson: acetic acid → C2H4O2', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 6, impHs: 3 },
+      { z: 6, impHs: 0 },
+      { z: 8, impHs: 0 },
+      { z: 8, impHs: 1 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'C2H4O2')
+})
+
+test('computeFormulaFromMolJson: pyrrole → C4H5N', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 7, impHs: 1 },
+      { z: 6, impHs: 1 },
+      { z: 6, impHs: 1 },
+      { z: 6, impHs: 1 },
+      { z: 6, impHs: 1 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'C4H5N')
+})
+
+test('computeFormulaFromMolJson: NaCl → ClNa', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 11, impHs: 0 },
+      { z: 17, impHs: 0 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'ClNa')
+})
+
+test('computeFormulaFromMolJson: empty atoms → empty string', () => {
+  const mol = { get_json: () => makeMolJson([]) }
+  assert.equal(computeFormulaFromMolJson(mol), '')
+})
+
+test('computeFormulaFromMolJson: unknown atomic number skipped', () => {
+  const mol = {
+    get_json: () => makeMolJson([
+      { z: 6, impHs: 0 },
+      { z: 999, impHs: 0 },
+    ]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'C')
+})
+
 // --- Memory cleanup ---
 
 test('memory cleanup: mol.delete() is called in finally block', async () => {
@@ -712,8 +981,9 @@ test('memory cleanup: mol.delete() is called in finally block', async () => {
       get_smiles: () => 'CCO',
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => { deleted.push(smiles) },
     }),
@@ -731,8 +1001,9 @@ test('memory cleanup: mol.delete() is called even when mol is invalid', async ()
       get_smiles: () => '',
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => { deleted.push(smiles) },
     }),
@@ -750,8 +1021,9 @@ test('memory cleanup: mol.delete() is called even on exception', async () => {
       get_smiles: () => '',
       get_descriptors: () => '{}',
       get_inchi: () => '',
-      get_morgan_fp_as_binary_text: () => '',
-      get_pattern_fp_as_binary_text: () => '',
+      get_json: () => makeMolJson([]),
+      get_morgan_fp: () => '',
+      get_pattern_fp: () => '',
       get_substruct_match: () => '{}',
       delete: () => { deleted.push(smiles) },
     }),

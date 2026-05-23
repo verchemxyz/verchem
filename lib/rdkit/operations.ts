@@ -96,9 +96,10 @@ export async function getMolWeight(smiles: string): Promise<MolWeightResult | nu
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
     const descriptors = JSON.parse(mol.get_descriptors()) as Record<string, number>
+    if (!validateDescriptorKeys(descriptors, ['amw', 'exactmw'])) return null
     return {
-      averageMw: descriptors.amw ?? 0,
-      exactMass: descriptors.exactmw ?? 0,
+      averageMw: descriptors.amw,
+      exactMass: descriptors.exactmw,
     }
   } finally {
     mol?.delete()
@@ -118,18 +119,25 @@ export async function getDescriptors(smiles: string): Promise<MolDescriptors | n
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
     const d = JSON.parse(mol.get_descriptors()) as Record<string, number>
+    const required = [
+      'amw', 'exactmw', 'NumHeavyAtoms', 'NumRings', 'NumAromaticRings',
+      'NumHBD', 'NumHBA', 'NumRotatableBonds', 'tpsa', 'CrippenClogP',
+    ]
+    if (!validateDescriptorKeys(d, required)) return null
+
+    const formula = computeFormulaFromMolJson(mol)
     return {
-      molWeight: d.amw ?? 0,
-      exactMass: d.exactmw ?? 0,
-      formula: smilesToFormulaString(smiles),
-      logP: d.CrippenClogP ?? 0,
-      tpsa: d.tpsa ?? 0,
-      hbd: d.NumHBD ?? 0,
-      hba: d.NumHBA ?? 0,
-      rotatableBonds: d.NumRotatableBonds ?? 0,
-      heavyAtoms: d.NumHeavyAtoms ?? 0,
-      ringCount: d.NumRings ?? 0,
-      aromaticRingCount: d.NumAromaticRings ?? 0,
+      molWeight: d.amw,
+      exactMass: d.exactmw,
+      formula,
+      logP: d.CrippenClogP,
+      tpsa: d.tpsa,
+      hbd: d.NumHBD,
+      hba: d.NumHBA,
+      rotatableBonds: d.NumRotatableBonds,
+      heavyAtoms: d.NumHeavyAtoms,
+      ringCount: d.NumRings,
+      aromaticRingCount: d.NumAromaticRings,
     }
   } finally {
     mol?.delete()
@@ -140,8 +148,8 @@ export async function getDescriptors(smiles: string): Promise<MolDescriptors | n
  * Convert SMILES to molecular formula string.
  * Returns null for invalid/empty input.
  *
- * Uses a lightweight SMILES atom counter (fallback when RDKit MinimalLib
- * does not expose a direct get_formula method).
+ * Uses mol.get_json() to read atom data (atomic number + implicit H
+ * counts) so the formula includes implicit hydrogens correctly.
  */
 export async function smilesToFormula(smiles: string): Promise<string | null> {
   if (!smiles || smiles.trim().length === 0) return null
@@ -151,7 +159,7 @@ export async function smilesToFormula(smiles: string): Promise<string | null> {
   try {
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
-    return smilesToFormulaString(smiles)
+    return computeFormulaFromMolJson(mol)
   } finally {
     mol?.delete()
   }
@@ -195,7 +203,10 @@ export async function getMorganFingerprint(
   try {
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
-    return mol.get_morgan_fp_as_binary_text(radius, length)
+    // RDKit MinimalLib real API: JSON options parameter
+    const result = mol.get_morgan_fp(JSON.stringify({ radius, nBits: length }))
+    if (typeof result !== 'string' || result.length !== length) return null
+    return result
   } finally {
     mol?.delete()
   }
@@ -217,7 +228,10 @@ export async function getPatternFingerprint(
   try {
     mol = rdkit.get_mol(smiles)
     if (!mol || !mol.is_valid()) return null
-    return mol.get_pattern_fp_as_binary_text(length)
+    // RDKit MinimalLib real API: JSON options parameter
+    const result = mol.get_pattern_fp(JSON.stringify({ nBits: length }))
+    if (typeof result !== 'string' || result.length !== length) return null
+    return result
   } finally {
     mol?.delete()
   }
@@ -283,123 +297,105 @@ export function tanimotoSimilarity(fp1: string, fp2: string): number {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: lightweight SMILES formula parser
+// Helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Parse a SMILES string into a molecular formula.
- *
- * Handles common organic notation: branches, ring closures, aromatic
- * atoms, multi-letter symbols (Cl, Br), and bracket atoms with explicit
- * H counts ([H], [CH3]).  Isotopes and charges inside brackets are
- * ignored for formula counting.
+ * Validate that all required descriptor keys are present and numeric.
  */
-function smilesToFormulaString(smiles: string): string {
-  const counts: Record<string, number> = {}
-  let i = 0
+function validateDescriptorKeys(
+  descriptors: Record<string, unknown>,
+  required: string[]
+): boolean {
+  for (const key of required) {
+    if (typeof descriptors[key] !== 'number') return false
+  }
+  return true
+}
 
-  while (i < smiles.length) {
-    const ch = smiles[i]
+/**
+ * Compute molecular formula from a JSMol using get_json().
+ *
+ * RDKit get_json() returns:
+ *   { molecules: [ { atoms: [ { z: 6, impHs: 3 }, ... ] } ] }
+ *
+ * z     = atomic number (default 6 / carbon if omitted)
+ * impHs = implicit H count (default 0 if omitted)
+ */
+function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
+  try {
+    const parsed = JSON.parse(mol.get_json()) as {
+      molecules?: Array<{ atoms?: Array<{ z?: number; impHs?: number }> }>
+    }
+    const atoms = parsed?.molecules?.[0]?.atoms ?? []
+    if (!Array.isArray(atoms) || atoms.length === 0) return ''
 
-    // Skip whitespace
-    if (/\s/.test(ch)) { i++; continue }
+    const counts: Record<string, number> = {}
+    let totalH = 0
 
-    // Skip bond symbols and stereo markers
-    if ('-=#$:\\/.,@'.includes(ch)) { i++; continue }
-
-    // Skip branches
-    if (ch === '(' || ch === ')') { i++; continue }
-
-    // Skip ring closure digits and %NN notation
-    if (/\d/.test(ch)) { i++; continue }
-    if (ch === '%') {
-      i++
-      while (i < smiles.length && /\d/.test(smiles[i])) i++
-      continue
+    for (const atom of atoms) {
+      const z = typeof atom.z === 'number' ? atom.z : 6 // default carbon
+      const impHs = typeof atom.impHs === 'number' ? atom.impHs : 0
+      const symbol = ATOMIC_NUMBER_TO_SYMBOL[z]
+      if (!symbol) continue
+      counts[symbol] = (counts[symbol] ?? 0) + 1
+      totalH += impHs
     }
 
-    // Bracket atom: [Na+], [H], [CH3], [2H], etc.
-    if (ch === '[') {
-      const close = smiles.indexOf(']', i)
-      if (close === -1) { i++; continue }
-      let content = smiles.slice(i + 1, close)
-      i = close + 1
-
-      // Skip isotope numbers at start
-      while (content.length > 0 && /\d/.test(content[0])) {
-        content = content.slice(1)
-      }
-
-      // Read element symbol
-      if (content.length > 0 && /[A-Z]/.test(content[0])) {
-        let elem = content[0]
-        content = content.slice(1)
-        if (content.length > 0 && /[a-z]/.test(content[0])) {
-          elem += content[0]
-          content = content.slice(1)
-        }
-        counts[elem] = (counts[elem] || 0) + 1
-
-        // Explicit H count (e.g. H3 in [CH3])
-        if (content.length > 0 && content[0] === 'H') {
-          content = content.slice(1)
-          let hNum = ''
-          while (content.length > 0 && /\d/.test(content[0])) {
-            hNum += content[0]
-            content = content.slice(1)
-          }
-          counts['H'] = (counts['H'] || 0) + (hNum ? parseInt(hNum, 10) : 1)
-        }
-      }
-      continue
+    if (totalH > 0) {
+      counts['H'] = (counts['H'] ?? 0) + totalH
     }
 
-    // Standard element: uppercase + optional lowercase
-    if (/[A-Z]/.test(ch)) {
-      let elem = ch
-      i++
-      if (i < smiles.length && /[a-z]/.test(smiles[i])) {
-        elem += smiles[i]
-        i++
-      }
-      let num = ''
-      while (i < smiles.length && /\d/.test(smiles[i])) {
-        num += smiles[i]
-        i++
-      }
-      counts[elem] = (counts[elem] || 0) + (num ? parseInt(num, 10) : 1)
-      continue
-    }
+    return formatHillSystem(counts)
+  } catch {
+    return ''
+  }
+}
 
-    // Aromatic atom: c, n, o, s, p, etc.
-    if (/[a-z]/.test(ch)) {
-      const elem = ch.toUpperCase()
-      i++
-      let num = ''
-      while (i < smiles.length && /\d/.test(smiles[i])) {
-        num += smiles[i]
-        i++
-      }
-      counts[elem] = (counts[elem] || 0) + (num ? parseInt(num, 10) : 1)
-      continue
-    }
+/**
+ * Format atom counts as Hill-system molecular formula.
+ * C first, H second, then alphabetical.
+ */
+function formatHillSystem(counts: Record<string, number>): string {
+  const parts: string[] = []
+  if (counts.C > 0) {
+    parts.push(`C${counts.C > 1 ? counts.C : ''}`)
+  }
+  if (counts.H > 0) {
+    parts.push(`H${counts.H > 1 ? counts.H : ''}`)
+  }
+  const rest = Object.keys(counts)
+    .filter((s) => s !== 'C' && s !== 'H' && counts[s] > 0)
+    .sort()
+  for (const symbol of rest) {
+    parts.push(`${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`)
+  }
+  return parts.join('')
+}
 
-    // Unknown character — skip
-    i++
-  }
-
-  // Format: C first, H second, then alphabetical
-  const result: string[] = []
-  if (counts.C) {
-    result.push(`C${counts.C > 1 ? counts.C : ''}`)
-    delete counts.C
-  }
-  if (counts.H) {
-    result.push(`H${counts.H > 1 ? counts.H : ''}`)
-    delete counts.H
-  }
-  for (const elem of Object.keys(counts).sort()) {
-    result.push(`${elem}${counts[elem] > 1 ? counts[elem] : ''}`)
-  }
-  return result.join('') || ''
+/** Atomic number → element symbol (covers common organic + inorganic). */
+const ATOMIC_NUMBER_TO_SYMBOL: Record<number, string> = {
+  1: 'H',
+  3: 'Li',
+  5: 'B',
+  6: 'C',
+  7: 'N',
+  8: 'O',
+  9: 'F',
+  11: 'Na',
+  12: 'Mg',
+  13: 'Al',
+  14: 'Si',
+  15: 'P',
+  16: 'S',
+  17: 'Cl',
+  19: 'K',
+  20: 'Ca',
+  26: 'Fe',
+  29: 'Cu',
+  30: 'Zn',
+  35: 'Br',
+  53: 'I',
+  79: 'Au',
+  80: 'Hg',
 }
