@@ -17,16 +17,14 @@ const KetcherEditor = dynamic(
 export default function DrawPage() {
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
   const [smiles, setSmiles] = useState('');
-  const [mol, setMol] = useState('');
 
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
-  }, []);
+  }, []);;
 
-  const handleChange = useCallback((newSmiles: string, newMol: string) => {
+  const handleChange = useCallback((newSmiles: string, _newMol: string) => {
     setSmiles(newSmiles);
-    setMol(newMol);
-  }, []);
+  }, [])
 
   const handleExportSmiles = async () => {
     if (!ketcher) return;

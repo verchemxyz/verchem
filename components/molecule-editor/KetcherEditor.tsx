@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useEffect } from 'react';
 import { Editor } from 'ketcher-react';
-import { StandaloneStructServiceProvider } from 'ketcher-standalone';
+import { structServiceProvider } from '@/lib/molecule/ketcher-config';
 import type { Ketcher } from 'ketcher-core';
 
 export interface KetcherEditorProps {
@@ -10,8 +10,6 @@ export interface KetcherEditorProps {
   onChange?: (smiles: string, mol: string) => void;
   onInit?: (ketcher: Ketcher) => void;
   height?: number | string;
-  toolbar?: 'full' | 'minimal';
-  showSaveButton?: boolean;
 }
 
 export default function KetcherEditor({
@@ -19,12 +17,11 @@ export default function KetcherEditor({
   onChange,
   onInit,
   height = 600,
-  toolbar = 'full',
-  showSaveButton = false,
 }: KetcherEditorProps) {
   const ketcherRef = useRef<Ketcher | null>(null);
   const onChangeRef = useRef(onChange);
   const onInitRef = useRef(onInit);
+  const changeHandlerRef = useRef<(() => void) | null>(null);
 
   // Keep callback refs up to date without triggering re-initialisation
   useEffect(() => {
@@ -45,6 +42,16 @@ export default function KetcherEditor({
         });
     }
   }, [initialSmiles]);
+
+  useEffect(() => {
+    return () => {
+      const ketcher = ketcherRef.current;
+      const handler = changeHandlerRef.current;
+      if (ketcher && handler) {
+        ketcher.changeEvent.remove(handler);
+      }
+    };
+  }, []);
 
   const handleInit = useCallback(
     (ketcher: Ketcher) => {
@@ -70,8 +77,8 @@ export default function KetcherEditor({
       };
 
       ketcher.changeEvent.add(handleChange);
+      changeHandlerRef.current = handleChange;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [initialSmiles]
   );
 
@@ -79,7 +86,7 @@ export default function KetcherEditor({
     <div style={{ height, width: '100%' }}>
       <Editor
         staticResourcesUrl=""
-        structServiceProvider={new StandaloneStructServiceProvider()}
+        structServiceProvider={structServiceProvider}
         onInit={handleInit}
         errorHandler={(message: string) => {
           console.error('Ketcher error:', message);
