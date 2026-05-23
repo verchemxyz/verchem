@@ -17,12 +17,8 @@ export function isValidOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
 
-  // Determine expected host
-  const host = request.headers.get('host')
-  if (!host) return false
-
-  const protocol = request.headers.get('x-forwarded-proto') ?? 'https'
-  const expectedOrigin = `${protocol}://${host}`
+  // Use Next.js parsed URL — handles HTTPS proxy + local HTTP dev correctly
+  const expectedOrigin = request.nextUrl.origin
 
   // Strict: at least one of origin or referer must match
   if (origin) {
