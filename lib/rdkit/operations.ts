@@ -126,6 +126,7 @@ export async function getDescriptors(smiles: string): Promise<MolDescriptors | n
     if (!validateDescriptorKeys(d, required)) return null
 
     const formula = computeFormulaFromMolJson(mol)
+    if (formula === null) return null
     return {
       molWeight: d.amw,
       exactMass: d.exactmw,
@@ -322,7 +323,7 @@ function validateDescriptorKeys(
  * z     = atomic number (default 6 / carbon if omitted)
  * impHs = implicit H count (default 0 if omitted)
  */
-function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
+function computeFormulaFromMolJson(mol: { get_json: () => string }): string | null {
   try {
     const parsed = JSON.parse(mol.get_json()) as {
       molecules?: Array<{ atoms?: Array<{ z?: number; impHs?: number }> }>
@@ -337,7 +338,9 @@ function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
       const z = typeof atom.z === 'number' ? atom.z : 6 // default carbon
       const impHs = typeof atom.impHs === 'number' ? atom.impHs : 0
       const symbol = ATOMIC_NUMBER_TO_SYMBOL[z]
-      if (!symbol) continue
+      if (!symbol) {
+        return null
+      }
       counts[symbol] = (counts[symbol] ?? 0) + 1
       totalH += impHs
     }
