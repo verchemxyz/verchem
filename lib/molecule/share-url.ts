@@ -28,6 +28,8 @@ export function encodeShareUrl(opts: {
   return query ? `${base}?${query}` : base;
 }
 
+const CONTROL_CHAR_REGEX = /[\x00-\x1F\x7F]/
+
 export function parseShareParams(searchParams: URLSearchParams): {
   smiles: string | null;
   molId: string | null;
@@ -39,6 +41,9 @@ export function parseShareParams(searchParams: URLSearchParams): {
   if (smiles !== null) {
     if (smiles.length === 0) {
       return { smiles: null, molId: null, error: 'Empty SMILES parameter' };
+    }
+    if (CONTROL_CHAR_REGEX.test(smiles)) {
+      return { smiles: null, molId: null, error: 'SMILES contains invalid characters' };
     }
     if (smiles.length > MAX_SHARED_SMILES_LEN) {
       return {

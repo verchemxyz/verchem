@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
 import { isValidOrigin } from '@/lib/auth/origin-check'
 import {
-  getMoleculeById,
+  getPublicMoleculeById,
   getMoleculeForUser,
   updateMolecule,
   deleteMolecule,
@@ -89,9 +89,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     }
 
     // Public fallback (for authenticated non-owner + anonymous)
-    const molecule = await getMoleculeById(id)
-    if (molecule && molecule.is_public) {
-      return NextResponse.json(molecule)
+    const publicMol = await getPublicMoleculeById(id)
+    if (publicMol) {
+      return NextResponse.json(publicMol)
     }
 
     // Hide existence (404) for unauthorized access to private molecules

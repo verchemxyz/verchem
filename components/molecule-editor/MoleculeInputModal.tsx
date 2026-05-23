@@ -23,6 +23,7 @@ export default function MoleculeInputModal({
   onApply,
 }: MoleculeInputModalProps) {
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -30,6 +31,10 @@ export default function MoleculeInputModal({
 
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
+  }, []);
+
+  const handleReady = useCallback(() => {
+    setIsReady(true);
   }, []);
 
   const handleApply = async () => {
@@ -127,6 +132,7 @@ export default function MoleculeInputModal({
           <KetcherEditor
             initialSmiles={initialSmiles}
             onInit={handleInit}
+            onReady={handleReady}
             height="100%"
           />
         </div>
@@ -144,10 +150,10 @@ export default function MoleculeInputModal({
           <button
             type="button"
             onClick={handleApply}
-            disabled={isLoading || !ketcher}
+            disabled={isLoading || !ketcher || !isReady}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Applying...' : 'Apply'}
+            {isLoading ? 'Applying...' : !isReady ? 'Loading...' : 'Apply'}
           </button>
         </div>
       </div>

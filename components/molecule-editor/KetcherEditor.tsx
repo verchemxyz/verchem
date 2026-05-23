@@ -9,6 +9,7 @@ export interface KetcherEditorProps {
   initialSmiles?: string;
   onChange?: (smiles: string, mol: string) => void;
   onInit?: (ketcher: Ketcher) => void;
+  onReady?: () => void;
   height?: number | string;
 }
 
@@ -16,11 +17,13 @@ export default function KetcherEditor({
   initialSmiles,
   onChange,
   onInit,
+  onReady,
   height = 600,
 }: KetcherEditorProps) {
   const ketcherRef = useRef<Ketcher | null>(null);
   const onChangeRef = useRef(onChange);
   const onInitRef = useRef(onInit);
+  const onReadyRef = useRef(onReady);
   const changeHandlerRef = useRef<(() => void) | null>(null);
 
   // Keep callback refs up to date without triggering re-initialisation
@@ -31,6 +34,10 @@ export default function KetcherEditor({
   useEffect(() => {
     onInitRef.current = onInit;
   }, [onInit]);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
 
   // Update canvas when initialSmiles prop changes after mount
   useEffect(() => {
@@ -58,12 +65,20 @@ export default function KetcherEditor({
       ketcherRef.current = ketcher;
       onInitRef.current?.(ketcher);
 
+      const finalizeReady = () => {
+        onReadyRef.current?.();
+      };
+
       if (initialSmiles) {
         ketcher
           .setMolecule(initialSmiles)
+          .then(finalizeReady)
           .catch((err: unknown) => {
             console.error('Failed to set initial SMILES:', err);
+            finalizeReady(); // still ready, user can draw fresh
           });
+      } else {
+        finalizeReady();
       }
 
       const handleChange = async () => {

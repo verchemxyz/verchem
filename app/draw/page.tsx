@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { Ketcher } from 'ketcher-core';
@@ -30,6 +30,7 @@ export default function DrawPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
   const [isLoadingShared, setIsLoadingShared] = useState(false);
+  const loadedShareKeyRef = useRef<string | null>(null);
 
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
@@ -49,6 +50,13 @@ export default function DrawPage() {
       return;
     }
 
+    const key = urlSmiles ? `smiles:${urlSmiles}` : molId ? `molid:${molId}` : null;
+    if (!key) return;
+
+    // Guard against duplicate loads of the same share
+    if (loadedShareKeyRef.current === key) return;
+    loadedShareKeyRef.current = key;
+
     if (urlSmiles) {
       ketcher
         .setMolecule(urlSmiles)
@@ -61,9 +69,10 @@ export default function DrawPage() {
     }
 
     if (molId) {
+      const controller = new AbortController();
       setIsLoadingShared(true);
       setShareError(null);
-      fetch(`/api/molecules/${molId}`)
+      fetch(`/api/molecules/${molId}`, { signal: controller.signal })
         .then(async (res) => {
           if (res.status === 404) throw new Error('Molecule not found or not public');
           if (!res.ok) throw new Error('Failed to load molecule');
@@ -75,9 +84,14 @@ export default function DrawPage() {
           return ketcher.setMolecule(data.smiles);
         })
         .catch((err: unknown) => {
+          if (controller.signal.aborted) return;
           setShareError(err instanceof Error ? err.message : 'Failed to load molecule');
         })
-        .finally(() => setIsLoadingShared(false));
+        .finally(() => {
+          if (!controller.signal.aborted) setIsLoadingShared(false);
+        });
+
+      return () => controller.abort();
     }
   }, [ketcher, searchParams]);
 

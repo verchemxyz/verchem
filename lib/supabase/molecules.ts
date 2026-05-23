@@ -57,6 +57,43 @@ export interface UpdateMoleculeInput {
   is_public?: boolean
 }
 
+/**
+ * Public-safe view of a molecule (strips owner identifier).
+ * Returns only molecules where is_public = true.
+ */
+export interface PublicMolecule {
+  id: string
+  name: string
+  smiles: string
+  mol_block: string | null
+  inchi: string | null
+  inchi_key: string | null
+  tags: string[] | null
+  notes: string | null
+  is_public: true
+  created_at: string
+  updated_at: string
+}
+
+export async function getPublicMoleculeById(id: string): Promise<PublicMolecule | null> {
+  const supabase = getSupabase()
+
+  const { data, error } = await supabase
+    .from('molecules')
+    .select('id, name, smiles, mol_block, inchi, inchi_key, tags, notes, is_public, created_at, updated_at')
+    .eq('id', id)
+    .eq('is_public', true)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') return null
+    console.error('getPublicMoleculeById error:', error)
+    throw new Error('Database error while fetching molecule')
+  }
+
+  return data as PublicMolecule
+}
+
 export async function createMolecule(input: CreateMoleculeInput): Promise<Molecule> {
   const supabase = getSupabase()
 
