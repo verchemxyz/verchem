@@ -18,15 +18,22 @@ export async function loadRDKit(): Promise<RDKitModule> {
   if (loadPromise) return loadPromise
 
   loadPromise = (async () => {
-    // RDKit_minimal.js is a CJS module that exports initRDKitModule directly.
-    // In ESM contexts we access it via .default.
-    const rdkitModule = await import('@rdkit/rdkit')
-    const initRDKitModule = rdkitModule.default as (opts?: { locateFile?: () => string }) => Promise<RDKitModule>
-    const instance = await initRDKitModule({
-      locateFile: () => '/rdkit/RDKit_minimal.wasm',
-    })
-    rdkitInstance = instance
-    return instance
+    try {
+      // RDKit_minimal.js is a CJS module that exports initRDKitModule directly.
+      // In ESM contexts we access it via .default.
+      const rdkitModule = await import('@rdkit/rdkit')
+      const initRDKitModule = rdkitModule.default as (opts?: { locateFile?: () => string }) => Promise<RDKitModule>
+      const instance = await initRDKitModule({
+        locateFile: () => '/rdkit/RDKit_minimal.wasm',
+      })
+      rdkitInstance = instance
+      return instance
+    } catch (err) {
+      // Clear loadPromise so the next call can retry (e.g. after a network
+      // hiccup or a corrected WASM path).
+      loadPromise = null
+      throw err
+    }
   })()
 
   return loadPromise
