@@ -1,9 +1,12 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Atom, Calculator, CheckCircle, Zap, BookOpen, FlaskConical, Scale } from 'lucide-react'
 import { MolarMassSchema } from '@/components/seo/JsonLd'
+import MoleculeInput from '@/components/molecule-editor/MoleculeInput'
+import { useRDKit } from '@/lib/rdkit/hook'
+import { getMolWeight, smilesToFormula } from '@/lib/rdkit/operations'
 
 // Common compounds with their formulas and molar masses
 const COMMON_COMPOUNDS = [
@@ -66,13 +69,68 @@ function parseFormula(formula: string): ElementCount[] | null {
 
 
 export default function MolarMassCalculatorPage() {
+  const [inputMode, setInputMode] = useState<'formula' | 'smiles'>('formula')
   const [formula, setFormula] = useState('')
+  const [smiles, setSmiles] = useState('')
   const [result, setResult] = useState<{
     mass: number
     elements: ElementCount[]
   } | null>(null)
   const [error, setError] = useState('')
   const [isCalculating, setIsCalculating] = useState(false)
+
+  // RDKit-derived results
+  const [rdkitMw, setRdkitMw] = useState<{ average: number; exact: number } | null>(null)
+  const [rdkitFormula, setRdkitFormula] = useState<string | null>(null)
+  const [rdkitError, setRdkitError] = useState<string | null>(null)
+  const [isRdkitComputing, setIsRdkitComputing] = useState(false)
+  const { isLoading: rdkitLoading, error: rdkitHookError } = useRDKit()
+
+  // Process SMILES through RDKit when in smiles mode
+  useEffect(() => {
+    if (inputMode !== 'smiles' || !smiles.trim()) {
+      // Clear RDKit-derived state when switching away from SMILES mode or clearing input
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRdkitMw(null)
+      setRdkitFormula(null)
+      setRdkitError(null)
+      return
+    }
+
+    let cancelled = false
+    setIsRdkitComputing(true)
+    setRdkitError(null)
+
+    Promise.all([
+      getMolWeight(smiles),
+      smilesToFormula(smiles),
+    ])
+      .then(([mwResult, formulaResult]) => {
+        if (cancelled) return
+        if (mwResult) {
+          setRdkitMw({ average: mwResult.averageMw, exact: mwResult.exactMass })
+        } else {
+          setRdkitMw(null)
+        }
+        setRdkitFormula(formulaResult)
+        if (!mwResult && !formulaResult) {
+          setRdkitError('Invalid SMILES. Please check your structure.')
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setRdkitError(err instanceof Error ? err.message : 'RDKit calculation failed')
+        setRdkitMw(null)
+        setRdkitFormula(null)
+      })
+      .finally(() => {
+        if (!cancelled) setIsRdkitComputing(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [smiles, inputMode])
 
   const handleCalculate = useCallback(() => {
     if (!formula.trim()) {
@@ -97,6 +155,7 @@ export default function MolarMassCalculatorPage() {
   }, [formula])
 
   const handleQuickSelect = (compound: typeof COMMON_COMPOUNDS[0]) => {
+    setInputMode('formula')
     setFormula(compound.formula)
     const elements = parseFormula(compound.formula)
     if (elements) {
@@ -160,32 +219,119 @@ export default function MolarMassCalculatorPage() {
         <div className="mx-auto max-w-4xl">
           <div className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-slate-900/90 to-purple-900/20 p-8 shadow-2xl shadow-purple-500/10 backdrop-blur-sm">
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Enter Chemical Formula
-                </label>
-                <div className="flex gap-4">
-                  <input
-                    type="text"
-                    value={formula}
-                    onChange={(e) => setFormula(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
-                    placeholder="e.g., H2O, NaCl, C6H12O6"
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-xl text-white placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-mono"
-                  />
-                  <button
-                    onClick={handleCalculate}
-                    disabled={isCalculating}
-                    className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 font-semibold text-white transition-all hover:from-purple-500 hover:to-pink-500 hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
-                  >
-                    {isCalculating ? (
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : (
-                      'Calculate'
-                    )}
-                  </button>
-                </div>
+              {/* Mode Toggle */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setInputMode('formula')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'formula'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  }`}
+                >
+                  Formula
+                </button>
+                <button
+                  onClick={() => setInputMode('smiles')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'smiles'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  }`}
+                >
+                  SMILES
+                </button>
+                {rdkitHookError && (
+                  <span className="text-xs text-amber-400 self-center ml-2">
+                    Advanced features unavailable
+                  </span>
+                )}
               </div>
+
+              {/* Formula Mode */}
+              {inputMode === 'formula' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Enter Chemical Formula
+                  </label>
+                  <div className="flex gap-4">
+                    <input
+                      type="text"
+                      value={formula}
+                      onChange={(e) => setFormula(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
+                      placeholder="e.g., H2O, NaCl, C6H12O6"
+                      className="flex-1 rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-xl text-white placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-mono"
+                    />
+                    <button
+                      onClick={handleCalculate}
+                      disabled={isCalculating}
+                      className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 font-semibold text-white transition-all hover:from-purple-500 hover:to-pink-500 hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
+                    >
+                      {isCalculating ? (
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      ) : (
+                        'Calculate'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* SMILES Mode */}
+              {inputMode === 'smiles' && (
+                <div className="space-y-4">
+                  <MoleculeInput
+                    value={smiles}
+                    onChange={setSmiles}
+                    label="Enter or Draw SMILES"
+                    placeholder="e.g., CCO, c1ccccc1"
+                  />
+
+                  {rdkitLoading && (
+                    <div className="text-sm text-slate-400">Loading chemistry engine...</div>
+                  )}
+
+                  {isRdkitComputing && (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
+                      Computing...
+                    </div>
+                  )}
+
+                  {rdkitError && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
+                      {rdkitError}
+                    </div>
+                  )}
+
+                  {rdkitFormula && (
+                    <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
+                      <p className="text-sm text-purple-300 mb-1">Formula</p>
+                      <p className="text-2xl font-bold text-white font-mono">{rdkitFormula}</p>
+                    </div>
+                  )}
+
+                  {rdkitMw && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
+                        <p className="text-sm text-purple-300 mb-1">Average Mass</p>
+                        <p className="text-2xl font-bold text-white font-mono">
+                          {rdkitMw.average.toFixed(3)}
+                          <span className="text-sm text-purple-300 ml-1">g/mol</span>
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
+                        <p className="text-sm text-purple-300 mb-1">Exact Mass</p>
+                        <p className="text-2xl font-bold text-white font-mono">
+                          {rdkitMw.exact.toFixed(4)}
+                          <span className="text-sm text-purple-300 ml-1">g/mol</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {error && (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
@@ -193,7 +339,7 @@ export default function MolarMassCalculatorPage() {
                 </div>
               )}
 
-              {result && (
+              {result && inputMode === 'formula' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-6">
                     <div className="text-center">

@@ -14,6 +14,8 @@ import {
   type PercentComposition,
   type LimitingReagentResult,
 } from '@/lib/calculations/stoichiometry'
+import { looksLikeSmiles } from '@/lib/molecule/smiles-detect'
+import { getMolWeight, smilesToFormula } from '@/lib/rdkit/operations'
 
 type CalculatorMode =
   | 'molecular-mass'
@@ -71,19 +73,51 @@ export default function StoichiometryPage() {
   // Compound data lookup - TODO: implement full compound database integration
   // const compoundData = null
 
+  /**
+   * Resolve an input string that might be SMILES to a formula + MW.
+   * Returns null if not SMILES or if RDKit conversion fails.
+   */
+  const resolveSmilesIfNeeded = async (
+    input: string
+  ): Promise<{ formula: string; mw?: number } | null> => {
+    if (!looksLikeSmiles(input)) return null
+    try {
+      const [mwResult, formulaResult] = await Promise.all([
+        getMolWeight(input),
+        smilesToFormula(input),
+      ])
+      if (!formulaResult) return null
+      return {
+        formula: formulaResult,
+        mw: mwResult?.averageMw,
+      }
+    } catch {
+      return null
+    }
+  }
+
   // Calculate based on mode
-  const calculate = () => {
+  const calculate = async () => {
     setError(null)
     setResult(null)
     setSteps([])
 
     try {
+      // Pre-resolve the main formula if it looks like SMILES
+      let resolvedFormula = formula
+      let rdkitMw: number | undefined
+      const resolved = await resolveSmilesIfNeeded(formula)
+      if (resolved) {
+        resolvedFormula = resolved.formula
+        rdkitMw = resolved.mw
+      }
+
       switch (mode) {
         case 'molecular-mass': {
-          const mass = calculateMolecularMass(formula)
+          const mass = rdkitMw ?? calculateMolecularMass(resolvedFormula)
           setResult(`${mass.toFixed(3)} g/mol`)
           setSteps([
-            `Formula: ${formula}`,
+            resolved ? `Input detected as SMILES → Formula: ${resolvedFormula}` : `Formula: ${resolvedFormula}`,
             `Breaking down to elements and counting atoms...`,
             `Looking up atomic masses from periodic table...`,
             `Summing: (atomic mass × count) for each element`,
@@ -94,12 +128,12 @@ export default function StoichiometryPage() {
 
         case 'mass-to-moles': {
           const massValue = parseFloat(mass)
-          const mm = calculateMolecularMass(formula)
+          const mm = rdkitMw ?? calculateMolecularMass(resolvedFormula)
           const molesValue = massToMoles(massValue, mm)
           setResult(`${molesValue.toFixed(4)} mol`)
           setSteps([
             `Given: Mass = ${massValue} g`,
-            `Formula: ${formula}`,
+            resolved ? `SMILES detected → Formula: ${resolvedFormula}` : `Formula: ${resolvedFormula}`,
             `Molecular Mass = ${mm.toFixed(3)} g/mol`,
             ``,
             `Using: n = m / M`,
@@ -111,12 +145,12 @@ export default function StoichiometryPage() {
 
         case 'moles-to-mass': {
           const molesValue = parseFloat(moles)
-          const mm = calculateMolecularMass(formula)
+          const mm = rdkitMw ?? calculateMolecularMass(resolvedFormula)
           const massValue = molesToMass(molesValue, mm)
           setResult(`${massValue.toFixed(3)} g`)
           setSteps([
             `Given: Moles = ${molesValue} mol`,
-            `Formula: ${formula}`,
+            resolved ? `SMILES detected → Formula: ${resolvedFormula}` : `Formula: ${resolvedFormula}`,
             `Molecular Mass = ${mm.toFixed(3)} g/mol`,
             ``,
             `Using: m = n × M`,
@@ -143,20 +177,20 @@ export default function StoichiometryPage() {
         }
 
         case 'percent-composition': {
-          const comp = calculatePercentComposition(formula)
+          const comp = calculatePercentComposition(resolvedFormula)
           setComposition(comp)
           const total = Object.values(comp).reduce((sum, val) => sum + val, 0)
           setResult(`Total: ${total.toFixed(2)}%`)
 
           const stepsArray = [
-            `Formula: ${formula}`,
-            `Molecular Mass = ${calculateMolecularMass(formula).toFixed(3)} g/mol`,
+            resolved ? `SMILES detected → Formula: ${resolvedFormula}` : `Formula: ${resolvedFormula}`,
+            `Molecular Mass = ${calculateMolecularMass(resolvedFormula).toFixed(3)} g/mol`,
             ``,
             `Percent Composition:`,
           ]
 
-          for (const [element, percent] of Object.entries(comp)) {
-            stepsArray.push(`  ${element}: ${percent.toFixed(2)}%`)
+          for (const [element, pct] of Object.entries(comp)) {
+            stepsArray.push(`  ${element}: ${pct.toFixed(2)}%`)
           }
 
           setSteps(stepsArray)
@@ -182,6 +216,11 @@ export default function StoichiometryPage() {
         }
 
         case 'limiting-reagent': {
+          // Resolve reactant/product formulas if they look like SMILES
+          const r1Resolved = (await resolveSmilesIfNeeded(reactant1Formula)) ?? { formula: reactant1Formula }
+          const r2Resolved = (await resolveSmilesIfNeeded(reactant2Formula)) ?? { formula: reactant2Formula }
+          const pResolved = (await resolveSmilesIfNeeded(productFormula)) ?? { formula: productFormula }
+
           const r1Moles = parseFloat(reactant1Moles)
           const r1Coeff = parseFloat(reactant1Coeff)
           const r2Moles = parseFloat(reactant2Moles)
@@ -191,30 +230,31 @@ export default function StoichiometryPage() {
           const lr = findLimitingReagent(
             {
               reactants: [
-                { formula: reactant1Formula, moles: r1Moles, coefficient: r1Coeff },
-                { formula: reactant2Formula, moles: r2Moles, coefficient: r2Coeff },
+                { formula: r1Resolved.formula, moles: r1Moles, coefficient: r1Coeff },
+                { formula: r2Resolved.formula, moles: r2Moles, coefficient: r2Coeff },
               ],
             },
-            [{ formula: productFormula, coefficient: pCoeff }]
+            [{ formula: pResolved.formula, coefficient: pCoeff }]
           )
 
           setLimitingResult(lr)
           setResult(`Limiting Reagent: ${lr.limitingReagent}`)
-          setSteps([
+          const stepsArray = [
             `Balanced Equation:`,
-            `${r1Coeff} ${reactant1Formula} + ${r2Coeff} ${reactant2Formula} → ${pCoeff} ${productFormula}`,
+            `${r1Coeff} ${r1Resolved.formula} + ${r2Coeff} ${r2Resolved.formula} → ${pCoeff} ${pResolved.formula}`,
             ``,
             `Given:`,
-            `  ${reactant1Formula}: ${r1Moles} mol`,
-            `  ${reactant2Formula}: ${r2Moles} mol`,
+            `  ${r1Resolved.formula}: ${r1Moles} mol`,
+            `  ${r2Resolved.formula}: ${r2Moles} mol`,
             ``,
             `Calculate moles of product from each reactant:`,
-            `  From ${reactant1Formula}: ${r1Moles} mol × (${pCoeff}/${r1Coeff}) = ${(r1Moles * pCoeff / r1Coeff).toFixed(4)} mol`,
-            `  From ${reactant2Formula}: ${r2Moles} mol × (${pCoeff}/${r2Coeff}) = ${(r2Moles * pCoeff / r2Coeff).toFixed(4)} mol`,
+            `  From ${r1Resolved.formula}: ${r1Moles} mol × (${pCoeff}/${r1Coeff}) = ${(r1Moles * pCoeff / r1Coeff).toFixed(4)} mol`,
+            `  From ${r2Resolved.formula}: ${r2Moles} mol × (${pCoeff}/${r2Coeff}) = ${(r2Moles * pCoeff / r2Coeff).toFixed(4)} mol`,
             ``,
             `Limiting Reagent: ${lr.limitingReagent} (produces less product)`,
-            `Product formed: ${lr.molesProductFormed[productFormula]?.toFixed(4)} mol ${productFormula}`,
-          ])
+            `Product formed: ${lr.molesProductFormed[pResolved.formula]?.toFixed(4)} mol ${pResolved.formula}`,
+          ]
+          setSteps(stepsArray)
           break
         }
 
@@ -673,7 +713,7 @@ export default function StoichiometryPage() {
 
           {/* Calculate Button */}
           <button
-            onClick={calculate}
+            onClick={() => { calculate() }}
             className="btn-premium glow-premium w-full mt-6 px-8 py-4 text-lg"
           >
             🚀 Calculate Results

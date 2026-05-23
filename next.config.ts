@@ -2,7 +2,15 @@ import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Turbopack config (silences webpack/turbopack mismatch warning in Next.js 16)
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      // Stub Node.js built-ins for browser bundles only.
+      // @rdkit/rdkit conditionally requires 'fs' in its dist file;
+      // we load RDKit only on the client so the stub is safe there.
+      fs: { browser: './lib/rdkit/empty-module.ts' },
+      path: { browser: './lib/rdkit/empty-module.ts' },
+    },
+  },
 
   // Compiler optimizations
   compiler: {
