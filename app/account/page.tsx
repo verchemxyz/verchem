@@ -258,8 +258,9 @@ export default function AccountPage() {
           </svg>
           Quick Access
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[
+            { href: '/account/molecules', icon: '🧪', label: 'My Molecules', color: 'from-cyan-500/20 to-blue-500/20', border: 'border-cyan-500/30' },
             { href: '/calculators', icon: '🧮', label: 'Calculators', color: 'from-cyan-500/20 to-blue-500/20', border: 'border-cyan-500/30' },
             { href: '/periodic-table', icon: '⚛️', label: 'Periodic Table', color: 'from-purple-500/20 to-pink-500/20', border: 'border-purple-500/30' },
             { href: '/tools', icon: '🔬', label: 'All Tools', color: 'from-green-500/20 to-emerald-500/20', border: 'border-green-500/30' },
