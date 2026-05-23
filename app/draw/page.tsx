@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { Ketcher } from 'ketcher-core';
 import {
@@ -9,6 +9,7 @@ import {
   downloadPng,
   downloadSvg,
 } from '@/lib/molecule/format-conversion';
+import { parseShareParams } from '@/lib/molecule/share-url';
 import SaveMoleculeModal, {
   type SaveMoleculeData,
 } from '@/components/molecule-editor/SaveMoleculeModal';
@@ -20,12 +21,15 @@ const KetcherEditor = dynamic(
 
 export default function DrawPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [ketcher, setKetcher] = useState<Ketcher | null>(null);
   const [smiles, setSmiles] = useState('');
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveModalKey, setSaveModalKey] = useState(0);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [isLoadingShared, setIsLoadingShared] = useState(false);
 
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
@@ -34,6 +38,48 @@ export default function DrawPage() {
   const handleChange = useCallback((newSmiles: string, _newMol: string) => {
     setSmiles(newSmiles);
   }, []);
+
+  // Preload structure from URL params (?smiles= or ?mol_id=)
+  useEffect(() => {
+    if (!ketcher) return;
+
+    const { smiles: urlSmiles, molId, error } = parseShareParams(searchParams);
+    if (error) {
+      setShareError(error);
+      return;
+    }
+
+    if (urlSmiles) {
+      ketcher
+        .setMolecule(urlSmiles)
+        .catch((err: unknown) => {
+          setShareError(
+            `Failed to load SMILES: ${err instanceof Error ? err.message : 'invalid structure'}`
+          );
+        });
+      return;
+    }
+
+    if (molId) {
+      setIsLoadingShared(true);
+      setShareError(null);
+      fetch(`/api/molecules/${molId}`)
+        .then(async (res) => {
+          if (res.status === 404) throw new Error('Molecule not found or not public');
+          if (!res.ok) throw new Error('Failed to load molecule');
+          const data = await res.json();
+          // Prefer mol_block (more accurate) over smiles
+          if (data.mol_block) {
+            return ketcher.setMolecule(data.mol_block);
+          }
+          return ketcher.setMolecule(data.smiles);
+        })
+        .catch((err: unknown) => {
+          setShareError(err instanceof Error ? err.message : 'Failed to load molecule');
+        })
+        .finally(() => setIsLoadingShared(false));
+    }
+  }, [ketcher, searchParams]);
 
   const handleExportSmiles = async () => {
     if (!ketcher) return;
@@ -203,13 +249,38 @@ export default function DrawPage() {
           </button>
         </div>
 
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          {isLoadingShared && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
+              <div className="w-10 h-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
+            </div>
+          )}
           <KetcherEditor
             height={600}
             onInit={handleInit}
             onChange={handleChange}
           />
         </div>
+
+        {shareError && (
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+            <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm text-red-700 dark:text-red-300">{shareError}</p>
+            </div>
+            <button
+              onClick={() => setShareError(null)}
+              className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {smiles && (
           <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">

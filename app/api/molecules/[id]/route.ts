@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
 import { isValidOrigin } from '@/lib/auth/origin-check'
 import {
+  getMoleculeById,
   getMoleculeForUser,
   updateMolecule,
   deleteMolecule,
@@ -67,21 +68,34 @@ interface RouteParams {
   params: Promise<{ id: string }>
 }
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await verifySession()
-    if (!session?.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const { id } = await params
-    const molecule = await getMoleculeForUser(id, session.userId)
 
-    if (!molecule) {
-      return NextResponse.json({ error: 'Molecule not found' }, { status: 404 })
+    // Validate UUID format (defense against malformed input)
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'Invalid molecule id' }, { status: 400 })
     }
 
-    return NextResponse.json(molecule)
+    const session = await verifySession()
+
+    // Authenticated: try user-owned first
+    if (session?.userId) {
+      const owned = await getMoleculeForUser(id, session.userId)
+      if (owned) return NextResponse.json(owned)
+    }
+
+    // Public fallback (for authenticated non-owner + anonymous)
+    const molecule = await getMoleculeById(id)
+    if (molecule && molecule.is_public) {
+      return NextResponse.json(molecule)
+    }
+
+    // Hide existence (404) for unauthorized access to private molecules
+    return NextResponse.json({ error: 'Molecule not found' }, { status: 404 })
   } catch (err: unknown) {
     console.error('GET /api/molecules/[id] error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
