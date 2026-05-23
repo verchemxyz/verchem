@@ -29,6 +29,15 @@ export default function MoleculeInputModal({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
+  // Reset state when modal closes (prevents stale ketcher/isReady on reopen)
+  useEffect(() => {
+    if (!isOpen) {
+      setKetcher(null);
+      setIsReady(false);
+      setIsLoading(false);
+    }
+  }, [isOpen]);
+
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
   }, []);
