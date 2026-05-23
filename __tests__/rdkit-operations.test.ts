@@ -179,7 +179,7 @@ function createMockRDKit(overrides: MockRDKitOverrides = {}): RDKitModule {
 
 // ---- Formula computation helpers (duplicated from operations.ts for mock tests) ----
 
-function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
+function computeFormulaFromMolJson(mol: { get_json: () => string }): string | null {
   try {
     const parsed = JSON.parse(mol.get_json()) as {
       molecules?: Array<{ atoms?: Array<{ z?: number; impHs?: number }> }>
@@ -194,7 +194,9 @@ function computeFormulaFromMolJson(mol: { get_json: () => string }): string {
       const z = typeof atom.z === 'number' ? atom.z : 6
       const impHs = typeof atom.impHs === 'number' ? atom.impHs : 0
       const symbol = ATOMIC_NUMBER_TO_SYMBOL[z]
-      if (!symbol) continue
+      if (!symbol) {
+        return null
+      }
       counts[symbol] = (counts[symbol] ?? 0) + 1
       totalH += impHs
     }
@@ -227,10 +229,19 @@ function formatHillSystem(counts: Record<string, number>): string {
 }
 
 const ATOMIC_NUMBER_TO_SYMBOL: Record<number, string> = {
-  1: 'H', 3: 'Li', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F',
-  11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl',
-  19: 'K', 20: 'Ca', 26: 'Fe', 29: 'Cu', 30: 'Zn', 35: 'Br', 53: 'I',
-  79: 'Au', 80: 'Hg',
+  1: 'H', 2: 'He',
+  3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
+  11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
+  19: 'K', 20: 'Ca',
+  21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn',
+  31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se', 35: 'Br', 36: 'Kr',
+  37: 'Rb', 38: 'Sr',
+  39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo', 43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd',
+  49: 'In', 50: 'Sn', 51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe',
+  55: 'Cs', 56: 'Ba',
+  57: 'La', 58: 'Ce', 59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
+  67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu',
+  72: 'Hf', 73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg',
 }
 
 // ---- Async operation replicas with injected mock (same logic as operations.ts) ----
@@ -296,7 +307,7 @@ async function mockGetDescriptors(
     return {
       molWeight: d.amw ?? 0,
       exactMass: d.exactmw ?? 0,
-      formula: computeFormulaFromMolJson(mol),
+      formula: computeFormulaFromMolJson(mol) ?? '',
       logP: d.CrippenClogP ?? 0,
       tpsa: d.tpsa ?? 0,
       hbd: d.NumHBD ?? 0,
@@ -961,14 +972,28 @@ test('computeFormulaFromMolJson: empty atoms → empty string', () => {
   assert.equal(computeFormulaFromMolJson(mol), '')
 })
 
-test('computeFormulaFromMolJson: unknown atomic number skipped', () => {
+test('computeFormulaFromMolJson: helium [He] z:2 → He', () => {
+  const mol = {
+    get_json: () => makeMolJson([{ z: 2, impHs: 0 }]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'He')
+})
+
+test('computeFormulaFromMolJson: silver [Ag+] z:47 → Ag', () => {
+  const mol = {
+    get_json: () => makeMolJson([{ z: 47, impHs: 0 }]),
+  }
+  assert.equal(computeFormulaFromMolJson(mol), 'Ag')
+})
+
+test('computeFormulaFromMolJson: unknown atomic number returns null', () => {
   const mol = {
     get_json: () => makeMolJson([
       { z: 6, impHs: 0 },
       { z: 999, impHs: 0 },
     ]),
   }
-  assert.equal(computeFormulaFromMolJson(mol), 'C')
+  assert.equal(computeFormulaFromMolJson(mol), null)
 })
 
 // --- Memory cleanup ---
