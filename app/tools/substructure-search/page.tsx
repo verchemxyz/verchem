@@ -66,6 +66,9 @@ export default function SubstructureSearchPage() {
       const q = rawQuery.trim()
       if (!q) {
         setError('Enter or draw a structure to search.')
+        setSubstructureHits(null)
+        setSimilarityHits(null)
+        setSearchedQuery('')
         return
       }
 
@@ -80,7 +83,10 @@ export default function SubstructureSearchPage() {
 
       try {
         if (searchMode === 'substructure') {
-          const { queryValid, hits } = await searchCompoundsBySubstructure(q, { limit: 100 })
+          // No limit: the corpus is small (~209) and substructure match is a
+          // boolean contains-or-not, so the displayed count must be the TRUE
+          // total — not a silently-capped subset.
+          const { queryValid, hits } = await searchCompoundsBySubstructure(q)
           if (!queryValid) {
             setError('Could not parse that query. Try a SMILES (e.g. c1ccccc1) or SMARTS pattern.')
             return
@@ -89,7 +95,6 @@ export default function SubstructureSearchPage() {
         } else {
           const { queryValid, hits } = await searchCompoundsBySimilarity(q, {
             threshold: 0.3,
-            limit: 50,
           })
           if (!queryValid) {
             setError('Similarity search needs a valid SMILES molecule (e.g. CCO).')
