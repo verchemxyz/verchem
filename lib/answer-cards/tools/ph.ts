@@ -52,6 +52,13 @@ function normalizeFormula(formula: string): string {
     .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => subscriptMap[match] ?? match)
 }
 
+/** Reject formulas containing homoglyphs (Cyrillic/Greek look-alikes) or other non-ASCII characters.
+ *  Element symbols are ASCII-only; anything else is either an attack or a typo.
+ */
+function isAsciiFormula(formula: string): boolean {
+  return /^[A-Za-z0-9()·\[\]]+$/.test(formula)
+}
+
 /** Common English names → formula keys in ACID_KA_VALUES */
 const ACID_NAME_ALIASES: Record<string, string> = {
   'acetic acid': 'CH3COOH',
@@ -94,6 +101,9 @@ const calculate_strong_acid_ph: VerifiedTool = {
       const formula = typeof input.formula === 'string' ? input.formula : undefined
 
       const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
+      if (normalized !== undefined && !isAsciiFormula(normalized)) {
+        return err('formula must use ASCII element symbols only')
+      }
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_ACID_PROTONS[normalized] !== undefined
       const expectedProtons = normalized !== undefined ? KNOWN_STRONG_ACID_PROTONS[normalized] : undefined
 
@@ -211,6 +221,9 @@ const calculate_strong_base_ph: VerifiedTool = {
       const formula = typeof input.formula === 'string' ? input.formula : undefined
 
       const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
+      if (normalized !== undefined && !isAsciiFormula(normalized)) {
+        return err('formula must use ASCII element symbols only')
+      }
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_BASE_HYDROXIDES[normalized] !== undefined
       const expectedHydroxides = normalized !== undefined ? KNOWN_STRONG_BASE_HYDROXIDES[normalized] : undefined
 

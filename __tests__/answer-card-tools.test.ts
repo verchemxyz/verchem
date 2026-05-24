@@ -391,6 +391,70 @@ describe('proton_count / hydroxide_count validation', () => {
   })
 })
 
+// ──────────────────────────────────────────────────────────
+// Homoglyph rejection — signed engine path (W3-R23)
+// ──────────────────────────────────────────────────────────
+
+describe('Homoglyph formula rejection', () => {
+  test('rejects Cyrillic Н in strong acid formula (Н2SO4)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'Н2SO4' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('ascii')).toBe(true)
+  })
+
+  test('rejects Cyrillic О in strong acid formula (H₂SО4)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    // U+2082 subscript 2 gets normalized; U+041E Cyrillic О remains
+    const result = tool.execute({ concentration: 0.1, formula: 'H\u2082S\u041E4' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('ascii')).toBe(true)
+  })
+
+  test('rejects Greek Ο in strong base formula (Ca(ΟH)2)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'Ca(\u039FH)2' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('ascii')).toBe(true)
+  })
+
+  test('rejects Cyrillic О in strong base formula (Ca(ОH)2)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'Ca(\u041EH)2' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('ascii')).toBe(true)
+  })
+
+  test('valid ASCII strong acid formula (H2SO4) produces correct pH', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'H2SO4' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // H2SO4 Ka2 second dissociation → pH ~0.96 for 0.1 M
+    expect(result.value.pH).toBeCloseTo(0.96, 1)
+  })
+
+  test('valid ASCII strong base formula (NaOH) produces correct pH', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'NaOH' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.pH).toBeCloseTo(13.0, 1)
+  })
+
+  test('weak acid with Cyrillic а in acid_name (асetic acid) fails lookup — no fallback', () => {
+    const tool = TOOL_BY_NAME.get('calculate_weak_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, acid_name: '\u0430cetic acid' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('ka')).toBe(true)
+  })
+})
+
 describe('Dilution positive validation', () => {
   test('rejects negative M1', () => {
     const tool = TOOL_BY_NAME.get('calculate_dilution')!
@@ -841,6 +905,15 @@ describe('Equation group leading-zero reject', () => {
     const tool = TOOL_BY_NAME.get('balance_equation')!
     const result = tool.execute({ equation: 'Fe2(SO4)3 -> Fe2S3O12' })
     expect(result.ok).toBe(true)
+  })
+
+  test('rejects Cyrillic Н in equation (Н2 + O2 -> H2O)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: '\u041D2 + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    // Should fail per-compound validation because Н is not a valid element symbol
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
   })
 })
 
