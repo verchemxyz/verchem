@@ -27,7 +27,7 @@ const STATE_PATTERN = /\((?:aq|s|l|g)\)$/i
 
 /**
  * Expand parentheses in a compound string: Ca(OH)2 → CaO2H2
- * Rejects zero/invalid multipliers and empty groups.
+ * Rejects zero/invalid multipliers, empty groups, and leading-zero counts inside groups.
  * Uses iterative first-match replacement (no /g state bug).
  */
 function expandParentheses(formula: string): string | null {
@@ -42,6 +42,14 @@ function expandParentheses(formula: string): string | null {
     // Reject zero/invalid multiplier (e.g., Ca(OH)0, Ca(OH)00)
     if (multiplier !== '' && !POSITIVE_INT.test(multiplier)) return null
     const mult = multiplier ? parseInt(multiplier, 10) : 1
+
+    // Validate group element counts BEFORE expansion (reject leading-zero like H02)
+    let gv: RegExpExecArray | null
+    const gvRegex = /([A-Z][a-z]?)(\d*)/g
+    while ((gv = gvRegex.exec(group)) !== null) {
+      if (gv[2] !== '' && !POSITIVE_INT.test(gv[2])) return null
+    }
+
     const expanded = group.replace(/([A-Z][a-z]?)(\d*)/g, (_m: string, el: string, count: string) => {
       const c = count ? parseInt(count, 10) : 1
       return el + (c * mult)

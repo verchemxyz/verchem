@@ -32,6 +32,7 @@ import {
   balanceEquation,
   identifyReactionType,
 } from '@/lib/calculations/equation-balancer'
+import { pickSchemaKeys } from '@/lib/answer-cards/orchestrator'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -766,6 +767,80 @@ describe('Tool input validation', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('ka')).toBe(true)
+  })
+})
+
+describe('pickSchemaKeys — input key hygiene', () => {
+  test('strips unused keys from input (LLM smuggle prevention)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const stripped = pickSchemaKeys(
+      { concentration: 0.1, unused_hallucination: 999, formula: 'HCl' },
+      tool
+    )
+    expect(stripped).toEqual({ concentration: 0.1, formula: 'HCl' })
+    expect('unused_hallucination' in stripped).toBe(false)
+  })
+
+  test('preserves valid optional keys', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const stripped = pickSchemaKeys(
+      { concentration: 0.1, formula: 'H2SO4', proton_count: 2 },
+      tool
+    )
+    expect(stripped).toEqual({ concentration: 0.1, formula: 'H2SO4', proton_count: 2 })
+  })
+
+  test('returns empty object when all keys are junk', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const stripped = pickSchemaKeys(
+      { unused_hallucination: 999, fake_field: 123 },
+      tool
+    )
+    expect(stripped).toEqual({})
+  })
+
+  test('passes through all keys when tool is undefined', () => {
+    const stripped = pickSchemaKeys({ concentration: 0.1, extra: 2 }, undefined)
+    expect(stripped).toEqual({ concentration: 0.1, extra: 2 })
+  })
+
+  test('equation tool strips junk keys too', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const stripped = pickSchemaKeys(
+      { equation: 'H2 + O2 -> H2O', unused_coefficient: 42 },
+      tool
+    )
+    expect(stripped).toEqual({ equation: 'H2 + O2 -> H2O' })
+  })
+})
+
+describe('Equation group leading-zero reject', () => {
+  test('rejects Ca(H02)2 (leading-zero count inside group)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Ca(H02)2 -> CaH4' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects Fe2(SO04)3 (leading-zero count inside group)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Fe2(SO04)3 -> Fe2S3O12' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('accepts Ca(OH)2 (normal group)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Ca(OH)2 + HCl -> CaCl2 + H2O' })
+    expect(result.ok).toBe(true)
+  })
+
+  test('accepts Fe2(SO4)3 (normal group)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Fe2(SO4)3 -> Fe2S3O12' })
+    expect(result.ok).toBe(true)
   })
 })
 

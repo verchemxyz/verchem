@@ -7,11 +7,34 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk'
-import type { AnswerCard, CardStatus, ToolCall } from './types'
+import type { AnswerCard, CardStatus, ToolCall, VerifiedTool } from './types'
 import { signCard } from './signature'
 import { auditExplanation } from './audit'
 import { ALL_TOOLS, TOOL_BY_NAME, toAnthropicTool } from './tools/registry'
 import { isPlainObject } from './tools/_validate'
+
+/**
+ * Strip input object to only keys defined in the tool's input_schema.properties.
+ * Prevents LLM from smuggling fake numbers via unused fields that would enter
+ * the audit allowlist (e.g., {concentration: 0.1, unused_hallucination: 999}).
+ */
+export function pickSchemaKeys(
+  input: Record<string, unknown>,
+  tool: VerifiedTool | undefined
+): Record<string, unknown> {
+  if (!tool) return input
+  const schema = tool.input_schema as Record<string, unknown>
+  const properties = schema.properties as Record<string, unknown> | undefined
+  if (!properties || typeof properties !== 'object' || properties === null) return input
+  const allowed = Object.keys(properties)
+  const stripped: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in input) {
+      stripped[key] = input[key]
+    }
+  }
+  return stripped
+}
 
 const MODEL = 'claude-haiku-4-5-20251001'
 const VERSION = 'w3-v1'
@@ -120,15 +143,18 @@ export async function askVerified(question: string): Promise<AnswerCard> {
         continue
       }
 
+      // Strip input to schema-defined keys only (prevent LLM smuggling via unused fields)
+      const strippedInput = pickSchemaKeys(block.input as Record<string, unknown>, tool)
+
       const result = tool
-        ? tool.execute(block.input as Record<string, unknown>)
+        ? tool.execute(strippedInput)
         : { ok: false, value: {}, error: `Tool "${block.name}" not found` } as const
 
       // Store tool call for the card
       toolCalls.push({
         name: block.name,
         engine: tool?.engine || 'unknown',
-        input: block.input as Record<string, unknown>,
+        input: strippedInput,
         result,
         citation: tool?.citation || '',
       })
