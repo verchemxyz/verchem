@@ -1,0 +1,125 @@
+'use client'
+
+import React from 'react'
+import type { AnswerCard } from '@/lib/answer-cards/types'
+
+interface AnswerCardViewProps {
+  card: AnswerCard
+}
+
+function truncateSignature(sig: string): string {
+  if (sig.length <= 16) return sig
+  return `${sig.slice(0, 8)}…${sig.slice(-8)}`
+}
+
+export default function AnswerCardView({ card }: AnswerCardViewProps) {
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header: Verification badge */}
+      <div className="flex items-center gap-3">
+        {card.verified ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            VERIFIED
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-sm font-medium text-yellow-400">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Unverified
+          </span>
+        )}
+        <span className="text-xs text-slate-500">
+          {card.model} · {card.version}
+        </span>
+      </div>
+
+      {/* Explanation */}
+      {card.explanation && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">
+            Explanation
+          </h3>
+          <div className="prose prose-invert max-w-none text-slate-200 whitespace-pre-wrap">
+            {card.explanation}
+          </div>
+        </div>
+      )}
+
+      {/* Tool calls / Provenance */}
+      {card.tool_calls.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">
+            Deterministic Engines
+          </h3>
+          {card.tool_calls.map((tc, idx) => (
+            <div
+              key={`${tc.name}-${idx}`}
+              className={`rounded-xl border p-4 ${
+                tc.result.ok
+                  ? 'border-green-500/20 bg-green-500/5'
+                  : 'border-red-500/20 bg-red-500/5'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white">{tc.engine}</span>
+                <span className="text-xs text-slate-500">{tc.name}</span>
+              </div>
+
+              <div className="grid gap-2 text-sm">
+                <div>
+                  <span className="text-slate-500">Inputs:</span>{' '}
+                  <code className="rounded bg-white/5 px-1.5 py-0.5 text-slate-300">
+                    {JSON.stringify(tc.input)}
+                  </code>
+                </div>
+                {tc.result.ok ? (
+                  <div>
+                    <span className="text-slate-500">Result:</span>{' '}
+                    <code className="rounded bg-white/5 px-1.5 py-0.5 text-green-300">
+                      {JSON.stringify(tc.result.value)}
+                    </code>
+                  </div>
+                ) : (
+                  <div className="text-red-300">
+                    <span className="text-slate-500">Error:</span> {tc.result.error}
+                  </div>
+                )}
+                {tc.citation && (
+                  <div className="text-xs text-slate-500 mt-1">
+                    Citation: {tc.citation}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Signature */}
+      {card.signature && (
+        <div className="rounded-xl border border-white/5 bg-white/5 p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+              Tamper-proof Signature
+            </span>
+          </div>
+          <code className="text-xs text-slate-400 break-all">{truncateSignature(card.signature)}</code>
+        </div>
+      )}
+
+      {!card.verified && card.tool_calls.length === 0 && (
+        <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-200">
+          This answer is conceptual and was not verified by a deterministic calculation engine.
+          Numerical claims should be independently checked.
+        </div>
+      )}
+    </div>
+  )
+}
