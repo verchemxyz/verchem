@@ -1,12 +1,15 @@
 /**
- * VerChem Answer Card Tools Tests
+ * VerChem Answer Card Tools Tests (W3-R2)
  *
  * Enforces the verification invariant: each tool execute() must route to
  * the REAL engine function in lib/calculations/*. Numbers must match.
+ * Plus: readFiniteNumber guards, finalizeResult non-finite rejection,
+ * equation validation.
  */
 
 import assert from 'node:assert/strict'
 import { ALL_TOOLS, TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
+import { readFiniteNumber, finalizeResult } from '@/lib/answer-cards/tools/_validate'
 import {
   calculateStrongAcidPH,
   calculateWeakAcidPH,
@@ -70,6 +73,9 @@ function expect(actual: unknown) {
       }
       throw new Error('toContain only supports string and array values')
     },
+    toBeUndefined() {
+      assert.equal(actual, undefined)
+    },
   }
 }
 
@@ -99,6 +105,77 @@ describe('Tool registry', () => {
   })
 })
 
+describe('readFiniteNumber', () => {
+  test('returns number for valid finite numbers', () => {
+    expect(readFiniteNumber(5)).toBe(5)
+    expect(readFiniteNumber(3.14)).toBe(3.14)
+    expect(readFiniteNumber('2.5')).toBe(2.5)
+    expect(readFiniteNumber('  1e-5  ')).toBe(1e-5)
+  })
+
+  test('returns undefined for null', () => {
+    expect(readFiniteNumber(null)).toBeUndefined()
+  })
+
+  test('returns undefined for undefined', () => {
+    expect(readFiniteNumber(undefined)).toBeUndefined()
+  })
+
+  test('returns undefined for boolean', () => {
+    expect(readFiniteNumber(true)).toBeUndefined()
+    expect(readFiniteNumber(false)).toBeUndefined()
+  })
+
+  test('returns undefined for empty string', () => {
+    expect(readFiniteNumber('')).toBeUndefined()
+    expect(readFiniteNumber('   ')).toBeUndefined()
+  })
+
+  test('returns undefined for object/array', () => {
+    expect(readFiniteNumber({})).toBeUndefined()
+    expect(readFiniteNumber([])).toBeUndefined()
+  })
+
+  test('returns undefined for NaN and Infinity', () => {
+    expect(readFiniteNumber(NaN)).toBeUndefined()
+    expect(readFiniteNumber(Infinity)).toBeUndefined()
+    expect(readFiniteNumber(-Infinity)).toBeUndefined()
+  })
+
+  test('returns undefined for non-numeric string', () => {
+    expect(readFiniteNumber('abc')).toBeUndefined()
+    expect(readFiniteNumber('1.2.3')).toBeUndefined()
+  })
+})
+
+describe('finalizeResult', () => {
+  test('returns ok for valid finite values', () => {
+    const r = finalizeResult({ a: 1, b: 2.5 })
+    expect(r.ok).toBe(true)
+  })
+
+  test('returns error for NaN value', () => {
+    const r = finalizeResult({ a: NaN })
+    expect(r.ok).toBe(false)
+    expect(r.error?.toLowerCase().includes('non-finite')).toBe(true)
+  })
+
+  test('returns error for Infinity value', () => {
+    const r = finalizeResult({ a: Infinity })
+    expect(r.ok).toBe(false)
+  })
+
+  test('returns error for nested non-finite', () => {
+    const r = finalizeResult({ a: { b: NaN } })
+    expect(r.ok).toBe(false)
+  })
+
+  test('returns error for array with non-finite', () => {
+    const r = finalizeResult({ a: [1, NaN] })
+    expect(r.ok).toBe(false)
+  })
+})
+
 describe('pH tools route to real engines', () => {
   test('calculate_strong_acid_ph matches engine', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
@@ -125,9 +202,19 @@ describe('pH tools route to real engines', () => {
     expect(result.value.percent_ionization).toBeCloseTo(engineResult.percentIonization as number, 10)
   })
 
-  test('calculate_weak_acid_ph resolves known acid by name', () => {
+  test('calculate_weak_acid_ph resolves known acid by formula', () => {
     const tool = TOOL_BY_NAME.get('calculate_weak_acid_ph')!
     const result = tool.execute({ concentration: 0.1, acid_name: 'CH3COOH' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const engineResult = calculateWeakAcidPH(0.1, 1.8e-5)
+    expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
+  })
+
+  test('calculate_weak_acid_ph resolves alias acetic acid', () => {
+    const tool = TOOL_BY_NAME.get('calculate_weak_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, acid_name: 'acetic acid' })
     expect(result.ok).toBe(true)
     if (!result.ok) return
 
@@ -177,6 +264,14 @@ describe('pH tools route to real engines', () => {
     expect(result.value.V2).toBeCloseTo(engineResult.V2, 10)
     expect(result.value.dilution_factor).toBeCloseTo(engineResult.dilutionFactor, 10)
   })
+
+  test('rejects null concentration (Number(null)→0 fixed)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: null })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('concentration')).toBe(true)
+  })
 })
 
 describe('Gas law tools route to real engines', () => {
@@ -208,6 +303,14 @@ describe('Gas law tools route to real engines', () => {
 
     const engineResult = boylesLaw(2.0, 3.0, 1.0)
     expect(result.value.V2).toBeCloseTo(engineResult.V2 as number, 10)
+  })
+
+  test('boyles_law rejects division by zero (non-finite result)', () => {
+    const tool = TOOL_BY_NAME.get('boyles_law')!
+    const result = tool.execute({ P1: 1.0, V1: 1.0, P2: 0.0 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('non-finite') || result.error?.toLowerCase().includes('boyle')).toBe(true)
   })
 
   test('charles_law matches engine', () => {
@@ -273,6 +376,26 @@ describe('Equation balancer tool routes to real engine', () => {
     expect(result.value.is_balanced).toBe(engineResult.isBalanced)
     expect(result.value.reaction_type).toBe(identifyReactionType('H2 + O2 -> H2O'))
   })
+
+  test('rejects invalid equation (abc -> def)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'abc -> def' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('valid') || result.error?.toLowerCase().includes('element')).toBe(true)
+  })
+
+  test('rejects equation without arrow', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2 O2 H2O' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('rejects foo + bar -> baz', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'foo + bar -> baz' })
+    expect(result.ok).toBe(false)
+  })
 })
 
 describe('Tool input validation', () => {
@@ -291,17 +414,11 @@ describe('Tool input validation', () => {
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('ka')).toBe(true)
   })
-
-  test('rejects invalid equation', () => {
-    const tool = TOOL_BY_NAME.get('balance_equation')!
-    const result = tool.execute({ equation: 'not an equation' })
-    expect(result.ok).toBe(false)
-  })
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Tools Tests')
-  console.log('===================================\n')
+  console.log('🧪 VerChem Answer Card Tools Tests (W3-R2)')
+  console.log('===========================================\n')
 
   let passed = 0
   const failures: string[] = []

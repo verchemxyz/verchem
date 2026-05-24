@@ -6,6 +6,7 @@
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
+import { readFiniteNumber, finalizeResult } from './_validate'
 import {
   idealGasLaw,
   combinedGasLaw,
@@ -18,10 +19,6 @@ import {
 } from '@/lib/calculations/gas-laws'
 
 const CITATION = 'Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 1; Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 10'
-
-function ok(value: Record<string, unknown>): ToolResult {
-  return { ok: true, value }
-}
 
 function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
@@ -44,14 +41,14 @@ const ideal_gas_law: VerifiedTool = {
   engine: 'ideal-gas',
   execute: (input) => {
     const args = {
-      P: input.P !== undefined ? Number(input.P) : undefined,
-      V: input.V !== undefined ? Number(input.V) : undefined,
-      n: input.n !== undefined ? Number(input.n) : undefined,
-      T: input.T !== undefined ? Number(input.T) : undefined,
+      P: readFiniteNumber(input.P),
+      V: readFiniteNumber(input.V),
+      n: readFiniteNumber(input.n),
+      T: readFiniteNumber(input.T),
     }
     try {
       const result = idealGasLaw(args)
-      return ok({
+      return finalizeResult({
         P: result.P,
         V: result.V,
         n: result.n,
@@ -83,16 +80,16 @@ const combined_gas_law: VerifiedTool = {
   engine: 'combined-gas',
   execute: (input) => {
     const args = {
-      P1: input.P1 !== undefined ? Number(input.P1) : undefined,
-      V1: input.V1 !== undefined ? Number(input.V1) : undefined,
-      T1: input.T1 !== undefined ? Number(input.T1) : undefined,
-      P2: input.P2 !== undefined ? Number(input.P2) : undefined,
-      V2: input.V2 !== undefined ? Number(input.V2) : undefined,
-      T2: input.T2 !== undefined ? Number(input.T2) : undefined,
+      P1: readFiniteNumber(input.P1),
+      V1: readFiniteNumber(input.V1),
+      T1: readFiniteNumber(input.T1),
+      P2: readFiniteNumber(input.P2),
+      V2: readFiniteNumber(input.V2),
+      T2: readFiniteNumber(input.T2),
     }
     try {
       const result = combinedGasLaw(args)
-      return ok({
+      return finalizeResult({
         P1: result.P1,
         V1: result.V1,
         T1: result.T1,
@@ -124,12 +121,12 @@ const boyles_law: VerifiedTool = {
   execute: (input) => {
     try {
       const result = boylesLaw(
-        input.P1 !== undefined ? Number(input.P1) : undefined,
-        input.V1 !== undefined ? Number(input.V1) : undefined,
-        input.P2 !== undefined ? Number(input.P2) : undefined,
-        input.V2 !== undefined ? Number(input.V2) : undefined,
+        readFiniteNumber(input.P1),
+        readFiniteNumber(input.V1),
+        readFiniteNumber(input.P2),
+        readFiniteNumber(input.V2),
       )
-      return ok({ P1: result.P1, V1: result.V1, P2: result.P2, V2: result.V2 })
+      return finalizeResult({ P1: result.P1, V1: result.V1, P2: result.P2, V2: result.V2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Boyle's law calculation failed")
     }
@@ -154,12 +151,12 @@ const charles_law: VerifiedTool = {
   execute: (input) => {
     try {
       const result = charlesLaw(
-        input.V1 !== undefined ? Number(input.V1) : undefined,
-        input.T1 !== undefined ? Number(input.T1) : undefined,
-        input.V2 !== undefined ? Number(input.V2) : undefined,
-        input.T2 !== undefined ? Number(input.T2) : undefined,
+        readFiniteNumber(input.V1),
+        readFiniteNumber(input.T1),
+        readFiniteNumber(input.V2),
+        readFiniteNumber(input.T2),
       )
-      return ok({ V1: result.V1, T1: result.T1, V2: result.V2, T2: result.T2 })
+      return finalizeResult({ V1: result.V1, T1: result.T1, V2: result.V2, T2: result.T2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Charles's law calculation failed")
     }
@@ -184,12 +181,12 @@ const gay_lussac_law: VerifiedTool = {
   execute: (input) => {
     try {
       const result = gayLussacsLaw(
-        input.P1 !== undefined ? Number(input.P1) : undefined,
-        input.T1 !== undefined ? Number(input.T1) : undefined,
-        input.P2 !== undefined ? Number(input.P2) : undefined,
-        input.T2 !== undefined ? Number(input.T2) : undefined,
+        readFiniteNumber(input.P1),
+        readFiniteNumber(input.T1),
+        readFiniteNumber(input.P2),
+        readFiniteNumber(input.T2),
       )
-      return ok({ P1: result.P1, T1: result.T1, P2: result.P2, T2: result.T2 })
+      return finalizeResult({ P1: result.P1, T1: result.T1, P2: result.P2, T2: result.T2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Gay-Lussac's law calculation failed")
     }
@@ -214,12 +211,12 @@ const avogadro_law: VerifiedTool = {
   execute: (input) => {
     try {
       const result = avogadrosLaw(
-        input.V1 !== undefined ? Number(input.V1) : undefined,
-        input.n1 !== undefined ? Number(input.n1) : undefined,
-        input.V2 !== undefined ? Number(input.V2) : undefined,
-        input.n2 !== undefined ? Number(input.n2) : undefined,
+        readFiniteNumber(input.V1),
+        readFiniteNumber(input.n1),
+        readFiniteNumber(input.V2),
+        readFiniteNumber(input.n2),
       )
-      return ok({ V1: result.V1, n1: result.n1, V2: result.V2, n2: result.n2 })
+      return finalizeResult({ V1: result.V1, n1: result.n1, V2: result.V2, n2: result.n2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Avogadro's law calculation failed")
     }
@@ -244,16 +241,16 @@ const van_der_waals: VerifiedTool = {
   citation: CITATION,
   engine: 'van-der-waals',
   execute: (input) => {
-    const n = Number(input.n)
-    const V = Number(input.V)
-    const T = Number(input.T)
-    if (!Number.isFinite(n) || n <= 0) return err('n must be a positive number')
-    if (!Number.isFinite(V) || V <= 0) return err('V must be a positive number')
-    if (!Number.isFinite(T) || T <= 0) return err('T must be a positive number (K)')
+    const n = readFiniteNumber(input.n)
+    const V = readFiniteNumber(input.V)
+    const T = readFiniteNumber(input.T)
+    if (n === undefined || n <= 0) return err('n must be a positive finite number')
+    if (V === undefined || V <= 0) return err('V must be a positive finite number')
+    if (T === undefined || T <= 0) return err('T must be a positive finite number (K)')
 
     let a: number | undefined
     let b: number | undefined
-    if (typeof input.a === 'number' && typeof input.b === 'number') {
+    if (typeof input.a === 'number' && Number.isFinite(input.a) && typeof input.b === 'number' && Number.isFinite(input.b)) {
       a = input.a
       b = input.b
     } else if (typeof input.gas_name === 'string') {
@@ -274,7 +271,7 @@ const van_der_waals: VerifiedTool = {
 
     try {
       const pressure = vanDerWaalsEquation({ n, V, T, a, b })
-      return ok({ pressure, unit: 'atm', a, b })
+      return finalizeResult({ pressure, unit: 'atm', a, b })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Van der Waals calculation failed')
     }

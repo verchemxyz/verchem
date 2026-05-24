@@ -1,8 +1,13 @@
 /**
- * VerChem Answer Card Signature Tests
+ * VerChem Answer Card Signature Tests (W3-R2)
  *
  * - sign → verify ✓
  * - tamper payload → verify ✗
+ * - tamper tool result → verify ✗
+ * - tamper explanation → verify ✗
+ * - tamper engine → verify ✗
+ * - tamper status → verify ✗
+ * - tamper citation → verify ✗
  * - key order does not affect signature
  */
 
@@ -40,13 +45,18 @@ function expect(actual: unknown) {
 function makePayload(overrides?: Partial<SignablePayload>): SignablePayload {
   return {
     question: 'What is the pH of 0.1 M HCl?',
+    status: 'verified',
     tool_calls: [
       {
         name: 'calculate_strong_acid_ph',
+        engine: 'strong-acid-pH',
         input: { concentration: 0.1 },
-        result: { pH: 1.0 },
+        result: { ok: true, value: { pH: 1.0 } },
+        citation: 'Atkins Ch.6',
       },
     ],
+    explanation: 'The pH is 1.0.',
+    audit: { clean: true, unmatched: [] },
     model: 'claude-haiku-4-5-20251001',
     version: 'w3-v1',
     issued_at: '2026-05-24T00:00:00.000Z',
@@ -63,42 +73,93 @@ describe('signCard + verifyCardSignature', () => {
     expect(valid).toBeTruthy()
   })
 
-  test('tampered payload fails verification', async () => {
+  test('tampered question fails verification', async () => {
     const payload = makePayload()
     const sig = await signCard(payload)
-
     const tampered = makePayload({ question: 'Tampered question' })
-    const valid = await verifyCardSignature(tampered, sig)
-    expect(valid).toBeFalsy()
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
   })
 
   test('tampered tool result fails verification', async () => {
     const payload = makePayload()
     const sig = await signCard(payload)
-
     const tampered = makePayload({
       tool_calls: [
         {
           name: 'calculate_strong_acid_ph',
+          engine: 'strong-acid-pH',
           input: { concentration: 0.1 },
-          result: { pH: 99.9 },
+          result: { ok: true, value: { pH: 99.9 } },
+          citation: 'Atkins Ch.6',
         },
       ],
     })
-    const valid = await verifyCardSignature(tampered, sig)
-    expect(valid).toBeFalsy()
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
+  })
+
+  test('tampered explanation fails verification', async () => {
+    const payload = makePayload()
+    const sig = await signCard(payload)
+    const tampered = makePayload({ explanation: 'Fake explanation' })
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
+  })
+
+  test('tampered engine fails verification', async () => {
+    const payload = makePayload()
+    const sig = await signCard(payload)
+    const tampered = makePayload({
+      tool_calls: [
+        {
+          name: 'calculate_strong_acid_ph',
+          engine: 'tampered-engine',
+          input: { concentration: 0.1 },
+          result: { ok: true, value: { pH: 1.0 } },
+          citation: 'Atkins Ch.6',
+        },
+      ],
+    })
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
+  })
+
+  test('tampered status fails verification', async () => {
+    const payload = makePayload()
+    const sig = await signCard(payload)
+    const tampered = makePayload({ status: 'partial' })
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
+  })
+
+  test('tampered citation fails verification', async () => {
+    const payload = makePayload()
+    const sig = await signCard(payload)
+    const tampered = makePayload({
+      tool_calls: [
+        {
+          name: 'calculate_strong_acid_ph',
+          engine: 'strong-acid-pH',
+          input: { concentration: 0.1 },
+          result: { ok: true, value: { pH: 1.0 } },
+          citation: 'Tampered citation',
+        },
+      ],
+    })
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
   })
 
   test('different key order produces identical signature', async () => {
     const payloadA: SignablePayload = {
       question: 'What is the pH?',
+      status: 'verified',
       tool_calls: [
         {
           name: 'calculate_weak_acid_ph',
+          engine: 'weak-acid-pH',
           input: { concentration: 0.1, Ka: 1.8e-5 },
-          result: { pH: 2.87, method: 'approximation' },
+          result: { ok: true, value: { pH: 2.87, method: 'approximation' } },
+          citation: 'Atkins Ch.6',
         },
       ],
+      explanation: 'pH is 2.87',
+      audit: { clean: true, unmatched: [] },
       model: 'claude-haiku-4-5-20251001',
       version: 'w3-v1',
       issued_at: '2026-05-24T00:00:00.000Z',
@@ -109,20 +170,24 @@ describe('signCard + verifyCardSignature', () => {
       model: 'claude-haiku-4-5-20251001',
       issued_at: '2026-05-24T00:00:00.000Z',
       question: 'What is the pH?',
+      status: 'verified',
+      audit: { unmatched: [], clean: true },
       tool_calls: [
         {
-          result: { method: 'approximation', pH: 2.87 },
+          result: { ok: true, value: { method: 'approximation', pH: 2.87 } },
           input: { Ka: 1.8e-5, concentration: 0.1 },
+          citation: 'Atkins Ch.6',
           name: 'calculate_weak_acid_ph',
+          engine: 'weak-acid-pH',
         },
       ],
+      explanation: 'pH is 2.87',
     }
 
     const sigA = await signCard(payloadA)
     const sigB = await signCard(payloadB)
     expect(sigA).toBe(sigB)
 
-    // Verify cross
     expect(await verifyCardSignature(payloadA, sigB)).toBeTruthy()
     expect(await verifyCardSignature(payloadB, sigA)).toBeTruthy()
   })
@@ -135,8 +200,8 @@ describe('signCard + verifyCardSignature', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Signature Tests')
-  console.log('=======================================\n')
+  console.log('🧪 VerChem Answer Card Signature Tests (W3-R2)')
+  console.log('===============================================\n')
 
   let passed = 0
   const failures: string[] = []

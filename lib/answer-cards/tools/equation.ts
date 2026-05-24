@@ -6,20 +6,47 @@
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
+import { finalizeResult } from './_validate'
 import {
   balanceEquation,
   identifyReactionType,
-  validateFormula,
 } from '@/lib/calculations/equation-balancer'
 
 const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3; Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 7'
 
-function ok(value: Record<string, unknown>): ToolResult {
-  return { ok: true, value }
-}
-
 function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
+}
+
+/** Recognized element symbols for quick validation */
+const ELEMENT_SYMBOLS = new Set([
+  'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
+  'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
+  'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
+  'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr',
+  'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn',
+  'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd',
+  'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb',
+  'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
+  'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
+  'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm',
+  'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
+  'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
+])
+
+/**
+ * Check if a compound string contains at least one recognizable element symbol.
+ */
+function containsRecognizedElements(compound: string): boolean {
+  // Remove digits, parentheses, charges, states
+  const stripped = compound.replace(/[\d\(\)\[\]\+\-]|\([aqlsg]+\)/g, '')
+  // Try to match element symbols
+  const regex = /[A-Z][a-z]?/g
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(stripped)) !== null) {
+    if (ELEMENT_SYMBOLS.has(match[0])) return true
+  }
+  return false
 }
 
 const balance_equation: VerifiedTool = {
@@ -41,13 +68,27 @@ const balance_equation: VerifiedTool = {
 
     const equation = input.equation.trim()
 
-    // Quick validation of formula-like characters
-    const compounds = equation.split(/->|→|=|\+/).map((s) => s.trim()).filter(Boolean)
+    // Validate that equation looks like a chemical equation
+    const arrowMatch = equation.match(/->|→|=>|=/)
+    if (!arrowMatch) {
+      return err('Equation must contain an arrow (->, =>, =, or →) separating reactants and products')
+    }
+
+    const parts = equation.split(/->|→|=>|=/)
+    if (parts.length !== 2) {
+      return err('Equation must have exactly one set of reactants and one set of products')
+    }
+
+    const compounds = equation.split(/->|→|=>|=|\+/).map((s) => s.trim()).filter(Boolean)
+    let hasElements = false
     for (const compound of compounds) {
-      const validation = validateFormula(compound)
-      if (!validation.valid) {
-        return err(`Invalid formula "${compound}": ${validation.error}`)
+      if (containsRecognizedElements(compound)) {
+        hasElements = true
+        break
       }
+    }
+    if (!hasElements) {
+      return err('Equation does not contain recognizable chemical elements')
     }
 
     try {
@@ -55,9 +96,13 @@ const balance_equation: VerifiedTool = {
       if (!result.isBalanced) {
         return err('Could not balance the provided equation. Please check the formula and format.')
       }
+      // Extra guard: balanced result must have atoms recorded
+      if (Object.keys(result.atoms).length === 0) {
+        return err('Not a valid chemical equation')
+      }
       const reactionType = identifyReactionType(equation)
 
-      return ok({
+      return finalizeResult({
         original: result.original,
         balanced: result.balanced,
         coefficients: result.coefficients,

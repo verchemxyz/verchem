@@ -1,9 +1,10 @@
 /**
  * VerChem AI Verified Answer Cards — Core Types
  *
- * DAY 1: Verification Core + 3 engines
- * Invariant: Every numeric claim on a card must trace to a tool_result.
+ * DAY 1 (W3-R2): Status enum + numeric audit + full signature coverage
  */
+
+export type CardStatus = 'verified' | 'partial' | 'unverified' | 'error'
 
 export interface ToolResult {
   ok: boolean
@@ -30,9 +31,12 @@ export interface VerifiedTool {
 
 export interface AnswerCard {
   question: string
+  status: CardStatus
+  /** @deprecated kept for compat — use status instead */
   verified: boolean
   tool_calls: ToolCall[]
   explanation: string
+  audit: { clean: boolean; unmatched: string[] }
   model: string
   version: string
   issued_at: string
@@ -41,11 +45,16 @@ export interface AnswerCard {
 
 export interface SignablePayload {
   question: string
+  status: CardStatus
   tool_calls: Array<{
     name: string
+    engine: string
     input: Record<string, unknown>
-    result: Record<string, unknown>
+    result: { ok: boolean; value: Record<string, unknown>; error?: string }
+    citation: string
   }>
+  explanation: string
+  audit: { clean: boolean; unmatched: string[] }
   model: string
   version: string
   issued_at: string

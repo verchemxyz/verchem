@@ -6,6 +6,7 @@
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
+import { readFiniteNumber, finalizeResult } from './_validate'
 import {
   calculateStrongAcidPH,
   calculateWeakAcidPH,
@@ -18,12 +19,23 @@ import {
 
 const CITATION = 'Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 6; Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 16'
 
-function ok(value: Record<string, unknown>): ToolResult {
-  return { ok: true, value }
-}
-
 function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
+}
+
+/** Common English names → formula keys in ACID_KA_VALUES */
+const ACID_NAME_ALIASES: Record<string, string> = {
+  'acetic acid': 'CH3COOH',
+  'ethanoic acid': 'CH3COOH',
+  'hydrofluoric acid': 'HF',
+  'nitrous acid': 'HNO2',
+  'carbonic acid': 'H2CO3',
+  'hydrogen sulfide': 'H2S',
+  'ammonium': 'NH4+',
+  'phosphoric acid': 'H3PO4',
+  'sulfuric acid': 'H2SO4',
+  'hydrochloric acid': 'HCl',
+  'nitric acid': 'HNO3',
 }
 
 const calculate_strong_acid_ph: VerifiedTool = {
@@ -41,16 +53,19 @@ const calculate_strong_acid_ph: VerifiedTool = {
   citation: CITATION,
   engine: 'strong-acid-pH',
   execute: (input) => {
-    const concentration = Number(input.concentration)
-    if (!Number.isFinite(concentration) || concentration < 0) {
-      return err('Concentration must be a non-negative number')
+    const concentration = readFiniteNumber(input.concentration)
+    if (concentration === undefined || concentration < 0) {
+      return err('Concentration must be a non-negative finite number')
     }
     try {
       const options = input.formula || input.proton_count
-        ? { formula: typeof input.formula === 'string' ? input.formula : undefined, protonCount: typeof input.proton_count === 'number' ? input.proton_count : undefined }
+        ? {
+            formula: typeof input.formula === 'string' ? input.formula : undefined,
+            protonCount: readFiniteNumber(input.proton_count),
+          }
         : undefined
       const result = calculateStrongAcidPH(concentration, options)
-      return ok({
+      return finalizeResult({
         pH: result.pH,
         pOH: result.pOH,
         H_concentration: result.H_concentration,
@@ -77,21 +92,28 @@ const calculate_weak_acid_ph: VerifiedTool = {
   citation: CITATION,
   engine: 'weak-acid-pH',
   execute: (input) => {
-    const concentration = Number(input.concentration)
-    if (!Number.isFinite(concentration) || concentration < 0) {
-      return err('Concentration must be a non-negative number')
+    const concentration = readFiniteNumber(input.concentration)
+    if (concentration === undefined || concentration < 0) {
+      return err('Concentration must be a non-negative finite number')
     }
 
     let Ka: number | undefined
-    if (typeof input.Ka === 'number' && Number.isFinite(input.Ka)) {
+    if (typeof input.Ka === 'number' && Number.isFinite(input.Ka) && input.Ka > 0) {
       Ka = input.Ka
     } else if (typeof input.acid_name === 'string') {
-      const acidName = input.acid_name
-      const key = Object.keys(ACID_KA_VALUES).find(
-        (k) => k.toLowerCase() === acidName.toLowerCase()
-      )
-      if (key) {
-        Ka = ACID_KA_VALUES[key as keyof typeof ACID_KA_VALUES]
+      const acidName = input.acid_name.toLowerCase().trim()
+      // Try alias map first
+      const aliasKey = ACID_NAME_ALIASES[acidName]
+      if (aliasKey) {
+        Ka = ACID_KA_VALUES[aliasKey as keyof typeof ACID_KA_VALUES]
+      } else {
+        // Try direct formula match (case-insensitive)
+        const directKey = Object.keys(ACID_KA_VALUES).find(
+          (k) => k.toLowerCase() === acidName
+        )
+        if (directKey) {
+          Ka = ACID_KA_VALUES[directKey as keyof typeof ACID_KA_VALUES]
+        }
       }
     }
 
@@ -101,7 +123,7 @@ const calculate_weak_acid_ph: VerifiedTool = {
 
     try {
       const result = calculateWeakAcidPH(concentration, Ka)
-      return ok({
+      return finalizeResult({
         pH: result.pH,
         H_concentration: result.H_concentration,
         percent_ionization: result.percentIonization,
@@ -129,16 +151,19 @@ const calculate_strong_base_ph: VerifiedTool = {
   citation: CITATION,
   engine: 'strong-base-pH',
   execute: (input) => {
-    const concentration = Number(input.concentration)
-    if (!Number.isFinite(concentration) || concentration < 0) {
-      return err('Concentration must be a non-negative number')
+    const concentration = readFiniteNumber(input.concentration)
+    if (concentration === undefined || concentration < 0) {
+      return err('Concentration must be a non-negative finite number')
     }
     try {
       const options = input.formula || input.hydroxide_count
-        ? { formula: typeof input.formula === 'string' ? input.formula : undefined, hydroxideCount: typeof input.hydroxide_count === 'number' ? input.hydroxide_count : undefined }
+        ? {
+            formula: typeof input.formula === 'string' ? input.formula : undefined,
+            hydroxideCount: readFiniteNumber(input.hydroxide_count),
+          }
         : undefined
       const result = calculateStrongBasePH(concentration, options)
-      return ok({
+      return finalizeResult({
         pH: result.pH,
         pOH: result.pOH,
         H_concentration: result.H_concentration,
@@ -164,17 +189,17 @@ const calculate_weak_base_ph: VerifiedTool = {
   citation: CITATION,
   engine: 'weak-base-pH',
   execute: (input) => {
-    const concentration = Number(input.concentration)
-    const Kb = Number(input.Kb)
-    if (!Number.isFinite(concentration) || concentration < 0) {
-      return err('Concentration must be a non-negative number')
+    const concentration = readFiniteNumber(input.concentration)
+    const Kb = readFiniteNumber(input.Kb)
+    if (concentration === undefined || concentration < 0) {
+      return err('Concentration must be a non-negative finite number')
     }
-    if (!Number.isFinite(Kb) || Kb <= 0) {
-      return err('Kb must be a positive number')
+    if (Kb === undefined || Kb <= 0) {
+      return err('Kb must be a positive finite number')
     }
     try {
       const result = calculateWeakBasePH(concentration, Kb)
-      return ok({
+      return finalizeResult({
         pH: result.pH,
         pOH: result.pOH,
         OH_concentration: result.OH_concentration,
@@ -203,15 +228,15 @@ const calculate_buffer_ph: VerifiedTool = {
   citation: CITATION,
   engine: 'buffer-pH',
   execute: (input) => {
-    const pKa = Number(input.pKa)
-    const acidConcentration = Number(input.acid_concentration)
-    const baseConcentration = Number(input.base_concentration)
-    if (!Number.isFinite(pKa)) return err('pKa must be a finite number')
-    if (!Number.isFinite(acidConcentration) || acidConcentration <= 0) return err('acid_concentration must be positive')
-    if (!Number.isFinite(baseConcentration) || baseConcentration <= 0) return err('base_concentration must be positive')
+    const pKa = readFiniteNumber(input.pKa)
+    const acidConcentration = readFiniteNumber(input.acid_concentration)
+    const baseConcentration = readFiniteNumber(input.base_concentration)
+    if (pKa === undefined) return err('pKa must be a finite number')
+    if (acidConcentration === undefined || acidConcentration <= 0) return err('acid_concentration must be positive')
+    if (baseConcentration === undefined || baseConcentration <= 0) return err('base_concentration must be positive')
     try {
       const pH = hendersonHasselbalch(pKa, acidConcentration, baseConcentration)
-      return ok({ pH, ratio: baseConcentration / acidConcentration })
+      return finalizeResult({ pH, ratio: baseConcentration / acidConcentration })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Buffer pH calculation failed')
     }
@@ -235,14 +260,14 @@ const calculate_dilution: VerifiedTool = {
   engine: 'dilution',
   execute: (input) => {
     const args = {
-      M1: input.M1 !== undefined ? Number(input.M1) : undefined,
-      V1: input.V1 !== undefined ? Number(input.V1) : undefined,
-      M2: input.M2 !== undefined ? Number(input.M2) : undefined,
-      V2: input.V2 !== undefined ? Number(input.V2) : undefined,
+      M1: readFiniteNumber(input.M1),
+      V1: readFiniteNumber(input.V1),
+      M2: readFiniteNumber(input.M2),
+      V2: readFiniteNumber(input.V2),
     }
     try {
       const result = calculateDilution(args)
-      return ok({
+      return finalizeResult({
         M1: result.M1,
         V1: result.V1,
         M2: result.M2,

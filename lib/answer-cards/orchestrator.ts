@@ -3,12 +3,15 @@
  *
  * Claude Haiku 4.5 tool-use loop.
  * Invariant: Every numeric claim must trace to a tool_result.
+ * W3-R2: Status enum, numeric audit, incomplete tracking, input guard.
  */
 
 import Anthropic from '@anthropic-ai/sdk'
-import type { AnswerCard, ToolCall } from './types'
+import type { AnswerCard, CardStatus, ToolCall } from './types'
 import { signCard } from './signature'
+import { auditExplanation } from './audit'
 import { ALL_TOOLS, TOOL_BY_NAME, toAnthropicTool } from './tools/registry'
+import { isPlainObject } from './tools/_validate'
 
 const MODEL = 'claude-haiku-4-5-20251001'
 const VERSION = 'w3-v1'
@@ -20,10 +23,11 @@ const SYSTEM_PROMPT = `You are the VerChem verification assistant. Your job is t
 CRITICAL RULES:
 1. You MUST NOT calculate any numbers yourself. When a question can be answered with a tool, you MUST call the appropriate tool.
 2. Use ONLY numbers from tool results in your explanation. Never invent, estimate, or hallucinate numeric values.
-3. If no available tool matches the question (e.g., purely conceptual questions), give a concise conceptual explanation and state that numerical verification is not available.
-4. If a tool returns an error, explain why the calculation could not be performed.
-5. Be concise but thorough. Cite the textbook reference when a tool is used.
-6. Respond in the same language the user asked in.`
+3. In your explanation, reference only numbers that come from tool results. Do not perform intermediate arithmetic yourself. If you need to explain steps, describe them qualitatively without inserting self-calculated numbers.
+4. If no available tool matches the question (e.g., purely conceptual questions), give a concise conceptual explanation and state that numerical verification is not available.
+5. If a tool returns an error, explain why the calculation could not be performed.
+6. Be concise but thorough. Cite the textbook reference when a tool is used.
+7. Respond in the same language the user asked in.`
 
 function getAnthropicClient(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -44,6 +48,7 @@ export async function askVerified(question: string): Promise<AnswerCard> {
   const toolCalls: ToolCall[] = []
   let explanation = ''
   let rounds = 0
+  let incomplete = false
 
   while (rounds < MAX_ROUNDS) {
     rounds++
@@ -68,6 +73,10 @@ export async function askVerified(question: string): Promise<AnswerCard> {
       }
     }
 
+    // Track incompleteness
+    if (response.stop_reason === 'max_tokens') {
+      incomplete = true
+    }
     if (toolUseBlocks.length === 0) {
       // No more tool calls — Claude is done
       if (!hasText && response.stop_reason === 'max_tokens') {
@@ -76,11 +85,41 @@ export async function askVerified(question: string): Promise<AnswerCard> {
       break
     }
 
+    // If max_tokens hit while tool_use still pending → incomplete
+    if (response.stop_reason === 'max_tokens') {
+      incomplete = true
+      break
+    }
+
     // Execute tools and build tool_result messages
     const toolResults: Anthropic.Messages.ToolResultBlockParam[] = []
 
     for (const block of toolUseBlocks) {
       const tool = TOOL_BY_NAME.get(block.name)
+
+      // Input guard: block.input must be a plain object
+      if (!isPlainObject(block.input)) {
+        const badInputResult = {
+          ok: false,
+          value: {},
+          error: `Tool input must be a plain object, received ${Array.isArray(block.input) ? 'array' : typeof block.input}`,
+        } as const
+        toolCalls.push({
+          name: block.name,
+          engine: tool?.engine || 'unknown',
+          input: { raw: String(block.input) },
+          result: badInputResult,
+          citation: tool?.citation || '',
+        })
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: block.id,
+          content: JSON.stringify(badInputResult),
+          is_error: true,
+        })
+        continue
+      }
+
       const result = tool
         ? tool.execute(block.input as Record<string, unknown>)
         : { ok: false, value: {}, error: `Tool "${block.name}" not found` } as const
@@ -105,17 +144,48 @@ export async function askVerified(question: string): Promise<AnswerCard> {
     // Append assistant message (with tool uses) and tool results
     messages.push({ role: 'assistant', content: response.content })
     messages.push({ role: 'user', content: toolResults })
+
+    // If we hit max rounds with pending tool_use, mark incomplete
+    if (rounds >= MAX_ROUNDS && toolUseBlocks.length > 0) {
+      incomplete = true
+    }
   }
 
-  const verified = toolCalls.some((tc) => tc.result.ok)
+  // Numeric audit
+  const audit = auditExplanation(explanation, toolCalls)
+
+  // Determine status
+  const hasOk = toolCalls.some((tc) => tc.result.ok)
+  const hasError = toolCalls.some((tc) => !tc.result.ok)
+  const allFailed = toolCalls.length > 0 && !hasOk
+
+  let status: CardStatus
+  if (allFailed) {
+    status = 'error'
+  } else if (!hasOk) {
+    status = 'unverified'
+  } else if (hasError || incomplete || !audit.clean) {
+    status = 'partial'
+  } else {
+    status = 'verified'
+  }
+
+  if (incomplete && !explanation.includes('(Response may be incomplete.)')) {
+    explanation += '\n\n(Response may be incomplete.)'
+  }
 
   const payload = {
     question,
+    status,
     tool_calls: toolCalls.map((tc) => ({
       name: tc.name,
+      engine: tc.engine,
       input: tc.input,
-      result: tc.result.ok ? tc.result.value : { error: tc.result.error },
+      result: tc.result,
+      citation: tc.citation,
     })),
+    explanation: explanation.trim(),
+    audit,
     model: MODEL,
     version: VERSION,
     issued_at: new Date().toISOString(),
@@ -125,9 +195,11 @@ export async function askVerified(question: string): Promise<AnswerCard> {
 
   return {
     question,
-    verified,
+    status,
+    verified: status === 'verified',
     tool_calls: toolCalls,
     explanation: explanation.trim(),
+    audit,
     model: MODEL,
     version: VERSION,
     issued_at: payload.issued_at,

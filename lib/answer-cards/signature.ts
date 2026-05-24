@@ -3,6 +3,9 @@
  *
  * SECURITY: Signs canonicalized payload so key order never affects signature.
  * Reference: lib/auth/session.ts (crypto.subtle + base64url pattern)
+ *
+ * W3-R2: Full signature coverage — signs every field visible on the card
+ * except signature itself.
  */
 
 import type { SignablePayload } from './types'

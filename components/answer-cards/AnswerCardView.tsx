@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { AnswerCard } from '@/lib/answer-cards/types'
+import type { AnswerCard, CardStatus } from '@/lib/answer-cards/types'
 
 interface AnswerCardViewProps {
   card: AnswerCard
@@ -12,30 +12,100 @@ function truncateSignature(sig: string): string {
   return `${sig.slice(0, 8)}…${sig.slice(-8)}`
 }
 
+function statusBadge(status: CardStatus): {
+  label: string
+  colorClass: string
+  borderClass: string
+  bgClass: string
+  icon: React.ReactNode
+  reason?: string
+} {
+  switch (status) {
+    case 'verified':
+      return {
+        label: 'VERIFIED',
+        colorClass: 'text-green-400',
+        borderClass: 'border-green-500/30',
+        bgClass: 'bg-green-500/10',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        ),
+      }
+    case 'partial':
+      return {
+        label: 'PARTIALLY VERIFIED',
+        colorClass: 'text-orange-300',
+        borderClass: 'border-orange-500/30',
+        bgClass: 'bg-orange-500/10',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        ),
+        reason: 'Some calculations failed, the response may be incomplete, or the explanation contains unverified figures.',
+      }
+    case 'error':
+      return {
+        label: 'CALCULATION ERROR',
+        colorClass: 'text-red-300',
+        borderClass: 'border-red-500/30',
+        bgClass: 'bg-red-500/10',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ),
+        reason: 'All calculations failed. The explanation is conceptual only.',
+      }
+    case 'unverified':
+    default:
+      return {
+        label: 'UNVERIFIED',
+        colorClass: 'text-yellow-300',
+        borderClass: 'border-yellow-500/30',
+        bgClass: 'bg-yellow-500/10',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        reason: 'No calculation engine was used. This is a conceptual answer.',
+      }
+  }
+}
+
 export default function AnswerCardView({ card }: AnswerCardViewProps) {
+  const badge = statusBadge(card.status)
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header: Verification badge */}
-      <div className="flex items-center gap-3">
-        {card.verified ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-400">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            VERIFIED
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-sm font-medium text-yellow-400">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            Unverified
-          </span>
-        )}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${badge.borderClass} ${badge.bgClass} ${badge.colorClass}`}>
+          {badge.icon}
+          {badge.label}
+        </span>
         <span className="text-xs text-slate-500">
           {card.model} · {card.version}
         </span>
       </div>
+
+      {/* Downgrade reason */}
+      {badge.reason && (
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 text-sm text-orange-200">
+          {badge.reason}
+        </div>
+      )}
+
+      {/* Audit warning */}
+      {!card.audit.clean && card.audit.unmatched.length > 0 && (
+        <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-200">
+          Explanation contains {card.audit.unmatched.length} figure(s) not produced by a verified engine:
+          {' '}{card.audit.unmatched.join(', ')}
+        </div>
+      )}
 
       {/* Explanation */}
       {card.explanation && (
@@ -114,7 +184,7 @@ export default function AnswerCardView({ card }: AnswerCardViewProps) {
         </div>
       )}
 
-      {!card.verified && card.tool_calls.length === 0 && (
+      {card.status === 'unverified' && card.tool_calls.length === 0 && (
         <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-200">
           This answer is conceptual and was not verified by a deterministic calculation engine.
           Numerical claims should be independently checked.
