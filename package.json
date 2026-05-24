@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "mkdir -p public/rdkit && cp node_modules/@rdkit/rdkit/dist/RDKit_minimal.wasm public/rdkit/",
-    "test": "node --import tsx __tests__/molecule-builder.test.ts && node --import tsx __tests__/uncertainty.test.ts && node --import tsx __tests__/units.test.ts && node --import tsx __tests__/molecule-format-conversion.test.ts && node --import tsx __tests__/share-url.test.ts && node --import tsx __tests__/origin-check.test.ts && node --import tsx __tests__/molecules-validation.test.ts && node --import tsx __tests__/ketcher-editor-props.test.ts && node --import tsx __tests__/smiles-detect.test.ts && node --import tsx __tests__/rdkit-operations.test.ts && node --import tsx __tests__/compound-smiles-verification.test.ts",
+    "test": "node --import tsx __tests__/molecule-builder.test.ts && node --import tsx __tests__/uncertainty.test.ts && node --import tsx __tests__/units.test.ts && node --import tsx __tests__/molecule-format-conversion.test.ts && node --import tsx __tests__/share-url.test.ts && node --import tsx __tests__/origin-check.test.ts && node --import tsx __tests__/molecules-validation.test.ts && node --import tsx __tests__/ketcher-editor-props.test.ts && node --import tsx __tests__/smiles-detect.test.ts && node --import tsx __tests__/rdkit-operations.test.ts && node --import tsx __tests__/compound-smiles-verification.test.ts && node --import tsx __tests__/substructure-search.test.ts",
     "test:units": "node --import tsx __tests__/units.test.ts",
     "test:molecules": "node --import tsx __tests__/molecule-builder.test.ts",
     "test:uncertainty": "node --import tsx __tests__/uncertainty.test.ts",

@@ -277,26 +277,11 @@ export async function substructureMatch(
 }
 
 /**
- * Compute Tanimoto similarity between two fingerprint bitstrings.
- *
- * Pure function — no WASM call required.
- *
- * @throws Error if fingerprint lengths differ
+ * Tanimoto similarity between two fingerprint bitstrings (pure, no WASM).
+ * Canonical implementation lives in substructure-core.ts; re-exported here
+ * so existing imports from '@/lib/rdkit/operations' keep working.
  */
-export function tanimotoSimilarity(fp1: string, fp2: string): number {
-  if (fp1.length !== fp2.length) {
-    throw new Error(`Fingerprint length mismatch: ${fp1.length} vs ${fp2.length}`)
-  }
-  let intersection = 0
-  let union = 0
-  for (let i = 0; i < fp1.length; i++) {
-    const b1 = fp1[i] === '1'
-    const b2 = fp2[i] === '1'
-    if (b1 && b2) intersection++
-    if (b1 || b2) union++
-  }
-  return union === 0 ? 0 : intersection / union
-}
+export { tanimotoSimilarity } from './substructure-core'
 
 // ---------------------------------------------------------------------------
 // Helpers
