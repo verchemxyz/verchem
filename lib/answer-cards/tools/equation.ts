@@ -56,8 +56,8 @@ function expandParentheses(formula: string): string | null {
  * Rejects non-positive leading coefficients (e.g., 0H2, 00H2).
  */
 function isValidCompound(compound: string): boolean {
-  // Remove physical state annotations like (aq), (s), (l), (g)
-  let s = compound.replace(/\s*\([aqlsg]+\)\s*/gi, '')
+  // Remove physical state annotations: exact match (aq), (s), (l), (g) only
+  let s = compound.replace(/\s*\((?:aq|s|l|g)\)\s*/gi, '')
 
   // Validate leading coefficient before stripping: must be positive int
   const leadingCoeffMatch = s.match(/^(\d+)/)

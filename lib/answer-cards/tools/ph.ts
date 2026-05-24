@@ -339,6 +339,9 @@ const calculate_dilution: VerifiedTool = {
     if (args.V2 !== undefined && args.V2 <= 0) return err('V2 must be a positive finite number')
     try {
       const result = calculateDilution(args)
+      if (result.volumeToAdd < 0) {
+        return err('Not a dilution: target concentration must be lower than initial (volume to add would be negative)')
+      }
       return finalizeResult({
         M1: result.M1,
         V1: result.V1,

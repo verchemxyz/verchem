@@ -406,6 +406,22 @@ describe('Dilution positive validation', () => {
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('positive')).toBe(true)
   })
+
+  test('rejects negative volume_to_add (concentrating instead of diluting)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_dilution')!
+    const result = tool.execute({ M1: 1, V1: 1, M2: 2 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('not a dilution')).toBe(true)
+  })
+
+  test('accepts valid dilution with positive volume_to_add', () => {
+    const tool = TOOL_BY_NAME.get('calculate_dilution')!
+    const result = tool.execute({ M1: 2, V1: 1, M2: 1 })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.volume_to_add).toBeGreaterThan(0)
+  })
 })
 
 describe('Gas law tools route to real engines', () => {
@@ -632,6 +648,36 @@ describe('Equation balancer tool routes to real engine', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects H2(qq) + O2 -> H2O (invalid state annotation)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(qq) + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects H2(gas) + O2 -> H2O (invalid state annotation)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(gas) + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects Ca(OH)2(aqs) -> CaO (invalid state annotation)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Ca(OH)2(aqs) -> CaO' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('accepts H2(g) + O2(g) -> H2O(l) (valid states)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(g) + O2(g) -> H2O(l)' })
+    expect(result.ok).toBe(true)
   })
 
   test('rejects 0H2 + O2 -> H2O (zero leading coefficient)', () => {

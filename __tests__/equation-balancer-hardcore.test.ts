@@ -74,6 +74,14 @@ easyTests.forEach(({ name, input, coefficients }) => {
   })
 })
 
+// Arrow format regression: => must be parsed same as ->
+test('Arrow format => (same as ->)', () => {
+  const resultArrow = balanceEquation('H2 + O2 -> H2O')
+  const resultFatArrow = balanceEquation('H2 + O2 => H2O')
+  expect(resultFatArrow.isBalanced).toBe(true)
+  expect(resultFatArrow.coefficients).toEqual(resultArrow.coefficients)
+})
+
 console.log('')
 
 // =====================================================

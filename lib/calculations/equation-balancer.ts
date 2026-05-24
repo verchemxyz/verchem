@@ -110,7 +110,7 @@ function sanitizeCompound(compound: string): string {
  */
 function parseEquation(equation: string): { reactants: string[]; products: string[] } {
   // Split by arrow (support multiple arrow formats)
-  const parts = equation.split(/->|→|=/)
+  const parts = equation.split(/->|→|=>|=/)
 
   if (parts.length !== 2) {
     throw new Error('Invalid equation format. Use format: A + B -> C + D')
