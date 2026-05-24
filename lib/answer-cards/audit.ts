@@ -45,7 +45,9 @@ function extractNumbersFromText(text: string): Array<{ value: number; raw: strin
   // Strip chemical formula subscript digits BEFORE any sci-not normalization
   // e.g. H2O → HO, CH3COOH → CHCOOH, C6H12O6 → CHO
   // This prevents "2" in H2O from being extracted as a numeric claim.
-  normalized = normalized.replace(/([A-Za-z])\d+/g, '$1')
+  // Element symbols are uppercase-led ([A-Z][a-z]?), so this leaves bare
+  // exponent notation intact (e.g. "1.8e5" — lowercase "e" is not matched).
+  normalized = normalized.replace(/([A-Z][a-z]?)\d+/g, '$1')
 
   // Convert Unicode superscripts/subscripts to regular digits
   const superscriptMap: Record<string, string> = {

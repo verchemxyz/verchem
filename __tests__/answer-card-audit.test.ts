@@ -155,6 +155,21 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
+  test('bare positive exponent (1.8e5) is not corrupted to 1.8 by formula strip', () => {
+    // Regression: a [A-Za-z]\d+ strip would turn "1.8e5" → "1.8e" → extract 1.8.
+    // Element-led strip [A-Z][a-z]? leaves the lowercase "e" exponent intact.
+    const withResult: ToolCall[] = [
+      { name: 'k', engine: 'kinetics', input: {}, result: { ok: true, value: { rate_constant: 180000 } }, citation: '' },
+    ]
+    // 1.8e5 must extract as 180000 (matches result) → clean
+    expect(auditExplanation('The rate constant is 1.8e5.', withResult).clean).toBe(true)
+    // and must NOT be mistaken for 1.8: with only 1.8 present, 1.8e5 stays unmatched
+    const only1p8: ToolCall[] = [
+      { name: 'x', engine: 'x', input: {}, result: { ok: true, value: { v: 1.8 } }, citation: '' },
+    ]
+    expect(auditExplanation('The rate constant is 1.8e5.', only1p8).clean).toBe(false)
+  })
+
   test('handles x10^ notation', () => {
     const explanation = 'H+ concentration is 1.34 x 10^-3 M and pH is 2.87.'
     const audit = auditExplanation(explanation, makeToolCalls())
