@@ -1,6 +1,7 @@
 import 'client-only'
 
 import { loadRDKit } from './client'
+import { computeFormulaFromMolJson } from './formula'
 
 export interface MolDescriptors {
   molWeight: number // Average molecular weight
@@ -312,83 +313,4 @@ function validateDescriptorKeys(
     if (typeof descriptors[key] !== 'number') return false
   }
   return true
-}
-
-/**
- * Compute molecular formula from a JSMol using get_json().
- *
- * RDKit get_json() returns:
- *   { molecules: [ { atoms: [ { z: 6, impHs: 3 }, ... ] } ] }
- *
- * z     = atomic number (default 6 / carbon if omitted)
- * impHs = implicit H count (default 0 if omitted)
- */
-function computeFormulaFromMolJson(mol: { get_json: () => string }): string | null {
-  try {
-    const parsed = JSON.parse(mol.get_json()) as {
-      molecules?: Array<{ atoms?: Array<{ z?: number; impHs?: number }> }>
-    }
-    const atoms = parsed?.molecules?.[0]?.atoms ?? []
-    if (!Array.isArray(atoms) || atoms.length === 0) return ''
-
-    const counts: Record<string, number> = {}
-    let totalH = 0
-
-    for (const atom of atoms) {
-      const z = typeof atom.z === 'number' ? atom.z : 6 // default carbon
-      const impHs = typeof atom.impHs === 'number' ? atom.impHs : 0
-      const symbol = ATOMIC_NUMBER_TO_SYMBOL[z]
-      if (!symbol) {
-        return null
-      }
-      counts[symbol] = (counts[symbol] ?? 0) + 1
-      totalH += impHs
-    }
-
-    if (totalH > 0) {
-      counts['H'] = (counts['H'] ?? 0) + totalH
-    }
-
-    return formatHillSystem(counts)
-  } catch {
-    return ''
-  }
-}
-
-/**
- * Format atom counts as Hill-system molecular formula.
- * C first, H second, then alphabetical.
- */
-function formatHillSystem(counts: Record<string, number>): string {
-  const parts: string[] = []
-  if (counts.C > 0) {
-    parts.push(`C${counts.C > 1 ? counts.C : ''}`)
-  }
-  if (counts.H > 0) {
-    parts.push(`H${counts.H > 1 ? counts.H : ''}`)
-  }
-  const rest = Object.keys(counts)
-    .filter((s) => s !== 'C' && s !== 'H' && counts[s] > 0)
-    .sort()
-  for (const symbol of rest) {
-    parts.push(`${symbol}${counts[symbol] > 1 ? counts[symbol] : ''}`)
-  }
-  return parts.join('')
-}
-
-/** Atomic number → element symbol (IUPAC, z = 1–80). */
-const ATOMIC_NUMBER_TO_SYMBOL: Record<number, string> = {
-  1: 'H', 2: 'He',
-  3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
-  11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
-  19: 'K', 20: 'Ca',
-  21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe', 27: 'Co', 28: 'Ni', 29: 'Cu', 30: 'Zn',
-  31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se', 35: 'Br', 36: 'Kr',
-  37: 'Rb', 38: 'Sr',
-  39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo', 43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd',
-  49: 'In', 50: 'Sn', 51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe',
-  55: 'Cs', 56: 'Ba',
-  57: 'La', 58: 'Ce', 59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
-  67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu',
-  72: 'Hf', 73: 'Ta', 74: 'W', 75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg',
 }

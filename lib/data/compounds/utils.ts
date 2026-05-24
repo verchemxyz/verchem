@@ -49,7 +49,7 @@ const ATOMIC_MASS: Record<string, number> = {
   Bi: 208.980,
 }
 
-function parseFormula(formula: string): Record<string, number> | null {
+export function parseFormula(formula: string): Record<string, number> | null {
   const tokens = formula.match(/([A-Z][a-z]?|\d+|\(|\))/g)
   if (!tokens) return null
   const stack: Array<Record<string, number>> = [{}]

@@ -7,6 +7,7 @@ import { PHARMACEUTICALS } from './pharma'
 import { REAGENTS } from './reagents'
 import { SALTS } from './salts'
 import { Compound } from './types'
+import { SMILES_BY_ID } from './smiles-data'
 import { ORGANIC_COMPOUNDS } from './organic'
 import { GASES } from './gases'
 import { SOLVENTS } from './solvents'
@@ -73,7 +74,7 @@ export const COMPOUND_GROUPS = {
   photography: PHOTOGRAPHY_CHEMICALS,
 }
 
-export const COMPREHENSIVE_COMPOUNDS: Compound[] = [
+const RAW_COMPOUNDS: Compound[] = [
   ...COMPOUND_GROUPS.acids,
   ...COMPOUND_GROUPS.bases,
   ...COMPOUND_GROUPS.salts,
@@ -111,7 +112,23 @@ export const COMPREHENSIVE_COMPOUNDS: Compound[] = [
   ...COMPOUND_GROUPS.photography,
 ]
 
+/**
+ * Attach curated, RDKit-verified SMILES (from smiles-data.ts) to every
+ * compound whose id appears in the library. Duplicate ids across category
+ * files (e.g. `acetone` in both ketones and solvents) all receive the same
+ * SMILES. Compounds without a verified structure keep `smiles` undefined.
+ */
+export const COMPREHENSIVE_COMPOUNDS: Compound[] = RAW_COMPOUNDS.map(compound => {
+  const smiles = SMILES_BY_ID[compound.id]
+  return smiles ? { ...compound, smiles } : compound
+})
+
 export const COMMON_COMPOUNDS = COMPREHENSIVE_COMPOUNDS
+
+/** Compounds that have a curated, verified SMILES — the substructure-search corpus. */
+export const COMPOUNDS_WITH_SMILES: Compound[] = COMPREHENSIVE_COMPOUNDS.filter(
+  (c): c is Compound & { smiles: string } => typeof c.smiles === 'string' && c.smiles.length > 0
+)
 
 export const COMPOUND_STATISTICS = {
   totalCompounds: COMPREHENSIVE_COMPOUNDS.length,
