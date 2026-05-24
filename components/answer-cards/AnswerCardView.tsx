@@ -116,6 +116,9 @@ export default function AnswerCardView({ card }: AnswerCardViewProps) {
           <div className="prose prose-invert max-w-none text-slate-200 whitespace-pre-wrap">
             {card.explanation}
           </div>
+          <p className="mt-4 text-xs text-slate-500 italic">
+            AI-generated explanation. Authoritative values are shown in the Engine Results above.
+          </p>
         </div>
       )}
 

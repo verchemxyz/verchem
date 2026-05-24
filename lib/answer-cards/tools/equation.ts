@@ -18,7 +18,7 @@ function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
 }
 
-/** Recognized element symbols for quick validation */
+/** Recognized element symbols for strict validation */
 const ELEMENT_SYMBOLS = new Set([
   'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
   'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
@@ -35,18 +35,52 @@ const ELEMENT_SYMBOLS = new Set([
 ])
 
 /**
- * Check if a compound string contains at least one recognizable element symbol.
+ * Expand parentheses in a compound string: Ca(OH)2 → CaO2H2
  */
-function containsRecognizedElements(compound: string): boolean {
-  // Remove digits, parentheses, charges, states
-  const stripped = compound.replace(/[\d\(\)\[\]\+\-]|\([aqlsg]+\)/g, '')
-  // Try to match element symbols
-  const regex = /[A-Z][a-z]?/g
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(stripped)) !== null) {
-    if (ELEMENT_SYMBOLS.has(match[0])) return true
+function expandParentheses(formula: string): string {
+  const regex = /\(([^)]+)\)(\d*)/g
+  let result = formula
+  // Limit iterations to prevent runaway
+  for (let i = 0; i < 10; i++) {
+    if (!regex.test(result)) break
+    result = result.replace(regex, (match, group, multiplier) => {
+      const mult = multiplier ? parseInt(multiplier) : 1
+      return group.replace(/([A-Z][a-z]?)(\d*)/g, (m: string, el: string, count: string) => {
+        const c = count ? parseInt(count) : 1
+        return el + (c * mult)
+      })
+    })
   }
-  return false
+  return result
+}
+
+/**
+ * Strictly validate a single compound.
+ * Every token must be a recognized element symbol; no unknown letters remain.
+ */
+function isValidCompound(compound: string): boolean {
+  // Remove physical state annotations like (aq), (s), (l), (g)
+  let s = compound.replace(/\s*\([aqlsg]+\)\s*/gi, '')
+
+  // Expand parentheses
+  s = expandParentheses(s)
+
+  // Remove leading coefficient if any
+  s = s.replace(/^\d+/, '')
+
+  // Match element symbols + optional counts
+  const regex = /([A-Z][a-z]?)(\d*)/g
+  let match: RegExpExecArray | null
+  let consumed = 0
+
+  while ((match = regex.exec(s)) !== null) {
+    const element = match[1]
+    const count = match[2]
+    if (!ELEMENT_SYMBOLS.has(element)) return false
+    consumed += element.length + count.length
+  }
+
+  return consumed === s.length && consumed > 0
 }
 
 const balance_equation: VerifiedTool = {
@@ -68,7 +102,7 @@ const balance_equation: VerifiedTool = {
 
     const equation = input.equation.trim()
 
-    // Validate that equation looks like a chemical equation
+    // Validate arrow presence
     const arrowMatch = equation.match(/->|→|=>|=/)
     if (!arrowMatch) {
       return err('Equation must contain an arrow (->, =>, =, or →) separating reactants and products')
@@ -79,16 +113,16 @@ const balance_equation: VerifiedTool = {
       return err('Equation must have exactly one set of reactants and one set of products')
     }
 
+    // Split into individual compounds and validate EACH one
     const compounds = equation.split(/->|→|=>|=|\+/).map((s) => s.trim()).filter(Boolean)
-    let hasElements = false
-    for (const compound of compounds) {
-      if (containsRecognizedElements(compound)) {
-        hasElements = true
-        break
-      }
+    if (compounds.length === 0) {
+      return err('No compounds found in equation')
     }
-    if (!hasElements) {
-      return err('Equation does not contain recognizable chemical elements')
+
+    for (const compound of compounds) {
+      if (!isValidCompound(compound)) {
+        return err(`Invalid compound in equation: "${compound}"`)
+      }
     }
 
     try {

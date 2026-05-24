@@ -3,6 +3,7 @@
  *
  * Maps Claude tool calls to deterministic engines in lib/calculations/gas-laws.ts
  * CRITICAL: execute() routes to engine functions directly — no reimplementation.
+ * W3-R4: Validates positive physical limits before calling engines (adapter layer only).
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
@@ -24,6 +25,13 @@ function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
 }
 
+function requirePositive(name: string, value: number | undefined): number {
+  if (value === undefined || value <= 0) {
+    throw new Error(`${name} must be a positive finite number`)
+  }
+  return value
+}
+
 const ideal_gas_law: VerifiedTool = {
   name: 'ideal_gas_law',
   description: 'Solve ideal gas law problems (PV = nRT). Use when the user asks to find pressure, volume, moles, or temperature of an ideal gas. Provide exactly 3 of the 4 variables (P, V, n, T).',
@@ -40,13 +48,19 @@ const ideal_gas_law: VerifiedTool = {
   citation: CITATION,
   engine: 'ideal-gas',
   execute: (input) => {
-    const args = {
-      P: readFiniteNumber(input.P),
-      V: readFiniteNumber(input.V),
-      n: readFiniteNumber(input.n),
-      T: readFiniteNumber(input.T),
-    }
     try {
+      const args = {
+        P: readFiniteNumber(input.P),
+        V: readFiniteNumber(input.V),
+        n: readFiniteNumber(input.n),
+        T: readFiniteNumber(input.T),
+      }
+      // Validate known values are positive
+      if (args.P !== undefined) requirePositive('Pressure', args.P)
+      if (args.V !== undefined) requirePositive('Volume', args.V)
+      if (args.n !== undefined) requirePositive('Moles', args.n)
+      if (args.T !== undefined) requirePositive('Temperature', args.T)
+
       const result = idealGasLaw(args)
       return finalizeResult({
         P: result.P,
@@ -79,15 +93,22 @@ const combined_gas_law: VerifiedTool = {
   citation: CITATION,
   engine: 'combined-gas',
   execute: (input) => {
-    const args = {
-      P1: readFiniteNumber(input.P1),
-      V1: readFiniteNumber(input.V1),
-      T1: readFiniteNumber(input.T1),
-      P2: readFiniteNumber(input.P2),
-      V2: readFiniteNumber(input.V2),
-      T2: readFiniteNumber(input.T2),
-    }
     try {
+      const args = {
+        P1: readFiniteNumber(input.P1),
+        V1: readFiniteNumber(input.V1),
+        T1: readFiniteNumber(input.T1),
+        P2: readFiniteNumber(input.P2),
+        V2: readFiniteNumber(input.V2),
+        T2: readFiniteNumber(input.T2),
+      }
+      if (args.P1 !== undefined) requirePositive('P1', args.P1)
+      if (args.V1 !== undefined) requirePositive('V1', args.V1)
+      if (args.T1 !== undefined) requirePositive('T1', args.T1)
+      if (args.P2 !== undefined) requirePositive('P2', args.P2)
+      if (args.V2 !== undefined) requirePositive('V2', args.V2)
+      if (args.T2 !== undefined) requirePositive('T2', args.T2)
+
       const result = combinedGasLaw(args)
       return finalizeResult({
         P1: result.P1,
@@ -120,12 +141,16 @@ const boyles_law: VerifiedTool = {
   engine: 'boyles-law',
   execute: (input) => {
     try {
-      const result = boylesLaw(
-        readFiniteNumber(input.P1),
-        readFiniteNumber(input.V1),
-        readFiniteNumber(input.P2),
-        readFiniteNumber(input.V2),
-      )
+      const P1 = readFiniteNumber(input.P1)
+      const V1 = readFiniteNumber(input.V1)
+      const P2 = readFiniteNumber(input.P2)
+      const V2 = readFiniteNumber(input.V2)
+      if (P1 !== undefined) requirePositive('P1', P1)
+      if (V1 !== undefined) requirePositive('V1', V1)
+      if (P2 !== undefined) requirePositive('P2', P2)
+      if (V2 !== undefined) requirePositive('V2', V2)
+
+      const result = boylesLaw(P1, V1, P2, V2)
       return finalizeResult({ P1: result.P1, V1: result.V1, P2: result.P2, V2: result.V2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Boyle's law calculation failed")
@@ -150,12 +175,16 @@ const charles_law: VerifiedTool = {
   engine: 'charles-law',
   execute: (input) => {
     try {
-      const result = charlesLaw(
-        readFiniteNumber(input.V1),
-        readFiniteNumber(input.T1),
-        readFiniteNumber(input.V2),
-        readFiniteNumber(input.T2),
-      )
+      const V1 = readFiniteNumber(input.V1)
+      const T1 = readFiniteNumber(input.T1)
+      const V2 = readFiniteNumber(input.V2)
+      const T2 = readFiniteNumber(input.T2)
+      if (V1 !== undefined) requirePositive('V1', V1)
+      if (T1 !== undefined) requirePositive('T1', T1)
+      if (V2 !== undefined) requirePositive('V2', V2)
+      if (T2 !== undefined) requirePositive('T2', T2)
+
+      const result = charlesLaw(V1, T1, V2, T2)
       return finalizeResult({ V1: result.V1, T1: result.T1, V2: result.V2, T2: result.T2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Charles's law calculation failed")
@@ -180,12 +209,16 @@ const gay_lussac_law: VerifiedTool = {
   engine: 'gay-lussac-law',
   execute: (input) => {
     try {
-      const result = gayLussacsLaw(
-        readFiniteNumber(input.P1),
-        readFiniteNumber(input.T1),
-        readFiniteNumber(input.P2),
-        readFiniteNumber(input.T2),
-      )
+      const P1 = readFiniteNumber(input.P1)
+      const T1 = readFiniteNumber(input.T1)
+      const P2 = readFiniteNumber(input.P2)
+      const T2 = readFiniteNumber(input.T2)
+      if (P1 !== undefined) requirePositive('P1', P1)
+      if (T1 !== undefined) requirePositive('T1', T1)
+      if (P2 !== undefined) requirePositive('P2', P2)
+      if (T2 !== undefined) requirePositive('T2', T2)
+
+      const result = gayLussacsLaw(P1, T1, P2, T2)
       return finalizeResult({ P1: result.P1, T1: result.T1, P2: result.P2, T2: result.T2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Gay-Lussac's law calculation failed")
@@ -210,12 +243,16 @@ const avogadro_law: VerifiedTool = {
   engine: 'avogadro-law',
   execute: (input) => {
     try {
-      const result = avogadrosLaw(
-        readFiniteNumber(input.V1),
-        readFiniteNumber(input.n1),
-        readFiniteNumber(input.V2),
-        readFiniteNumber(input.n2),
-      )
+      const V1 = readFiniteNumber(input.V1)
+      const n1 = readFiniteNumber(input.n1)
+      const V2 = readFiniteNumber(input.V2)
+      const n2 = readFiniteNumber(input.n2)
+      if (V1 !== undefined) requirePositive('V1', V1)
+      if (n1 !== undefined) requirePositive('n1', n1)
+      if (V2 !== undefined) requirePositive('V2', V2)
+      if (n2 !== undefined) requirePositive('n2', n2)
+
+      const result = avogadrosLaw(V1, n1, V2, n2)
       return finalizeResult({ V1: result.V1, n1: result.n1, V2: result.V2, n2: result.n2 })
     } catch (e) {
       return err(e instanceof Error ? e.message : "Avogadro's law calculation failed")

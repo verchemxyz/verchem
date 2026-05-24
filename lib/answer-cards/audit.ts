@@ -1,9 +1,9 @@
 /**
- * VerChem Answer Cards — Numeric Audit
+ * VerChem Answer Cards — Numeric Audit (W3-R4)
  *
- * Finding #1 (Blocker): Enforce that every number in the explanation
- * traces back to a verified tool result. Numbers not in the allowlist
- * cause downgrade (verified → partial).
+ * Finding #2: 3-layer allowlist (result values, input values, constants).
+ * Precision-aware tolerance, thousands separator, standalone 10^n parsing.
+ * No blanket integer skip.
  */
 
 import type { ToolCall } from './types'
@@ -12,6 +12,28 @@ export interface AuditResult {
   clean: boolean
   unmatched: string[]
 }
+
+/** Standard chemistry constants that may legitimately appear in explanations */
+const STANDARD_CONSTANTS = [
+  1e-14,   // Kw
+  25,      // °C standard
+  273.15,  // 0°C in K
+  298.15,  // 25°C in K
+  22.4,    // STP molar volume (L/mol)
+  22.414,  // Precise STP molar volume
+  24.789,  // SATP molar volume
+  14,      // pH + pOH
+  7,       // neutral pH
+  0,       // zero
+  1,       // unity
+  1.0,
+  760,     // mmHg per atm
+  101.325, // kPa per atm
+  0.0821,  // R (L·atm/(mol·K)) approximate
+  8.314,   // R (J/(mol·K))
+  18.015,  // Molar mass H2O
+  58.44,   // Molar mass NaCl
+]
 
 /**
  * Recursively collect all numeric values from an object/array.
@@ -33,27 +55,27 @@ function collectNumbers(value: unknown, out: number[]): void {
 
 /**
  * Extract result-like numbers from explanation text.
- * Matches decimals, scientific notation, and Unicode superscript/subscript variants.
- * Skips small integers 0–20 (likely coefficients / atom counts / step numbers).
+ * Returns each number with its raw string for precision-aware matching.
  */
-function extractNumbersFromText(text: string): number[] {
-  const numbers: number[] = []
+function extractNumbersFromText(text: string): Array<{ value: number; raw: string }> {
+  const numbers: Array<{ value: number; raw: string }> = []
 
-  // Convert Unicode superscript digits to regular digits
+  // Remove thousands separators: 1,000 → 1000
+  let normalized = text.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
+
+  // Convert Unicode superscripts/subscripts to regular digits
   const superscriptMap: Record<string, string> = {
     '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
     '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
     '⁻': '-', '−': '-',
   }
-  let normalized = text.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻−]/g, (ch) => superscriptMap[ch] ?? ch)
+  normalized = normalized.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻−]/g, (ch) => superscriptMap[ch] ?? ch)
 
-  // Normalize scientific notation variants: 1.8×10^-5, 1.8 x 10^-5, 1.8·10^5
-  // Match the entire construct: multiplier ×/x/· 10 ^optional sign+digits
+  // Normalize scientific notation variants
   normalized = normalized
-    .replace(/[×·x]\s*10\s*\^?\s*([+-]?\d+)/gi, 'e$1')
-    // Also handle standalone "10^5" (no multiplier)
-    .replace(/10\s*\^\s*([+-]?\d+)/g, 'e$1')
-    // Merge "1.34 e-3" → "1.34e-3" (spaces around e in normalized sci notation)
+    .replace(/[×·x]\s*10\s*\^?\s*([+-]?\d+)/gi, 'e$1') // 1.8×10^-5 → e-5
+    .replace(/\b10\s*\^?\s*([+-]?\d+)\b/g, '1e$1')     // 10^-14 → 1e-14
+    // Merge "1.34 e-3" → "1.34e-3"
     .replace(/(\d(?:\.\d+)?)\s+e\s*([+-]?\d)/g, '$1e$2')
 
   // Match decimals and scientific notation
@@ -61,41 +83,76 @@ function extractNumbersFromText(text: string): number[] {
   let match: RegExpExecArray | null
 
   while ((match = regex.exec(normalized)) !== null) {
-    const num = Number(match[0])
+    const raw = match[0]
+    const num = Number(raw)
     if (!Number.isFinite(num)) continue
-    // Skip small integers 0–20 (coefficients, step numbers, atom counts)
-    if (Number.isInteger(num) && num >= 0 && num <= 20) continue
-    numbers.push(num)
+    numbers.push({ value: num, raw })
   }
 
   return numbers
 }
 
 /**
- * Build the allowlist of numbers from tool inputs and successful tool results.
+ * Build allowlists from tool calls.
  */
-function buildAllowlist(toolCalls: ToolCall[]): number[] {
-  const allowlist: number[] = []
+function buildAllowlists(toolCalls: ToolCall[]): {
+  resultValues: number[]
+  inputValues: number[]
+  constants: number[]
+} {
+  const resultValues: number[] = []
+  const inputValues: number[] = []
+
   for (const tc of toolCalls) {
-    collectNumbers(tc.input, allowlist)
+    collectNumbers(tc.input, inputValues)
     if (tc.result.ok) {
-      collectNumbers(tc.result.value, allowlist)
+      collectNumbers(tc.result.value, resultValues)
     }
   }
-  return allowlist
+
+  return { resultValues, inputValues, constants: STANDARD_CONSTANTS }
 }
 
 /**
- * Check if a candidate number matches any allowlist entry within relative tolerance.
+ * Precision-aware matching.
+ * - Exact match first
+ * - Scientific notation: 1% relative tolerance
+ * - Decimal notation: round allowed to same decimal places as candidate, then exact compare
+ * - Integers (0 dp): exact match only (prevent 1 from matching 1.34 via rounding)
  */
-function isInAllowlist(candidate: number, allowlist: number[], relTol = 0.01): boolean {
-  for (const allowed of allowlist) {
-    if (allowed === 0) {
-      if (candidate === 0) return true
-      continue
-    }
+function isMatch(candidate: number, candidateRaw: string, allowed: number): boolean {
+  if (candidate === allowed) return true
+
+  // Scientific notation → use relative tolerance
+  if (/[eE]/.test(candidateRaw)) {
+    if (allowed === 0) return candidate === 0
     const relDiff = Math.abs(candidate - allowed) / Math.abs(allowed)
-    if (relDiff <= relTol) return true
+    return relDiff <= 0.01
+  }
+
+  // Decimal notation → precision-aware
+  const decimalMatch = candidateRaw.match(/\.(\d+)/)
+  const decimalPlaces = decimalMatch ? decimalMatch[1].length : 0
+
+  if (decimalPlaces === 0) {
+    // Integer: exact match only (tiny epsilon for floating point noise)
+    return Math.abs(candidate - allowed) < 1e-9
+  }
+
+  const rounded = Math.round(allowed * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces)
+  return candidate === rounded
+}
+
+/**
+ * Check if a candidate number matches any entry in an allowlist.
+ */
+function inAllowlist(
+  candidate: number,
+  candidateRaw: string,
+  allowlist: number[]
+): boolean {
+  for (const allowed of allowlist) {
+    if (isMatch(candidate, candidateRaw, allowed)) return true
   }
   return false
 }
@@ -104,26 +161,29 @@ function isInAllowlist(candidate: number, allowlist: number[], relTol = 0.01): b
  * Audit an explanation against tool call results.
  *
  * Returns:
- * - clean: true if every extracted number matches the allowlist
- * - unmatched: list of numbers (as strings) that could not be traced
+ * - clean: true if every extracted number matches at least one allowlist
+ * - unmatched: list of raw number strings that could not be traced
  */
 export function auditExplanation(explanation: string, toolCalls: ToolCall[]): AuditResult {
   if (!explanation || toolCalls.length === 0) {
     return { clean: true, unmatched: [] }
   }
 
-  const allowlist = buildAllowlist(toolCalls)
+  const { resultValues, inputValues, constants } = buildAllowlists(toolCalls)
   const extracted = extractNumbersFromText(explanation)
-  const unmatched: string[] = []
+  const unmatchedRaw: string[] = []
 
-  for (const num of extracted) {
-    if (!isInAllowlist(num, allowlist)) {
-      unmatched.push(String(num))
+  for (const { value, raw } of extracted) {
+    const inResults = inAllowlist(value, raw, resultValues)
+    const inInputs = inAllowlist(value, raw, inputValues)
+    const inConsts = inAllowlist(value, raw, constants)
+    if (!inResults && !inInputs && !inConsts) {
+      unmatchedRaw.push(raw)
     }
   }
 
   return {
-    clean: unmatched.length === 0,
-    unmatched: [...new Set(unmatched)], // dedupe
+    clean: unmatchedRaw.length === 0,
+    unmatched: [...new Set(unmatchedRaw)], // dedupe
   }
 }

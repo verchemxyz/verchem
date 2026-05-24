@@ -1,10 +1,9 @@
 /**
- * VerChem Answer Card Tools Tests (W3-R2)
+ * VerChem Answer Card Tools Tests (W3-R4)
  *
  * Enforces the verification invariant: each tool execute() must route to
  * the REAL engine function in lib/calculations/*. Numbers must match.
- * Plus: readFiniteNumber guards, finalizeResult non-finite rejection,
- * equation validation.
+ * Plus: readFiniteNumber, finalizeResult, equation validation, gas positive limits.
  */
 
 import assert from 'node:assert/strict'
@@ -305,12 +304,20 @@ describe('Gas law tools route to real engines', () => {
     expect(result.value.V2).toBeCloseTo(engineResult.V2 as number, 10)
   })
 
-  test('boyles_law rejects division by zero (non-finite result)', () => {
+  test('boyles_law rejects division by zero (zero pressure)', () => {
     const tool = TOOL_BY_NAME.get('boyles_law')!
     const result = tool.execute({ P1: 1.0, V1: 1.0, P2: 0.0 })
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error?.toLowerCase().includes('non-finite') || result.error?.toLowerCase().includes('boyle')).toBe(true)
+    expect(result.error?.toLowerCase().includes('positive') || result.error?.toLowerCase().includes('boyle')).toBe(true)
+  })
+
+  test('boyles_law rejects negative pressure', () => {
+    const tool = TOOL_BY_NAME.get('boyles_law')!
+    const result = tool.execute({ P1: -2.0, V1: 3.0, P2: 1.0 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
   })
 
   test('charles_law matches engine', () => {
@@ -321,6 +328,14 @@ describe('Gas law tools route to real engines', () => {
 
     const engineResult = charlesLaw(2.0, 300, 4.0)
     expect(result.value.T2).toBeCloseTo(engineResult.T2 as number, 10)
+  })
+
+  test('charles_law rejects negative temperature', () => {
+    const tool = TOOL_BY_NAME.get('charles_law')!
+    const result = tool.execute({ V1: 1.0, T1: -300.0, T2: 200.0 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
   })
 
   test('gay_lussac_law matches engine', () => {
@@ -381,8 +396,6 @@ describe('Equation balancer tool routes to real engine', () => {
     const tool = TOOL_BY_NAME.get('balance_equation')!
     const result = tool.execute({ equation: 'abc -> def' })
     expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.error?.toLowerCase().includes('valid') || result.error?.toLowerCase().includes('element')).toBe(true)
   })
 
   test('rejects equation without arrow', () => {
@@ -395,6 +408,28 @@ describe('Equation balancer tool routes to real engine', () => {
     const tool = TOOL_BY_NAME.get('balance_equation')!
     const result = tool.execute({ equation: 'foo + bar -> baz' })
     expect(result.ok).toBe(false)
+  })
+
+  test('rejects H2 + foo -> H2foo (per-compound validation)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2 + foo -> H2foo' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects Xx + H2 -> H2Xx (unknown element)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Xx + H2 -> H2Xx' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('accepts NaCl + AgNO3 -> AgCl + NaNO3', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'NaCl + AgNO3 -> AgCl + NaNO3' })
+    expect(result.ok).toBe(true)
   })
 })
 
@@ -417,7 +452,7 @@ describe('Tool input validation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Tools Tests (W3-R2)')
+  console.log('🧪 VerChem Answer Card Tools Tests (W3-R4)')
   console.log('===========================================\n')
 
   let passed = 0

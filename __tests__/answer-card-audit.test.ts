@@ -1,10 +1,13 @@
 /**
- * VerChem Answer Card Numeric Audit Tests (W3-R2)
+ * VerChem Answer Card Numeric Audit Tests (W3-R4)
  *
  * - explanation with numbers from tool result → clean=true
  * - explanation with numbers NOT from tool result → clean=false
- * - explanation with small integers 0–20 → clean=true (skipped)
- * - empty explanation → clean=true
+ * - precision-aware tolerance (2.87 ≈ 2.8745, but 1.009 ≠ 1.0)
+ * - standalone 10^n → parsed correctly
+ * - thousands separator → parsed correctly
+ * - integers not in allowlist → unmatched (no blanket skip)
+ * - standard constants (25°C, Kw=1e-14) → clean
  */
 
 import assert from 'node:assert/strict'
@@ -78,7 +81,7 @@ describe('auditExplanation', () => {
     const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(false)
     expect(audit.unmatched.length).toBe(1)
-    expect(audit.unmatched[0]).toBe('3.5')
+    expect(audit.unmatched[0]).toBe('3.50')
   })
 
   test('detects multiple unmatched numbers', () => {
@@ -86,7 +89,7 @@ describe('auditExplanation', () => {
     const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(false)
     expect(audit.unmatched).toContain('99.9')
-    expect(audit.unmatched).toContain('42')
+    expect(audit.unmatched).toContain('42.0')
   })
 
   test('allows input values in explanation', () => {
@@ -95,9 +98,26 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('skips small integers 0–20', () => {
-    const explanation = 'Step 1: Add 2 molecules. Step 2: Wait 5 minutes. pH = 2.87.'
+  test('does not blanket-skip small integers', () => {
+    const explanation = 'Step 1: Add 2 molecules. Step 3: pH is 2.87.'
     const audit = auditExplanation(explanation, makeToolCalls())
+    expect(audit.clean).toBe(false)
+    // 1 is a standard constant (unity), so it is allowed
+    expect(audit.unmatched).toContain('2')
+    expect(audit.unmatched).toContain('3')
+  })
+
+  test('allows integers that ARE in result values', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'balance_equation',
+        engine: 'equation-balancer',
+        input: { equation: 'H2 + O2 -> H2O' },
+        result: { ok: true, value: { coefficients: [2, 1, 2] } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('Coefficients are 2, 1, and 2.', toolCalls)
     expect(audit.clean).toBe(true)
   })
 
@@ -120,18 +140,36 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('empty explanation is clean', () => {
-    const audit = auditExplanation('', makeToolCalls())
+  test('handles standalone 10^-14 (Kw) as standard constant', () => {
+    const explanation = 'At 25 °C, Kw = 10^-14.'
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_strong_acid_ph',
+        engine: 'strong-acid-pH',
+        input: { concentration: 0.01 },
+        result: { ok: true, value: { pH: 2.0 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation(explanation, toolCalls)
     expect(audit.clean).toBe(true)
   })
 
-  test('no tool calls is clean', () => {
-    const audit = auditExplanation('Some conceptual text.', [])
+  test('handles thousands separator', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'ideal_gas_law',
+        engine: 'ideal-gas',
+        input: { P: 1.0, V: 22414, n: 1000 },
+        result: { ok: true, value: { T: 273.15 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('Volume is 22,414 L for 1,000 mol.', toolCalls)
     expect(audit.clean).toBe(true)
   })
 
-  test('allows within 1% relative tolerance', () => {
-    // Engine gives 2.8745, explanation rounds to 2.87
+  test('precision-aware: 2.87 matches 2.8745 (rounded to 2dp)', () => {
     const toolCalls: ToolCall[] = [
       {
         name: 'test',
@@ -143,6 +181,73 @@ describe('auditExplanation', () => {
     ]
     const audit = auditExplanation('The value is 2.87.', toolCalls)
     expect(audit.clean).toBe(true)
+  })
+
+  test('precision-aware: 1.009 does NOT match 1.0 (rounded to 3dp)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 1.0 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The value is 1.009.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched).toContain('1.009')
+  })
+
+  test('precision-aware: 3 matches 3.0 (0dp rounding)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 3.0 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The value is 3.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('empty explanation is clean', () => {
+    const audit = auditExplanation('', makeToolCalls())
+    expect(audit.clean).toBe(true)
+  })
+
+  test('no tool calls is clean', () => {
+    const audit = auditExplanation('Some conceptual text.', [])
+    expect(audit.clean).toBe(true)
+  })
+
+  test('allows within 1% relative tolerance for sci-not', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 1.801e-5 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The value is 1.8e-5.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('rejects sci-not outside 1% tolerance', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 1.84e-5 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The value is 1.8e-5.', toolCalls)
+    expect(audit.clean).toBe(false)
   })
 
   test('flags error tool results but allows ok tool results', () => {
@@ -168,7 +273,7 @@ describe('auditExplanation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Audit Tests (W3-R2)')
+  console.log('🧪 VerChem Answer Card Audit Tests (W3-R4)')
   console.log('===========================================\n')
 
   let passed = 0
