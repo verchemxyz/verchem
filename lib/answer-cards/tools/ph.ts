@@ -70,6 +70,7 @@ const calculate_strong_acid_ph: VerifiedTool = {
         pOH: result.pOH,
         H_concentration: result.H_concentration,
         OH_concentration: result.OH_concentration,
+        Kw: 1e-14,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Strong acid pH calculation failed')
@@ -129,6 +130,7 @@ const calculate_weak_acid_ph: VerifiedTool = {
         percent_ionization: result.percentIonization,
         method: result.method,
         warning: result.warning,
+        Kw: 1e-14,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak acid pH calculation failed')
@@ -168,6 +170,7 @@ const calculate_strong_base_ph: VerifiedTool = {
         pOH: result.pOH,
         H_concentration: result.H_concentration,
         OH_concentration: result.OH_concentration,
+        Kw: 1e-14,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Strong base pH calculation failed')
@@ -206,6 +209,7 @@ const calculate_weak_base_ph: VerifiedTool = {
         percent_ionization: result.percentIonization,
         method: result.method,
         warning: result.warning,
+        Kw: 1e-14,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak base pH calculation failed')
@@ -265,6 +269,11 @@ const calculate_dilution: VerifiedTool = {
       M2: readFiniteNumber(input.M2),
       V2: readFiniteNumber(input.V2),
     }
+    // All provided values must be positive finite
+    if (args.M1 !== undefined && args.M1 <= 0) return err('M1 must be a positive finite number')
+    if (args.V1 !== undefined && args.V1 <= 0) return err('V1 must be a positive finite number')
+    if (args.M2 !== undefined && args.M2 <= 0) return err('M2 must be a positive finite number')
+    if (args.V2 !== undefined && args.V2 <= 0) return err('V2 must be a positive finite number')
     try {
       const result = calculateDilution(args)
       return finalizeResult({

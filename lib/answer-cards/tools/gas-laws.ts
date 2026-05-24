@@ -291,7 +291,7 @@ const van_der_waals: VerifiedTool = {
       a = input.a
       b = input.b
     } else if (typeof input.gas_name === 'string') {
-      const gasName = input.gas_name
+      const gasName = input.gas_name.trim()
       const key = Object.keys(VAN_DER_WAALS_CONSTANTS).find(
         (k) => k.toLowerCase() === gasName.toLowerCase()
       )
@@ -305,6 +305,8 @@ const van_der_waals: VerifiedTool = {
     if (a === undefined || b === undefined) {
       return err('Van der Waals constants (a, b) are required, or provide a known gas_name')
     }
+    if (a <= 0) return err('Van der Waals constant a must be positive')
+    if (b <= 0) return err('Van der Waals constant b must be positive')
 
     try {
       const pressure = vanDerWaalsEquation({ n, V, T, a, b })

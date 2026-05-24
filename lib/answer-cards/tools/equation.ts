@@ -77,6 +77,8 @@ function isValidCompound(compound: string): boolean {
     const element = match[1]
     const count = match[2]
     if (!ELEMENT_SYMBOLS.has(element)) return false
+    // Reject zero-count subscripts (e.g., H0, C0H4)
+    if (count === '0') return false
     consumed += element.length + count.length
   }
 

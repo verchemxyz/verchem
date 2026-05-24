@@ -1,13 +1,13 @@
 /**
- * VerChem Answer Card Numeric Audit Tests (W3-R4)
+ * VerChem Answer Card Numeric Audit Tests (W3-R6)
  *
- * - explanation with numbers from tool result → clean=true
- * - explanation with numbers NOT from tool result → clean=false
- * - precision-aware tolerance (2.87 ≈ 2.8745, but 1.009 ≠ 1.0)
- * - standalone 10^n → parsed correctly
- * - thousands separator → parsed correctly
- * - integers not in allowlist → unmatched (no blanket skip)
- * - standard constants (25°C, Kw=1e-14) → clean
+ * Trust boundary: allowlist = result values + input values ONLY.
+ * No global constants.
+ * - formula subscripts stripped (H2O → no unmatched "2")
+ * - precision-aware tolerance
+ * - standalone 10^n parsed
+ * - thousands separator handled
+ * - integers exact-match only
  */
 
 import assert from 'node:assert/strict'
@@ -61,7 +61,7 @@ function makeToolCalls(overrides?: Partial<ToolCall>): ToolCall[] {
       name: 'calculate_weak_acid_ph',
       engine: 'weak-acid-pH',
       input: { concentration: 0.1, Ka: 1.8e-5 },
-      result: { ok: true, value: { pH: 2.87, H_concentration: 1.34e-3, percent_ionization: 1.34 } },
+      result: { ok: true, value: { pH: 2.87, H_concentration: 1.34e-3, percent_ionization: 1.34, Kw: 1e-14 } },
       citation: 'Atkins Ch.6',
       ...overrides,
     },
@@ -102,7 +102,6 @@ describe('auditExplanation', () => {
     const explanation = 'Step 1: Add 2 molecules. Step 3: pH is 2.87.'
     const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(false)
-    // 1 is a standard constant (unity), so it is allowed
     expect(audit.unmatched).toContain('2')
     expect(audit.unmatched).toContain('3')
   })
@@ -121,15 +120,37 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('flags integer above 20 if unmatched', () => {
-    const explanation = 'The temperature is 298 K and pH is 2.87.'
-    const audit = auditExplanation(explanation, makeToolCalls())
+  test('no global constants: 25 L is unmatched (downgrade)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'ideal_gas_law',
+        engine: 'ideal-gas',
+        input: { P: 1.0, V: 22.414, n: 1.0 },
+        result: { ok: true, value: { T: 273.15, R: 0.0821 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('At 25 °C, volume is 22.414 L.', toolCalls)
     expect(audit.clean).toBe(false)
-    expect(audit.unmatched).toContain('298')
+    expect(audit.unmatched).toContain('25')
   })
 
-  test('handles scientific notation variants', () => {
-    const explanation = 'Ka = 1.8×10⁻⁵ gives pH 2.87.'
+  test('formula subscripts stripped (H2O does not produce unmatched)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'balance_equation',
+        engine: 'equation-balancer',
+        input: { equation: 'H2 + O2 -> H2O' },
+        result: { ok: true, value: { coefficients: [2, 1, 2] } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The product is H2O.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('formula strip does not break scientific notation extraction', () => {
+    const explanation = 'Ka = 1.8e-5 gives pH 2.87.'
     const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(true)
   })
@@ -140,18 +161,9 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('handles standalone 10^-14 (Kw) as standard constant', () => {
-    const explanation = 'At 25 °C, Kw = 10^-14.'
-    const toolCalls: ToolCall[] = [
-      {
-        name: 'calculate_strong_acid_ph',
-        engine: 'strong-acid-pH',
-        input: { concentration: 0.01 },
-        result: { ok: true, value: { pH: 2.0 } },
-        citation: '',
-      },
-    ]
-    const audit = auditExplanation(explanation, toolCalls)
+  test('handles standalone 10^-14 parsed as 1e-14', () => {
+    const explanation = 'Kw = 10^-14.'
+    const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(true)
   })
 
@@ -161,7 +173,7 @@ describe('auditExplanation', () => {
         name: 'ideal_gas_law',
         engine: 'ideal-gas',
         input: { P: 1.0, V: 22414, n: 1000 },
-        result: { ok: true, value: { T: 273.15 } },
+        result: { ok: true, value: { T: 273.15, R: 0.0821 } },
         citation: '',
       },
     ]
@@ -209,6 +221,20 @@ describe('auditExplanation', () => {
       },
     ]
     const audit = auditExplanation('The value is 3.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('handles superscript plus (10⁺3)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 1e3 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The value is 1.0×10⁺3.', toolCalls)
     expect(audit.clean).toBe(true)
   })
 
@@ -273,7 +299,7 @@ describe('auditExplanation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Audit Tests (W3-R4)')
+  console.log('🧪 VerChem Answer Card Audit Tests (W3-R6)')
   console.log('===========================================\n')
 
   let passed = 0

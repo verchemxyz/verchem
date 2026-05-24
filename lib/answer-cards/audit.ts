@@ -1,9 +1,10 @@
 /**
- * VerChem Answer Cards — Numeric Audit (W3-R4)
+ * VerChem Answer Cards — Numeric Audit (W3-R6)
  *
- * Finding #2: 3-layer allowlist (result values, input values, constants).
+ * Trust boundary: allowlist = result values + input values ONLY.
+ * No global constants — every verified number must trace to engine output or user input.
  * Precision-aware tolerance, thousands separator, standalone 10^n parsing.
- * No blanket integer skip.
+ * Chemical formula subscripts stripped before number extraction.
  */
 
 import type { ToolCall } from './types'
@@ -12,28 +13,6 @@ export interface AuditResult {
   clean: boolean
   unmatched: string[]
 }
-
-/** Standard chemistry constants that may legitimately appear in explanations */
-const STANDARD_CONSTANTS = [
-  1e-14,   // Kw
-  25,      // °C standard
-  273.15,  // 0°C in K
-  298.15,  // 25°C in K
-  22.4,    // STP molar volume (L/mol)
-  22.414,  // Precise STP molar volume
-  24.789,  // SATP molar volume
-  14,      // pH + pOH
-  7,       // neutral pH
-  0,       // zero
-  1,       // unity
-  1.0,
-  760,     // mmHg per atm
-  101.325, // kPa per atm
-  0.0821,  // R (L·atm/(mol·K)) approximate
-  8.314,   // R (J/(mol·K))
-  18.015,  // Molar mass H2O
-  58.44,   // Molar mass NaCl
-]
 
 /**
  * Recursively collect all numeric values from an object/array.
@@ -63,13 +42,18 @@ function extractNumbersFromText(text: string): Array<{ value: number; raw: strin
   // Remove thousands separators: 1,000 → 1000
   let normalized = text.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
 
+  // Strip chemical formula subscript digits BEFORE any sci-not normalization
+  // e.g. H2O → HO, CH3COOH → CHCOOH, C6H12O6 → CHO
+  // This prevents "2" in H2O from being extracted as a numeric claim.
+  normalized = normalized.replace(/([A-Za-z])\d+/g, '$1')
+
   // Convert Unicode superscripts/subscripts to regular digits
   const superscriptMap: Record<string, string> = {
     '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
     '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
-    '⁻': '-', '−': '-',
+    '⁻': '-', '−': '-', '⁺': '+',
   }
-  normalized = normalized.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻−]/g, (ch) => superscriptMap[ch] ?? ch)
+  normalized = normalized.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻−⁺]/g, (ch) => superscriptMap[ch] ?? ch)
 
   // Normalize scientific notation variants
   normalized = normalized
@@ -94,11 +78,11 @@ function extractNumbersFromText(text: string): Array<{ value: number; raw: strin
 
 /**
  * Build allowlists from tool calls.
+ * Trust boundary: only engine result values and user input values.
  */
 function buildAllowlists(toolCalls: ToolCall[]): {
   resultValues: number[]
   inputValues: number[]
-  constants: number[]
 } {
   const resultValues: number[] = []
   const inputValues: number[] = []
@@ -110,7 +94,7 @@ function buildAllowlists(toolCalls: ToolCall[]): {
     }
   }
 
-  return { resultValues, inputValues, constants: STANDARD_CONSTANTS }
+  return { resultValues, inputValues }
 }
 
 /**
@@ -169,15 +153,14 @@ export function auditExplanation(explanation: string, toolCalls: ToolCall[]): Au
     return { clean: true, unmatched: [] }
   }
 
-  const { resultValues, inputValues, constants } = buildAllowlists(toolCalls)
+  const { resultValues, inputValues } = buildAllowlists(toolCalls)
   const extracted = extractNumbersFromText(explanation)
   const unmatchedRaw: string[] = []
 
   for (const { value, raw } of extracted) {
     const inResults = inAllowlist(value, raw, resultValues)
     const inInputs = inAllowlist(value, raw, inputValues)
-    const inConsts = inAllowlist(value, raw, constants)
-    if (!inResults && !inInputs && !inConsts) {
+    if (!inResults && !inInputs) {
       unmatchedRaw.push(raw)
     }
   }

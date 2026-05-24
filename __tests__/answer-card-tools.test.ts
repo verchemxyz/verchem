@@ -1,9 +1,10 @@
 /**
- * VerChem Answer Card Tools Tests (W3-R4)
+ * VerChem Answer Card Tools Tests (W3-R6)
  *
  * Enforces the verification invariant: each tool execute() must route to
  * the REAL engine function in lib/calculations/*. Numbers must match.
- * Plus: readFiniteNumber, finalizeResult, equation validation, gas positive limits.
+ * Plus: readFiniteNumber, finalizeResult, equation validation, gas positive limits,
+ * dilution positive, vdw positive a/b.
  */
 
 import assert from 'node:assert/strict'
@@ -187,6 +188,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.OH_concentration).toBeCloseTo(engineResult.OH_concentration as number, 10)
+    expect(result.value.Kw).toBe(1e-14)
   })
 
   test('calculate_weak_acid_ph matches engine', () => {
@@ -199,6 +201,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.percent_ionization).toBeCloseTo(engineResult.percentIonization as number, 10)
+    expect(result.value.Kw).toBe(1e-14)
   })
 
   test('calculate_weak_acid_ph resolves known acid by formula', () => {
@@ -230,6 +233,7 @@ describe('pH tools route to real engines', () => {
     const engineResult = calculateStrongBasePH(0.01)
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
+    expect(result.value.Kw).toBe(1e-14)
   })
 
   test('calculate_weak_base_ph matches engine', () => {
@@ -241,6 +245,7 @@ describe('pH tools route to real engines', () => {
     const engineResult = calculateWeakBasePH(0.1, 1.8e-5)
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
+    expect(result.value.Kw).toBe(1e-14)
   })
 
   test('calculate_buffer_ph matches engine', () => {
@@ -270,6 +275,24 @@ describe('pH tools route to real engines', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('concentration')).toBe(true)
+  })
+})
+
+describe('Dilution positive validation', () => {
+  test('rejects negative M1', () => {
+    const tool = TOOL_BY_NAME.get('calculate_dilution')!
+    const result = tool.execute({ M1: -1, V1: 1, M2: 0.5 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
+  })
+
+  test('rejects zero V1', () => {
+    const tool = TOOL_BY_NAME.get('calculate_dilution')!
+    const result = tool.execute({ M1: 1, V1: 0, M2: 0.5 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
   })
 })
 
@@ -304,7 +327,7 @@ describe('Gas law tools route to real engines', () => {
     expect(result.value.V2).toBeCloseTo(engineResult.V2 as number, 10)
   })
 
-  test('boyles_law rejects division by zero (zero pressure)', () => {
+  test('boyles_law rejects zero pressure', () => {
     const tool = TOOL_BY_NAME.get('boyles_law')!
     const result = tool.execute({ P1: 1.0, V1: 1.0, P2: 0.0 })
     expect(result.ok).toBe(false)
@@ -377,6 +400,22 @@ describe('Gas law tools route to real engines', () => {
     const engineResult = vanDerWaalsEquation({ n: 1.0, V: 10.0, T: 298, a: 3.592, b: 0.0427 })
     expect(result.value.pressure).toBeCloseTo(engineResult, 10)
   })
+
+  test('van_der_waals rejects negative a', () => {
+    const tool = TOOL_BY_NAME.get('van_der_waals')!
+    const result = tool.execute({ n: 1.0, V: 10.0, T: 298, a: -1.0, b: 0.0427 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
+  })
+
+  test('van_der_waals rejects negative b', () => {
+    const tool = TOOL_BY_NAME.get('van_der_waals')!
+    const result = tool.execute({ n: 1.0, V: 10.0, T: 298, a: 3.592, b: -0.1 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('positive')).toBe(true)
+  })
 })
 
 describe('Equation balancer tool routes to real engine', () => {
@@ -431,6 +470,22 @@ describe('Equation balancer tool routes to real engine', () => {
     const result = tool.execute({ equation: 'NaCl + AgNO3 -> AgCl + NaNO3' })
     expect(result.ok).toBe(true)
   })
+
+  test('rejects H0 -> H0 (zero subscript)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H0 -> H0' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects C0H4 + O2 -> CO2 (zero subscript)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'C0H4 + O2 -> CO2' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
 })
 
 describe('Tool input validation', () => {
@@ -452,7 +507,7 @@ describe('Tool input validation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Tools Tests (W3-R4)')
+  console.log('🧪 VerChem Answer Card Tools Tests (W3-R6)')
   console.log('===========================================\n')
 
   let passed = 0
