@@ -107,10 +107,13 @@ const balance_equation: VerifiedTool = {
       return err('equation is required and must be a non-empty string')
     }
 
-    const equation = input.equation.trim()
+    // Normalize "=>" to canonical "->" — the engine parser splits on
+    // /->|→|=/, so a bare "=>" would split at "=" and leak ">" into the
+    // product (e.g. "2H2 + O2 → 2> H2O"). Engine already handles -> → =.
+    const equation = input.equation.trim().replace(/=>/g, '->')
 
     // Validate arrow presence
-    const arrowMatch = equation.match(/->|→|=>|=/)
+    const arrowMatch = equation.match(/->|→|=/)
     if (!arrowMatch) {
       return err('Equation must contain an arrow (->, =>, =, or →) separating reactants and products')
     }

@@ -543,6 +543,17 @@ describe('Equation balancer tool routes to real engine', () => {
     expect(result.value.reaction_type).toBe(identifyReactionType('H2 + O2 -> H2O'))
   })
 
+  test('normalizes "=>" arrow to canonical "->" (no leaked ">")', () => {
+    // Engine parseEquation only splits on ->|→|=, so a bare "=>" would split
+    // at "=" and leak ">" into the product ("2H2 + O2 → 2> H2O"). The adapter
+    // must normalize "=>" → "->" first.
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2 + O2 => H2O' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.balanced).toBe(balanceEquation('H2 + O2 -> H2O').balanced)
+  })
+
   test('rejects invalid equation (abc -> def)', () => {
     const tool = TOOL_BY_NAME.get('balance_equation')!
     const result = tool.execute({ equation: 'abc -> def' })
