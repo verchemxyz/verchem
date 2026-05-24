@@ -125,9 +125,12 @@ export const COMPREHENSIVE_COMPOUNDS: Compound[] = RAW_COMPOUNDS.map(compound =>
 
 export const COMMON_COMPOUNDS = COMPREHENSIVE_COMPOUNDS
 
+/** A compound guaranteed to carry a verified SMILES string. */
+export type CompoundWithSmiles = Compound & { smiles: string }
+
 /** Compounds that have a curated, verified SMILES — the substructure-search corpus. */
-export const COMPOUNDS_WITH_SMILES: Compound[] = COMPREHENSIVE_COMPOUNDS.filter(
-  (c): c is Compound & { smiles: string } => typeof c.smiles === 'string' && c.smiles.length > 0
+export const COMPOUNDS_WITH_SMILES: CompoundWithSmiles[] = COMPREHENSIVE_COMPOUNDS.filter(
+  (c): c is CompoundWithSmiles => typeof c.smiles === 'string' && c.smiles.length > 0
 )
 
 export const COMPOUND_STATISTICS = {

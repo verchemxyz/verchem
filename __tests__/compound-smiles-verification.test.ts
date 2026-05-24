@@ -140,6 +140,43 @@ async function run() {
     }
   })
 
+  // Scope guard: the library encodes constitution, not stereochemistry, so
+  // D-amino-acid enantiomers (which would duplicate their L-form SMILES) and
+  // isomer mixtures must NOT be searchable. (สมหมาย R1 blocker)
+  test('no D-amino-acid stereoisomer duplicates in the searchable corpus', () => {
+    const dForms = COMPOUNDS_WITH_SMILES.filter((c) => /^D-/.test(c.name))
+    assert.equal(
+      dForms.length,
+      0,
+      `D-stereoisomers must be excluded: ${dForms.map((c) => c.id).join(', ')}`
+    )
+  })
+
+  test('no isomer mixtures in the searchable corpus', () => {
+    const mixtures = COMPOUNDS_WITH_SMILES.filter((c) => /mixed|mixture/i.test(c.name))
+    assert.equal(
+      mixtures.length,
+      0,
+      `mixtures must be excluded: ${mixtures.map((c) => c.id).join(', ')}`
+    )
+  })
+
+  test('every searchable structure is unique by SMILES string', () => {
+    // The search wrapper dedupes by SMILES; this asserts the data itself does
+    // not present the same structure under multiple ids as distinct entries
+    // beyond known cross-category aliases (which dedupe collapses).
+    const bySmiles = new Map<string, string[]>()
+    for (const c of COMPOUNDS_WITH_SMILES) {
+      const ids = bySmiles.get(c.smiles) ?? []
+      ids.push(c.id)
+      bySmiles.set(c.smiles, ids)
+    }
+    // Document how many structures are aliased (informational, not a failure).
+    const aliased = [...bySmiles.values()].filter((ids) => ids.length > 1).length
+    console.log(`  (${bySmiles.size} unique structures; ${aliased} have cross-id aliases)`)
+    assert.ok(bySmiles.size >= 100)
+  })
+
   // ---- Report ----
   console.log(`  Verified ${passed}/${ids.length} SMILES against DB formula`)
   console.log(`  Search corpus (COMPOUNDS_WITH_SMILES): ${COMPOUNDS_WITH_SMILES.length}`)

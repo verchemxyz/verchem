@@ -136,17 +136,28 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // Replace any `jsdom` / `canvas` import (incl. subpaths like
-    // jsdom/lib/jsdom/living/generated/utils, pulled in by paper.js via
-    // ketcher-core) with an empty module. These are only used by paper's
-    // server-side canvas path, which never executes in the browser.
+    // Replace `jsdom` / `canvas` imports (incl. subpaths like
+    // jsdom/lib/jsdom/living/generated/utils, and the bare `canvas` require)
+    // with an empty module — BUT ONLY when the request originates from paper.js
+    // (a transitive dependency of ketcher-core). paper's Node canvas build
+    // pulls these in for server-side rendering, which never runs in the
+    // browser. They are not installed. Applies to both the server and client
+    // compilers because paper is traced in both (KetcherEditor is dynamically
+    // imported with ssr:false, which skips server *rendering* but not server
+    // *bundling*). Issuer-scoping ensures a future legitimate jsdom/canvas
+    // import elsewhere is NOT silently stubbed.
     config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(STUBBED_NODE_CANVAS_DEPS, EMPTY_MODULE)
+      new webpack.NormalModuleReplacementPlugin(STUBBED_NODE_CANVAS_DEPS, (resource: { request: string; contextInfo?: { issuer?: string } }) => {
+        const issuer = resource.contextInfo?.issuer ?? '';
+        if (/[\\/]node_modules[\\/]paper[\\/]/.test(issuer)) {
+          resource.request = EMPTY_MODULE;
+        }
+      })
     );
 
     // paper/dist/node/extend.js uses Node's `require.extensions` (unsupported
-    // by webpack). It lives in paper's server-only path and never runs in the
-    // browser, so this warning is benign — silence just this module.
+    // by webpack) in paper's server-only path that never runs in the browser —
+    // benign, so silence just this module.
     config.ignoreWarnings = [
       ...(config.ignoreWarnings ?? []),
       { module: /paper[\\/]dist[\\/]node[\\/]extend\.js/ },

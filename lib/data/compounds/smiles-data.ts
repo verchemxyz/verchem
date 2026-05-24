@@ -25,6 +25,19 @@
  * NOTE: a constitutional isomer with an identical formula (e.g. swapping
  * ethanol CCO for dimethyl ether COC) is NOT caught automatically; those
  * are guarded by careful authoring of well-known textbook structures.
+ *
+ * SCOPE — CONSTITUTIONAL (2D) STRUCTURES ONLY:
+ *   These SMILES encode connectivity, not stereochemistry. We therefore do
+ *   NOT include entries that would be misrepresented without stereo/mixture
+ *   data:
+ *     - D-amino acids (would collapse to the same achiral SMILES as their
+ *       L-enantiomer — a misleading duplicate). The L-form is kept as the
+ *       representative constitutional structure.
+ *     - Isomer mixtures (e.g. "Xylene (Mixed)") — the discrete o-/m-/p-xylene
+ *       structures are present individually instead.
+ *   This exclusion is enforced by a regression test (see
+ *   compound-smiles-verification.test.ts). E/Z double-bond geometry IS encoded
+ *   where it distinguishes named compounds (maleic vs fumaric, oleic, linoleic).
  * ============================================================================
  */
 
@@ -221,8 +234,8 @@ export const SMILES_BY_ID: Record<string, string> = {
   'beta-alanine': 'NCCC(=O)O',
   creatine: 'CN(CC(=O)O)C(N)=N',
   homocysteine: 'NC(CCS)C(=O)O',
-  'd-alanine': 'CC(N)C(=O)O',
-  'd-serine': 'NC(CO)C(=O)O',
+  // d-alanine / d-serine intentionally omitted: their achiral SMILES would
+  // duplicate alanine / serine. Stereochemistry is out of scope (see header).
   'n-acetyl-cysteine': 'CC(=O)NC(CS)C(=O)O',
   hydroxyproline: 'OC1CNC(C1)C(=O)O',
   hydroxylysine: 'NCC(O)CCC(N)C(=O)O',
@@ -262,7 +275,8 @@ export const SMILES_BY_ID: Record<string, string> = {
   thf: 'C1CCOC1',
   '1,4-dioxane': 'C1COCCO1',
   'benzene-solvent': 'c1ccccc1',
-  xylene: 'Cc1ccccc1C',
+  // 'xylene' (Xylene, Mixed) intentionally omitted — it is an isomer mixture;
+  // the discrete o-/m-/p-xylene structures are in the aromatics section.
   dcm: 'ClCCl',
   chloroform: 'ClC(Cl)Cl',
   'carbon-tetrachloride': 'ClC(Cl)(Cl)Cl',

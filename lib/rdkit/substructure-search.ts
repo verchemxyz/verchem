@@ -6,7 +6,7 @@ import {
   runSimilaritySearch,
   type CorpusEntry,
 } from './substructure-core'
-import { COMPOUNDS_WITH_SMILES } from '@/lib/data/compounds'
+import { COMPOUNDS_WITH_SMILES, type CompoundWithSmiles } from '@/lib/data/compounds'
 import type { Compound } from '@/lib/data/compounds/types'
 
 export interface CompoundSubstructureHit {
@@ -32,20 +32,23 @@ export interface SimilaritySearchResult {
 }
 
 /*
- * The compounds DB contains a few duplicate ids across category files
- * (e.g. `acetone` appears in both ketones and solvents). Dedupe by id so each
- * structure is searched once; map results back to the first compound carrying
- * that id (richest representative).
+ * Build the searchable corpus, deduping on two axes:
+ *   - by id: a few ids repeat across category files (e.g. `acetone` in both
+ *     ketones and solvents) — keep the first (richest) representative.
+ *   - by SMILES string: the same molecule sometimes appears under different
+ *     ids (e.g. `ethanol` and `ethanol-solvent`, both CCO). Collapse those so
+ *     a search returns each distinct structure once.
  */
-const compoundById = new Map<string, Compound>()
+const compoundById = new Map<string, CompoundWithSmiles>()
+const CORPUS: CorpusEntry[] = []
+const seenSmiles = new Set<string>()
 for (const compound of COMPOUNDS_WITH_SMILES) {
   if (!compoundById.has(compound.id)) compoundById.set(compound.id, compound)
+  if (!seenSmiles.has(compound.smiles)) {
+    seenSmiles.add(compound.smiles)
+    CORPUS.push({ id: compound.id, smiles: compound.smiles })
+  }
 }
-
-const CORPUS: CorpusEntry[] = [...compoundById.values()].map((c) => ({
-  id: c.id,
-  smiles: c.smiles as string,
-}))
 
 /** Number of verified structures available for searching. */
 export const SEARCHABLE_COMPOUND_COUNT = CORPUS.length

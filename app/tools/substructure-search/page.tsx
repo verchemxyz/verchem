@@ -161,6 +161,7 @@ export default function SubstructureSearchPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setMode('substructure')}
+                aria-pressed={mode === 'substructure'}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'substructure'
                     ? 'bg-teal-600 text-white'
@@ -172,6 +173,7 @@ export default function SubstructureSearchPage() {
               </button>
               <button
                 onClick={() => setMode('similarity')}
+                aria-pressed={mode === 'similarity'}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   mode === 'similarity'
                     ? 'bg-teal-600 text-white'
@@ -243,7 +245,11 @@ export default function SubstructureSearchPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300"
+              >
                 {error}
               </div>
             )}
