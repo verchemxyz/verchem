@@ -53,17 +53,24 @@ function expandParentheses(formula: string): string | null {
  * Strictly validate a single compound.
  * Every token must be a recognized element symbol; no unknown letters remain.
  * Rejects zero-count and leading-zero subscripts (e.g., H0, H00, C0H4).
+ * Rejects non-positive leading coefficients (e.g., 0H2, 00H2).
  */
 function isValidCompound(compound: string): boolean {
   // Remove physical state annotations like (aq), (s), (l), (g)
   let s = compound.replace(/\s*\([aqlsg]+\)\s*/gi, '')
+
+  // Validate leading coefficient before stripping: must be positive int
+  const leadingCoeffMatch = s.match(/^(\d+)/)
+  if (leadingCoeffMatch && !POSITIVE_INT.test(leadingCoeffMatch[1])) {
+    return false
+  }
 
   // Expand parentheses (rejects zero/invalid multipliers)
   const expanded = expandParentheses(s)
   if (expanded === null) return false
   s = expanded
 
-  // Remove leading coefficient if any
+  // Remove leading coefficient if any (now validated as positive)
   s = s.replace(/^\d+/, '')
 
   // Match element symbols + optional counts
@@ -114,7 +121,12 @@ const balance_equation: VerifiedTool = {
     }
 
     // Split into individual compounds and validate EACH one
-    const compounds = equation.split(/->|→|=>|=|\+/).map((s) => s.trim()).filter(Boolean)
+    // Do NOT filter(Boolean) — empty terms from leading/trailing/double + must be caught
+    const rawTerms = equation.split(/->|→|=>|=|\+/).map((s) => s.trim())
+    if (rawTerms.some((t) => t === '')) {
+      return err('Equation contains empty terms (check for leading, trailing, or double + signs)')
+    }
+    const compounds = rawTerms.filter(Boolean)
     if (compounds.length === 0) {
       return err('No compounds found in equation')
     }

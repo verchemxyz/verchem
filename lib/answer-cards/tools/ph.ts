@@ -43,7 +43,13 @@ function requirePositiveInteger(name: string, value: unknown): number | undefine
 }
 
 function normalizeFormula(formula: string): string {
-  return formula.replace(/\s+/g, '')
+  const subscriptMap: Record<string, string> = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
+  }
+  return formula
+    .replace(/\s+/g, '')
+    .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => subscriptMap[match] ?? match)
 }
 
 /** Common English names → formula keys in ACID_KA_VALUES */
@@ -87,21 +93,23 @@ const calculate_strong_acid_ph: VerifiedTool = {
       }
       const formula = typeof input.formula === 'string' ? input.formula : undefined
 
-      // If both formula and proton_count provided, formula is source of truth for known formulas
-      if (formula !== undefined && protonCount !== undefined) {
-        const normalized = normalizeFormula(formula)
-        const expected = KNOWN_STRONG_ACID_PROTONS[normalized]
-        if (expected !== undefined && expected !== protonCount) {
-          return err(`proton_count (${protonCount}) does not match formula ${formula} (expected ${expected})`)
-        }
+      const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
+      const isKnownFormula = normalized !== undefined && KNOWN_STRONG_ACID_PROTONS[normalized] !== undefined
+      const expectedProtons = normalized !== undefined ? KNOWN_STRONG_ACID_PROTONS[normalized] : undefined
+
+      // Reject mismatch against known formula
+      if (expectedProtons !== undefined && protonCount !== undefined && expectedProtons !== protonCount) {
+        return err(`proton_count (${protonCount}) does not match formula ${formula} (expected ${expectedProtons})`)
       }
 
-      const options = formula || protonCount !== undefined
-        ? {
-            formula,
-            protonCount,
-          }
-        : undefined
+      // If known formula: send {formula} ONLY — let engine use its model (e.g., H2SO4 Ka2)
+      // protonCount is ignored to prevent bypassing formula-derived models
+      const options = isKnownFormula
+        ? { formula }
+        : formula || protonCount !== undefined
+          ? { formula, protonCount }
+          : undefined
+
       const result = calculateStrongAcidPH(concentration, options)
       return finalizeResult({
         pH: result.pH,
@@ -202,21 +210,23 @@ const calculate_strong_base_ph: VerifiedTool = {
       }
       const formula = typeof input.formula === 'string' ? input.formula : undefined
 
-      // If both formula and hydroxide_count provided, formula is source of truth for known formulas
-      if (formula !== undefined && hydroxideCount !== undefined) {
-        const normalized = normalizeFormula(formula)
-        const expected = KNOWN_STRONG_BASE_HYDROXIDES[normalized]
-        if (expected !== undefined && expected !== hydroxideCount) {
-          return err(`hydroxide_count (${hydroxideCount}) does not match formula ${formula} (expected ${expected})`)
-        }
+      const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
+      const isKnownFormula = normalized !== undefined && KNOWN_STRONG_BASE_HYDROXIDES[normalized] !== undefined
+      const expectedHydroxides = normalized !== undefined ? KNOWN_STRONG_BASE_HYDROXIDES[normalized] : undefined
+
+      // Reject mismatch against known formula
+      if (expectedHydroxides !== undefined && hydroxideCount !== undefined && expectedHydroxides !== hydroxideCount) {
+        return err(`hydroxide_count (${hydroxideCount}) does not match formula ${formula} (expected ${expectedHydroxides})`)
       }
 
-      const options = formula || hydroxideCount !== undefined
-        ? {
-            formula,
-            hydroxideCount,
-          }
-        : undefined
+      // If known formula: send {formula} ONLY — let engine use its model
+      // hydroxideCount is ignored to prevent bypassing formula-derived models
+      const options = isKnownFormula
+        ? { formula }
+        : formula || hydroxideCount !== undefined
+          ? { formula, hydroxideCount }
+          : undefined
+
       const result = calculateStrongBasePH(concentration, options)
       return finalizeResult({
         pH: result.pH,

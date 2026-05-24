@@ -1,10 +1,11 @@
 /**
- * VerChem Answer Card Tools Tests (W3-R8)
+ * VerChem Answer Card Tools Tests (W3-R10)
  *
  * Enforces the verification invariant: each tool execute() must route to
  * the REAL engine function in lib/calculations/*. Numbers must match.
  * Plus: readFiniteNumber, finalizeResult, equation validation, gas positive limits,
- * dilution positive, vdw positive a/b, proton/hydroxide count validation.
+ * dilution positive, vdw positive a/b, proton/hydroxide count validation,
+ * formula-as-source-of-truth, leading-coefficient reject, empty-term reject.
  */
 
 import assert from 'node:assert/strict'
@@ -312,10 +313,33 @@ describe('proton_count / hydroxide_count validation', () => {
     expect(result.error?.toLowerCase().includes('expected 2')).toBe(true)
   })
 
-  test('accepts proton_count matching known formula', () => {
+  test('rejects unicode formula + proton_count mismatch', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
-    const result = tool.execute({ concentration: 0.1, formula: 'H2SO4', proton_count: 2 })
+    const result = tool.execute({ concentration: 0.1, formula: 'H₂SO₄', proton_count: 1 })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('proton_count')).toBe(true)
+    expect(result.error?.toLowerCase().includes('expected 2')).toBe(true)
+  })
+
+  test('known formula alone uses engine model (H2SO4 Ka2)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'H2SO4' })
     expect(result.ok).toBe(true)
+    if (!result.ok) return
+    // H2SO4 with Ka2 model gives pH ~0.959 at 0.1M; simple 2*conc gives ~0.699
+    expect(result.value.pH).toBeGreaterThan(0.8)
+  })
+
+  test('known formula + matching proton_count ignores count (formula is source of truth)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const formulaOnly = tool.execute({ concentration: 0.1, formula: 'H2SO4' })
+    const withCount = tool.execute({ concentration: 0.1, formula: 'H2SO4', proton_count: 2 })
+    expect(formulaOnly.ok).toBe(true)
+    expect(withCount.ok).toBe(true)
+    if (!formulaOnly.ok || !withCount.ok) return
+    // Both must use the same formula model → identical pH
+    expect(formulaOnly.value.pH).toBeCloseTo(withCount.value.pH as number, 10)
   })
 
   test('accepts proton_count alone for unknown formula', () => {
@@ -353,6 +377,16 @@ describe('proton_count / hydroxide_count validation', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
     const result = tool.execute({ concentration: 0.1, formula: 'Ca(OH)2', hydroxide_count: 2 })
     expect(result.ok).toBe(true)
+  })
+
+  test('known base formula + matching hydroxide_count ignores count (formula is source of truth)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const formulaOnly = tool.execute({ concentration: 0.1, formula: 'Ca(OH)2' })
+    const withCount = tool.execute({ concentration: 0.1, formula: 'Ca(OH)2', hydroxide_count: 2 })
+    expect(formulaOnly.ok).toBe(true)
+    expect(withCount.ok).toBe(true)
+    if (!formulaOnly.ok || !withCount.ok) return
+    expect(formulaOnly.value.pH).toBeCloseTo(withCount.value.pH as number, 10)
   })
 })
 
@@ -588,6 +622,44 @@ describe('Equation balancer tool routes to real engine', () => {
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
   })
+
+  test('rejects 0H2 + O2 -> H2O (zero leading coefficient)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: '0H2 + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects 00H2 + O2 -> H2O (leading-zero coefficient)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: '00H2 + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects + H2 -> H2 (leading plus = empty term)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: '+ H2 -> H2' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('empty')).toBe(true)
+  })
+
+  test('rejects H2 ++ O2 -> H2O (double plus = empty term)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2 ++ O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('empty')).toBe(true)
+  })
+
+  test('accepts 2H2 + O2 -> 2H2O (positive leading coefficient)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: '2H2 + O2 -> 2H2O' })
+    expect(result.ok).toBe(true)
+  })
 })
 
 describe('Tool input validation', () => {
@@ -609,8 +681,8 @@ describe('Tool input validation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Tools Tests (W3-R8)')
-  console.log('===========================================\n')
+  console.log('🧪 VerChem Answer Card Tools Tests (W3-R10)')
+  console.log('============================================\n')
 
   let passed = 0
   const failures: string[] = []

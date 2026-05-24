@@ -34,6 +34,48 @@ function collectNumbers(value: unknown, out: number[]): void {
 }
 
 /**
+ * Check if a token is a pure chemical formula (all symbols ∈ ELEMENT_SYMBOLS).
+ * e.g. "H2O", "C6H12O6", "Fe2O3" → true
+ * "pH7", "1.8e5", "hello" → false
+ */
+function isChemicalFormulaToken(token: string): boolean {
+  if (!token || token.length === 0) return false
+  // Must start with an uppercase letter (element symbol start)
+  if (!/^[A-Z]/.test(token)) return false
+  // Must match element-symbol + count pattern for the entire token
+  if (!/^([A-Z][a-z]?\d*)+$/.test(token)) return false
+  // Every element symbol must be recognized
+  const regex = /([A-Z][a-z]?)(\d*)/g
+  let m: RegExpExecArray | null
+  while ((m = regex.exec(token)) !== null) {
+    if (!ELEMENT_SYMBOLS.has(m[1])) return false
+  }
+  return true
+}
+
+/**
+ * Strip subscript digits from chemical-formula tokens only.
+ * Non-formula tokens (e.g., "pH7", "pOH7", "pKa", "1.8e5") are preserved.
+ */
+function stripFormulaSubscripts(text: string): string {
+  const subscriptMap: Record<string, string> = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
+  }
+  // First normalize Unicode subscripts to ascii so tokenization works consistently
+  const ascii = text.replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (ch) => subscriptMap[ch] ?? ch)
+
+  // Split on word boundaries / punctuation, preserving structure
+  return ascii.replace(/[A-Za-z][A-Za-z0-9]*/g, (token) => {
+    if (isChemicalFormulaToken(token)) {
+      // Strip all digits from this formula token
+      return token.replace(/\d/g, '')
+    }
+    return token
+  })
+}
+
+/**
  * Extract result-like numbers from explanation text.
  * Returns each number with its raw string for precision-aware matching.
  */
@@ -44,11 +86,9 @@ function extractNumbersFromText(text: string): Array<{ value: number; raw: strin
   let normalized = text.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
 
   // Strip chemical formula subscript digits BEFORE any sci-not normalization.
-  // Only strip when the preceding symbol is a recognized element — this preserves
-  // scientific notation (1.8e5, 1.8E5) while correctly stripping H2O, C6H12O6.
-  normalized = normalized.replace(/([A-Z][a-z]?)\d+/g, (match, sym) =>
-    ELEMENT_SYMBOLS.has(sym) ? sym : match
-  )
+  // Tokenize-based: only pure formula tokens (H2O, C6H12O6) get stripped.
+  // Non-formula tokens (pH7, pOH7, 1.8e5, 1.8E5) are preserved.
+  normalized = stripFormulaSubscripts(normalized)
 
   // Convert Unicode superscripts/subscripts to regular digits
   const superscriptMap: Record<string, string> = {

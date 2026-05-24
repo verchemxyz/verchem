@@ -1,9 +1,9 @@
 /**
- * VerChem Answer Card Numeric Audit Tests (W3-R8)
+ * VerChem Answer Card Numeric Audit Tests (W3-R10)
  *
  * Trust boundary: allowlist = result values + input values ONLY.
  * No global constants.
- * - formula subscripts stripped ONLY for recognized element symbols (ELEMENT_SYMBOLS)
+ * - tokenize-based formula strip: only pure chemical-formula tokens stripped
  * - precision-aware tolerance
  * - standalone 10^n parsed
  * - thousands separator handled
@@ -169,18 +169,52 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('element-symbol-aware strip preserves non-element uppercase (E in 1.8E5)', () => {
-    // E is not an element symbol → should NOT strip the 5
+  test('tokenize-based: pH7 preserved → 7 unmatched if not in results', () => {
     const toolCalls: ToolCall[] = [
       {
-        name: 'test',
-        engine: 'test',
-        input: {},
-        result: { ok: true, value: { x: 180000 } },
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
         citation: '',
       },
     ]
-    const audit = auditExplanation('Result: 1.8E5', toolCalls)
+    const audit = auditExplanation('The pH7 buffer is interesting.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched).toContain('7')
+  })
+
+  test('tokenize-based: pOH7 preserved → 7 unmatched if not in results', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('The pOH7 value is noted.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched).toContain('7')
+  })
+
+  test('tokenize-based: C6H12O6 stripped correctly', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'balance_equation',
+        engine: 'equation-balancer',
+        input: { equation: 'C6H12O6 + O2 -> CO2 + H2O' },
+        result: { ok: true, value: { coefficients: [1, 6, 6, 6] } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('Glucose C6H12O6 reacts with oxygen.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('tokenize-based: pH is 2.87 still clean (2.87 in results)', () => {
+    const audit = auditExplanation('The pH is 2.87.', makeToolCalls())
     expect(audit.clean).toBe(true)
   })
 
@@ -328,8 +362,8 @@ describe('auditExplanation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Audit Tests (W3-R8)')
-  console.log('===========================================\n')
+  console.log('🧪 VerChem Answer Card Audit Tests (W3-R10)')
+  console.log('=============================================\n')
 
   let passed = 0
   const failures: string[] = []
