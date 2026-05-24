@@ -23,6 +23,29 @@ function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
 }
 
+/** Known strong acid proton counts for adapter validation (must match engine) */
+const KNOWN_STRONG_ACID_PROTONS: Record<string, number> = {
+  HCl: 1, HNO3: 1, HBr: 1, HI: 1, HClO4: 1, H2SO4: 2,
+}
+
+/** Known strong base hydroxide counts for adapter validation (must match engine) */
+const KNOWN_STRONG_BASE_HYDROXIDES: Record<string, number> = {
+  NaOH: 1, KOH: 1, LiOH: 1, 'Ca(OH)2': 2, 'Ba(OH)2': 2,
+}
+
+function requirePositiveInteger(name: string, value: unknown): number | undefined {
+  const n = readFiniteNumber(value)
+  if (n === undefined) return undefined
+  if (!Number.isInteger(n) || n <= 0) {
+    throw new Error(`${name} must be a positive integer`)
+  }
+  return n
+}
+
+function normalizeFormula(formula: string): string {
+  return formula.replace(/\s+/g, '')
+}
+
 /** Common English names → formula keys in ACID_KA_VALUES */
 const ACID_NAME_ALIASES: Record<string, string> = {
   'acetic acid': 'CH3COOH',
@@ -58,10 +81,25 @@ const calculate_strong_acid_ph: VerifiedTool = {
       return err('Concentration must be a non-negative finite number')
     }
     try {
-      const options = input.formula || input.proton_count
+      let protonCount: number | undefined
+      if (input.proton_count !== undefined) {
+        protonCount = requirePositiveInteger('proton_count', input.proton_count)
+      }
+      const formula = typeof input.formula === 'string' ? input.formula : undefined
+
+      // If both formula and proton_count provided, formula is source of truth for known formulas
+      if (formula !== undefined && protonCount !== undefined) {
+        const normalized = normalizeFormula(formula)
+        const expected = KNOWN_STRONG_ACID_PROTONS[normalized]
+        if (expected !== undefined && expected !== protonCount) {
+          return err(`proton_count (${protonCount}) does not match formula ${formula} (expected ${expected})`)
+        }
+      }
+
+      const options = formula || protonCount !== undefined
         ? {
-            formula: typeof input.formula === 'string' ? input.formula : undefined,
-            protonCount: readFiniteNumber(input.proton_count),
+            formula,
+            protonCount,
           }
         : undefined
       const result = calculateStrongAcidPH(concentration, options)
@@ -158,10 +196,25 @@ const calculate_strong_base_ph: VerifiedTool = {
       return err('Concentration must be a non-negative finite number')
     }
     try {
-      const options = input.formula || input.hydroxide_count
+      let hydroxideCount: number | undefined
+      if (input.hydroxide_count !== undefined) {
+        hydroxideCount = requirePositiveInteger('hydroxide_count', input.hydroxide_count)
+      }
+      const formula = typeof input.formula === 'string' ? input.formula : undefined
+
+      // If both formula and hydroxide_count provided, formula is source of truth for known formulas
+      if (formula !== undefined && hydroxideCount !== undefined) {
+        const normalized = normalizeFormula(formula)
+        const expected = KNOWN_STRONG_BASE_HYDROXIDES[normalized]
+        if (expected !== undefined && expected !== hydroxideCount) {
+          return err(`hydroxide_count (${hydroxideCount}) does not match formula ${formula} (expected ${expected})`)
+        }
+      }
+
+      const options = formula || hydroxideCount !== undefined
         ? {
-            formula: typeof input.formula === 'string' ? input.formula : undefined,
-            hydroxideCount: readFiniteNumber(input.hydroxide_count),
+            formula,
+            hydroxideCount,
           }
         : undefined
       const result = calculateStrongBasePH(concentration, options)

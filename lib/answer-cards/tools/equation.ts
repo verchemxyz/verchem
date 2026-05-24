@@ -7,6 +7,7 @@
 
 import type { VerifiedTool, ToolResult } from '../types'
 import { finalizeResult } from './_validate'
+import { ELEMENT_SYMBOLS } from '../elements'
 import {
   balanceEquation,
   identifyReactionType,
@@ -18,32 +19,24 @@ function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
 }
 
-/** Recognized element symbols for strict validation */
-const ELEMENT_SYMBOLS = new Set([
-  'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
-  'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
-  'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
-  'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr',
-  'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn',
-  'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd',
-  'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb',
-  'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
-  'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
-  'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm',
-  'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
-  'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
-])
+/** Positive integer pattern for element counts and multipliers */
+const POSITIVE_INT = /^[1-9]\d*$/
 
 /**
  * Expand parentheses in a compound string: Ca(OH)2 → CaO2H2
+ * Rejects zero or invalid multipliers.
  */
-function expandParentheses(formula: string): string {
+function expandParentheses(formula: string): string | null {
   const regex = /\(([^)]+)\)(\d*)/g
   let result = formula
   // Limit iterations to prevent runaway
   for (let i = 0; i < 10; i++) {
     if (!regex.test(result)) break
     result = result.replace(regex, (match, group, multiplier) => {
+      // Reject zero/invalid multiplier (e.g., Ca(OH)0)
+      if (multiplier !== '' && !POSITIVE_INT.test(multiplier)) {
+        return '\x00' // inject sentinel that will fail later
+      }
       const mult = multiplier ? parseInt(multiplier) : 1
       return group.replace(/([A-Z][a-z]?)(\d*)/g, (m: string, el: string, count: string) => {
         const c = count ? parseInt(count) : 1
@@ -51,19 +44,24 @@ function expandParentheses(formula: string): string {
       })
     })
   }
+  // Sentinel check: if any invalid multiplier was found, return null
+  if (result.includes('\x00')) return null
   return result
 }
 
 /**
  * Strictly validate a single compound.
  * Every token must be a recognized element symbol; no unknown letters remain.
+ * Rejects zero-count and leading-zero subscripts (e.g., H0, H00, C0H4).
  */
 function isValidCompound(compound: string): boolean {
   // Remove physical state annotations like (aq), (s), (l), (g)
   let s = compound.replace(/\s*\([aqlsg]+\)\s*/gi, '')
 
-  // Expand parentheses
-  s = expandParentheses(s)
+  // Expand parentheses (rejects zero/invalid multipliers)
+  const expanded = expandParentheses(s)
+  if (expanded === null) return false
+  s = expanded
 
   // Remove leading coefficient if any
   s = s.replace(/^\d+/, '')
@@ -77,8 +75,8 @@ function isValidCompound(compound: string): boolean {
     const element = match[1]
     const count = match[2]
     if (!ELEMENT_SYMBOLS.has(element)) return false
-    // Reject zero-count subscripts (e.g., H0, C0H4)
-    if (count === '0') return false
+    // Reject zero-count / leading-zero / non-positive subscripts
+    if (count !== '' && !POSITIVE_INT.test(count)) return false
     consumed += element.length + count.length
   }
 

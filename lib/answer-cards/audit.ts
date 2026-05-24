@@ -8,6 +8,7 @@
  */
 
 import type { ToolCall } from './types'
+import { ELEMENT_SYMBOLS } from './elements'
 
 export interface AuditResult {
   clean: boolean
@@ -42,12 +43,12 @@ function extractNumbersFromText(text: string): Array<{ value: number; raw: strin
   // Remove thousands separators: 1,000 → 1000
   let normalized = text.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
 
-  // Strip chemical formula subscript digits BEFORE any sci-not normalization
-  // e.g. H2O → HO, CH3COOH → CHCOOH, C6H12O6 → CHO
-  // This prevents "2" in H2O from being extracted as a numeric claim.
-  // Element symbols are uppercase-led ([A-Z][a-z]?), so this leaves bare
-  // exponent notation intact (e.g. "1.8e5" — lowercase "e" is not matched).
-  normalized = normalized.replace(/([A-Z][a-z]?)\d+/g, '$1')
+  // Strip chemical formula subscript digits BEFORE any sci-not normalization.
+  // Only strip when the preceding symbol is a recognized element — this preserves
+  // scientific notation (1.8e5, 1.8E5) while correctly stripping H2O, C6H12O6.
+  normalized = normalized.replace(/([A-Z][a-z]?)\d+/g, (match, sym) =>
+    ELEMENT_SYMBOLS.has(sym) ? sym : match
+  )
 
   // Convert Unicode superscripts/subscripts to regular digits
   const superscriptMap: Record<string, string> = {

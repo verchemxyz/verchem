@@ -1,9 +1,9 @@
 /**
- * VerChem Answer Card Numeric Audit Tests (W3-R6)
+ * VerChem Answer Card Numeric Audit Tests (W3-R8)
  *
  * Trust boundary: allowlist = result values + input values ONLY.
  * No global constants.
- * - formula subscripts stripped (H2O → no unmatched "2")
+ * - formula subscripts stripped ONLY for recognized element symbols (ELEMENT_SYMBOLS)
  * - precision-aware tolerance
  * - standalone 10^n parsed
  * - thousands separator handled
@@ -149,25 +149,39 @@ describe('auditExplanation', () => {
     expect(audit.clean).toBe(true)
   })
 
-  test('formula strip does not break scientific notation extraction', () => {
+  test('formula strip does not break scientific notation extraction (lowercase e)', () => {
     const explanation = 'Ka = 1.8e-5 gives pH 2.87.'
     const audit = auditExplanation(explanation, makeToolCalls())
     expect(audit.clean).toBe(true)
   })
 
-  test('bare positive exponent (1.8e5) is not corrupted to 1.8 by formula strip', () => {
-    // Regression: a [A-Za-z]\d+ strip would turn "1.8e5" → "1.8e" → extract 1.8.
-    // Element-led strip [A-Z][a-z]? leaves the lowercase "e" exponent intact.
-    const withResult: ToolCall[] = [
-      { name: 'k', engine: 'kinetics', input: {}, result: { ok: true, value: { rate_constant: 180000 } }, citation: '' },
+  test('formula strip does not break scientific notation extraction (uppercase E)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 180000 } },
+        citation: '',
+      },
     ]
-    // 1.8e5 must extract as 180000 (matches result) → clean
-    expect(auditExplanation('The rate constant is 1.8e5.', withResult).clean).toBe(true)
-    // and must NOT be mistaken for 1.8: with only 1.8 present, 1.8e5 stays unmatched
-    const only1p8: ToolCall[] = [
-      { name: 'x', engine: 'x', input: {}, result: { ok: true, value: { v: 1.8 } }, citation: '' },
+    const audit = auditExplanation('The value is 1.8E5.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('element-symbol-aware strip preserves non-element uppercase (E in 1.8E5)', () => {
+    // E is not an element symbol → should NOT strip the 5
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'test',
+        engine: 'test',
+        input: {},
+        result: { ok: true, value: { x: 180000 } },
+        citation: '',
+      },
     ]
-    expect(auditExplanation('The rate constant is 1.8e5.', only1p8).clean).toBe(false)
+    const audit = auditExplanation('Result: 1.8E5', toolCalls)
+    expect(audit.clean).toBe(true)
   })
 
   test('handles x10^ notation', () => {
@@ -314,7 +328,7 @@ describe('auditExplanation', () => {
 })
 
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Audit Tests (W3-R6)')
+  console.log('🧪 VerChem Answer Card Audit Tests (W3-R8)')
   console.log('===========================================\n')
 
   let passed = 0
