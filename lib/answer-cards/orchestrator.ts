@@ -52,6 +52,24 @@ CRITICAL RULES:
 6. Be concise but thorough.
 7. Respond in the same language the user asked in.`
 
+/**
+ * Determine card status based on engine results and completeness ONLY.
+ * Audit on prose is informational — never gates verified status.
+ * VERIFIED means: at least one engine produced a deterministic result,
+ * no engine errors, and the response is complete.
+ */
+export function determineStatus(
+  hasOk: boolean,
+  hasError: boolean,
+  allFailed: boolean,
+  incomplete: boolean
+): CardStatus {
+  if (allFailed) return 'error'
+  if (!hasOk) return 'unverified'
+  if (hasError || incomplete) return 'partial'
+  return 'verified'
+}
+
 function getAnthropicClient(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -177,24 +195,15 @@ export async function askVerified(question: string): Promise<AnswerCard> {
     }
   }
 
-  // Numeric audit
+  // Numeric audit (informational — does NOT gate status)
   const audit = auditExplanation(explanation, toolCalls)
 
-  // Determine status
+  // Determine status: engine-driven, audit-independent
   const hasOk = toolCalls.some((tc) => tc.result.ok)
   const hasError = toolCalls.some((tc) => !tc.result.ok)
   const allFailed = toolCalls.length > 0 && !hasOk
 
-  let status: CardStatus
-  if (allFailed) {
-    status = 'error'
-  } else if (!hasOk) {
-    status = 'unverified'
-  } else if (hasError || incomplete || !audit.clean) {
-    status = 'partial'
-  } else {
-    status = 'verified'
-  }
+  const status = determineStatus(hasOk, hasError, allFailed, incomplete)
 
   if (incomplete && !explanation.includes('(Response may be incomplete.)')) {
     explanation += '\n\n(Response may be incomplete.)'

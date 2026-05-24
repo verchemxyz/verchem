@@ -44,7 +44,7 @@ function statusBadge(status: CardStatus): {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         ),
-        reason: 'Some calculations failed, the response may be incomplete, or the explanation contains unverified figures.',
+        reason: 'Some calculations failed or the response may be incomplete.',
       }
     case 'error':
       return {
@@ -92,41 +92,21 @@ export default function AnswerCardView({ card }: AnswerCardViewProps) {
         </span>
       </div>
 
-      {/* Downgrade reason */}
+      {/* Downgrade reason (engine-driven only) */}
       {badge.reason && (
         <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 text-sm text-orange-200">
           {badge.reason}
         </div>
       )}
 
-      {/* Audit warning */}
-      {!card.audit.clean && card.audit.unmatched.length > 0 && (
-        <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-200">
-          Explanation contains {card.audit.unmatched.length} figure(s) not produced by a verified engine:
-          {' '}{card.audit.unmatched.join(', ')}
-        </div>
-      )}
-
-      {/* Explanation */}
-      {card.explanation && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">
-            Explanation
-          </h3>
-          <div className="prose prose-invert max-w-none text-slate-200 whitespace-pre-wrap">
-            {card.explanation}
-          </div>
-          <p className="mt-4 text-xs text-slate-500 italic">
-            AI-generated explanation. Authoritative values are shown in the Engine Results above.
-          </p>
-        </div>
-      )}
-
-      {/* Tool calls / Provenance */}
+      {/* Verified Engine Results — the authoritative answer */}
       {card.tool_calls.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">
-            Deterministic Engines
+          <h3 className="text-sm font-semibold text-emerald-300 uppercase tracking-wide flex items-center gap-2">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Verified Engine Results
           </h3>
           {card.tool_calls.map((tc, idx) => (
             <div
@@ -169,6 +149,32 @@ export default function AnswerCardView({ card }: AnswerCardViewProps) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Audit informational warning (does NOT downgrade badge) */}
+      {!card.audit.clean && card.audit.unmatched.length > 0 && (
+        <div
+          role="status"
+          aria-label="Audit warning: unverified figures in explanation"
+          className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-200"
+        >
+          <span className="font-medium">⚠ Audit notice:</span> The explanation references figure(s) not produced by the verified engines. The authoritative values are shown in the Verified Engine Results above.
+        </div>
+      )}
+
+      {/* Explanation */}
+      {card.explanation && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">
+            Explanation
+          </h3>
+          <div className="prose prose-invert max-w-none text-slate-200 whitespace-pre-wrap">
+            {card.explanation}
+          </div>
+          <p className="mt-4 text-xs text-slate-500 italic">
+            This explanation is AI-generated narrative. Only the values in the Verified Engine Results above are computed by deterministic, signed engines.
+          </p>
         </div>
       )}
 

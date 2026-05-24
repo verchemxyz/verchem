@@ -32,7 +32,7 @@ import {
   balanceEquation,
   identifyReactionType,
 } from '@/lib/calculations/equation-balancer'
-import { pickSchemaKeys } from '@/lib/answer-cards/orchestrator'
+import { pickSchemaKeys, determineStatus } from '@/lib/answer-cards/orchestrator'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -882,4 +882,52 @@ async function runTests() {
 runTests().catch((error) => {
   console.error(error)
   process.exitCode = 1
+})
+
+// ──────────────────────────────────────────────────────────
+// determineStatus — status is driven by engine results ONLY
+// Audit on prose is informational and must NOT gate verified.
+// ──────────────────────────────────────────────────────────
+
+describe('determineStatus', () => {
+  test('verified: at least one ok, no errors, not incomplete', () => {
+    expect(determineStatus(true, false, false, false)).toBe('verified')
+  })
+
+  test('verified: ok present, error absent, incomplete false — even if audit dirty', () => {
+    // audit dirtiness is irrelevant to status
+    expect(determineStatus(true, false, false, false)).toBe('verified')
+  })
+
+  test('partial: ok present but has error', () => {
+    expect(determineStatus(true, true, false, false)).toBe('partial')
+  })
+
+  test('partial: ok present but incomplete (truncation)', () => {
+    expect(determineStatus(true, false, false, true)).toBe('partial')
+  })
+
+  test('partial: ok present with both error and incomplete', () => {
+    expect(determineStatus(true, true, false, true)).toBe('partial')
+  })
+
+  test('unverified: no ok results', () => {
+    expect(determineStatus(false, false, false, false)).toBe('unverified')
+  })
+
+  test('unverified: no ok results even with error', () => {
+    expect(determineStatus(false, true, false, false)).toBe('unverified')
+  })
+
+  test('error: all failed', () => {
+    expect(determineStatus(false, false, true, false)).toBe('error')
+  })
+
+  test('error: all failed trumps incomplete', () => {
+    expect(determineStatus(false, false, true, true)).toBe('error')
+  })
+
+  test('error: all failed trumps hasError', () => {
+    expect(determineStatus(false, true, true, false)).toBe('error')
+  })
 })
