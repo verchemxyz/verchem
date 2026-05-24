@@ -1,5 +1,5 @@
 /**
- * VerChem Answer Card Numeric Audit Tests (W3-R10)
+ * VerChem Answer Card Numeric Audit Tests (W3-R20)
  *
  * Trust boundary: allowlist = result values + input values ONLY.
  * No global constants.
@@ -8,6 +8,7 @@
  * - standalone 10^n parsed
  * - thousands separator handled
  * - integers exact-match only
+ * - Unicode digit defense: NFKC + foreign-digit detection
  */
 
 import assert from 'node:assert/strict'
@@ -51,6 +52,10 @@ function expect(actual: unknown) {
         return
       }
       throw new Error('toContain only supports string and array values')
+    },
+    toBeGreaterThan(expected: number) {
+      assert.equal(typeof actual, 'number')
+      assert.ok((actual as number) > expected)
     },
   }
 }
@@ -361,8 +366,84 @@ describe('auditExplanation', () => {
   })
 })
 
+describe('Unicode digit defense', () => {
+  test('rejects fullwidth digits not in allowlist (NFKC → 999 unmatched)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('pH is ９９９ and 2.87.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched).toContain('999')
+  })
+
+  test('accepts fullwidth digits that ARE in allowlist (NFKC traceable)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('pH is ２.８７.', toolCalls)
+    expect(audit.clean).toBe(true)
+  })
+
+  test('rejects Thai digits (foreign Unicode decimal)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('pH is ๙๙๙.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched.length).toBeGreaterThan(0)
+  })
+
+  test('rejects Arabic-Indic digits (foreign Unicode decimal)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('pH is ٩٩٩.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched.length).toBeGreaterThan(0)
+  })
+
+  test('rejects Devanagari digits (foreign Unicode decimal)', () => {
+    const toolCalls: ToolCall[] = [
+      {
+        name: 'calculate_weak_acid_ph',
+        engine: 'weak-acid-pH',
+        input: { concentration: 0.1, Ka: 1.8e-5 },
+        result: { ok: true, value: { pH: 2.87 } },
+        citation: '',
+      },
+    ]
+    const audit = auditExplanation('pH is ९९९.', toolCalls)
+    expect(audit.clean).toBe(false)
+    expect(audit.unmatched.length).toBeGreaterThan(0)
+  })
+})
+
 async function runTests() {
-  console.log('🧪 VerChem Answer Card Audit Tests (W3-R10)')
+  console.log('🧪 VerChem Answer Card Audit Tests (W3-R20)')
   console.log('=============================================\n')
 
   let passed = 0

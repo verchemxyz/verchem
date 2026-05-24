@@ -1,10 +1,11 @@
 /**
- * VerChem Answer Cards — Numeric Audit (W3-R6)
+ * VerChem Answer Cards — Numeric Audit (W3-R20)
  *
  * Trust boundary: allowlist = result values + input values ONLY.
  * No global constants — every verified number must trace to engine output or user input.
  * Precision-aware tolerance, thousands separator, standalone 10^n parsing.
  * Chemical formula subscripts stripped before number extraction.
+ * Unicode digit defense: NFKC normalization + foreign-digit detection.
  */
 
 import type { ToolCall } from './types'
@@ -76,14 +77,37 @@ function stripFormulaSubscripts(text: string): string {
 }
 
 /**
+ * Detect non-ASCII Unicode decimal digits (Thai, Arabic-Indic, Devanagari, etc.)
+ * that NFKC normalization does NOT convert to ASCII.
+ * These are always treated as suspicious unmatched numbers.
+ */
+function detectForeignDigits(text: string): string[] {
+  const normalized = text.normalize('NFKC')
+  const foreign: string[] = []
+  const regex = /\p{Nd}/gu
+  let match: RegExpExecArray | null
+  while ((match = regex.exec(normalized)) !== null) {
+    const cp = match[0].codePointAt(0) ?? 0
+    // ASCII digits are 0x30-0x39; anything else is a foreign digit
+    if (cp < 0x30 || cp > 0x39) {
+      foreign.push(match[0])
+    }
+  }
+  return foreign
+}
+
+/**
  * Extract result-like numbers from explanation text.
  * Returns each number with its raw string for precision-aware matching.
  */
 function extractNumbersFromText(text: string): Array<{ value: number; raw: string }> {
   const numbers: Array<{ value: number; raw: string }> = []
 
+  // Layer 1: NFKC normalize — converts fullwidth/compatibility digits to ASCII
+  let normalized = text.normalize('NFKC')
+
   // Remove thousands separators: 1,000 → 1000
-  let normalized = text.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
+  normalized = normalized.replace(/\d{1,3}(,\d{3})+/g, (match) => match.replace(/,/g, ''))
 
   // Strip chemical formula subscript digits BEFORE any sci-not normalization.
   // Tokenize-based: only pure formula tokens (H2O, C6H12O6) get stripped.
@@ -196,9 +220,13 @@ export function auditExplanation(explanation: string, toolCalls: ToolCall[]): Au
     return { clean: true, unmatched: [] }
   }
 
+  // Layer 2: detect non-ASCII Unicode decimal digits (Thai, Arabic-Indic, Devanagari, etc.)
+  // Engine never outputs non-ASCII numerals → any foreign digit is automatically unmatched
+  const foreignDigits = detectForeignDigits(explanation)
+
   const { resultValues, inputValues } = buildAllowlists(toolCalls)
   const extracted = extractNumbersFromText(explanation)
-  const unmatchedRaw: string[] = []
+  const unmatchedRaw: string[] = [...foreignDigits]
 
   for (const { value, raw } of extracted) {
     const inResults = inAllowlist(value, raw, resultValues)
