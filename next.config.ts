@@ -1,4 +1,13 @@
 import { NextConfig } from 'next';
+import path from 'node:path';
+
+// paper.js (a transitive dependency of ketcher-core) ships a Node build at
+// paper/dist/node/canvas.js that requires `jsdom` and `canvas` for
+// server-side canvas rendering. Ketcher only runs in the browser, so neither
+// is needed and neither is installed. Stub both to an empty module so the
+// bundle resolves. See lib/rdkit/empty-module.ts.
+const EMPTY_MODULE = path.resolve(process.cwd(), 'lib/rdkit/empty-module.ts');
+const STUBBED_NODE_CANVAS_DEPS = /^(jsdom|canvas)(\/.*)?$/;
 
 const nextConfig: NextConfig = {
   // Turbopack config (silences webpack/turbopack mismatch warning in Next.js 16)
@@ -9,6 +18,9 @@ const nextConfig: NextConfig = {
       // we load RDKit only on the client so the stub is safe there.
       fs: { browser: './lib/rdkit/empty-module.ts' },
       path: { browser: './lib/rdkit/empty-module.ts' },
+      // paper.js → jsdom + canvas (Node canvas) are unused in the browser; stub them.
+      jsdom: { browser: './lib/rdkit/empty-module.ts' },
+      canvas: { browser: './lib/rdkit/empty-module.ts' },
     },
   },
 
@@ -109,7 +121,7 @@ const nextConfig: NextConfig = {
   },
 
   // WebAssembly support for RDKit
-  webpack(config, { isServer }) {
+  webpack(config, { isServer, webpack }) {
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
@@ -123,6 +135,22 @@ const nextConfig: NextConfig = {
         path: false,
       };
     }
+
+    // Replace any `jsdom` / `canvas` import (incl. subpaths like
+    // jsdom/lib/jsdom/living/generated/utils, pulled in by paper.js via
+    // ketcher-core) with an empty module. These are only used by paper's
+    // server-side canvas path, which never executes in the browser.
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(STUBBED_NODE_CANVAS_DEPS, EMPTY_MODULE)
+    );
+
+    // paper/dist/node/extend.js uses Node's `require.extensions` (unsupported
+    // by webpack). It lives in paper's server-only path and never runs in the
+    // browser, so this warning is benign — silence just this module.
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      { module: /paper[\\/]dist[\\/]node[\\/]extend\.js/ },
+    ];
 
     return config;
   },

@@ -20,6 +20,12 @@ const CHEMISTRY_TOOLS = [
     description: 'Molecular weight with element-by-element breakdown (NIST-validated atomic masses).',
   },
   {
+    href: '/tools/substructure-search',
+    icon: '🔎',
+    label: 'Substructure Search',
+    description: 'Draw a fragment, find every compound that contains it — substructure & similarity over a verified structure library (RDKit).',
+  },
+  {
     href: '/tools/periodic-table',
     icon: '⚛️',
     label: 'Periodic Table',
