@@ -161,20 +161,24 @@ async function run() {
     )
   })
 
-  test('every searchable structure is unique by SMILES string', () => {
-    // The search wrapper dedupes by SMILES; this asserts the data itself does
-    // not present the same structure under multiple ids as distinct entries
-    // beyond known cross-category aliases (which dedupe collapses).
+  test('searchable corpus has a healthy count of distinct structures', () => {
+    // The search wrapper dedupes by SMILES string, so the effective corpus is
+    // the count of DISTINCT structures (same molecule under multiple ids —
+    // e.g. ethanol / ethanol-solvent — collapses to one). This is a lower-bound
+    // regression guard on that distinct count, not a uniqueness assertion
+    // (cross-id aliases are expected and handled by the wrapper).
     const bySmiles = new Map<string, string[]>()
     for (const c of COMPOUNDS_WITH_SMILES) {
       const ids = bySmiles.get(c.smiles) ?? []
       ids.push(c.id)
       bySmiles.set(c.smiles, ids)
     }
-    // Document how many structures are aliased (informational, not a failure).
     const aliased = [...bySmiles.values()].filter((ids) => ids.length > 1).length
-    console.log(`  (${bySmiles.size} unique structures; ${aliased} have cross-id aliases)`)
-    assert.ok(bySmiles.size >= 100)
+    console.log(`  (${bySmiles.size} distinct structures; ${aliased} have cross-id aliases)`)
+    assert.ok(
+      bySmiles.size >= 150,
+      `expected >= 150 distinct searchable structures, got ${bySmiles.size}`
+    )
   })
 
   // ---- Report ----
