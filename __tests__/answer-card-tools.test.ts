@@ -680,6 +680,38 @@ describe('Equation balancer tool routes to real engine', () => {
     expect(result.ok).toBe(true)
   })
 
+  test('rejects H2(aq)2 + O2 -> H2O (state not at end, digit after state)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(aq)2 + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects H2(s)O -> H2O (state in middle of formula)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(s)O -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects H2(g)(aq) + O2 -> H2O (duplicate state)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2(g)(aq) + O2 -> H2O' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
+  test('rejects NaCl(aq)(s) -> NaCl (duplicate state)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'NaCl(aq)(s) -> NaCl' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('invalid')).toBe(true)
+  })
+
   test('rejects 0H2 + O2 -> H2O (zero leading coefficient)', () => {
     const tool = TOOL_BY_NAME.get('balance_equation')!
     const result = tool.execute({ equation: '0H2 + O2 -> H2O' })

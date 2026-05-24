@@ -22,72 +22,95 @@ function err(message: string): ToolResult {
 /** Positive integer pattern for element counts and multipliers */
 const POSITIVE_INT = /^[1-9]\d*$/
 
+/** Valid physical state suffixes */
+const STATE_PATTERN = /\((?:aq|s|l|g)\)$/i
+
 /**
  * Expand parentheses in a compound string: Ca(OH)2 → CaO2H2
- * Rejects zero or invalid multipliers.
+ * Rejects zero/invalid multipliers and empty groups.
+ * Uses iterative first-match replacement (no /g state bug).
  */
 function expandParentheses(formula: string): string | null {
-  const regex = /\(([^)]+)\)(\d*)/g
   let result = formula
-  // Limit iterations to prevent runaway
   for (let i = 0; i < 10; i++) {
-    if (!regex.test(result)) break
-    result = result.replace(regex, (match, group, multiplier) => {
-      // Reject zero/invalid multiplier (e.g., Ca(OH)0)
-      if (multiplier !== '' && !POSITIVE_INT.test(multiplier)) {
-        return '\x00' // inject sentinel that will fail later
-      }
-      const mult = multiplier ? parseInt(multiplier) : 1
-      return group.replace(/([A-Z][a-z]?)(\d*)/g, (m: string, el: string, count: string) => {
-        const c = count ? parseInt(count) : 1
-        return el + (c * mult)
-      })
+    const match = result.match(/\(([^)]+)\)(\d*)/)
+    if (!match) break
+    const group = match[1]
+    const multiplier = match[2]
+    // Reject empty group (e.g., Ca()2)
+    if (group.length === 0) return null
+    // Reject zero/invalid multiplier (e.g., Ca(OH)0, Ca(OH)00)
+    if (multiplier !== '' && !POSITIVE_INT.test(multiplier)) return null
+    const mult = multiplier ? parseInt(multiplier, 10) : 1
+    const expanded = group.replace(/([A-Z][a-z]?)(\d*)/g, (_m: string, el: string, count: string) => {
+      const c = count ? parseInt(count, 10) : 1
+      return el + (c * mult)
     })
+    result = result.slice(0, match.index) + expanded + result.slice(match.index! + match[0].length)
   }
-  // Sentinel check: if any invalid multiplier was found, return null
-  if (result.includes('\x00')) return null
   return result
 }
 
 /**
- * Strictly validate a single compound.
- * Every token must be a recognized element symbol; no unknown letters remain.
- * Rejects zero-count and leading-zero subscripts (e.g., H0, H00, C0H4).
- * Rejects non-positive leading coefficients (e.g., 0H2, 00H2).
+ * Strict canonical compound validator.
+ *
+ * Grammar: [coefficient]? (element[count]? | '(' group ')' [count]?)+ [state]?
+ *
+ * 1. Trim
+ * 2. Trailing state (optional, anchored at END only, exactly one): (aq)|(s)|(l)|(g)
+ * 3. Leading coefficient (optional): must be POSITIVE_INT; reject 0/leading-zero
+ * 4. Expand parentheses: multiplier must be POSITIVE_INT, group non-empty
+ * 5. Tokenize remainder as (element)(count?):
+ *    - element ∈ ELEMENT_SYMBOLS
+ *    - count (if present) must be POSITIVE_INT
+ *    - consumed === length (zero leftover)
+ * 6. Return true only if ≥1 element, fully consumed, no garbage.
+ *
+ * Philosophy: strict allow-list. Anything not matching canonical pattern → reject.
  */
 function isValidCompound(compound: string): boolean {
-  // Remove physical state annotations: exact match (aq), (s), (l), (g) only
-  let s = compound.replace(/\s*\((?:aq|s|l|g)\)\s*/gi, '')
+  let s = compound.trim()
+  if (s.length === 0) return false
 
-  // Validate leading coefficient before stripping: must be positive int
-  const leadingCoeffMatch = s.match(/^(\d+)/)
-  if (leadingCoeffMatch && !POSITIVE_INT.test(leadingCoeffMatch[1])) {
-    return false
+  // Step 1: trailing state (anchored at END only, exactly one)
+  const stateMatch = s.match(STATE_PATTERN)
+  if (stateMatch) {
+    s = s.slice(0, stateMatch.index)
   }
 
-  // Expand parentheses (rejects zero/invalid multipliers)
+  // Step 2: leading coefficient (optional)
+  const coeffMatch = s.match(/^(\d+)/)
+  if (coeffMatch) {
+    if (!POSITIVE_INT.test(coeffMatch[1])) return false
+    s = s.slice(coeffMatch[1].length)
+  }
+
+  // Step 3: expand parentheses
   const expanded = expandParentheses(s)
   if (expanded === null) return false
   s = expanded
 
-  // Remove leading coefficient if any (now validated as positive)
-  s = s.replace(/^\d+/, '')
-
-  // Match element symbols + optional counts
-  const regex = /([A-Z][a-z]?)(\d*)/g
-  let match: RegExpExecArray | null
-  let consumed = 0
-
-  while ((match = regex.exec(s)) !== null) {
-    const element = match[1]
-    const count = match[2]
+  // Step 4: strict tokenization — no leftover characters allowed
+  let pos = 0
+  let elementCount = 0
+  while (pos < s.length) {
+    // Must start with an element symbol: uppercase + optional lowercase
+    const elemMatch = s.slice(pos).match(/^([A-Z][a-z]?)/)
+    if (!elemMatch) return false
+    const element = elemMatch[1]
     if (!ELEMENT_SYMBOLS.has(element)) return false
-    // Reject zero-count / leading-zero / non-positive subscripts
-    if (count !== '' && !POSITIVE_INT.test(count)) return false
-    consumed += element.length + count.length
+    pos += element.length
+    elementCount++
+
+    // Optional count
+    const countMatch = s.slice(pos).match(/^(\d+)/)
+    if (countMatch) {
+      if (!POSITIVE_INT.test(countMatch[1])) return false
+      pos += countMatch[1].length
+    }
   }
 
-  return consumed === s.length && consumed > 0
+  return elementCount > 0 && pos === s.length
 }
 
 const balance_equation: VerifiedTool = {
