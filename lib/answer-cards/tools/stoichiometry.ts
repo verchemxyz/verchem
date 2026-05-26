@@ -172,6 +172,21 @@ const calculate_empirical_formula: VerifiedTool = {
       if (formula.length === 0 || !isValidStandaloneFormula(formula)) {
         return err('Could not determine a valid empirical formula from the given composition')
       }
+      // Postcondition: the formula's mass-percent composition must match the input
+      // mole ratios within tolerance. Guards against the engine's bounded multiplier
+      // search returning a rounded-but-wrong formula (e.g. CH instead of C7H8).
+      const formulaComp = calculatePercentComposition(formula)
+      const totalValue = Object.values(composition).reduce((sum, v) => sum + v, 0)
+      if (totalValue <= 0) {
+        return err('Composition values must sum to a positive number')
+      }
+      for (const [el, v] of Object.entries(composition)) {
+        const inputPct = (v / totalValue) * 100
+        const formulaPct = formulaComp[el]
+        if (formulaPct === undefined || Math.abs(formulaPct - inputPct) > 1.0) {
+          return err('The derived empirical formula does not match the given composition within tolerance')
+        }
+      }
       return finalizeResult({ empirical_formula: formula })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Empirical formula calculation failed')

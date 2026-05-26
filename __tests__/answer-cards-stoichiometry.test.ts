@@ -566,6 +566,36 @@ describe('Stoichiometry R5 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R9 review fixes (สมหมาย): empirical multiplier cap + percent-match postcondition
+// ──────────────────────────────────────────────────────────
+
+describe('Stoichiometry R9 fixes', () => {
+  test('empirical handles multiplier > 6: toluene C84.077 H8.064 → C7H8', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 84.077 }, { element: 'H', mass: 8.064 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('C7H8')
+  })
+
+  test('empirical glucose still CH2O (regression)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', percent: 40 }, { element: 'H', percent: 6.7 }, { element: 'O', percent: 53.3 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('CH2O')
+  })
+
+  test('empirical water H2O from mass (regression)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'H', mass: 2.016 }, { element: 'O', mass: 16.0 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('H2O')
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 
