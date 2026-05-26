@@ -7,7 +7,7 @@
 
 import type { VerifiedTool, ToolResult } from '../types'
 import { readFiniteNumber, finalizeResult } from './_validate'
-import { isValidCompound } from './_formula'
+import { isValidStandaloneFormula } from './_formula'
 import { ELEMENT_SYMBOLS } from '../elements'
 import {
   calculateMolecularMass,
@@ -57,7 +57,7 @@ const calculate_molecular_mass: VerifiedTool = {
       return err('formula is required and must be a non-empty string')
     }
     const formula = input.formula.trim()
-    if (!isValidCompound(formula)) {
+    if (!isValidStandaloneFormula(formula)) {
       return err(`Invalid chemical formula: "${formula}"`)
     }
     try {
@@ -89,7 +89,7 @@ const calculate_percent_composition: VerifiedTool = {
       return err('formula is required and must be a non-empty string')
     }
     const formula = input.formula.trim()
-    if (!isValidCompound(formula)) {
+    if (!isValidStandaloneFormula(formula)) {
       return err(`Invalid chemical formula: "${formula}"`)
     }
     try {
@@ -155,6 +155,12 @@ const calculate_empirical_formula: VerifiedTool = {
     }
     try {
       const formula = calculateEmpiricalFormula(composition)
+      // Postcondition: a valid empirical formula must be non-empty AND itself a
+      // valid standalone formula. Subnormal/underflow percent values can make the
+      // engine return "" — never sign an empty/garbage formula as VERIFIED.
+      if (formula.length === 0 || !isValidStandaloneFormula(formula)) {
+        return err('Could not determine a valid empirical formula from the given composition')
+      }
       return finalizeResult({ empirical_formula: formula })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Empirical formula calculation failed')
@@ -363,7 +369,7 @@ const find_limiting_reagent: VerifiedTool = {
         const r = item as Record<string, unknown>
         const formula = typeof r.formula === 'string' ? r.formula.trim() : ''
         if (formula.length === 0) throw new Error('Each reactant must have a formula')
-        if (!isValidCompound(formula)) throw new Error(`Invalid chemical formula: "${formula}"`)
+        if (!isValidStandaloneFormula(formula)) throw new Error(`Invalid chemical formula: "${formula}"`)
         const moles = readFiniteNumber(r.moles)
         if (moles === undefined || moles < 0) throw new Error('Reactant moles must be non-negative finite numbers')
         const coefficient = requirePositiveInteger('coefficient', r.coefficient)
@@ -377,7 +383,7 @@ const find_limiting_reagent: VerifiedTool = {
         const p = item as Record<string, unknown>
         const formula = typeof p.formula === 'string' ? p.formula.trim() : ''
         if (formula.length === 0) throw new Error('Each product must have a formula')
-        if (!isValidCompound(formula)) throw new Error(`Invalid chemical formula: "${formula}"`)
+        if (!isValidStandaloneFormula(formula)) throw new Error(`Invalid chemical formula: "${formula}"`)
         const coefficient = requirePositiveInteger('coefficient', p.coefficient)
         if (coefficient === undefined) throw new Error('Product coefficient must be a positive integer')
         products.push({ formula, coefficient })
@@ -417,7 +423,7 @@ const calculate_theoretical_yield: VerifiedTool = {
 
     if (limitingMoles === undefined || limitingMoles < 0) return err('limiting_reagent_moles must be a non-negative finite number')
     if (productFormula.length === 0) return err('product_formula is required')
-    if (!isValidCompound(productFormula)) return err(`Invalid chemical formula: "${productFormula}"`)
+    if (!isValidStandaloneFormula(productFormula)) return err(`Invalid chemical formula: "${productFormula}"`)
 
     try {
       const limitingCoeff = requirePositiveInteger('limiting_reagent_coefficient', input.limiting_reagent_coefficient)

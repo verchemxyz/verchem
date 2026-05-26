@@ -128,3 +128,42 @@ export function isValidCompound(compound: string): boolean {
 
   return elementCount > 0 && pos === s.length
 }
+
+/**
+ * Strict standalone-compound validator for stoichiometry contexts.
+ *
+ * Unlike isValidCompound (built for EQUATION terms, which tolerates a leading
+ * coefficient + trailing physical-state suffix because the equation engine
+ * parses them), this REJECTS both — the stoichiometry engines
+ * (calculateMolecularMass, etc.) do not parse them and would silently misread
+ * the leftovers: "H2O(s)" → adds Os (osmium), "H2O(g)" → adds Og (oganesson),
+ * "2H2O" → ignores the 2. Those wrong masses would then be signed VERIFIED.
+ */
+export function isValidStandaloneFormula(compound: string): boolean {
+  const s = compound.trim()
+  if (s.length === 0) return false
+  // Reject any leading coefficient (e.g., "2H2O")
+  if (/^\d/.test(s)) return false
+  // Reject physical-state notation anywhere. CRITICAL: after parenthesis
+  // expansion "(s)"→"s" merges with a preceding O into "Os" (osmium) and
+  // "(g)"→"Og" (oganesson) — real element symbols that would otherwise pass
+  // tokenization and be signed VERIFIED with a wildly wrong mass.
+  if (/\((?:aq|s|l|g)\)/i.test(s)) return false
+  const expanded = expandParentheses(s)
+  if (expanded === null) return false
+  let pos = 0
+  let elementCount = 0
+  while (pos < expanded.length) {
+    const elemMatch = expanded.slice(pos).match(/^([A-Z][a-z]?)/)
+    if (!elemMatch) return false
+    if (!ELEMENT_SYMBOLS.has(elemMatch[1])) return false
+    pos += elemMatch[1].length
+    elementCount++
+    const countMatch = expanded.slice(pos).match(/^(\d+)/)
+    if (countMatch) {
+      if (!POSITIVE_INT.test(countMatch[1])) return false
+      pos += countMatch[1].length
+    }
+  }
+  return elementCount > 0 && pos === expanded.length
+}

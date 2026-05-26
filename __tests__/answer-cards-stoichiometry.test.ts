@@ -461,6 +461,52 @@ describe('Stoichiometry numerical verification', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R1 review fixes (สมหมาย Wave A): standalone formula strictness + empirical postcondition
+// ──────────────────────────────────────────────────────────
+
+describe('Stoichiometry R1 fixes', () => {
+  test('molecular_mass rejects state suffix (engine would read (s)→Os, (g)→Og)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molecular_mass')!
+    for (const f of ['H2O(s)', 'H2O(g)', 'H2O(aq)', 'H2O(l)']) {
+      const result = tool.execute({ formula: f })
+      expect(result.ok).toBe(false)
+    }
+  })
+
+  test('molecular_mass rejects leading coefficient 2H2O (engine ignores the 2)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molecular_mass')!
+    const result = tool.execute({ formula: '2H2O' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('percent_composition rejects leading coefficient', () => {
+    const tool = TOOL_BY_NAME.get('calculate_percent_composition')!
+    const result = tool.execute({ formula: '3CO2' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('theoretical_yield rejects state-suffixed product', () => {
+    const tool = TOOL_BY_NAME.get('calculate_theoretical_yield')!
+    const result = tool.execute({ limiting_reagent_moles: 1, limiting_reagent_coefficient: 1, product_coefficient: 1, product_formula: 'H2O(g)' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('empirical_formula rejects subnormal underflow → empty', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const result = tool.execute({ composition: [{ element: 'H', percent: 5e-324 }, { element: 'O', percent: 5e-324 }] })
+    expect(result.ok).toBe(false)
+  })
+
+  test('valid standalone formulas still pass (regression)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molecular_mass')!
+    for (const f of ['H2O', 'NaCl', 'Ca(OH)2', 'C6H12O6', '(NH4)2SO4']) {
+      const result = tool.execute({ formula: f })
+      expect(result.ok).toBe(true)
+    }
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

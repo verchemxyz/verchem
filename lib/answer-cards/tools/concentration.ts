@@ -38,6 +38,14 @@ const VALID_CONCENTRATION_UNITS = new Set([
   'pct_wv', 'pct_ww', 'pct_vv', 'N', 'ppm', 'ppb',
 ])
 
+// Subset usable for stock prep: mass must be a DETERMINISTIC function of inputs.
+// Excludes pct_ww (needs solution density), pct_vv (yields volume not mass),
+// and N (needs equivalents factor) — all carry a hidden assumption that must
+// never be signed VERIFIED.
+const STOCK_PREP_UNITS = new Set([
+  'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'ppm', 'ppb', 'pct_wv',
+])
+
 function needsMolarMass(unit: string): boolean {
   return unit === 'mol/L' || unit === 'mmol/L' || unit === 'N'
 }
@@ -66,6 +74,11 @@ const calculate_molarity: VerifiedTool = {
     const volumeL = readFiniteNumber(input.volume_L)
     const massGrams = readFiniteNumber(input.mass_grams)
     const molarMass = readFiniteNumber(input.molar_mass)
+
+    // Reject ambiguous input: exactly one path (moles OR mass) must be provided.
+    if (moles !== undefined && (massGrams !== undefined || molarMass !== undefined)) {
+      return err('Provide either moles or (mass_grams + molar_mass), not both')
+    }
 
     try {
       let result: number
@@ -285,19 +298,18 @@ const calculate_stock_prep: VerifiedTool = {
 
     if (targetConc === undefined || targetConc <= 0) return err('target_conc must be a positive finite number')
     if (targetVolume === undefined || targetVolume <= 0) return err('target_volume must be a positive finite number')
-    if (molarMass === undefined || molarMass <= 0) return err('molar_mass must be a positive finite number')
-    if (!VALID_CONCENTRATION_UNITS.has(unit)) return err(`Unsupported concentration unit: "${unit}"`)
+    if (!STOCK_PREP_UNITS.has(unit)) {
+      return err(`Unsupported stock-prep unit: "${unit}". Supported (deterministic mass): mol/L, mmol/L, g/L, mg/L, ug/L, ppm, ppb, pct_wv`)
+    }
+    // molar_mass is used (and required) only for amount-based units
+    if (needsMolarMass(unit) && (molarMass === undefined || molarMass <= 0)) {
+      return err('molar_mass is required and must be positive for mol/L or mmol/L')
+    }
 
     try {
-      const result = calculateStockPrep({ targetConc, targetVolume, molarMass, unit: unit as ConcentrationUnit })
-      if (unit === 'pct_vv') {
-        return finalizeResult({
-          volume_needed_mL: result.massNeeded,
-          unit: '% v/v',
-          note: 'Result is in mL of liquid solute, not grams (multiply by solute density to get mass)',
-          steps: result.steps,
-        })
-      }
+      // Engine requires molarMass > 0 even for mass-based units that ignore it.
+      const safeMolarMass = molarMass !== undefined && molarMass > 0 ? molarMass : 1
+      const result = calculateStockPrep({ targetConc, targetVolume, molarMass: safeMolarMass, unit: unit as ConcentrationUnit })
       return finalizeResult({
         mass_needed_g: result.massNeeded,
         unit,

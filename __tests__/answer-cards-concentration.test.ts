@@ -220,13 +220,10 @@ describe('calculate_stock_prep', () => {
     expect(result.value.mass_needed_g).toBeCloseTo(engineResult.massNeeded, 10)
   })
 
-  test('pct_vv returns mL note', () => {
+  test('pct_vv rejected (yields volume not mass — not verifiable)', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
     const result = tool.execute({ target_conc: 10, target_volume: 1, molar_mass: 46.07, unit: 'pct_vv' })
-    expect(result.ok).toBe(true)
-    if (!result.ok) return
-    expect(result.value.volume_needed_mL).toBeGreaterThan(0)
-    expect(result.value.note).toContain('mL')
+    expect(result.ok).toBe(false)
   })
 })
 
@@ -401,6 +398,44 @@ describe('Concentration numerical verification', () => {
     if (!result.ok) return
     // π = 1 * 0.08206 * 273.15 ≈ 22.41 atm
     expect(result.value.osmotic_pressure_atm).toBeCloseTo(22.41, 1)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
+// R1 review fixes (สมหมาย Wave A)
+// ──────────────────────────────────────────────────────────
+
+describe('Concentration R1 fixes', () => {
+  test('stock_prep rejects pct_ww (density ≈1 assumption not verifiable)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({ target_conc: 10, target_volume: 1, molar_mass: 58.44, unit: 'pct_ww' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('stock_prep rejects N (equivalents factor assumption)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({ target_conc: 1, target_volume: 1, molar_mass: 98, unit: 'N' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('stock_prep g/L works without molar_mass (mass-based)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({ target_conc: 5, target_volume: 2, unit: 'g/L' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.mass_needed_g).toBeCloseTo(10, 6)
+  })
+
+  test('stock_prep mol/L requires molar_mass', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({ target_conc: 1, target_volume: 1, unit: 'mol/L' })
+    expect(result.ok).toBe(false)
+  })
+
+  test('molarity rejects both moles and mass paths (ambiguous)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molarity')!
+    const result = tool.execute({ moles: 2, mass_grams: 58.44, molar_mass: 58.44, volume_L: 1 })
+    expect(result.ok).toBe(false)
   })
 })
 
