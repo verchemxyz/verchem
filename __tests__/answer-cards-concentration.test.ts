@@ -440,6 +440,22 @@ describe('Concentration R1 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R3 review fixes (สมหมาย): subnormal magnitude guard
+// ──────────────────────────────────────────────────────────
+
+describe('Concentration R3 fixes', () => {
+  test('osmotic_pressure rejects subnormal molarity (underflow → 0)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_osmotic_pressure')!
+    expect(tool.execute({ molarity: 5e-324, temperature_K: 298 }).ok).toBe(false)
+  })
+
+  test('stock_prep rejects subnormal target_conc (would weigh 0 g)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    expect(tool.execute({ target_conc: 5e-324, target_volume: 1, unit: 'mg/L' }).ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

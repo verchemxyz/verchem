@@ -7,6 +7,11 @@
 
 import type { ToolResult } from '../types'
 
+/** Smallest positive normal double. Values with 0 < |x| < this are subnormal:
+ *  they carry no physical meaning and silently underflow to 0 in downstream
+ *  math, which would otherwise be signed VERIFIED (e.g. "weigh 0 g"). */
+const MIN_NORMAL_DOUBLE = 2.2250738585072014e-308
+
 /**
  * Safely read a finite number from an unknown value.
  * Returns undefined for null, boolean, array, object, empty string, NaN, Infinity,
@@ -21,10 +26,12 @@ export function readFiniteNumber(v: unknown): number | undefined {
     if (trimmed === '') return undefined
     const num = Number(trimmed)
     if (!Number.isFinite(num)) return undefined
+    if (num !== 0 && Math.abs(num) < MIN_NORMAL_DOUBLE) return undefined
     return num
   }
   if (typeof v === 'number') {
     if (!Number.isFinite(v)) return undefined
+    if (v !== 0 && Math.abs(v) < MIN_NORMAL_DOUBLE) return undefined
     return v
   }
   return undefined

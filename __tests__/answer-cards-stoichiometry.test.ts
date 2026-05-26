@@ -507,6 +507,40 @@ describe('Stoichiometry R1 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R3 review fixes (สมหมาย): magnitude bounds + duplicate-element guard
+// ──────────────────────────────────────────────────────────
+
+describe('Stoichiometry R3 fixes', () => {
+  test('molecular_mass rejects count beyond MAX_ELEMENT_COUNT', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molecular_mass')!
+    expect(tool.execute({ formula: 'H9007199254740993' }).ok).toBe(false)
+    expect(tool.execute({ formula: 'H2000000' }).ok).toBe(false)
+  })
+
+  test('molecular_mass still allows reasonable large count (C1000)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molecular_mass')!
+    expect(tool.execute({ formula: 'C1000' }).ok).toBe(true)
+  })
+
+  test('mass_to_moles rejects subnormal mass (underflow → 0)', () => {
+    const tool = TOOL_BY_NAME.get('mass_to_moles')!
+    expect(tool.execute({ mass: 5e-324, molar_mass: 2 }).ok).toBe(false)
+  })
+
+  test('empirical_formula rejects duplicate element', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const result = tool.execute({ composition: [{ element: 'C', percent: 40 }, { element: 'C', percent: 60 }] })
+    expect(result.ok).toBe(false)
+  })
+
+  test('empirical_formula rejects both percent and mass for same element', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const result = tool.execute({ composition: [{ element: 'C', percent: 40, mass: 12 }, { element: 'O', percent: 53 }] })
+    expect(result.ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

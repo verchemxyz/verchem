@@ -11,6 +11,10 @@ import { ELEMENT_SYMBOLS } from '../elements'
 /** Positive integer pattern for element counts and multipliers */
 const POSITIVE_INT = /^[1-9]\d*$/
 
+/** Max element count / parenthesis multiplier. Beyond this the resulting mass
+ *  loses precision (exceeds safe-integer range) and is chemically meaningless. */
+const MAX_ELEMENT_COUNT = 1_000_000
+
 /** Valid physical state suffixes */
 const STATE_PATTERN = /\((?:aq|s|l|g)\)$/i
 
@@ -50,6 +54,7 @@ export function expandParentheses(formula: string): string | null {
     // Reject zero/invalid multiplier (e.g., Ca(OH)0, Ca(OH)00)
     if (multiplier !== '' && !POSITIVE_INT.test(multiplier)) return null
     const mult = multiplier ? parseInt(multiplier, 10) : 1
+    if (mult > MAX_ELEMENT_COUNT) return null
 
     // Validate group element counts BEFORE expansion (reject leading-zero like H02)
     let gv: RegExpExecArray | null
@@ -122,6 +127,7 @@ export function isValidCompound(compound: string): boolean {
     const countMatch = s.slice(pos).match(/^(\d+)/)
     if (countMatch) {
       if (!POSITIVE_INT.test(countMatch[1])) return false
+      if (Number(countMatch[1]) > MAX_ELEMENT_COUNT) return false
       pos += countMatch[1].length
     }
   }
@@ -162,6 +168,7 @@ export function isValidStandaloneFormula(compound: string): boolean {
     const countMatch = expanded.slice(pos).match(/^(\d+)/)
     if (countMatch) {
       if (!POSITIVE_INT.test(countMatch[1])) return false
+      if (Number(countMatch[1]) > MAX_ELEMENT_COUNT) return false
       pos += countMatch[1].length
     }
   }

@@ -134,6 +134,7 @@ const calculate_empirical_formula: VerifiedTool = {
       return err('composition must be a non-empty array')
     }
     const composition: Record<string, number> = {}
+    const seen = new Set<string>()
     for (const item of input.composition) {
       if (!item || typeof item !== 'object') {
         return err('Each composition entry must be an object')
@@ -145,8 +146,15 @@ const calculate_empirical_formula: VerifiedTool = {
       if (!ELEMENT_SYMBOLS.has(element)) {
         return err(`Unknown element symbol: "${element}"`)
       }
+      if (seen.has(element)) {
+        return err(`Duplicate element in composition: "${element}"`)
+      }
+      seen.add(element)
       const percent = readFiniteNumber((item as Record<string, unknown>).percent)
       const mass = readFiniteNumber((item as Record<string, unknown>).mass)
+      if (percent !== undefined && mass !== undefined) {
+        return err(`Provide either percent or mass for ${element}, not both`)
+      }
       const value = percent !== undefined ? percent : mass
       if (value === undefined || value <= 0) {
         return err(`Composition value for ${element} must be a positive finite number`)
