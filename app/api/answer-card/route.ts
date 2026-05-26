@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await verifySession()
-    if (!session?.userId) {
+    // Require a STABLE user id — never key the per-user daily limit on the
+    // 'anonymous' fallback (would make every id-less session share one bucket).
+    if (!session?.userId || session.userId === 'anonymous') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

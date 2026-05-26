@@ -60,15 +60,17 @@ export function checkRateLimit(
 ): RateLimitResult {
   const now = Date.now()
 
-  // Unlimited tier (maxRequests = Infinity): never rate-limited, never stored.
-  if (!Number.isFinite(config.maxRequests)) {
+  // Unlimited tier: ONLY an explicit Infinity short-circuits — never NaN/function/
+  // string (which could arrive from a polluted/invalid config and silently disable
+  // the limit, e.g. a prototype key resolving to Object.prototype.constructor).
+  if (config.maxRequests === Number.POSITIVE_INFINITY) {
     return { success: true, remaining: Number.POSITIVE_INFINITY, resetTime: now + config.windowMs }
   }
 
   const entry = rateLimitStore.get(key)
 
-  // If no entry or window expired, create new
-  if (!entry || entry.resetTime < now) {
+  // If no entry or window expired, create new (<= so the window resets exactly at resetTime)
+  if (!entry || entry.resetTime <= now) {
     rateLimitStore.set(key, {
       count: 1,
       resetTime: now + config.windowMs,
@@ -214,6 +216,10 @@ export const ANSWER_CARD_DAILY_LIMITS: Record<SubscriptionTier, number> = {
 }
 
 export function answerCardDailyConfig(tier: SubscriptionTier): RateLimitConfig {
-  const maxRequests = ANSWER_CARD_DAILY_LIMITS[tier] ?? ANSWER_CARD_DAILY_LIMITS.free
+  // Own-key check ONLY — an inherited prototype key ("constructor", "__proto__",
+  // "toString", …) must NOT resolve to a function/object and bypass the limit.
+  const maxRequests = Object.hasOwn(ANSWER_CARD_DAILY_LIMITS, tier)
+    ? ANSWER_CARD_DAILY_LIMITS[tier]
+    : ANSWER_CARD_DAILY_LIMITS.free
   return { windowMs: DAY_MS, maxRequests }
 }

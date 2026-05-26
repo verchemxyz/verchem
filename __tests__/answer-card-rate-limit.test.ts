@@ -78,6 +78,19 @@ describe('Day 3 tier daily limits', () => {
     expect(checkRateLimit(a, cfg).success).toBe(false)
     expect(checkRateLimit(b, cfg).success).toBe(true)
   })
+
+  test('F17: prototype-pollution tier keys fall back to free (no unlimited bypass)', () => {
+    for (const evil of ['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf']) {
+      expect(answerCardDailyConfig(evil as never).maxRequests).toBe(20)
+    }
+  })
+
+  test('F17: polluted-key tier is actually rate-limited (21st blocked)', () => {
+    const key = 'test-proto-' + Math.random()
+    const cfg = answerCardDailyConfig('constructor' as never)
+    for (let i = 0; i < 20; i++) expect(checkRateLimit(key, cfg).success).toBe(true)
+    expect(checkRateLimit(key, cfg).success).toBe(false)
+  })
 })
 
 async function runTests() {
