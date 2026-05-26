@@ -106,12 +106,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Parse value
-  const numericValue = parseFloat(value);
-  if (isNaN(numericValue)) {
+  // Parse value — strict: reject trailing junk ("1abc"), Infinity, and overflow
+  // ("1e309"→Infinity). parseFloat would accept "1abc" as 1; Number() does not.
+  const numericValue = Number(value.trim());
+  if (value.trim() === '' || !Number.isFinite(numericValue)) {
     return NextResponse.json(
       {
-        error: 'Invalid value - must be a number',
+        error: 'Invalid value - must be a finite number',
         value,
       },
       { status: 400 }

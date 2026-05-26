@@ -113,9 +113,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Apply limit
-  const parsedLimit = limit ? parseInt(limit, 10) : 50;
-  const maxLimit = Number.isNaN(parsedLimit) ? 50 : Math.min(parsedLimit, 100);
+  // Apply limit — reject non-positive / non-integer (e.g. limit=-5 would make
+  // slice(0,-5) drop the last 5 while reporting count:-5, an API-contract lie).
+  let maxLimit = 50;
+  if (limit !== null && limit !== '') {
+    const parsedLimit = Number(limit);
+    if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
+      return NextResponse.json(
+        { error: 'Invalid limit - must be a positive integer' },
+        { status: 400 }
+      );
+    }
+    maxLimit = Math.min(parsedLimit, 100);
+  }
 
   // Get all categories
   const categories = [...new Set(COMMON_COMPOUNDS.map((c) => c.category))].sort();

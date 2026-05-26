@@ -15,6 +15,19 @@ import { NextRequest, NextResponse } from 'next/server';
 // Water ion product at 25°C
 const Kw = 1e-14;
 
+/**
+ * Strict numeric parse for query params. Unlike parseFloat (which accepts
+ * trailing junk like "1abc"→1), Number() requires the whole string to be
+ * numeric. Infinity and overflow ("1e309"→Infinity) are rejected by isFinite.
+ */
+function parseFiniteParam(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return null;
+  return n;
+}
+
 interface pHResult {
   pH: number;
   pOH: number;
@@ -133,8 +146,8 @@ export async function GET(request: NextRequest) {
 
   try {
     if (hParam) {
-      const h = parseFloat(hParam);
-      if (isNaN(h) || h <= 0) {
+      const h = parseFiniteParam(hParam);
+      if (h === null || h <= 0) {
         return NextResponse.json(
           { error: 'Invalid H+ concentration - must be positive number' },
           { status: 400 }
@@ -142,8 +155,8 @@ export async function GET(request: NextRequest) {
       }
       result = calculateFromH(h);
     } else if (ohParam) {
-      const oh = parseFloat(ohParam);
-      if (isNaN(oh) || oh <= 0) {
+      const oh = parseFiniteParam(ohParam);
+      if (oh === null || oh <= 0) {
         return NextResponse.json(
           { error: 'Invalid OH- concentration - must be positive number' },
           { status: 400 }
@@ -151,8 +164,8 @@ export async function GET(request: NextRequest) {
       }
       result = calculateFromOH(oh);
     } else if (phParam) {
-      const pH = parseFloat(phParam);
-      if (isNaN(pH) || pH < 0 || pH > 14) {
+      const pH = parseFiniteParam(phParam);
+      if (pH === null || pH < 0 || pH > 14) {
         return NextResponse.json(
           { error: 'Invalid pH - must be between 0 and 14' },
           { status: 400 }
@@ -160,8 +173,8 @@ export async function GET(request: NextRequest) {
       }
       result = calculateFrompH(pH);
     } else if (pohParam) {
-      const pOH = parseFloat(pohParam);
-      if (isNaN(pOH) || pOH < 0 || pOH > 14) {
+      const pOH = parseFiniteParam(pohParam);
+      if (pOH === null || pOH < 0 || pOH > 14) {
         return NextResponse.json(
           { error: 'Invalid pOH - must be between 0 and 14' },
           { status: 400 }

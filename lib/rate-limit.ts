@@ -30,7 +30,7 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
 // Cleanup old entries periodically
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now()
   for (const [key, entry] of rateLimitStore.entries()) {
     if (entry.resetTime < now) {
@@ -38,6 +38,11 @@ setInterval(() => {
     }
   }
 }, 60000) // Cleanup every minute
+
+// Don't let this background timer keep the process (e.g. the test runner) alive.
+// In the browser/edge runtime setInterval returns a number with no unref — the
+// optional call is then a harmless no-op.
+;(cleanupTimer as { unref?: () => void }).unref?.()
 
 export interface RateLimitConfig {
   windowMs: number // Time window in milliseconds

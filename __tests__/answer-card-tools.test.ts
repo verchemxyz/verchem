@@ -349,6 +349,22 @@ describe('proton_count / hydroxide_count validation', () => {
     expect(result.ok).toBe(true)
   })
 
+  // F2 regression: a non-real formula must NOT silently default to monoprotic
+  // and get signed VERIFIED. Each of these is ASCII but not a valid compound.
+  test('rejects bogus strong-acid formula "Xx" (unknown element)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'Xx' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('valid chemical formula')).toBe(true)
+  })
+
+  test('rejects strong-acid formula with zero subscript "H0Cl"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'H0Cl' })
+    expect(result.ok).toBe(false)
+  })
+
   test('rejects negative hydroxide_count', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
     const result = tool.execute({ concentration: 0.1, hydroxide_count: -1 })
@@ -388,6 +404,21 @@ describe('proton_count / hydroxide_count validation', () => {
     expect(withCount.ok).toBe(true)
     if (!formulaOnly.ok || !withCount.ok) return
     expect(formulaOnly.value.pH).toBeCloseTo(withCount.value.pH as number, 10)
+  })
+
+  // F2 regression: bogus base formulas must be rejected, not defaulted to one OH-.
+  test('rejects bogus strong-base formula "XxOH" (unknown element)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'XxOH' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('valid chemical formula')).toBe(true)
+  })
+
+  test('rejects strong-base formula with zero multiplier "Ca(OH)0"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'Ca(OH)0' })
+    expect(result.ok).toBe(false)
   })
 })
 

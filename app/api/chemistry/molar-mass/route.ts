@@ -59,6 +59,11 @@ function parseMolarMass(formula: string): {
     const count = match[2] ? parseInt(match[2], 10) : 1;
 
     if (!symbol) continue;
+    // Reject zero / leading-zero counts (e.g. "H0", "H00", "H02"): a count of 0
+    // yields mass 0 and a NaN% composition, which must never be returned as valid.
+    if (match[2] && !/^[1-9]\d*$/.test(match[2])) {
+      return null;
+    }
 
     // Find element in periodic table
     const element = PERIODIC_TABLE.find((e) => e.symbol === symbol);
@@ -75,6 +80,12 @@ function parseMolarMass(formula: string): {
       mass: elementMass,
       percentage: 0, // Will calculate after total
     });
+  }
+
+  // Guard against a zero / non-finite total mass before computing percentages
+  // (would otherwise produce NaN% and a meaningless molarMass: 0).
+  if (!(totalMass > 0) || !Number.isFinite(totalMass)) {
+    return null;
   }
 
   // Calculate percentages

@@ -106,8 +106,17 @@ export async function verifySession(): Promise<VerifiedSession | null> {
       sessionData.user?.subscription?.tier ||
       'free'
 
+    // SECURITY: a verified session MUST carry a stable user identifier. Falling
+    // back to a literal 'anonymous' would collapse every such session into one
+    // shared bucket — cross-user data mixing / IDOR. Reject instead of inventing.
+    const userId = sessionData.user?.sub || sessionData.user?.id || sessionData.user?.aiverid
+    if (typeof userId !== 'string' || userId.trim() === '') {
+      console.warn('Verified session missing a stable user id - rejecting')
+      return null
+    }
+
     return {
-      userId: sessionData.user?.sub || sessionData.user?.id || sessionData.user?.aiverid || 'anonymous',
+      userId,
       email: sessionData.user?.email,
       tier,
       expiresAt: new Date(sessionData.expires_at),

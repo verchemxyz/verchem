@@ -17,7 +17,6 @@ import {
   calculatePPM,
   calculateOsmoticPressure,
   calculateBoilingPointElevation,
-  calculateFreezingPointDepression,
 } from '@/lib/calculations/solutions'
 import {
   calculateStockPrep,

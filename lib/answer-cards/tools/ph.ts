@@ -7,7 +7,7 @@
 
 import type { VerifiedTool, ToolResult } from '../types'
 import { readFiniteNumber, finalizeResult } from './_validate'
-import { normalizeFormula, isAsciiFormula } from './_formula'
+import { normalizeFormula, isAsciiFormula, isValidStandaloneFormula } from './_formula'
 import {
   calculateStrongAcidPH,
   calculateWeakAcidPH,
@@ -87,6 +87,12 @@ const calculate_strong_acid_ph: VerifiedTool = {
       const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
       if (normalized !== undefined && !isAsciiFormula(normalized)) {
         return err('formula must use ASCII element symbols only')
+      }
+      // Reject non-real formulas (e.g. "Xx", "H0Cl", "Ca(OH)0"). Without this an
+      // unknown formula silently defaults to monoprotic (protonCount ?? 1) and the
+      // bogus pH would be signed VERIFIED. Known formulas pass this naturally.
+      if (normalized !== undefined && !isValidStandaloneFormula(normalized)) {
+        return err('formula must be a valid chemical formula (e.g., HCl, H2SO4)')
       }
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_ACID_PROTONS[normalized] !== undefined
       const expectedProtons = normalized !== undefined ? KNOWN_STRONG_ACID_PROTONS[normalized] : undefined
@@ -207,6 +213,12 @@ const calculate_strong_base_ph: VerifiedTool = {
       const normalized = formula !== undefined ? normalizeFormula(formula) : undefined
       if (normalized !== undefined && !isAsciiFormula(normalized)) {
         return err('formula must use ASCII element symbols only')
+      }
+      // Reject non-real formulas (e.g. "XxOH", "Ca(OH)0"). Without this an unknown
+      // formula silently defaults to one hydroxide (hydroxideCount ?? 1) and the
+      // bogus pH would be signed VERIFIED. Known formulas pass this naturally.
+      if (normalized !== undefined && !isValidStandaloneFormula(normalized)) {
+        return err('formula must be a valid chemical formula (e.g., NaOH, Ca(OH)2)')
       }
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_BASE_HYDROXIDES[normalized] !== undefined
       const expectedHydroxides = normalized !== undefined ? KNOWN_STRONG_BASE_HYDROXIDES[normalized] : undefined
