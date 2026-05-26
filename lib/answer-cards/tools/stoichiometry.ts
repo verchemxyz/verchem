@@ -223,14 +223,16 @@ const calculate_empirical_formula: VerifiedTool = {
       // reduce by GCD, and require an EXACT match to the engine's counts. If no q
       // reproduces the engine formula, the true ratio needs a denominator beyond the
       // supported range (C21H62, C26H27, C50H51) → reject; never sign a wrong formula.
-      // The 0.017 bound still tolerates coarse integer-mass input (C12/H2/O16 → CH2O,
-      // ~0.014 residual) while rejecting near-miss ratios (C50H51 → CH, 0.02 residual).
+      // The 0.015 bound is below 1/66, so it rejects every n:(n+1)-style near-miss up
+      // to n=66 (C50H51, C59H60 → CH) while still admitting coarse integer-mass input
+      // (C12/H2/O16 → CH2O, ~0.014 residual). Ratios needing n≥67 would require
+      // unrealistic measurement precision to distinguish and are out of scope.
       const minMole = Math.min(...Object.values(inputMoles))
       const normRatios = inputEls.map((el) => inputMoles[el] / minMole)
       let matchesEngine = false
       for (let q = 1; q <= 20; q++) {
         const scaled = normRatios.map((r) => r * q)
-        if (!scaled.every((c) => Math.abs(c - Math.round(c)) <= 0.017)) continue
+        if (!scaled.every((c) => Math.abs(c - Math.round(c)) <= 0.015)) continue
         const intCounts = scaled.map((c) => Math.round(c))
         if (intCounts.some((c) => c <= 0)) continue
         const g = intCounts.reduce((a, b) => gcdInt(a, b))

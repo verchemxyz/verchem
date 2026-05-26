@@ -613,6 +613,20 @@ describe('Stoichiometry R9 fixes', () => {
     expect(r.value.empirical_formula).toBe('CH3')
   })
 
+  test('R19: C59H60 (1/59 ≈ 0.0169) rejected — below 0.015 boundary', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 708.649 }, { element: 'H', mass: 60.48 }] })
+    expect(r.ok).toBe(false)
+  })
+
+  test('R19: coarse integer-mass C12/H2/O16 still resolves to CH2O', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 12 }, { element: 'H', mass: 2 }, { element: 'O', mass: 16 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('CH2O')
+  })
+
   test('R13: scale-invariant check still accepts large valid ratio C13H14 + Fe2O3', () => {
     const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
     const fe = tool.execute({ composition: [{ element: 'Fe', mass: 111.69 }, { element: 'O', mass: 48.0 }] })
