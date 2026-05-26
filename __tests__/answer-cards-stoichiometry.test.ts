@@ -592,6 +592,12 @@ describe('Stoichiometry R9 fixes', () => {
     expect(r.ok).toBe(false)
   })
 
+  test('R15: C50H51 (n=50, ratio ≈1:1.02) rejected — not signed as CH', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 600.55 }, { element: 'H', mass: 51.408 }] })
+    expect(r.ok).toBe(false)
+  })
+
   test('R13: scale-invariant check still accepts large valid ratio C13H14 + Fe2O3', () => {
     const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
     const fe = tool.execute({ composition: [{ element: 'Fe', mass: 111.69 }, { element: 'O', mass: 48.0 }] })

@@ -204,6 +204,23 @@ const calculate_empirical_formula: VerifiedTool = {
       if (inputEls.length !== formulaEls.length || !inputEls.every((e, i) => e === formulaEls[i])) {
         return err('Derived empirical formula elements do not match the input composition')
       }
+      // Reject ratios that do not resolve to whole numbers within the supported
+      // multiplier. This is what catches n:(n+1) ratios (C26H27, C50H51): their
+      // per-element residual stays proportional to the multiplier, so NO multiplier
+      // ≤ 20 makes them integral — whereas a real empirical ratio (e.g. C13H14 at
+      // q=13) does. A fixed ratio tolerance alone cannot distinguish these as n grows.
+      const minMole = Math.min(...Object.values(inputMoles))
+      const normRatios = inputEls.map((el) => inputMoles[el] / minMole)
+      let resolved = false
+      for (let q = 1; q <= 20; q++) {
+        if (normRatios.every((r) => Math.abs(r * q - Math.round(r * q)) <= 0.015 * q)) {
+          resolved = true
+          break
+        }
+      }
+      if (!resolved) {
+        return err('The composition does not resolve to a simple whole-number ratio within the supported range')
+      }
       // Scale-invariant check: the input must equal k × formula-counts for ONE
       // constant k across ALL elements. An absolute tolerance on normalized ratios
       // fails for n:(n+1) as n grows (C26:H27 differ <4%), so compare the per-element
