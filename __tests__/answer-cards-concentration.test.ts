@@ -472,6 +472,40 @@ describe('Concentration R5 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R7 review fixes (สมหมาย): convert_concentration domain guards
+// ──────────────────────────────────────────────────────────
+
+describe('Concentration R7 fixes', () => {
+  test('convert rejects %v/v <-> %w/w (needs two densities)', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 10, from_unit: 'pct_vv', to_unit: 'pct_ww', density: 0.789 }).ok).toBe(false)
+  })
+
+  test('convert rejects %v/v input > 100', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 150, from_unit: 'pct_vv', to_unit: 'g/L', density: 0.789 }).ok).toBe(false)
+  })
+
+  test('convert rejects %w/w input > 100', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 150, from_unit: 'pct_ww', to_unit: 'g/L', density: 1.0 }).ok).toBe(false)
+  })
+
+  test('convert %v/v -> g/L still works (value <= 100)', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    const r = tool.execute({ value: 10, from_unit: 'pct_vv', to_unit: 'g/L', density: 0.789 })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.converted_value).toBeCloseTo(78.9, 1)
+  })
+
+  test('convert rejects result that overflows to > 100% (g/L -> %v/v)', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 2000, from_unit: 'g/L', to_unit: 'pct_vv', density: 0.789 }).ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

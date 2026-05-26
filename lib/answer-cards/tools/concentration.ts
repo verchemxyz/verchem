@@ -46,6 +46,11 @@ const STOCK_PREP_UNITS = new Set([
   'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'ppm', 'ppb', 'pct_wv',
 ])
 
+// Fraction units are bounded 0..100%. %v/v uses solute density while %w/w uses
+// solution density — converting directly between them needs BOTH densities, but
+// the engine takes only one, so that pair is not verifiable.
+const FRACTION_UNITS = new Set(['pct_vv', 'pct_ww'])
+
 function needsMolarMass(unit: string): boolean {
   return unit === 'mol/L' || unit === 'mmol/L' || unit === 'N'
 }
@@ -350,6 +355,15 @@ const convert_concentration: VerifiedTool = {
     if (!VALID_CONCENTRATION_UNITS.has(fromUnit)) return err(`Unsupported from_unit: "${fromUnit}"`)
     if (!VALID_CONCENTRATION_UNITS.has(toUnit)) return err(`Unsupported to_unit: "${toUnit}"`)
 
+    // Fraction units (% v/v, % w/w) are physically bounded to 0..100%
+    if (FRACTION_UNITS.has(fromUnit) && value > 100) {
+      return err(`${fromUnit} concentration cannot exceed 100%`)
+    }
+    // %v/v <-> %w/w needs both solute and solution densities (engine takes one) — not verifiable
+    if (FRACTION_UNITS.has(fromUnit) && FRACTION_UNITS.has(toUnit) && fromUnit !== toUnit) {
+      return err('Direct %v/v <-> %w/w conversion needs both solute and solution densities; not supported')
+    }
+
     if (needsMolarMass(fromUnit) || needsMolarMass(toUnit)) {
       if (molarMass === undefined || molarMass <= 0) {
         return err('molar_mass is required and must be positive for this conversion')
@@ -373,6 +387,10 @@ const convert_concentration: VerifiedTool = {
         density,
         equivalents,
       })
+      // A fraction-unit result cannot exceed 100%
+      if (FRACTION_UNITS.has(toUnit) && result.convertedValue > 100) {
+        return err(`Conversion produced an impossible ${toUnit} value (exceeds 100%)`)
+      }
       return finalizeResult({
         value: result.value,
         from_unit: result.fromUnit,
