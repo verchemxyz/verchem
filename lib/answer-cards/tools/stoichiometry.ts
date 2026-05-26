@@ -204,19 +204,20 @@ const calculate_empirical_formula: VerifiedTool = {
       if (inputEls.length !== formulaEls.length || !inputEls.every((e, i) => e === formulaEls[i])) {
         return err('Derived empirical formula elements do not match the input composition')
       }
-      const minInput = Math.min(...Object.values(inputMoles))
-      const minFormula = Math.min(...Object.values(formulaCounts))
-      if (!(minInput > 0) || !(minFormula > 0)) {
-        return err('Could not determine a valid empirical formula from the given composition')
-      }
-      for (const el of inputEls) {
-        const inputRatio = inputMoles[el] / minInput
-        const formulaRatio = formulaCounts[el] / minFormula
-        // 0.04 absolute tolerance on the normalized ratio: catches CH (1.0) vs the
-        // true 1.077 of C13H14 while allowing real measurement rounding.
-        if (Math.abs(inputRatio - formulaRatio) > 0.04) {
-          return err('The derived empirical formula does not match the input mole ratios (the ratio may need a larger multiplier than supported)')
-        }
+      // Scale-invariant check: the input must equal k × formula-counts for ONE
+      // constant k across ALL elements. An absolute tolerance on normalized ratios
+      // fails for n:(n+1) as n grows (C26:H27 differ <4%), so compare the per-element
+      // scale factors k_el = inputMole / atomCount with a RELATIVE bound. Divergence
+      // ⇒ the engine returned a wrong formula (true ratio needs a denominator beyond
+      // the supported multiplier) ⇒ reject, never sign.
+      // 2% bound: tolerates coarse integer-mass input (e.g. C12/H2/O16 → CH2O, which
+      // spreads ~0.8% because H mass 2 ≠ 2.016) while still catching wrong formulas
+      // (C26H27 → CH spreads ~3.8%).
+      const scales = inputEls.map((el) => inputMoles[el] / formulaCounts[el])
+      const maxK = Math.max(...scales)
+      const minK = Math.min(...scales)
+      if (!(minK > 0) || maxK / minK > 1.02) {
+        return err('The derived empirical formula does not match the input mole ratios (the true ratio may need a larger multiplier than supported)')
       }
       return finalizeResult({ empirical_formula: formula })
     } catch (e) {

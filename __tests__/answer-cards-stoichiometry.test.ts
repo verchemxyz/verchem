@@ -586,6 +586,20 @@ describe('Stoichiometry R9 fixes', () => {
     expect(r.value.empirical_formula).toBe('C13H14')
   })
 
+  test('R13: ratio beyond cap (C26H27, mult 26) rejected — not signed as CH', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 312.286 }, { element: 'H', mass: 27.216 }] })
+    expect(r.ok).toBe(false)
+  })
+
+  test('R13: scale-invariant check still accepts large valid ratio C13H14 + Fe2O3', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const fe = tool.execute({ composition: [{ element: 'Fe', mass: 111.69 }, { element: 'O', mass: 48.0 }] })
+    expect(fe.ok).toBe(true)
+    if (!fe.ok) return
+    expect(fe.value.empirical_formula).toBe('Fe2O3')
+  })
+
   test('empirical glucose still CH2O (regression)', () => {
     const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
     const r = tool.execute({ composition: [{ element: 'C', percent: 40 }, { element: 'H', percent: 6.7 }, { element: 'O', percent: 53.3 }] })
