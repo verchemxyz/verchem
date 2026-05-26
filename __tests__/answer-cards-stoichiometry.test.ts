@@ -578,6 +578,14 @@ describe('Stoichiometry R9 fixes', () => {
     expect(r.value.empirical_formula).toBe('C7H8')
   })
 
+  test('R11: empirical multiplier 13 → C13H14 (was wrongly CH via percent postcondition)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 156.143 }, { element: 'H', mass: 14.112 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('C13H14')
+  })
+
   test('empirical glucose still CH2O (regression)', () => {
     const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
     const r = tool.execute({ composition: [{ element: 'C', percent: 40 }, { element: 'H', percent: 6.7 }, { element: 'O', percent: 53.3 }] })

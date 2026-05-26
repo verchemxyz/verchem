@@ -24,6 +24,19 @@ import {
   calculatePercentYield,
 } from '@/lib/calculations/stoichiometry'
 import { AVOGADRO_CONSTANT } from '@/lib/constants'
+import { getElementBySymbol } from '@/lib/data/periodic-table'
+
+/** Parse a canonical (parenthesis-free) formula into element→count, e.g. "C7H8" → {C:7,H:8} */
+function parseFormulaCounts(formula: string): Record<string, number> {
+  const counts: Record<string, number> = {}
+  const re = /([A-Z][a-z]?)(\d*)/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(formula)) !== null) {
+    if (!m[1]) continue
+    counts[m[1]] = (counts[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1)
+  }
+  return counts
+}
 
 const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3 (Stoichiometry); Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 7'
 
@@ -172,19 +185,37 @@ const calculate_empirical_formula: VerifiedTool = {
       if (formula.length === 0 || !isValidStandaloneFormula(formula)) {
         return err('Could not determine a valid empirical formula from the given composition')
       }
-      // Postcondition: the formula's mass-percent composition must match the input
-      // mole ratios within tolerance. Guards against the engine's bounded multiplier
-      // search returning a rounded-but-wrong formula (e.g. CH instead of C7H8).
-      const formulaComp = calculatePercentComposition(formula)
-      const totalValue = Object.values(composition).reduce((sum, v) => sum + v, 0)
-      if (totalValue <= 0) {
-        return err('Composition values must sum to a positive number')
-      }
+      // Postcondition: verify by MOLE RATIO, not mass-%. Mass-% is a poor
+      // discriminator (CH vs C13H14 differ <1% by mass yet are different molecules).
+      // Compute the input mole ratio and the formula's atom ratio, normalize each by
+      // its minimum, and require them to match — otherwise the engine's bounded
+      // multiplier search produced a rounded-wrong formula → reject (never sign it).
+      const inputMoles: Record<string, number> = {}
       for (const [el, v] of Object.entries(composition)) {
-        const inputPct = (v / totalValue) * 100
-        const formulaPct = formulaComp[el]
-        if (formulaPct === undefined || Math.abs(formulaPct - inputPct) > 1.0) {
-          return err('The derived empirical formula does not match the given composition within tolerance')
+        const element = getElementBySymbol(el)
+        if (!element || !(element.atomicMass > 0)) {
+          return err(`Cannot resolve atomic mass for element "${el}"`)
+        }
+        inputMoles[el] = v / element.atomicMass
+      }
+      const formulaCounts = parseFormulaCounts(formula)
+      const inputEls = Object.keys(inputMoles).sort()
+      const formulaEls = Object.keys(formulaCounts).sort()
+      if (inputEls.length !== formulaEls.length || !inputEls.every((e, i) => e === formulaEls[i])) {
+        return err('Derived empirical formula elements do not match the input composition')
+      }
+      const minInput = Math.min(...Object.values(inputMoles))
+      const minFormula = Math.min(...Object.values(formulaCounts))
+      if (!(minInput > 0) || !(minFormula > 0)) {
+        return err('Could not determine a valid empirical formula from the given composition')
+      }
+      for (const el of inputEls) {
+        const inputRatio = inputMoles[el] / minInput
+        const formulaRatio = formulaCounts[el] / minFormula
+        // 0.04 absolute tolerance on the normalized ratio: catches CH (1.0) vs the
+        // true 1.077 of C13H14 while allowing real measurement rounding.
+        if (Math.abs(inputRatio - formulaRatio) > 0.04) {
+          return err('The derived empirical formula does not match the input mole ratios (the ratio may need a larger multiplier than supported)')
         }
       }
       return finalizeResult({ empirical_formula: formula })

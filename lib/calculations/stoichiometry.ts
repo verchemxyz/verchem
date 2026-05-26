@@ -156,8 +156,9 @@ export function calculateEmpiricalFormula(
   const tolerance = 0.02
   let multiplier = 1
   const ratioValues = Object.values(ratios)
-  // Search up to 12 to cover common ratios needing 7-12 (e.g. toluene C7H8).
-  for (let m = 1; m <= 12; m++) {
+  // Search up to 20 to cover ratios needing larger multipliers (e.g. toluene C7H8,
+  // C13H14). The answer-card adapter re-verifies the result against the mole ratio.
+  for (let m = 1; m <= 20; m++) {
     const allIntegers = ratioValues.every(value =>
       Math.abs(value * m - Math.round(value * m)) < tolerance
     )
