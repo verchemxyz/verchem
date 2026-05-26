@@ -44,6 +44,22 @@ export function readFiniteNumber(v: unknown): number | undefined {
 }
 
 /**
+ * Read an optional numeric field. Returns `defaultValue` ONLY when the key is
+ * absent (or explicitly undefined). If the key is PRESENT but not a valid finite
+ * number, returns `undefined` so the caller can REJECT — an explicit bad value
+ * (e.g. "1e-324", "bogus", null) must never silently fall back to the default.
+ */
+export function readOptionalFiniteNumber(
+  raw: Record<string, unknown>,
+  key: string,
+  defaultValue: number
+): number | undefined {
+  const v = raw[key]
+  if (v === undefined) return defaultValue
+  return readFiniteNumber(v)
+}
+
+/**
  * Check if value is a plain object (not array, not null).
  */
 export function isPlainObject(v: unknown): v is Record<string, unknown> {

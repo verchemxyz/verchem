@@ -506,6 +506,45 @@ describe('Concentration R7 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R23 review fixes (สมหมาย): optional fields present-but-invalid must reject
+// ──────────────────────────────────────────────────────────
+
+describe('Concentration R23 fixes', () => {
+  test('osmotic_pressure rejects present-but-invalid vant_hoff_factor (no silent default)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_osmotic_pressure')!
+    expect(tool.execute({ molarity: 1, temperature_K: 298.15, vant_hoff_factor: '1e-324' }).ok).toBe(false)
+  })
+
+  test('osmotic_pressure still defaults vant_hoff when key ABSENT', () => {
+    const tool = TOOL_BY_NAME.get('calculate_osmotic_pressure')!
+    expect(tool.execute({ molarity: 1, temperature_K: 273.15 }).ok).toBe(true)
+  })
+
+  test('bp_elevation rejects bogus Kb (no silent default to 0.512)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_boiling_point_elevation')!
+    expect(tool.execute({ molality: 1, Kb: 'bogus' }).ok).toBe(false)
+  })
+
+  test('bp_elevation still defaults Kb to water when key ABSENT', () => {
+    const tool = TOOL_BY_NAME.get('calculate_boiling_point_elevation')!
+    const r = tool.execute({ molality: 1 })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.delta_tb_C).toBeCloseTo(0.512, 10)
+  })
+
+  test('fp_depression rejects bogus Kf', () => {
+    const tool = TOOL_BY_NAME.get('calculate_freezing_point_depression')!
+    expect(tool.execute({ molality: 1, Kf: 'bogus' }).ok).toBe(false)
+  })
+
+  test('convert rejects present-but-invalid equivalents (subnormal)', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 1, from_unit: 'N', to_unit: 'mol/L', molar_mass: 58.44, equivalents: '1e-324' }).ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

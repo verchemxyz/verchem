@@ -8,7 +8,7 @@
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
-import { readFiniteNumber, finalizeResult } from './_validate'
+import { readFiniteNumber, finalizeResult, readOptionalFiniteNumber } from './_validate'
 import {
   calculateMolarity,
   calculateMolality,
@@ -207,9 +207,10 @@ const calculate_osmotic_pressure: VerifiedTool = {
   execute: (input) => {
     const molarity = readFiniteNumber(input.molarity)
     const temperature = readFiniteNumber(input.temperature_K)
-    const vantHoff = readFiniteNumber(input.vant_hoff_factor) ?? 1
+    const vantHoff = readOptionalFiniteNumber(input, 'vant_hoff_factor', 1)
     if (molarity === undefined || molarity <= 0) return err('molarity must be a positive finite number')
     if (temperature === undefined || temperature <= 0) return err('temperature_K must be a positive finite number')
+    if (vantHoff === undefined) return err('vant_hoff_factor must be a finite number if provided')
     if (vantHoff < 1) return err('vant_hoff_factor must be at least 1')
     try {
       const result = calculateOsmoticPressure(molarity, temperature, vantHoff)
@@ -236,10 +237,12 @@ const calculate_boiling_point_elevation: VerifiedTool = {
   engine: 'boiling-point-elevation',
   execute: (input) => {
     const molality = readFiniteNumber(input.molality)
-    const Kb = readFiniteNumber(input.Kb) ?? WATER_KB
-    const vantHoff = readFiniteNumber(input.vant_hoff_factor) ?? 1
+    const Kb = readOptionalFiniteNumber(input, 'Kb', WATER_KB)
+    const vantHoff = readOptionalFiniteNumber(input, 'vant_hoff_factor', 1)
     if (molality === undefined || molality < 0) return err('molality must be a non-negative finite number')
+    if (Kb === undefined) return err('Kb must be a finite number if provided')
     if (Kb <= 0) return err('Kb must be a positive finite number')
+    if (vantHoff === undefined) return err('vant_hoff_factor must be a finite number if provided')
     if (vantHoff < 1) return err('vant_hoff_factor must be at least 1')
     try {
       const result = calculateBoilingPointElevation(molality, Kb, vantHoff)
@@ -266,10 +269,12 @@ const calculate_freezing_point_depression: VerifiedTool = {
   engine: 'freezing-point-depression',
   execute: (input) => {
     const molality = readFiniteNumber(input.molality)
-    const Kf = readFiniteNumber(input.Kf) ?? WATER_KF
-    const vantHoff = readFiniteNumber(input.vant_hoff_factor) ?? 1
+    const Kf = readOptionalFiniteNumber(input, 'Kf', WATER_KF)
+    const vantHoff = readOptionalFiniteNumber(input, 'vant_hoff_factor', 1)
     if (molality === undefined || molality < 0) return err('molality must be a non-negative finite number')
+    if (Kf === undefined) return err('Kf must be a finite number if provided')
     if (Kf <= 0) return err('Kf must be a positive finite number')
+    if (vantHoff === undefined) return err('vant_hoff_factor must be a finite number if provided')
     if (vantHoff < 1) return err('vant_hoff_factor must be at least 1')
     try {
       const result = calculateFreezingPointDepression(molality, Kf, vantHoff)
@@ -349,9 +354,10 @@ const convert_concentration: VerifiedTool = {
     const toUnit = typeof input.to_unit === 'string' ? input.to_unit.trim() : ''
     const molarMass = readFiniteNumber(input.molar_mass)
     const density = readFiniteNumber(input.density)
-    const equivalents = readFiniteNumber(input.equivalents) ?? 1
+    const equivalents = readOptionalFiniteNumber(input, 'equivalents', 1)
 
     if (value === undefined || value < 0) return err('value must be a non-negative finite number')
+    if (equivalents === undefined) return err('equivalents must be a finite number if provided')
     if (!VALID_CONCENTRATION_UNITS.has(fromUnit)) return err(`Unsupported from_unit: "${fromUnit}"`)
     if (!VALID_CONCENTRATION_UNITS.has(toUnit)) return err(`Unsupported to_unit: "${toUnit}"`)
 
