@@ -50,7 +50,7 @@ function gcdInt(a: number, b: number): number {
   return x || 1
 }
 
-const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3 (Stoichiometry); Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 7'
+const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3 (Stoichiometry)'
 
 function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
