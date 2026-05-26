@@ -19,6 +19,8 @@
  * Last Updated: 2025-12-12
  */
 
+import type { SubscriptionTier } from './vercal/types'
+
 interface RateLimitEntry {
   count: number
   resetTime: number
@@ -57,6 +59,12 @@ export function checkRateLimit(
   config: RateLimitConfig
 ): RateLimitResult {
   const now = Date.now()
+
+  // Unlimited tier (maxRequests = Infinity): never rate-limited, never stored.
+  if (!Number.isFinite(config.maxRequests)) {
+    return { success: true, remaining: Number.POSITIVE_INFINITY, resetTime: now + config.windowMs }
+  }
+
   const entry = rateLimitStore.get(key)
 
   // If no entry or window expired, create new
@@ -186,3 +194,26 @@ export const RATE_LIMITS = {
     maxRequests: 5,
   },
 } as const
+
+/**
+ * W3 Day 3 — Verified Answer Card DAILY quota per subscription tier.
+ * Infinity = unlimited (checkRateLimit short-circuits to success).
+ *
+ * NOTE: the in-memory store is per-serverless-instance, so on Vercel this daily
+ * count is approximate (a user spread across cold-started lambdas may exceed it).
+ * Day 4 (answer_cards table) can replace this with a DB COUNT for cross-instance
+ * accuracy. Sufficient as an MVP abuse guardrail.
+ */
+const DAY_MS = 24 * 60 * 60 * 1000
+
+export const ANSWER_CARD_DAILY_LIMITS: Record<SubscriptionTier, number> = {
+  free: 20,
+  student: 100,
+  professional: Number.POSITIVE_INFINITY,
+  enterprise: Number.POSITIVE_INFINITY,
+}
+
+export function answerCardDailyConfig(tier: SubscriptionTier): RateLimitConfig {
+  const maxRequests = ANSWER_CARD_DAILY_LIMITS[tier] ?? ANSWER_CARD_DAILY_LIMITS.free
+  return { windowMs: DAY_MS, maxRequests }
+}

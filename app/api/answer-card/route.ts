@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
 import { isValidOrigin } from '@/lib/auth/origin-check'
 import { askVerified } from '@/lib/answer-cards/orchestrator'
+import { checkRateLimit, answerCardDailyConfig } from '@/lib/rate-limit'
 
 function sanitizeQuestion(value: unknown): string | null {
   if (typeof value !== 'string') return null
@@ -54,11 +55,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO(Day 3): Add tier-based rate-limiting here
-    // e.g., checkRateLimit(session.userId, session.tier, 'answer-card')
+    // Day 3: tier-based DAILY rate limit (free 20, student 100, professional/enterprise unlimited)
+    const rl = checkRateLimit(`answer-card:${session.userId}`, answerCardDailyConfig(session.tier))
+    if (!rl.success) {
+      return NextResponse.json(
+        {
+          error: 'Daily verified-answer limit reached for your plan. Upgrade for a higher daily limit.',
+          retryAfter: rl.retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rl.retryAfter ?? 0),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil(rl.resetTime / 1000)),
+          },
+        }
+      )
+    }
 
     const card = await askVerified(question)
-    return NextResponse.json(card, { status: 200 })
+    const successHeaders: Record<string, string> = {}
+    if (Number.isFinite(rl.remaining)) {
+      successHeaders['X-RateLimit-Remaining'] = String(rl.remaining)
+      successHeaders['X-RateLimit-Reset'] = String(Math.ceil(rl.resetTime / 1000))
+    }
+    return NextResponse.json(card, { status: 200, headers: successHeaders })
   } catch (err: unknown) {
     console.error('POST /api/answer-card error:', err)
 
