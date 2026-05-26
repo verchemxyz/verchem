@@ -7,6 +7,7 @@
 
 import type { VerifiedTool, ToolResult } from '../types'
 import { readFiniteNumber, finalizeResult } from './_validate'
+import { normalizeFormula, isAsciiFormula } from './_formula'
 import {
   calculateStrongAcidPH,
   calculateWeakAcidPH,
@@ -40,23 +41,6 @@ function requirePositiveInteger(name: string, value: unknown): number | undefine
     throw new Error(`${name} must be a positive integer`)
   }
   return n
-}
-
-function normalizeFormula(formula: string): string {
-  const subscriptMap: Record<string, string> = {
-    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
-    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
-  }
-  return formula
-    .replace(/\s+/g, '')
-    .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => subscriptMap[match] ?? match)
-}
-
-/** Reject formulas containing homoglyphs (Cyrillic/Greek look-alikes) or other non-ASCII characters.
- *  Element symbols are ASCII-only; anything else is either an attack or a typo.
- */
-function isAsciiFormula(formula: string): boolean {
-  return /^[A-Za-z0-9()·\[\]]+$/.test(formula)
 }
 
 /** Common English names → formula keys in ACID_KA_VALUES */

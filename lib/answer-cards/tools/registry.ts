@@ -9,8 +9,16 @@ import type { VerifiedTool } from '../types'
 import { phTools } from './ph'
 import { gasTools } from './gas-laws'
 import { equationTools } from './equation'
+import { stoichiometryTools } from './stoichiometry'
+import { concentrationTools } from './concentration'
 
-export const ALL_TOOLS: VerifiedTool[] = [...phTools, ...gasTools, ...equationTools]
+export const ALL_TOOLS: VerifiedTool[] = [
+  ...phTools,
+  ...gasTools,
+  ...equationTools,
+  ...stoichiometryTools,
+  ...concentrationTools,
+]
 
 export const TOOL_BY_NAME = new Map<string, VerifiedTool>()
 for (const tool of ALL_TOOLS) {
