@@ -26,7 +26,13 @@ export function readFiniteNumber(v: unknown): number | undefined {
     if (trimmed === '') return undefined
     const num = Number(trimmed)
     if (!Number.isFinite(num)) return undefined
-    if (num !== 0 && Math.abs(num) < MIN_NORMAL_DOUBLE) return undefined
+    if (num === 0) {
+      // Distinguish a true zero ("0", "0.0", "+0", ".0", "0e0") from a tiny value
+      // that underflowed to 0 on parse ("1e-324") — the latter must not be signed.
+      if (!/^[+-]?0*\.?0*(?:[eE][+-]?\d+)?$/.test(trimmed)) return undefined
+      return 0
+    }
+    if (Math.abs(num) < MIN_NORMAL_DOUBLE) return undefined
     return num
   }
   if (typeof v === 'number') {

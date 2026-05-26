@@ -150,11 +150,14 @@ const calculate_empirical_formula: VerifiedTool = {
         return err(`Duplicate element in composition: "${element}"`)
       }
       seen.add(element)
-      const percent = readFiniteNumber((item as Record<string, unknown>).percent)
-      const mass = readFiniteNumber((item as Record<string, unknown>).mass)
-      if (percent !== undefined && mass !== undefined) {
+      const itemObj = item as Record<string, unknown>
+      // Reject ambiguous entry by KEY PRESENCE (before parsing): an invalid or
+      // subnormal value in one field must not let the other silently win.
+      if (itemObj.percent !== undefined && itemObj.mass !== undefined) {
         return err(`Provide either percent or mass for ${element}, not both`)
       }
+      const percent = readFiniteNumber(itemObj.percent)
+      const mass = readFiniteNumber(itemObj.mass)
       const value = percent !== undefined ? percent : mass
       if (value === undefined || value <= 0) {
         return err(`Composition value for ${element} must be a positive finite number`)

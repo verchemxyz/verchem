@@ -456,6 +456,22 @@ describe('Concentration R3 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R5 review fixes (สมหมาย): string-underflow guard
+// ──────────────────────────────────────────────────────────
+
+describe('Concentration R5 fixes', () => {
+  test('molarity rejects underflow string moles "1e-324"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molarity')!
+    expect(tool.execute({ moles: '1e-324', volume_L: 1 }).ok).toBe(false)
+  })
+
+  test('molality rejects underflow string "1e-324"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_molality')!
+    expect(tool.execute({ moles: '1e-324', solvent_mass_kg: 1 }).ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 

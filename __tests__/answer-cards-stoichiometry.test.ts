@@ -541,6 +541,31 @@ describe('Stoichiometry R3 fixes', () => {
 })
 
 // ──────────────────────────────────────────────────────────
+// R5 review fixes (สมหมาย): string-underflow + empirical key-presence
+// ──────────────────────────────────────────────────────────
+
+describe('Stoichiometry R5 fixes', () => {
+  test('mass_to_moles rejects underflow string "1e-324"', () => {
+    const tool = TOOL_BY_NAME.get('mass_to_moles')!
+    expect(tool.execute({ mass: '1e-324', molar_mass: 2 }).ok).toBe(false)
+  })
+
+  test('mass_to_moles still accepts true-zero string "0"', () => {
+    const tool = TOOL_BY_NAME.get('mass_to_moles')!
+    const r = tool.execute({ mass: '0', molar_mass: 2 })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.moles).toBe(0)
+  })
+
+  test('empirical rejects both keys present even if one value is invalid', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', percent: '5e-324', mass: 12 }, { element: 'H', mass: 2 }, { element: 'O', mass: 16 }] })
+    expect(r.ok).toBe(false)
+  })
+})
+
+// ──────────────────────────────────────────────────────────
 // Run all tests
 // ──────────────────────────────────────────────────────────
 
