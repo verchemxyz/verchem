@@ -11,6 +11,12 @@ import { gasTools } from './gas-laws'
 import { equationTools } from './equation'
 import { stoichiometryTools } from './stoichiometry'
 import { concentrationTools } from './concentration'
+import { thermodynamicsTools } from './thermodynamics'
+import { kineticsTools } from './kinetics'
+import { electrochemistryTools } from './electrochemistry'
+import { nuclearTools } from './nuclear'
+import { quantumTools } from './quantum'
+import { electronConfigTools } from './electron-config'
 
 export const ALL_TOOLS: VerifiedTool[] = [
   ...phTools,
@@ -18,6 +24,12 @@ export const ALL_TOOLS: VerifiedTool[] = [
   ...equationTools,
   ...stoichiometryTools,
   ...concentrationTools,
+  ...thermodynamicsTools,
+  ...kineticsTools,
+  ...electrochemistryTools,
+  ...nuclearTools,
+  ...quantumTools,
+  ...electronConfigTools,
 ]
 
 export const TOOL_BY_NAME = new Map<string, VerifiedTool>()
