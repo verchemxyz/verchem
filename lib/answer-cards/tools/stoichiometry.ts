@@ -38,6 +38,18 @@ function parseFormulaCounts(formula: string): Record<string, number> {
   return counts
 }
 
+/** Greatest common divisor of two non-negative integers (returns 1 for 0,0). */
+function gcdInt(a: number, b: number): number {
+  let x = Math.abs(a)
+  let y = Math.abs(b)
+  while (y !== 0) {
+    const t = y
+    y = x % y
+    x = t
+  }
+  return x || 1
+}
+
 const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3 (Stoichiometry); Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 7'
 
 function err(message: string): ToolResult {
@@ -204,37 +216,32 @@ const calculate_empirical_formula: VerifiedTool = {
       if (inputEls.length !== formulaEls.length || !inputEls.every((e, i) => e === formulaEls[i])) {
         return err('Derived empirical formula elements do not match the input composition')
       }
-      // Reject ratios that do not resolve to whole numbers within the supported
-      // multiplier. This is what catches n:(n+1) ratios (C26H27, C50H51): their
-      // per-element residual stays proportional to the multiplier, so NO multiplier
-      // ≤ 20 makes them integral — whereas a real empirical ratio (e.g. C13H14 at
-      // q=13) does. A fixed ratio tolerance alone cannot distinguish these as n grows.
+      // The input mole ratio must RESOLVE to exactly the engine's formula at some
+      // supported multiplier. For each q in 1..20: scale the normalized input ratios,
+      // require every value within an ABSOLUTE tolerance of an integer (a relative or
+      // q-scaled tolerance grows loose at large q and mis-accepts e.g. C21H62→CH3),
+      // reduce by GCD, and require an EXACT match to the engine's counts. If no q
+      // reproduces the engine formula, the true ratio needs a denominator beyond the
+      // supported range (C21H62, C26H27, C50H51) → reject; never sign a wrong formula.
+      // The 0.017 bound still tolerates coarse integer-mass input (C12/H2/O16 → CH2O,
+      // ~0.014 residual) while rejecting near-miss ratios (C50H51 → CH, 0.02 residual).
       const minMole = Math.min(...Object.values(inputMoles))
       const normRatios = inputEls.map((el) => inputMoles[el] / minMole)
-      let resolved = false
+      let matchesEngine = false
       for (let q = 1; q <= 20; q++) {
-        if (normRatios.every((r) => Math.abs(r * q - Math.round(r * q)) <= 0.015 * q)) {
-          resolved = true
+        const scaled = normRatios.map((r) => r * q)
+        if (!scaled.every((c) => Math.abs(c - Math.round(c)) <= 0.017)) continue
+        const intCounts = scaled.map((c) => Math.round(c))
+        if (intCounts.some((c) => c <= 0)) continue
+        const g = intCounts.reduce((a, b) => gcdInt(a, b))
+        const reduced = intCounts.map((c) => c / g)
+        if (inputEls.every((el, i) => formulaCounts[el] === reduced[i])) {
+          matchesEngine = true
           break
         }
       }
-      if (!resolved) {
-        return err('The composition does not resolve to a simple whole-number ratio within the supported range')
-      }
-      // Scale-invariant check: the input must equal k × formula-counts for ONE
-      // constant k across ALL elements. An absolute tolerance on normalized ratios
-      // fails for n:(n+1) as n grows (C26:H27 differ <4%), so compare the per-element
-      // scale factors k_el = inputMole / atomCount with a RELATIVE bound. Divergence
-      // ⇒ the engine returned a wrong formula (true ratio needs a denominator beyond
-      // the supported multiplier) ⇒ reject, never sign.
-      // 2% bound: tolerates coarse integer-mass input (e.g. C12/H2/O16 → CH2O, which
-      // spreads ~0.8% because H mass 2 ≠ 2.016) while still catching wrong formulas
-      // (C26H27 → CH spreads ~3.8%).
-      const scales = inputEls.map((el) => inputMoles[el] / formulaCounts[el])
-      const maxK = Math.max(...scales)
-      const minK = Math.min(...scales)
-      if (!(minK > 0) || maxK / minK > 1.02) {
-        return err('The derived empirical formula does not match the input mole ratios (the true ratio may need a larger multiplier than supported)')
+      if (!matchesEngine) {
+        return err('The composition does not resolve to the derived formula within the supported multiplier range (the true ratio may need a larger denominator)')
       }
       return finalizeResult({ empirical_formula: formula })
     } catch (e) {

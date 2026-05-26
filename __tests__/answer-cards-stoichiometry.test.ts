@@ -598,6 +598,21 @@ describe('Stoichiometry R9 fixes', () => {
     expect(r.ok).toBe(false)
   })
 
+  test('R17: C21H62 (ratio 1:2.952) rejected — engine CH3 does not match input', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    const r = tool.execute({ composition: [{ element: 'C', mass: 252.231 }, { element: 'H', mass: 62.496 }] })
+    expect(r.ok).toBe(false)
+  })
+
+  test('R17: genuine 1:3 ratio (ethane C2H6 → CH3) still accepted', () => {
+    const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
+    // ethane: C 79.89%, H 20.11% → CH3
+    const r = tool.execute({ composition: [{ element: 'C', percent: 79.89 }, { element: 'H', percent: 20.11 }] })
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.empirical_formula).toBe('CH3')
+  })
+
   test('R13: scale-invariant check still accepts large valid ratio C13H14 + Fe2O3', () => {
     const tool = TOOL_BY_NAME.get('calculate_empirical_formula')!
     const fe = tool.execute({ composition: [{ element: 'Fe', mass: 111.69 }, { element: 'O', mass: 48.0 }] })
