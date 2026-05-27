@@ -365,6 +365,22 @@ describe('proton_count / hydroxide_count validation', () => {
     expect(result.ok).toBe(false)
   })
 
+  // Blocker (round 1): a syntactically-valid but non-strong-acid formula must
+  // NOT default to monoprotic and get signed VERIFIED as an "acid".
+  test('rejects valid-but-not-strong-acid formula "NaCl"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'NaCl' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('not a recognized strong acid')).toBe(true)
+  })
+
+  test('rejects formula even when proton_count is supplied (omit formula for generic)', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'C6H12O6', proton_count: 1 })
+    expect(result.ok).toBe(false)
+  })
+
   test('rejects negative hydroxide_count', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
     const result = tool.execute({ concentration: 0.1, hydroxide_count: -1 })
@@ -419,6 +435,16 @@ describe('proton_count / hydroxide_count validation', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
     const result = tool.execute({ concentration: 0.1, formula: 'Ca(OH)0' })
     expect(result.ok).toBe(false)
+  })
+
+  // Blocker (round 1): valid-but-not-strong-base formula must be rejected, not
+  // defaulted to one OH- and signed VERIFIED as a "base".
+  test('rejects valid-but-not-strong-base formula "C6H12O6"', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    const result = tool.execute({ concentration: 0.1, formula: 'C6H12O6' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('not a recognized strong base')).toBe(true)
   })
 })
 

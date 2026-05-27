@@ -188,6 +188,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Guard the computed result: even a finite input at an extreme magnitude can
+    // push a derived value out of representable range (e.g. h=5e-324 → OH = Kw/h
+    // = Infinity). Never serialize a non-finite number (it becomes null in JSON).
+    if (
+      !Number.isFinite(result.pH) ||
+      !Number.isFinite(result.pOH) ||
+      !Number.isFinite(result.hConcentration) ||
+      !Number.isFinite(result.ohConcentration)
+    ) {
+      return NextResponse.json(
+        { error: 'Input out of representable range - result is not finite' },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,

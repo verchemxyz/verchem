@@ -123,6 +123,15 @@ export async function GET(request: NextRequest) {
   try {
     const result = convert(numericValue, from, to, category);
 
+    // Guard the computed result: a finite input can still overflow on conversion
+    // (e.g. 1e308 atm → Pa = Infinity). Never serialize a non-finite number.
+    if (!Number.isFinite(result)) {
+      return NextResponse.json(
+        { error: 'Conversion result out of representable range', value },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,

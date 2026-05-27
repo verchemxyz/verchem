@@ -97,17 +97,25 @@ const calculate_strong_acid_ph: VerifiedTool = {
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_ACID_PROTONS[normalized] !== undefined
       const expectedProtons = normalized !== undefined ? KNOWN_STRONG_ACID_PROTONS[normalized] : undefined
 
+      // A provided formula must be a RECOGNIZED strong acid. A syntactically valid
+      // but non-strong-acid formula (e.g. NaCl, C6H12O6) would otherwise fall through
+      // to the engine's monoprotic default and be signed VERIFIED as an "acid" it is
+      // not. For a generic strong acid, omit formula and pass proton_count instead.
+      if (normalized !== undefined && !isKnownFormula) {
+        return err(`${formula} is not a recognized strong acid (use HCl, HNO3, HBr, HI, HClO4, or H2SO4) — or omit formula and pass proton_count`)
+      }
+
       // Reject mismatch against known formula
       if (expectedProtons !== undefined && protonCount !== undefined && expectedProtons !== protonCount) {
         return err(`proton_count (${protonCount}) does not match formula ${formula} (expected ${expectedProtons})`)
       }
 
-      // If known formula: send {formula} ONLY — let engine use its model (e.g., H2SO4 Ka2)
-      // protonCount is ignored to prevent bypassing formula-derived models
+      // Known formula: send {formula} ONLY — let engine use its model (e.g., H2SO4 Ka2),
+      // protonCount ignored. No formula: generic strong acid from an explicit proton_count.
       const options = isKnownFormula
         ? { formula }
-        : formula || protonCount !== undefined
-          ? { formula, protonCount }
+        : protonCount !== undefined
+          ? { protonCount }
           : undefined
 
       const result = calculateStrongAcidPH(concentration, options)
@@ -223,17 +231,25 @@ const calculate_strong_base_ph: VerifiedTool = {
       const isKnownFormula = normalized !== undefined && KNOWN_STRONG_BASE_HYDROXIDES[normalized] !== undefined
       const expectedHydroxides = normalized !== undefined ? KNOWN_STRONG_BASE_HYDROXIDES[normalized] : undefined
 
+      // A provided formula must be a RECOGNIZED strong base. A syntactically valid
+      // but non-strong-base formula (e.g. NaCl, C6H12O6) would otherwise fall through
+      // to the engine's one-hydroxide default and be signed VERIFIED as a "base" it is
+      // not. For a generic strong base, omit formula and pass hydroxide_count instead.
+      if (normalized !== undefined && !isKnownFormula) {
+        return err(`${formula} is not a recognized strong base (use NaOH, KOH, LiOH, Ca(OH)2, or Ba(OH)2) — or omit formula and pass hydroxide_count`)
+      }
+
       // Reject mismatch against known formula
       if (expectedHydroxides !== undefined && hydroxideCount !== undefined && expectedHydroxides !== hydroxideCount) {
         return err(`hydroxide_count (${hydroxideCount}) does not match formula ${formula} (expected ${expectedHydroxides})`)
       }
 
-      // If known formula: send {formula} ONLY — let engine use its model
-      // hydroxideCount is ignored to prevent bypassing formula-derived models
+      // Known formula: send {formula} ONLY — let engine use its model, hydroxideCount
+      // ignored. No formula: generic strong base from an explicit hydroxide_count.
       const options = isKnownFormula
         ? { formula }
-        : formula || hydroxideCount !== undefined
-          ? { formula, hydroxideCount }
+        : hydroxideCount !== undefined
+          ? { hydroxideCount }
           : undefined
 
       const result = calculateStrongBasePH(concentration, options)
