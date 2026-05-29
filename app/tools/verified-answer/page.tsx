@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import type { AnswerCard } from '@/lib/answer-cards/types'
 import AskBox from '@/components/answer-cards/AskBox'
 import AnswerCardView from '@/components/answer-cards/AnswerCardView'
+import SaveShareControls from '@/components/answer-cards/SaveShareControls'
 
 export default function VerifiedAnswerPage() {
   const [card, setCard] = useState<AnswerCard | null>(null)
@@ -96,6 +97,7 @@ export default function VerifiedAnswerPage() {
                 Q: {card.question}
               </h2>
               <AnswerCardView card={card} />
+              <SaveShareControls card={card} />
             </div>
           </div>
         </section>
