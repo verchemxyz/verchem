@@ -175,7 +175,11 @@ export default function GasLawsCalculatorPage() {
               throw new Error('Select what to solve for')
           }
         } else {
-          throw new Error('Law not implemented yet')
+          // Unreachable from the UI (no solve-for buttons render for these laws),
+          // but stay graceful instead of throwing if it is ever reached.
+          setError('This law is available in the full Gas Laws Calculator.')
+          setIsCalculating(false)
+          return
         }
 
         setResult({ value: calculatedValue, unit })
@@ -305,6 +309,20 @@ export default function GasLawsCalculatorPage() {
               <p className="text-sm text-emerald-300 mt-2">Constant: {currentLaw.constant}</p>
             </div>
 
+            {/* Persistent CTA to the full calculator */}
+            <div className="mb-6 flex justify-center">
+              <Link
+                href="/gas-laws"
+                className="inline-flex items-center gap-1 text-sm text-emerald-300 hover:text-emerald-200"
+              >
+                Need all 9 laws + Van der Waals &amp; step-by-step? Open the full calculator
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {/* Quick-calc for the implemented laws; CTA to the full calculator otherwise */}
+            {getInputFields().length > 0 ? (
+            <>
             {/* Solve For Selector */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-slate-300 mb-3">
@@ -369,6 +387,23 @@ export default function GasLawsCalculatorPage() {
                 'Calculate'
               )}
             </button>
+            </>
+            ) : (
+              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
+                <p className="text-slate-300 mb-4">
+                  <span className="font-semibold text-white">{currentLaw.name}</span> — with full
+                  step-by-step solving, plus Van der Waals, Dalton&apos;s, Graham&apos;s and the
+                  Combined Gas Law — is available in the complete calculator.
+                </p>
+                <Link
+                  href="/gas-laws"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white hover:from-emerald-500 hover:to-teal-500 transition-colors"
+                >
+                  Open the full Gas Laws Calculator
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
 
             {error && (
               <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">

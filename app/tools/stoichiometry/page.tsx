@@ -159,7 +159,11 @@ export default function StoichiometryCalculatorPage() {
           steps.push(`% Yield = (${actual} / ${theoretical}) × 100`)
           steps.push(`% Yield = ${value.toFixed(2)}%`)
         } else {
-          throw new Error('Mode not implemented')
+          // Unreachable from the UI (this mode renders a CTA, not a Calculate
+          // button), but stay graceful instead of throwing if ever reached.
+          setError('This mode is available in the full Stoichiometry Calculator.')
+          setIsCalculating(false)
+          return
         }
 
         setResult({ value, unit, steps })
@@ -290,6 +294,20 @@ export default function StoichiometryCalculatorPage() {
               <p className="text-slate-400">{currentMode.description}</p>
             </div>
 
+            {/* Persistent CTA to the full calculator */}
+            <div className="mb-6 flex justify-center">
+              <Link
+                href="/stoichiometry"
+                className="inline-flex items-center gap-1 text-sm text-orange-300 hover:text-orange-200"
+              >
+                Need limiting reagent, empirical formula &amp; 8 modes? Open the full calculator
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {/* Quick-calc for the implemented modes; CTA to the full calculator otherwise */}
+            {getInputFields().length > 0 ? (
+            <>
             {/* Input Fields */}
             <div className="grid gap-4 md:grid-cols-2 mb-6">
               {getInputFields().map((field) => (
@@ -349,6 +367,22 @@ export default function StoichiometryCalculatorPage() {
                 'Calculate'
               )}
             </button>
+            </>
+            ) : (
+              <div className="rounded-2xl border border-orange-500/30 bg-orange-500/5 p-6 text-center">
+                <p className="text-slate-300 mb-4">
+                  <span className="font-semibold text-white">{currentMode.name}</span> — with full
+                  step-by-step solving — is available in the complete Stoichiometry calculator.
+                </p>
+                <Link
+                  href="/stoichiometry"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 font-medium text-white hover:from-orange-500 hover:to-amber-500 transition-colors"
+                >
+                  Open the full Stoichiometry Calculator
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
 
             {error && (
               <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
