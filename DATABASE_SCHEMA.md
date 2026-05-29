@@ -3,7 +3,19 @@
 **Database**: Supabase (PostgreSQL)
 **Created**: 2025-11-21
 **Author**: สมนึก (Claude Sonnet 4.5)
-**Status**: Ready for implementation
+**Status**: ⚠️ PARTIALLY SUPERSEDED — see `supabase/SETUP.md`
+
+> **⚠️ Read before using this doc (updated 2026-05-29):**
+> - The `auth.uid()` RLS policies below do **NOT** match production. VerChem uses
+>   **AIVerID OAuth + HMAC cookie** and accesses the DB through the **service
+>   role** only. Use the **service-role-only** pattern in `supabase/migrations/`
+>   (`000_users_table.sql`, `001_molecules_table.sql`, `002_answer_cards_table.sql`),
+>   not the policies in this file.
+> - Current code only uses **3 tables**: `users`, `molecules`, `answer_cards`.
+>   The other tables here (saved_calculations, favorites, user_preferences,
+>   calculation_history, subscriptions) are **planned, not wired** — don't create
+>   them unless you build those features.
+> - For a fresh project / recovery, follow **`supabase/SETUP.md`**.
 
 ---
 
