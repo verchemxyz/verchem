@@ -8,7 +8,35 @@
  * except signature itself.
  */
 
-import type { SignablePayload } from './types'
+import type { SignablePayload, AnswerCard } from './types'
+
+/**
+ * Reconstruct the exact signable payload from a card.
+ *
+ * SECURITY: signing (orchestrator) and verification (load / share) MUST build
+ * the payload through this single function. If the two ever diverged, every
+ * signature would fail to verify — or worse, verify a different shape than was
+ * signed. The `signature` field and the deprecated `verified` flag are excluded
+ * because they are not part of what is signed.
+ */
+export function toSignablePayload(card: Omit<AnswerCard, 'signature'>): SignablePayload {
+  return {
+    question: card.question,
+    status: card.status,
+    tool_calls: card.tool_calls.map((tc) => ({
+      name: tc.name,
+      engine: tc.engine,
+      input: tc.input,
+      result: tc.result,
+      citation: tc.citation,
+    })),
+    explanation: card.explanation,
+    audit: card.audit,
+    model: card.model,
+    version: card.version,
+    issued_at: card.issued_at,
+  }
+}
 
 /**
  * Recursively sort object keys for stable serialization.

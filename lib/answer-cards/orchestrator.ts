@@ -6,9 +6,16 @@
  * W3-R2: Status enum, numeric audit, incomplete tracking, input guard.
  */
 
-import Anthropic from '@anthropic-ai/sdk'
+import Anthropic, {
+  APIError,
+  RateLimitError,
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  AuthenticationError,
+  PermissionDeniedError,
+} from '@anthropic-ai/sdk'
 import type { AnswerCard, CardStatus, ToolCall, VerifiedTool } from './types'
-import { signCard } from './signature'
+import { signCard, toSignablePayload } from './signature'
 import { auditExplanation } from './audit'
 import { ALL_TOOLS, TOOL_BY_NAME, toAnthropicTool } from './tools/registry'
 import { isPlainObject } from './tools/_validate'
@@ -40,6 +47,124 @@ const MODEL = 'claude-haiku-4-5-20251001'
 const VERSION = 'w3-v1'
 const MAX_TOKENS = 1500
 const MAX_ROUNDS = 5
+
+export type AnswerServiceErrorKind =
+  | 'rate_limit'
+  | 'overloaded'
+  | 'timeout'
+  | 'connection'
+  | 'auth'
+  | 'bad_request'
+  | 'server'
+  | 'unknown'
+
+/**
+ * Typed failure of the verification *service* (the Claude API call itself),
+ * as opposed to a chemistry calculation error (which is captured in a card).
+ * Carries a user-safe public message + the HTTP status the route should return.
+ * Never leaks provider internals to the client.
+ */
+export class AnswerServiceError extends Error {
+  readonly kind: AnswerServiceErrorKind
+  readonly httpStatus: number
+  readonly publicMessage: string
+
+  constructor(
+    kind: AnswerServiceErrorKind,
+    httpStatus: number,
+    publicMessage: string,
+    cause?: unknown
+  ) {
+    super(publicMessage)
+    this.name = 'AnswerServiceError'
+    this.kind = kind
+    this.httpStatus = httpStatus
+    this.publicMessage = publicMessage
+    if (cause !== undefined) {
+      ;(this as { cause?: unknown }).cause = cause
+    }
+  }
+}
+
+/**
+ * Map an unknown thrown value (typically an Anthropic SDK error) to a typed,
+ * user-safe AnswerServiceError. Auth/permission errors are deliberately
+ * presented as a generic "temporarily unavailable" so a misconfiguration never
+ * exposes that the API key is bad.
+ */
+export function classifyServiceError(err: unknown): AnswerServiceError {
+  if (err instanceof AnswerServiceError) return err
+
+  if (err instanceof RateLimitError) {
+    return new AnswerServiceError(
+      'rate_limit',
+      429,
+      'The verification service is busy right now. Please try again in a moment.',
+      err
+    )
+  }
+  if (err instanceof APIConnectionTimeoutError) {
+    return new AnswerServiceError(
+      'timeout',
+      504,
+      'The verification service took too long to respond. Please try again.',
+      err
+    )
+  }
+  if (err instanceof APIConnectionError) {
+    return new AnswerServiceError(
+      'connection',
+      503,
+      'Could not reach the verification service. Please try again.',
+      err
+    )
+  }
+  if (err instanceof AuthenticationError || err instanceof PermissionDeniedError) {
+    return new AnswerServiceError(
+      'auth',
+      503,
+      'The verification service is temporarily unavailable.',
+      err
+    )
+  }
+  if (err instanceof APIError) {
+    const status = typeof err.status === 'number' ? err.status : 0
+    if (status === 529) {
+      return new AnswerServiceError(
+        'overloaded',
+        503,
+        'The verification service is overloaded. Please try again shortly.',
+        err
+      )
+    }
+    if (status === 400 || status === 422) {
+      return new AnswerServiceError(
+        'bad_request',
+        502,
+        'The verification service could not process this request. Please rephrase your question.',
+        err
+      )
+    }
+    return new AnswerServiceError(
+      'server',
+      502,
+      'The verification service returned an error. Please try again.',
+      err
+    )
+  }
+
+  // Includes the "ANTHROPIC_API_KEY is not configured" startup error.
+  if (err instanceof Error && err.message.includes('ANTHROPIC_API_KEY')) {
+    return new AnswerServiceError('auth', 503, 'The verification service is not configured.', err)
+  }
+
+  return new AnswerServiceError(
+    'unknown',
+    500,
+    'An unexpected error occurred while verifying your question.',
+    err
+  )
+}
 
 const SYSTEM_PROMPT = `You are the VerChem verification assistant. Your job is to understand chemistry questions and explain answers using ONLY numbers produced by deterministic calculation engines.
 
@@ -78,8 +203,19 @@ function getAnthropicClient(): Anthropic {
   return new Anthropic({ apiKey })
 }
 
-export async function askVerified(question: string): Promise<AnswerCard> {
-  const client = getAnthropicClient()
+export interface AskVerifiedOptions {
+  /**
+   * Inject an Anthropic client. Defaults to an env-configured client.
+   * Used by unit tests (fake client) and the live smoke test (real client).
+   */
+  client?: Anthropic
+}
+
+export async function askVerified(
+  question: string,
+  opts: AskVerifiedOptions = {}
+): Promise<AnswerCard> {
+  const client = opts.client ?? getAnthropicClient()
   const tools = ALL_TOOLS.map(toAnthropicTool)
 
   const messages: Anthropic.Messages.MessageParam[] = [
@@ -90,17 +226,32 @@ export async function askVerified(question: string): Promise<AnswerCard> {
   let explanation = ''
   let rounds = 0
   let incomplete = false
+  let serviceInterrupted = false
 
   while (rounds < MAX_ROUNDS) {
     rounds++
 
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages,
-      tools: tools.length > 0 ? tools : undefined,
-    })
+    let response: Anthropic.Messages.Message
+    try {
+      response = await client.messages.create({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        system: SYSTEM_PROMPT,
+        messages,
+        tools: tools.length > 0 ? tools : undefined,
+      })
+    } catch (err) {
+      // The Claude API call failed. If we already have at least one verified
+      // engine result, degrade gracefully to a PARTIAL card — the signed
+      // engine results remain authoritative even without the AI narrative.
+      // Otherwise there is nothing to return: surface a typed service error.
+      if (toolCalls.some((tc) => tc.result.ok)) {
+        incomplete = true
+        serviceInterrupted = true
+        break
+      }
+      throw classifyServiceError(err)
+    }
 
     // Collect tool_use requests
     const toolUseBlocks: Anthropic.Messages.ToolUseBlock[] = []
@@ -205,30 +356,16 @@ export async function askVerified(question: string): Promise<AnswerCard> {
 
   const status = determineStatus(hasOk, hasError, allFailed, incomplete)
 
-  if (incomplete && !explanation.includes('(Response may be incomplete.)')) {
+  if (serviceInterrupted) {
+    explanation +=
+      '\n\n(The AI explanation could not be completed due to a temporary service issue. The verified engine results above are complete and authoritative.)'
+  } else if (incomplete && !explanation.includes('(Response may be incomplete.)')) {
     explanation += '\n\n(Response may be incomplete.)'
   }
 
-  const payload = {
-    question,
-    status,
-    tool_calls: toolCalls.map((tc) => ({
-      name: tc.name,
-      engine: tc.engine,
-      input: tc.input,
-      result: tc.result,
-      citation: tc.citation,
-    })),
-    explanation: explanation.trim(),
-    audit,
-    model: MODEL,
-    version: VERSION,
-    issued_at: new Date().toISOString(),
-  }
-
-  const signature = await signCard(payload)
-
-  return {
+  // Build the card, then sign it through the shared payload builder so signing
+  // and later verification (load / public share) are guaranteed symmetric.
+  const card: AnswerCard = {
     question,
     status,
     verified: status === 'verified',
@@ -237,7 +374,10 @@ export async function askVerified(question: string): Promise<AnswerCard> {
     audit,
     model: MODEL,
     version: VERSION,
-    issued_at: payload.issued_at,
-    signature,
+    issued_at: new Date().toISOString(),
+    signature: '',
   }
+
+  card.signature = await signCard(toSignablePayload(card))
+  return card
 }

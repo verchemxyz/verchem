@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifySession } from '@/lib/auth/session'
 import { isValidOrigin } from '@/lib/auth/origin-check'
-import { askVerified } from '@/lib/answer-cards/orchestrator'
+import { askVerified, classifyServiceError } from '@/lib/answer-cards/orchestrator'
 import { checkRateLimit, answerCardDailyConfig } from '@/lib/rate-limit'
 
 function sanitizeQuestion(value: unknown): string | null {
@@ -86,10 +86,16 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     console.error('POST /api/answer-card error:', err)
 
-    if (err instanceof Error && err.message.includes('ANTHROPIC_API_KEY')) {
-      return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 })
+    // Map AI-service failures (rate limit, timeout, overload, misconfiguration)
+    // to a user-safe message + the right status code. Never leak provider detail.
+    const svc = classifyServiceError(err)
+    const headers: Record<string, string> = {}
+    if (svc.kind === 'rate_limit' || svc.kind === 'overloaded') {
+      headers['Retry-After'] = '5'
     }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: svc.publicMessage, kind: svc.kind },
+      { status: svc.httpStatus, headers }
+    )
   }
 }
