@@ -11,6 +11,7 @@ interface CardSummary {
   status: CardStatus
   is_public: boolean
   created_at: string
+  signatureValid: boolean
 }
 
 const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
@@ -145,9 +146,15 @@ export default function CardsPage() {
                         {c.question}
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${s.cls}`}>
-                          {s.label}
-                        </span>
+                        {c.signatureValid ? (
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${s.cls}`}>
+                            {s.label}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 font-medium text-red-300">
+                            Tampered
+                          </span>
+                        )}
                         {c.is_public ? (
                           <span className="inline-flex items-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-cyan-300">
                             Public

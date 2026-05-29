@@ -153,6 +153,62 @@ async function run() {
     assert.equal(parseSubmittedCard({ ...base, tool_calls: new Array(33).fill(oneToolCall) }), null)
   })
 
+  await test('F1: an injected own __proto__ key now breaks the signature (null-proto canonicalizer)', async () => {
+    const card = await makeSignedCard()
+    const realValue = card.tool_calls[0].result.value
+    const withProto = { ...realValue } as Record<string, unknown>
+    // defineProperty bypasses the prototype setter → real OWN enumerable key
+    Object.defineProperty(withProto, '__proto__', {
+      value: { fake: 99 },
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    })
+    const payload = toSignablePayload(card)
+    payload.tool_calls[0].result.value = withProto
+    const ok = await verifyCardSignature(payload, card.signature)
+    assert.equal(ok, false, '__proto__ must be serialized into the canonical and fail verification')
+  })
+
+  await test('parseSubmittedCard rejects prototype-poisoning keys in input/value', async () => {
+    const card = await makeSignedCard()
+    const base = JSON.parse(JSON.stringify(card))
+
+    const evilValue = JSON.parse(JSON.stringify(base))
+    evilValue.tool_calls[0].result.value = JSON.parse('{"pH":1,"__proto__":{"x":1}}')
+    assert.equal(parseSubmittedCard(evilValue), null, '__proto__ in result.value must be rejected')
+
+    const evilInput = JSON.parse(JSON.stringify(base))
+    evilInput.tool_calls[0].input = JSON.parse('{"constructor":{"x":1}}')
+    assert.equal(parseSubmittedCard(evilInput), null, 'constructor in input must be rejected')
+  })
+
+  await test('parseSubmittedCard rejects over-deep / over-long values', () => {
+    const stub = {
+      question: 'q',
+      status: 'verified',
+      tool_calls: [
+        { name: 'n', engine: 'e', input: {}, result: { ok: true, value: {} }, citation: 'c' },
+      ],
+      explanation: 'x',
+      audit: { clean: true, unmatched: [] },
+      model: 'm',
+      version: 'v',
+      issued_at: '2026-01-01T00:00:00.000Z',
+      signature: 'abc',
+    }
+
+    let deep: Record<string, unknown> = { v: 1 }
+    for (let i = 0; i < 10; i++) deep = { n: deep }
+    const tooDeep = JSON.parse(JSON.stringify(stub))
+    tooDeep.tool_calls[0].result.value = deep
+    assert.equal(parseSubmittedCard(tooDeep), null, 'over-deep value must be rejected')
+
+    const tooLong = JSON.parse(JSON.stringify(stub))
+    tooLong.tool_calls[0].result.value = { s: 'x'.repeat(4001) }
+    assert.equal(parseSubmittedCard(tooLong), null, 'over-long string in value must be rejected')
+  })
+
   console.log(`\n${passed} passed, ${failed} failed`)
   if (failed > 0) process.exit(1)
 }

@@ -50,10 +50,19 @@ function canonicalize(value: unknown): unknown {
     return value.map(canonicalize)
   }
 
-  const sorted: Record<string, unknown> = {}
-  const keys = Object.keys(value as Record<string, unknown>).sort()
+  // SECURITY: use a null-prototype accumulator. With a plain `{}`, assigning a
+  // key named "__proto__" hits Object.prototype's setter and mutates the
+  // prototype instead of creating an own property — so JSON.stringify would
+  // OMIT it, and a card with a tampered/injected `__proto__` field would
+  // produce the SAME canonical string (and thus verify). A null-proto object
+  // has no such setter, so "__proto__" / "constructor" become real own keys
+  // and are faithfully serialized. (JSON.parse can create an own "__proto__"
+  // key, so this is a reachable forgery vector.)
+  const sorted: Record<string, unknown> = Object.create(null)
+  const source = value as Record<string, unknown>
+  const keys = Object.keys(source).sort()
   for (const key of keys) {
-    sorted[key] = canonicalize((value as Record<string, unknown>)[key])
+    sorted[key] = canonicalize(source[key])
   }
   return sorted
 }

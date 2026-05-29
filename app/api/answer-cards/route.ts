@@ -21,6 +21,7 @@ import { checkRateLimit } from '@/lib/rate-limit'
 // Generous per-user daily cap so a valid signed card can't be saved thousands
 // of times to bloat the table. (Saving requires a real generate call first.)
 const SAVE_LIMIT = { windowMs: 24 * 60 * 60 * 1000, maxRequests: 200 }
+const MAX_BODY_BYTES = 256 * 1024
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,9 +34,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate-limit BEFORE parsing/verifying so even invalid attempts consume quota
+    // — an attacker can't burn parse/HMAC CPU for free by spamming bad cards.
+    const rl = checkRateLimit(`answer-card-save:${session.userId}`, SAVE_LIMIT)
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Daily save limit reached. Please try again tomorrow.', retryAfter: rl.retryAfter },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 0) } }
+      )
+    }
+
+    // Bound body size before JSON.parse (large-payload DoS guard).
+    const raw = await request.text()
+    if (raw.length > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 })
+    }
     let body: unknown
     try {
-      body = await request.json()
+      body = JSON.parse(raw)
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
@@ -61,14 +77,6 @@ export async function POST(request: NextRequest) {
     }
 
     const is_public = typeof record.is_public === 'boolean' ? record.is_public : false
-
-    const rl = checkRateLimit(`answer-card-save:${session.userId}`, SAVE_LIMIT)
-    if (!rl.success) {
-      return NextResponse.json(
-        { error: 'Daily save limit reached. Please try again tomorrow.', retryAfter: rl.retryAfter },
-        { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 0) } }
-      )
-    }
 
     const saved = await createAnswerCard({ aiverid_id: session.userId, card, is_public })
     return NextResponse.json(saved, { status: 201 })

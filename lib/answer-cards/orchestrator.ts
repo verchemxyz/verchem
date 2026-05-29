@@ -153,9 +153,10 @@ export function classifyServiceError(err: unknown): AnswerServiceError {
     )
   }
 
-  // Includes the "ANTHROPIC_API_KEY is not configured" startup error.
+  // Includes the "ANTHROPIC_API_KEY is not configured" startup error. Keep the
+  // public message generic — never reveal provider/config state to the client.
   if (err instanceof Error && err.message.includes('ANTHROPIC_API_KEY')) {
-    return new AnswerServiceError('auth', 503, 'The verification service is not configured.', err)
+    return new AnswerServiceError('auth', 503, 'The verification service is temporarily unavailable.', err)
   }
 
   return new AnswerServiceError(

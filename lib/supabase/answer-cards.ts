@@ -45,13 +45,31 @@ interface AnswerCardRow {
   updated_at: string
 }
 
-/** Lightweight row for list views (no heavy signed_payload). */
+/** Lightweight row for list views (signature re-verified, payload not returned). */
 export interface AnswerCardSummary {
   id: string
   question: string
   status: CardStatus
   is_public: boolean
   created_at: string
+  /** false → row no longer matches its signature; list must not show VERIFIED. */
+  signatureValid: boolean
+}
+
+/** Shape-guard a parsed signed_payload before trusting it as a SignablePayload. */
+function isValidSignablePayload(p: unknown): p is SignablePayload {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return false
+  const o = p as Record<string, unknown>
+  if (typeof o.question !== 'string' || typeof o.status !== 'string') return false
+  if (!Array.isArray(o.tool_calls)) return false
+  if (typeof o.explanation !== 'string') return false
+  if (!o.audit || typeof o.audit !== 'object' || Array.isArray(o.audit)) return false
+  const a = o.audit as Record<string, unknown>
+  if (typeof a.clean !== 'boolean' || !Array.isArray(a.unmatched)) return false
+  if (typeof o.model !== 'string' || typeof o.version !== 'string' || typeof o.issued_at !== 'string') {
+    return false
+  }
+  return true
 }
 
 /** A card reconstructed from storage, with the result of re-verifying its HMAC. */
@@ -74,7 +92,8 @@ export async function rowToVerifiedCard(row: AnswerCardRow): Promise<LoadedAnswe
 
   let parsed: SignablePayload | null = null
   try {
-    parsed = JSON.parse(row.signed_payload) as SignablePayload
+    const raw = JSON.parse(row.signed_payload)
+    if (isValidSignablePayload(raw)) parsed = raw
   } catch {
     parsed = null
   }
@@ -159,7 +178,7 @@ export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerC
 
   const { data, error } = await supabase
     .from('answer_cards')
-    .select('id, question, status, is_public, created_at')
+    .select('id, question, status, is_public, created_at, signed_payload, signature')
     .eq('aiverid_id', aiverid_id)
     .order('created_at', { ascending: false })
 
@@ -168,7 +187,23 @@ export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerC
     throw new Error('Database error while listing answer cards')
   }
 
-  return (data ?? []) as AnswerCardSummary[]
+  const rows = (data ?? []) as Array<
+    Pick<AnswerCardRow, 'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'>
+  >
+
+  // Re-verify each row so the list can't show a VERIFIED-style badge from a
+  // denormalized `status` column that no longer matches the signature. The
+  // signed_payload is verified but NOT returned to the client (keeps it light).
+  return Promise.all(
+    rows.map(async (r) => ({
+      id: r.id,
+      question: r.question,
+      status: r.status,
+      is_public: r.is_public,
+      created_at: r.created_at,
+      signatureValid: await verifyCanonicalSignature(r.signed_payload, r.signature),
+    }))
+  )
 }
 
 export async function getAnswerCardForUser(

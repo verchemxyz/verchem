@@ -87,15 +87,13 @@ export async function POST(request: NextRequest) {
     console.error('POST /api/answer-card error:', err)
 
     // Map AI-service failures (rate limit, timeout, overload, misconfiguration)
-    // to a user-safe message + the right status code. Never leak provider detail.
+    // to a user-safe message + the right status code. The provider-specific
+    // `kind` stays server-side (telemetry only) — never echoed to the client.
     const svc = classifyServiceError(err)
     const headers: Record<string, string> = {}
     if (svc.kind === 'rate_limit' || svc.kind === 'overloaded') {
       headers['Retry-After'] = '5'
     }
-    return NextResponse.json(
-      { error: svc.publicMessage, kind: svc.kind },
-      { status: svc.httpStatus, headers }
-    )
+    return NextResponse.json({ error: svc.publicMessage }, { status: svc.httpStatus, headers })
   }
 }
