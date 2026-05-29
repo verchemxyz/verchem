@@ -79,6 +79,18 @@ function base64urlEncode(bytes: Uint8Array): string {
     .replace(/=+$/g, '')
 }
 
+/**
+ * Constant-time string comparison (prevents timing attacks).
+ */
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
+}
+
 function getSecret(): string {
   const secret = process.env.ANSWER_CARD_SECRET || process.env.SESSION_SECRET
 
@@ -94,9 +106,10 @@ function getSecret(): string {
 }
 
 /**
- * Sign a card payload with HMAC-SHA256.
+ * HMAC-SHA256 a raw message → base64url. Single crypto primitive used by both
+ * signing and string-level verification so they can never diverge.
  */
-export async function signCard(payload: SignablePayload): Promise<string> {
+async function hmacBase64url(message: string): Promise<string> {
   const secret = getSecret()
   const enc = new TextEncoder()
 
@@ -108,26 +121,54 @@ export async function signCard(payload: SignablePayload): Promise<string> {
     ['sign']
   )
 
-  const canonical = canonicalJSON(payload)
-  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(canonical))
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(message))
   return base64urlEncode(new Uint8Array(sig))
 }
 
 /**
- * Verify a card signature against its payload.
+ * The exact canonical string that gets signed for a payload.
+ *
+ * PERSISTENCE: store THIS string verbatim (as TEXT) alongside the signature.
+ * Re-deriving it from typed DB columns is fragile — a TIMESTAMPTZ round-trip
+ * or JSONB key/number normalization would change the bytes and break the HMAC.
+ * Storing the canonical string makes verification a pure string operation.
  */
-export async function verifyCardSignature(payload: SignablePayload, signature: string): Promise<boolean> {
+export function canonicalPayloadString(payload: SignablePayload): string {
+  return canonicalJSON(payload)
+}
+
+/**
+ * Sign a card payload with HMAC-SHA256 (over its canonical serialization).
+ */
+export async function signCard(payload: SignablePayload): Promise<string> {
+  return hmacBase64url(canonicalJSON(payload))
+}
+
+/**
+ * Verify a card signature against its payload (re-canonicalizes).
+ */
+export async function verifyCardSignature(
+  payload: SignablePayload,
+  signature: string
+): Promise<boolean> {
   try {
-    const expected = await signCard(payload)
-    // Constant-time comparison to prevent timing attacks
-    if (expected.length !== signature.length) {
-      return false
-    }
-    let result = 0
-    for (let i = 0; i < expected.length; i++) {
-      result |= expected.charCodeAt(i) ^ signature.charCodeAt(i)
-    }
-    return result === 0
+    return constantTimeEqual(await signCard(payload), signature)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Verify a signature against a pre-canonicalized string (the DB round-trip path).
+ * Use with the stored `canonicalPayloadString` value — no re-serialization,
+ * so byte-level fidelity is guaranteed.
+ */
+export async function verifyCanonicalSignature(
+  canonical: string,
+  signature: string
+): Promise<boolean> {
+  try {
+    return constantTimeEqual(await hmacBase64url(canonical), signature)
   } catch {
     return false
   }
