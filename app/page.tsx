@@ -2,7 +2,8 @@ import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 
-const DEMO_SIGNATURE = "7f3a9c8e2d1b4f5a6c7e8d9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0";
+// Real SHA-256 hex (64 chars) — a valid-shaped demo signature for the hero.
+const DEMO_SIGNATURE = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
 export default function Home() {
   const sigPrefix = DEMO_SIGNATURE.slice(0, 4);
@@ -341,7 +342,7 @@ export default function Home() {
           </div>
 
           <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            <p>© 2025 VerChem. All rights reserved.</p>
+            <p>© 2026 VerChem. All rights reserved.</p>
             <p className="mt-1">Part of the Ver* Ecosystem by Job Prukpatarakul</p>
           </div>
         </div>

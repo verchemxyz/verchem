@@ -23,7 +23,9 @@ export function VerificationSpectrum({
   className = "",
 }: VerificationSpectrumProps) {
   const bars = useMemo(() => {
-    const normalized = hash.replace(/[^0-9a-fA-F]/g, "");
+    const raw = hash.replace(/[^0-9a-fA-F]/g, "");
+    // Guard odd-length input so a malformed hash can't drop a dangling nibble.
+    const normalized = raw.length % 2 === 0 ? raw : raw.slice(0, -1);
     const pairs: number[] = [];
     for (let i = 0; i < normalized.length; i += 2) {
       const hexPair = normalized.slice(i, i + 2);
