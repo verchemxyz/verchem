@@ -49,11 +49,11 @@ export default function OAuthLoginButton() {
       <div className="space-y-4">
         <button
           disabled
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-white rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700"
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border bg-primary-500 text-primary-foreground rounded-md"
         >
           <span>Sign in with AIVerID</span>
         </button>
-        <p className="text-xs text-center text-gray-500">
+        <p className="text-xs text-center text-muted-foreground">
           One account for all Ver* apps
         </p>
       </div>
@@ -66,15 +66,15 @@ export default function OAuthLoginButton() {
       <button
         onClick={handleLogin}
         disabled={isLoading}
-        className={`w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-white rounded-xl transition-all duration-200 ${
+        className={`w-full flex items-center justify-center gap-3 px-4 py-3 border rounded-md transition-colors duration-200 ${
           !isLoading
-            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-            : 'bg-gray-300 cursor-not-allowed'
+            ? 'bg-primary-500 text-primary-foreground border-primary-600 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring'
+            : 'bg-muted text-muted-foreground border-border cursor-not-allowed'
         }`}
       >
         {isLoading ? (
           <>
-            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5 text-current" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -82,7 +82,7 @@ export default function OAuthLoginButton() {
           </>
         ) : (
           <>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <span>Sign in with AIVerID</span>
@@ -90,7 +90,7 @@ export default function OAuthLoginButton() {
         )}
       </button>
 
-      <p className="text-xs text-center text-gray-500">
+      <p className="text-xs text-center text-muted-foreground">
         One account for all Ver* apps
       </p>
     </div>

@@ -2,7 +2,13 @@ import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 
+const DEMO_SIGNATURE = "7f3a9c8e2d1b4f5a6c7e8d9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0";
+
 export default function Home() {
+  const sigPrefix = DEMO_SIGNATURE.slice(0, 4);
+  const sigSuffix = DEMO_SIGNATURE.slice(-4);
+  const sigDisplay = `vc_hmac_sha256 ${sigPrefix}…${sigSuffix}`;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero — Signed Evidence Panel */}
@@ -18,13 +24,13 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Signed Result Card */}
-          <div className="mt-12 max-w-xl mx-auto animate-reveal animate-reveal-delay-1">
+          {/* Signed Result Card — Audit Receipt */}
+          <div className="mt-12 max-w-md mx-auto animate-reveal animate-reveal-delay-1">
             <div className="border border-border rounded-lg bg-card overflow-hidden">
               {/* Spectrum strip */}
               <div className="px-5 pt-4 pb-1">
                 <VerificationSpectrum
-                  hash="7f3a9c8e2d1b4f5a6c7e8d9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+                  hash={DEMO_SIGNATURE}
                   height={28}
                   barWidth={2}
                   gap={1}
@@ -32,20 +38,33 @@ export default function Home() {
               </div>
 
               <div className="px-5 py-4">
-                {/* Compound + result */}
-                <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-bold text-foreground font-sans">H₂SO₄</span>
-                  <span className="text-xl font-mono text-foreground">98.07 g/mol</span>
+                {/* Audit receipt rows */}
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Compound</span>
+                    <span className="font-bold text-foreground font-sans">H₂SO₄</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Result</span>
+                    <span className="font-mono text-foreground">98.072 g/mol</span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Arithmetic</span>
+                    <span className="font-mono text-muted-foreground text-right text-xs sm:text-sm">
+                      2×1.008 + 32.06 + 4×15.999
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Sum</span>
+                    <span className="font-mono text-foreground">= 98.072</span>
+                  </div>
                 </div>
 
-                {/* Arithmetic */}
-                <div className="mt-2 font-mono text-sm text-muted-foreground">
-                  2×1.008 + 32.06 + 4×15.999 = 98.07
-                </div>
-
-                {/* Source line */}
-                <div className="mt-3 text-xs font-mono text-warning uppercase tracking-wide">
-                  Source: IUPAC 2021 · Engine: molar-mass@verchem
+                {/* Source line — amber accent dot, muted text for WCAG AA */}
+                <div className="mt-3 flex items-center gap-2 border-l-2 border-warning pl-2">
+                  <span className="font-mono text-[11px] text-muted-foreground uppercase tracking-wide">
+                    Source: IUPAC 2021 · Engine: molar-mass@verchem
+                  </span>
                 </div>
 
                 {/* Divider */}
@@ -53,8 +72,8 @@ export default function Home() {
 
                 {/* Signature + verified */}
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-muted-foreground">
-                    vc_hmac_sha256 7f3a…c91e
+                  <span className="font-mono text-[11px] text-muted-foreground">
+                    {sigDisplay}
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,6 +83,19 @@ export default function Home() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Verify your own result link */}
+            <div className="mt-3 text-center">
+              <Link
+                href="/tools/verified-answer"
+                className="inline-flex items-center gap-1 text-sm text-primary-500 hover:text-primary-600 transition-colors"
+              >
+                Verify your own result
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
             </div>
           </div>
 
@@ -268,8 +300,8 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 flex items-center justify-center rounded bg-primary-500 text-primary-foreground font-bold text-xs">
-                  V
+                <div className="w-7 h-7 flex items-center justify-center rounded border border-border bg-card font-mono text-[10px] font-bold text-foreground">
+                  VC
                 </div>
                 <span className="font-bold text-foreground">VerChem</span>
               </div>
@@ -309,8 +341,8 @@ export default function Home() {
           </div>
 
           <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            <p>© 2026 VerChem. All rights reserved.</p>
-            <p className="mt-1">Part of the Ver* Ecosystem</p>
+            <p>© 2025 VerChem. All rights reserved.</p>
+            <p className="mt-1">Part of the Ver* Ecosystem by Job Prukpatarakul</p>
           </div>
         </div>
       </section>

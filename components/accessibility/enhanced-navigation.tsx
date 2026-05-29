@@ -108,10 +108,11 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
   
   // Get current page label
   const getCurrentPageLabel = () => {
-    const currentItem = NAVIGATION_ITEMS.find(item => 
+    if (pathname === '/') return 'Home';
+    const currentItem = NAVIGATION_ITEMS.find(item =>
       pathname === item.href || pathname.startsWith(item.href + '/')
     );
-    return currentItem?.label || 'Unknown';
+    return currentItem?.label || '';
   };
   
   return (
@@ -251,20 +252,24 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                   >
                     {item.icon}
                     <span className="flex-1">{item.label}</span>
-                    <kbd className="px-2 py-1 text-xs font-mono bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded">
-                      {item.shortcut}
-                    </kbd>
+                    {item.shortcut && (
+                      <kbd className="px-2 py-1 text-xs font-mono bg-background border border-border rounded">
+                        {item.shortcut}
+                      </kbd>
+                    )}
                   </Link>
                 );
               })}
             </div>
             
             {/* Current Page Indicator */}
-            <div className="mt-4 pt-4 border-t border-border">
-              <div className="text-sm text-muted-foreground">
-                Current page: <span className="font-medium text-foreground">{getCurrentPageLabel()}</span>
+            {getCurrentPageLabel() && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="text-sm text-muted-foreground">
+                  Current page: <span className="font-medium text-foreground">{getCurrentPageLabel()}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

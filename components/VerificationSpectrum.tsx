@@ -43,8 +43,6 @@ export function VerificationSpectrum({
       className={`flex items-end ${className}`}
       style={{ height, gap }}
       aria-hidden="true"
-      role="img"
-      aria-label="Verification signature spectrum"
     >
       {bars.map((h, i) => (
         <div

@@ -65,7 +65,7 @@ export function SupportBanner({
     return (
       <div className="fixed bottom-0 left-0 right-0 z-40 p-4 animate-slide-up">
         <div className="max-w-2xl mx-auto">
-          <div className="relative p-4 sm:p-6 rounded-2xl bg-white dark:bg-neutral-800 border border-border shadow-2xl">
+          <div className="relative p-4 sm:p-6 rounded-lg bg-card border border-border">
             {/* Close button */}
             <button
               onClick={handleDismiss}
@@ -79,13 +79,15 @@ export function SupportBanner({
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               {/* Icon */}
-              <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-3xl">
-                ☕
+              <div className="flex-shrink-0 w-10 h-10 rounded-md bg-muted border border-border flex items-center justify-center text-foreground">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
               </div>
 
               {/* Content */}
               <div className="flex-1 text-center sm:text-left">
-                <h3 className="font-bold text-lg mb-1">Enjoying VerChem?</h3>
+                <h3 className="font-semibold text-foreground mb-1">Enjoying VerChem?</h3>
                 <p className="text-sm text-muted-foreground">
                   VerChem is free forever. If it helps you, consider supporting our mission to make chemistry education accessible.
                 </p>
@@ -95,13 +97,13 @@ export function SupportBanner({
               <div className="flex flex-col sm:flex-row gap-2">
                 <Link
                   href="/support"
-                  className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all whitespace-nowrap"
+                  className="px-5 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors whitespace-nowrap"
                 >
-                  Support VerChem ♥
+                  Support VerChem
                 </Link>
                 <button
                   onClick={handleMaybeLater}
-                  className="px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Maybe later
                 </button>
@@ -115,20 +117,24 @@ export function SupportBanner({
 
   // Inline variant (for embedding in pages)
   return (
-    <div className="my-8 p-6 rounded-2xl bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-100 dark:border-primary-800">
+    <div className="my-8 p-6 rounded-lg bg-card border border-border">
       <div className="flex flex-col md:flex-row items-center gap-4">
-        <div className="text-4xl">☕</div>
+        <div className="flex-shrink-0 w-10 h-10 rounded-md bg-muted border border-border flex items-center justify-center text-foreground">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </div>
         <div className="flex-1 text-center md:text-left">
-          <h3 className="font-bold text-lg mb-1">Support Free Chemistry Education</h3>
+          <h3 className="font-semibold text-foreground mb-1">Support Free Chemistry Education</h3>
           <p className="text-sm text-muted-foreground">
             VerChem is free for everyone. Your support helps us add more features and keep servers running.
           </p>
         </div>
         <Link
           href="/support"
-          className="px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all whitespace-nowrap"
+          className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors whitespace-nowrap"
         >
-          Support Us ♥
+          Support Us
         </Link>
       </div>
     </div>
@@ -143,11 +149,11 @@ export function SupportHeartButton() {
   return (
     <Link
       href="/support"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors text-sm font-medium"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-sm font-medium"
       title="Support VerChem"
     >
-      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
       <span>Support</span>
     </Link>
@@ -183,15 +189,15 @@ export function CalculatorThankYou() {
   if (!show) return null;
 
   return (
-    <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-100 dark:border-primary-800 text-center">
+    <div className="mt-4 p-4 rounded-lg bg-card border border-border text-center">
       <p className="text-sm text-muted-foreground mb-2">
         Glad we could help! VerChem is free thanks to our amazing supporters.
       </p>
       <Link
         href="/support"
-        className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+        className="text-sm text-primary-500 hover:text-primary-600 font-medium"
       >
-        Learn how you can help →
+        Learn how you can help
       </Link>
     </div>
   );
