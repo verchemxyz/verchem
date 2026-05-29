@@ -29,11 +29,10 @@ Same org is fine. Suggested name `verchem`. Pick a region close to users.
 > ⚠️ Free tier pauses again after ~7 days of inactivity. For a live product,
 > set an uptime ping or move to Pro so this doesn't recur.
 
-### 3. Run the schema (SQL Editor → paste each, in order)
-Run these repo files **in order** (each is idempotent — safe to re-run):
-1. `supabase/migrations/000_users_table.sql`
-2. `supabase/migrations/001_molecules_table.sql`
-3. `supabase/migrations/002_answer_cards_table.sql`
+### 3. Run the schema (SQL Editor → New query → paste → Run)
+**Easiest:** paste the single combined file **`supabase/full_setup.sql`** once.
+(Or run `000` → `001` → `002` from `supabase/migrations/` individually — same
+result. All idempotent, safe to re-run.)
 
 > Do **NOT** run `supabase/enable-rls.sql` — it's superseded (it references the
 > unused saved_calculations/favorites/user_preferences tables and would error).
