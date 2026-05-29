@@ -20,6 +20,7 @@ import {
   toSignablePayload,
 } from '@/lib/answer-cards/signature'
 import { parseSubmittedCard } from '@/lib/answer-cards/validate-card'
+import { isValidSignablePayload } from '@/lib/answer-cards/payload-shape'
 import type { AnswerCard } from '@/lib/answer-cards/types'
 
 let passed = 0
@@ -207,6 +208,18 @@ async function run() {
     const tooLong = JSON.parse(JSON.stringify(stub))
     tooLong.tool_calls[0].result.value = { s: 'x'.repeat(4001) }
     assert.equal(parseSubmittedCard(tooLong), null, 'over-long string in value must be rejected')
+  })
+
+  await test('F7: isValidSignablePayload deep-validates (rejects malformed tool_calls)', async () => {
+    const card = await makeSignedCard()
+    const good = toSignablePayload(card)
+    assert.equal(isValidSignablePayload(good), true, 'a real signed payload must pass')
+    assert.equal(isValidSignablePayload({ ...good, tool_calls: [null] }), false, 'tool_calls:[null]')
+    assert.equal(isValidSignablePayload({ ...good, tool_calls: [{ name: 'n' }] }), false, 'incomplete tool_call')
+    assert.equal(isValidSignablePayload({ ...good, status: 'weird' }), false, 'non-enum status')
+    assert.equal(isValidSignablePayload({ ...good, audit: { clean: 'no', unmatched: [] } }), false, 'bad audit')
+    assert.equal(isValidSignablePayload(null), false)
+    assert.equal(isValidSignablePayload({}), false)
   })
 
   console.log(`\n${passed} passed, ${failed} failed`)

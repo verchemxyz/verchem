@@ -20,6 +20,7 @@ import {
   verifyCanonicalSignature,
   toSignablePayload,
 } from '@/lib/answer-cards/signature'
+import { isValidSignablePayload } from '@/lib/answer-cards/payload-shape'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -56,21 +57,6 @@ export interface AnswerCardSummary {
   signatureValid: boolean
 }
 
-/** Shape-guard a parsed signed_payload before trusting it as a SignablePayload. */
-function isValidSignablePayload(p: unknown): p is SignablePayload {
-  if (!p || typeof p !== 'object' || Array.isArray(p)) return false
-  const o = p as Record<string, unknown>
-  if (typeof o.question !== 'string' || typeof o.status !== 'string') return false
-  if (!Array.isArray(o.tool_calls)) return false
-  if (typeof o.explanation !== 'string') return false
-  if (!o.audit || typeof o.audit !== 'object' || Array.isArray(o.audit)) return false
-  const a = o.audit as Record<string, unknown>
-  if (typeof a.clean !== 'boolean' || !Array.isArray(a.unmatched)) return false
-  if (typeof o.model !== 'string' || typeof o.version !== 'string' || typeof o.issued_at !== 'string') {
-    return false
-  }
-  return true
-}
 
 /** A card reconstructed from storage, with the result of re-verifying its HMAC. */
 export interface LoadedAnswerCard {
@@ -191,18 +177,27 @@ export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerC
     Pick<AnswerCardRow, 'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'>
   >
 
-  // Re-verify each row so the list can't show a VERIFIED-style badge from a
-  // denormalized `status` column that no longer matches the signature. The
-  // signed_payload is verified but NOT returned to the client (keeps it light).
+  // Re-verify each row AND derive question/status from the SIGNED payload — not
+  // the denormalized columns. Otherwise tampering only `status` (to 'verified')
+  // without touching signed_payload/signature would keep signatureValid true and
+  // the list would show a forged Verified badge. The signed_payload is verified
+  // but NOT returned to the client (keeps the list light).
   return Promise.all(
-    rows.map(async (r) => ({
-      id: r.id,
-      question: r.question,
-      status: r.status,
-      is_public: r.is_public,
-      created_at: r.created_at,
-      signatureValid: await verifyCanonicalSignature(r.signed_payload, r.signature),
-    }))
+    rows.map(async (r) => {
+      const signatureValid = await verifyCanonicalSignature(r.signed_payload, r.signature)
+      let question = r.question
+      let status = r.status
+      try {
+        const raw = JSON.parse(r.signed_payload)
+        if (isValidSignablePayload(raw)) {
+          question = raw.question
+          status = raw.status
+        }
+      } catch {
+        /* keep denormalized columns as a last resort; row shows as tampered */
+      }
+      return { id: r.id, question, status, is_public: r.is_public, created_at: r.created_at, signatureValid }
+    })
   )
 }
 

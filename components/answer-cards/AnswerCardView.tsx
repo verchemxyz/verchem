@@ -88,6 +88,14 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
   const badge = statusBadge(card.status)
   const tampered = signatureValid === false
 
+  // Defense in depth: a tampered/corrupt loaded card could carry malformed
+  // tool_calls/audit. The data layer already falls back to a safe empty card,
+  // but guard here too so this component can never throw mid-render.
+  const toolCalls = Array.isArray(card.tool_calls)
+    ? card.tool_calls.filter((tc) => !!tc && typeof tc === 'object')
+    : []
+  const audit = card.audit ?? { clean: true, unmatched: [] }
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* TAMPERED banner — overrides everything when the loaded signature fails */}
@@ -137,7 +145,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       )}
 
       {/* Verified Engine Results — the authoritative answer */}
-      {card.tool_calls.length > 0 && (
+      {toolCalls.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-emerald-300 uppercase tracking-wide flex items-center gap-2">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -145,11 +153,11 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
             </svg>
             Verified Engine Results
           </h3>
-          {card.tool_calls.map((tc, idx) => (
+          {toolCalls.map((tc, idx) => (
             <div
               key={`${tc.name}-${idx}`}
               className={`rounded-xl border p-4 ${
-                tc.result.ok
+                tc.result?.ok
                   ? 'border-green-500/20 bg-green-500/5'
                   : 'border-red-500/20 bg-red-500/5'
               }`}
@@ -166,7 +174,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
                     {JSON.stringify(tc.input)}
                   </code>
                 </div>
-                {tc.result.ok ? (
+                {tc.result?.ok ? (
                   <div>
                     <span className="text-slate-500">Result:</span>{' '}
                     <code className="rounded bg-white/5 px-1.5 py-0.5 text-green-300">
@@ -175,7 +183,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
                   </div>
                 ) : (
                   <div className="text-red-300">
-                    <span className="text-slate-500">Error:</span> {tc.result.error}
+                    <span className="text-slate-500">Error:</span> {tc.result?.error}
                   </div>
                 )}
                 {tc.citation && (
@@ -190,7 +198,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       )}
 
       {/* Audit informational warning (does NOT downgrade badge) */}
-      {!card.audit.clean && card.audit.unmatched.length > 0 && (
+      {!audit.clean && audit.unmatched.length > 0 && (
         <div
           role="status"
           aria-label="Audit warning: unverified figures in explanation"
@@ -238,7 +246,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
         </div>
       )}
 
-      {card.status === 'unverified' && card.tool_calls.length === 0 && (
+      {card.status === 'unverified' && toolCalls.length === 0 && (
         <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-200">
           This answer is conceptual and was not verified by a deterministic calculation engine.
           Numerical claims should be independently checked.
