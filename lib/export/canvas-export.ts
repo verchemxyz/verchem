@@ -1,4 +1,7 @@
-import html2canvas from 'html2canvas';
+// html2canvas-pro is a maintained fork that supports modern CSS color functions
+// (oklch/oklab/color-mix) emitted by Tailwind v4. The original html2canvas@1.4.1
+// throws on oklch(), which would break every raster export in this app.
+import html2canvas from 'html2canvas-pro';
 
 export interface CanvasExportOptions {
   scale?: number;

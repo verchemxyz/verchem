@@ -21,6 +21,10 @@ export type { SVGExportOptions } from './svg-export';
 export { PDFExporter } from './pdf-export';
 export type { PDFExportOptions, PDFPage } from './pdf-export';
 
+// Native print-to-PDF (vector, oklch-safe)
+export { printElement } from './print-export';
+export type { PrintOptions } from './print-export';
+
 // Import the ExportManager class
 import { ExportManager as EM } from './export-manager';
 import type { ExportOptions, BatchExportOptions, CalculatorResult, ReportSection } from './export-manager';
