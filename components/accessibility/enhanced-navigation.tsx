@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAccessibility } from '@/lib/accessibility/context';
 import { useAccessibilityFeatures } from '@/lib/accessibility/use-accessibility-features';
@@ -66,16 +65,6 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     )
-  },
-  {
-    href: '/support',
-    label: 'Support',
-    description: 'Support VerChem development',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-      </svg>
-    )
   }
 ];
 
@@ -128,7 +117,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
   return (
     <nav 
       ref={navRef}
-      className={`bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 ${className}`}
+      className={`bg-background border-b border-border ${className}`}
       onKeyDown={handleNavKeyDown}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -137,19 +126,13 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
           <div className="flex items-center">
             <Link
               href="/"
-              className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg px-2 py-1 transition-opacity"
+              className="flex items-center gap-2 text-xl font-bold text-foreground hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-md px-2 py-1 transition-opacity"
               aria-label="VerChem Home"
             >
-              <div className="relative w-10 h-10">
-                <Image
-                  src="/logo.png"
-                  alt="VerChem Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
+              <div className="relative w-8 h-8 flex items-center justify-center rounded bg-primary-500 text-primary-foreground font-bold text-sm">
+                V
               </div>
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold">
+              <span className="font-bold text-foreground">
                 VerChem
               </span>
             </Link>
@@ -164,10 +147,10 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                     isActive
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={`${item.label} - ${item.description}`}
@@ -193,7 +176,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                 setShowCommandPalette(true);
                 announceToScreenReader('Quick search opened');
               }}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               aria-label="Quick search (Ctrl+K)"
               title="Ctrl+K - Quick search"
             >
@@ -222,7 +205,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                 setIsMenuOpen(!isMenuOpen);
                 announceToScreenReader(`Navigation menu ${isMenuOpen ? 'closed' : 'opened'}`);
               }}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               aria-expanded={isMenuOpen}
               aria-label="Toggle navigation menu"
               aria-controls="mobile-menu"
@@ -242,7 +225,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
         {isMenuOpen && (
           <div 
             id="mobile-menu"
-            className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4"
+            className="md:hidden border-t border-border py-4"
             role="menu"
             aria-label="Mobile navigation"
           >
@@ -254,10 +237,10 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                       isActive
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'text-primary-600 dark:text-primary-400 bg-muted'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                     role="menuitem"
                     aria-current={isActive ? 'page' : undefined}
@@ -277,9 +260,9 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
             </div>
             
             {/* Current Page Indicator */}
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Current page: <span className="font-medium text-gray-900 dark:text-gray-100">{getCurrentPageLabel()}</span>
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="text-sm text-muted-foreground">
+                Current page: <span className="font-medium text-foreground">{getCurrentPageLabel()}</span>
               </div>
             </div>
           </div>

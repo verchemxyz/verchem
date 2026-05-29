@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "@/lib/theme-context";
 import { AccessibilityProvider } from "@/lib/accessibility/context";
 import { SkipLinks } from "@/components/accessibility/skip-links";
@@ -22,13 +23,27 @@ import "./globals.css";
 import "./accessibility.css";
 import "./tutorials.css";
 
+const plexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-sans",
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
   title: {
-    default: "VerChem - Chemistry Education Platform",
+    default: "VerChem — Verified Chemistry Workbench",
     template: "%s | VerChem"
   },
-  description: "Professional chemistry calculators, interactive periodic table, 3D molecular viewer, and educational tools. 118 NIST-validated elements, equation balancer, stoichiometry, pH, gas laws. Free and accessible.",
+  description: "Deterministic chemistry calculators with HMAC-signed results. 118 NIST-validated elements, interactive periodic table, 3D molecular viewer, stoichiometry, pH, gas laws. Free.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -59,21 +74,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
-    title: 'VerChem - Chemistry Education Platform',
-    description: 'Professional chemistry calculators, interactive periodic table, 3D molecular viewer. Free and accessible.',
+    title: 'VerChem — Verified Chemistry Workbench',
+    description: 'Deterministic chemistry calculators with HMAC-signed results. Free and accessible.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'VerChem Chemistry Education Platform',
+        alt: 'VerChem Verified Chemistry Workbench',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VerChem - Chemistry Education Platform',
-    description: 'Professional chemistry calculators, periodic table, 3D molecular viewer. Free and accessible.',
+    title: 'VerChem — Verified Chemistry Workbench',
+    description: 'Deterministic chemistry calculators with HMAC-signed results. Free and accessible.',
     images: ['/opengraph-image.png'],
   },
   robots: {
@@ -94,8 +109,8 @@ export function generateViewport() {
     width: 'device-width',
     initialScale: 1,
     themeColor: [
-      { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-      { media: "(prefers-color-scheme: dark)", color: "#1f2937" }
+      { media: "(prefers-color-scheme: light)", color: "#FAFAF6" },
+      { media: "(prefers-color-scheme: dark)", color: "#171B20" }
     ]
   }
 }
@@ -106,7 +121,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${plexSans.variable} ${plexMono.variable}`}>
       <head>
         {/* Accessibility meta tags */}
         <meta name="color-scheme" content="light dark" />
@@ -128,7 +143,7 @@ export default function RootLayout({
       </head>
       
       <body
-        className="antialiased"
+        className="antialiased font-sans"
         suppressHydrationWarning
       >
         <ThemeProvider
@@ -153,7 +168,7 @@ export default function RootLayout({
                 {/* Main content area with skip link target */}
                 <main 
                   id="main-content"
-                  className="min-h-screen bg-gray-50 dark:bg-gray-900"
+                  className="min-h-screen bg-background text-foreground"
                   role="main"
                   aria-label="Main content"
                   tabIndex={-1}
@@ -164,20 +179,20 @@ export default function RootLayout({
                 {/* Footer with skip link target */}
                 <footer 
                   id="footer"
-                  className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700"
+                  className="bg-background border-t border-border"
                   role="contentinfo"
                   aria-label="Footer"
                 >
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="text-center text-gray-600 dark:text-gray-400">
+                    <div className="text-center text-muted-foreground">
                       <p className="mb-2">
-                        VerChem - World-class chemistry calculators and interactive tools
+                        VerChem — Deterministic chemistry calculators with signed results
                       </p>
                       <p className="text-sm">
-                        Built with accessibility in mind. Press <kbd className="px-1 py-0.5 text-xs font-mono bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">Ctrl+/</kbd> to view keyboard shortcuts.
+                        Built with accessibility in mind. Press <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">Ctrl+/</kbd> to view keyboard shortcuts.
                       </p>
                       <p className="text-sm mt-1">
-                        Need help? Click the <kbd className="px-1 py-0.5 text-xs font-mono bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">?</kbd> button for tutorials and assistance.
+                        Need help? Click the <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">?</kbd> button for tutorials and assistance.
                       </p>
                     </div>
                   </div>

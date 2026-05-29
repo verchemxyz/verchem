@@ -1,558 +1,426 @@
-import Link from 'next/link'
-import { GlobalSearchBar } from '@/components/search/GlobalSearchBar'
-import { SupportBanner } from '@/components/support/SupportBanner'
+import Link from "next/link";
+import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
+import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Hero Section - PREMIUM */}
-      <section className="hero-gradient-premium max-w-7xl mx-auto px-4 py-24 text-center relative overflow-hidden">
-        {/* Floating decorative elements */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-primary-400/20 rounded-full blur-3xl animate-pulse-premium"></div>
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-secondary-400/20 rounded-full blur-3xl animate-pulse-premium" style={{animationDelay: '1s'}}></div>
-
-        <div className="badge-premium mb-8">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-          </span>
-          🎁 100% Free • No Credit Card • World-Class Quality
-        </div>
-
-        <h1 className="text-5xl md:text-7xl font-bold mb-6">
-          <span className="text-premium">World-Class</span>
-          <br />
-          <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-emerald-600 bg-clip-text text-transparent">
-            Chemistry Education Platform
-          </span>
-        </h1>
-
-        <p className="text-xl md:text-2xl text-secondary-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-          Professional chemistry calculators, interactive periodic table, and molecular tools.
-          <br />
-          <span className="text-primary-600 font-semibold">Built for students, educators & professionals.</span>
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link href="/tools" className="btn-premium glow-premium px-8 py-4 text-lg">
-            🚀 Explore All Tools
-          </Link>
-          <Link
-            href="/organic"
-            className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all text-lg inline-flex items-center justify-center gap-2"
-          >
-            <span>🧪 Organic Chemistry</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-
-        {/* Trust Indicators */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-          <div className="flex items-center gap-2 badge-premium">
-            <svg className="w-5 h-5 text-success" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="font-semibold">NIST Validated</span>
+    <div className="min-h-screen bg-background">
+      {/* Hero — Signed Evidence Panel */}
+      <section className="relative border-b border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+          {/* Headline */}
+          <div className="text-center animate-reveal">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
+              Verified Chemistry Workbench
+            </h1>
+            <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Deterministic engines calculate. AI explains only the signed result.
+            </p>
           </div>
-          <div className="flex items-center gap-2 badge-premium">
-            <svg className="w-5 h-5 text-warning" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="font-semibold">100% Free</span>
-          </div>
-          <div className="flex items-center gap-2 badge-premium">
-            <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13 6a3 3 0 11-6 0 3 3 0 024 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM24 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-            </svg>
-            <span className="font-semibold">Open Source Spirit</span>
-          </div>
-        </div>
 
-        {/* Global Search */}
-        <div className="mt-24 max-w-2xl mx-auto">
-          <div className="premium-card p-2">
+          {/* Signed Result Card */}
+          <div className="mt-12 max-w-xl mx-auto animate-reveal animate-reveal-delay-1">
+            <div className="border border-border rounded-lg bg-card overflow-hidden">
+              {/* Spectrum strip */}
+              <div className="px-5 pt-4 pb-1">
+                <VerificationSpectrum
+                  hash="7f3a9c8e2d1b4f5a6c7e8d9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
+                  height={28}
+                  barWidth={2}
+                  gap={1}
+                />
+              </div>
+
+              <div className="px-5 py-4">
+                {/* Compound + result */}
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold text-foreground font-sans">H₂SO₄</span>
+                  <span className="text-xl font-mono text-foreground">98.07 g/mol</span>
+                </div>
+
+                {/* Arithmetic */}
+                <div className="mt-2 font-mono text-sm text-muted-foreground">
+                  2×1.008 + 32.06 + 4×15.999 = 98.07
+                </div>
+
+                {/* Source line */}
+                <div className="mt-3 text-xs font-mono text-warning uppercase tracking-wide">
+                  Source: IUPAC 2021 · Engine: molar-mass@verchem
+                </div>
+
+                {/* Divider */}
+                <div className="my-3 border-t border-border" />
+
+                {/* Signature + verified */}
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    vc_hmac_sha256 7f3a…c91e
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Verified
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Strip: Compute → Sign → Explain */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 md:gap-10 animate-reveal animate-reveal-delay-2">
+            {[
+              { label: "Compute", desc: "Deterministic engine", num: "01" },
+              { label: "Sign", desc: "HMAC-SHA256 seal", num: "02" },
+              { label: "Explain", desc: "AI around the numbers", num: "03" },
+            ].map((step, i) => (
+              <div key={step.label} className="flex items-center gap-3">
+                <span className="font-mono text-xs text-muted-foreground">{step.num}</span>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">{step.label}</div>
+                  <div className="text-xs text-muted-foreground">{step.desc}</div>
+                </div>
+                {i < 2 && (
+                  <svg className="hidden md:block w-4 h-4 text-muted-foreground ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-reveal animate-reveal-delay-3">
+            <Link
+              href="/tools"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-primary-500 text-primary-foreground font-medium hover:bg-primary-600 transition-colors"
+            >
+              Open Workbench
+            </Link>
+            <Link
+              href="/periodic-table"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-md border border-border bg-card text-foreground font-medium hover:bg-muted transition-colors"
+            >
+              Browse Elements
+            </Link>
+          </div>
+
+          {/* Search */}
+          <div className="mt-12 max-w-xl mx-auto animate-reveal animate-reveal-delay-4">
             <GlobalSearchBar
-              placeholder="🔍 Search compounds, elements, calculators..."
+              placeholder="Search compounds, elements, calculators..."
               className="mb-0"
             />
-          </div>
-          <div className="flex flex-wrap justify-center gap-2 mt-4 text-sm">
-            <Link
-              href="/search?q=water"
-              className="badge-premium hover:scale-105 transition-transform cursor-pointer"
-            >
-              water
-            </Link>
-            <Link
-              href="/search?q=NaCl"
-              className="badge-premium hover:scale-105 transition-transform cursor-pointer"
-            >
-              NaCl
-            </Link>
-            <Link
-              href="/search?q=stoichiometry"
-              className="badge-premium hover:scale-105 transition-transform cursor-pointer"
-            >
-              stoichiometry
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white py-24">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="animate-float-premium">
-              <div className="text-5xl font-bold mb-2">118</div>
-              <div className="text-primary-100 font-medium">Complete Elements</div>
-            </div>
-            <div className="animate-float-premium" style={{animationDelay: '0.2s'}}>
-              <div className="text-5xl font-bold mb-2">50+</div>
-              <div className="text-primary-100 font-medium">Chemical Compounds</div>
-            </div>
-            <div className="animate-float-premium" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">24</div>
-              <div className="text-primary-100 font-medium">Pro Tools</div>
-            </div>
-            <div className="animate-float-premium" style={{animationDelay: '0.6s'}}>
-              <div className="text-5xl font-bold mb-2">100%</div>
-              <div className="text-primary-100 font-medium">Free Forever</div>
+            <div className="flex flex-wrap justify-center gap-3 mt-3 text-sm">
+              {["H₂O", "C₆H₁₂O₆", "stoichiometry", "pKa"].map((q) => (
+                <Link
+                  key={q}
+                  href={`/search?q=${encodeURIComponent(q)}`}
+                  className="font-mono text-xs text-muted-foreground hover:text-primary-500 transition-colors"
+                >
+                  {q}
+                </Link>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Grid - PREMIUM CARDS */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-24">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-premium">Everything You Need</span>
+      {/* Tools Grid */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            Tools
           </h2>
-          <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            24 professional tools validated against industry standards
+          <p className="mt-2 text-muted-foreground">
+            Deterministic engines, validated against NIST and IUPAC standards.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* 3D Molecular Viewer */}
-          <Link href="/3d-viewer" className="group">
-            <div className="premium-card p-6 h-full">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m24 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2">3D Molecular Viewer</h3>
-              <p className="text-muted-foreground mb-4">
-                Interactive 3D visualization with CPK coloring and rotation controls
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">Interactive</span>
-                <span className="badge-premium text-xs">CPK Colors</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Molecule Builder - FEATURED */}
-          <Link href="/molecule-builder" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-warning text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce z-10">
-              🔥 HOT
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-secondary-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-secondary-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-premium">
-                Revolutionary Molecule Builder
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Drag-and-drop atoms with stability validation and shake animations
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs animate-pulse-premium">Drag & Drop</span>
-                <span className="badge-premium text-xs">Stability AI</span>
-                <span className="badge-premium text-xs">Animations</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Continue with more tools... (abbreviated for length) */}
-          <Link href="/periodic-table" className="group">
-            <div className="premium-card p-6 h-full">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM24 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Interactive Periodic Table</h3>
-              <p className="text-muted-foreground mb-4">
-                All 118 elements with complete NIST-validated data
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">118 Elements</span>
-                <span className="badge-premium text-xs">NIST Data</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Calculators */}
-          <Link href="/calculators" className="group">
-            <div className="premium-card p-6 h-full">
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2">All Calculators</h3>
-              <p className="text-muted-foreground mb-4">
-                pH, Gas Laws, Stoichiometry, Thermodynamics, and more
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">8 Calculators</span>
-                <span className="badge-premium text-xs">Step-by-Step</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Organic Chemistry */}
-          <Link href="/organic" className="group">
-            <div className="premium-card p-6 h-full border-2 border-emerald-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-premium">
-                Organic Chemistry Suite
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                22 functional groups, 40 named reactions with mechanisms, and a reaction predictor
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">40 Reactions</span>
-                <span className="badge-premium text-xs">Mechanisms</span>
-                <span className="badge-premium text-xs">Predictor</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Spectroscopy Tools - NEW */}
-          <Link href="/spectroscopy" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce z-10">
-              NEW
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-violet-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-white text-xl">📡</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-premium">
-                Spectroscopy Tools
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                IR interpreter, NMR analyzer (¹H & ¹³C), and mass spectrometry tools
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">IR</span>
-                <span className="badge-premium text-xs">NMR</span>
-                <span className="badge-premium text-xs">Mass Spec</span>
-              </div>
-            </div>
-          </Link>
-
-          {/* Nuclear & Quantum - NEW */}
-          <Link href="/tools/nuclear" className="group relative">
-            <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce z-10">
-              NEW
-            </div>
-            <div className="premium-card p-6 h-full border-2 border-amber-400/50">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-white text-xl">☢️</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-premium">
-                Nuclear & Quantum
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Radioactive decay, binding energy, quantum numbers, orbitals, and Bohr model
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="badge-premium text-xs">Decay Calc</span>
-                <span className="badge-premium text-xs">Quantum #s</span>
-                <span className="badge-premium text-xs">Orbitals</span>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="text-center mt-12">
-          <Link href="/calculators" className="btn-premium glow-premium">
-            View All Chemistry Tools →
-          </Link>
-        </div>
-      </section>
-
-      {/* Free Forever + Support Section */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-24">
-          <div className="badge-premium mb-4">🎁 100% Free</div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-premium">Free Forever</span>
-          </h2>
-          <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-            All features are completely free. No credit card, no trial limits.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Free Forever */}
-          <div className="premium-card p-8 relative border-2 border-primary-500 glow-premium">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-              🎁 FOREVER FREE
-            </div>
-            <div className="text-center mb-6 mt-2">
-              <h3 className="text-2xl font-bold mb-2">Full Access</h3>
-              <div className="text-5xl font-bold mb-2 text-primary-600">$0</div>
-              <div className="text-muted-foreground">forever</div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>All 24+ tools & calculators</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>118 elements (NIST data)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>3D Molecular Viewer & VSEPR</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Unlimited calculations</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-success mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-24 8 8 0 000 24zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Export to PDF, PNG, SVG</span>
-              </li>
-            </ul>
-            <Link href="/calculators" className="w-full btn-premium block text-center">
-              Start Using Free
-            </Link>
-          </div>
-
-          {/* Support Us */}
-          <div className="premium-card p-8 relative bg-gradient-to-br from-pink-50/50 to-red-50/50">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2">Support Us</h3>
-              <div className="text-5xl mb-2">💚</div>
-              <div className="text-muted-foreground">Help keep VerChem free</div>
-            </div>
-            <p className="text-muted-foreground mb-6 text-center">
-              VerChem is built with love by a small team. Your support helps us maintain servers and develop new features.
-            </p>
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <a href="https://buy.stripe.com/9B6eVceFOg6z4Ctehm3cc0k" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
-                ☕ $3
-              </a>
-              <a href="https://buy.stripe.com/aFaaEW69icUn8SJ6OU3cc0l" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
-                🍕 $10
-              </a>
-              <a href="https://buy.stripe.com/aFa00igNW3jNb0R1uA3cc0m" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-300 text-pink-600 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center">
-                🎁 $25
-              </a>
-              <a href="https://buy.stripe.com/14A28q0OYaMfd8Z4GM3cc0n" target="_blank" rel="noopener noreferrer" className="px-4 py-3 border-2 border-pink-400 text-pink-700 rounded-xl font-semibold hover:bg-pink-50 transition-all text-center bg-pink-50">
-                💎 $50
-              </a>
-            </div>
-            <Link href="/support" className="w-full px-6 py-3 border-2 border-primary-600 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 transition-all block text-center">
-              Learn More
-            </Link>
-          </div>
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-muted-foreground">
-            💚 Supported by donations from the chemistry community
-          </p>
-        </div>
-      </section>
-
-      <div className="divider-premium max-w-7xl mx-auto px-4"></div>
-
-      {/* Why VerChem Section */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-24">
-          <div className="badge-premium mb-4">✨ Why VerChem</div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="text-premium">Built for Learning</span>
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="premium-card p-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2">NIST Validated Data</h3>
-            <p className="text-muted-foreground">
-              All 118 elements with properties sourced from NIST and IUPAC standards. Accurate data you can trust.
-            </p>
-          </div>
-
-          <div className="premium-card p-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-secondary-500 to-secondary-600 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.248 5.477 3 6.253v13C4.248 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.248 5.477 14.754 5 24.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 24.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2">Step-by-Step Solutions</h3>
-            <p className="text-muted-foreground">
-              Every calculation shows the work. Learn the process, not just the answer. Perfect for students.
-            </p>
-          </div>
-
-          <div className="premium-card p-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-2">Free Forever</h3>
-            <p className="text-muted-foreground">
-              No paywalls, no trials. Full access to all tools. Supported by donations from the community.
-            </p>
-          </div>
-        </div>
-
-        {/* Real Stats */}
-        <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">118</div>
-            <div className="text-sm text-muted-foreground">Elements</div>
-          </div>
-          <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">24</div>
-            <div className="text-sm text-muted-foreground">Pro Tools</div>
-          </div>
-          <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">50+</div>
-            <div className="text-sm text-muted-foreground">Compounds</div>
-          </div>
-          <div className="premium-card p-6 text-center">
-            <div className="text-3xl font-bold text-primary-600 mb-2">100%</div>
-            <div className="text-sm text-muted-foreground">Free</div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="hero-gradient-premium max-w-7xl mx-auto px-4 py-20 text-center relative overflow-hidden">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-primary-400/20 rounded-full blur-3xl animate-pulse-premium"></div>
-        <div className="absolute bottom-10 right-10 w-32 h-32 bg-secondary-400/20 rounded-full blur-3xl animate-pulse-premium" style={{animationDelay: '1s'}}></div>
-
-        <h2 className="text-4xl md:text-5xl font-bold mb-6">
-          <span className="text-premium">Ready to Transform</span>
-          <br />
-          <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-            Your Chemistry Experience?
-          </span>
-        </h2>
-        <p className="text-xl text-secondary-600 mb-12 max-w-2xl mx-auto">
-          All tools, all features, completely free. Start learning chemistry today.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/calculators" className="btn-premium glow-premium px-10 py-4 text-lg">
-            🚀 Get Started Free
-          </Link>
-          <Link
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ToolCard
+            href="/periodic-table"
+            title="Periodic Table"
+            description="All 118 elements with NIST-validated atomic weights, electron configurations, and spectral data."
+            icon={<BeakerIcon />}
+          />
+          <ToolCard
             href="/calculators"
-            className="px-10 py-4 premium-card rounded-xl font-semibold hover:shadow-lg transition-all text-lg inline-flex items-center justify-center gap-2"
-          >
-            <span>Explore Tools</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
+            title="Calculators"
+            description="pH, stoichiometry, gas laws, thermodynamics, molarity, and more with step-by-step solutions."
+            icon={<CalculatorIcon />}
+          />
+          <ToolCard
+            href="/3d-viewer"
+            title="3D Molecular Viewer"
+            description="Interactive 3D visualization with CPK coloring, rotation controls, and VSEPR geometry."
+            icon={<CubeIcon />}
+          />
+          <ToolCard
+            href="/molecule-builder"
+            title="Molecule Builder"
+            description="Drag-and-drop atoms with real-time stability validation and 3D preview."
+            icon={<WrenchIcon />}
+          />
+          <ToolCard
+            href="/organic"
+            title="Organic Chemistry"
+            description="22 functional groups, 40 named reactions with mechanisms, and reaction predictor."
+            icon={<FlaskIcon />}
+          />
+          <ToolCard
+            href="/spectroscopy"
+            title="Spectroscopy"
+            description="IR interpreter, NMR analyzer (¹H & ¹³C), and mass spectrometry tools."
+            icon={<WaveIcon />}
+          />
+          <ToolCard
+            href="/equation-balancer"
+            title="Equation Balancer"
+            description="Balance chemical equations with systematic matrix reduction and verification."
+            icon={<ScaleIcon />}
+          />
+          <ToolCard
+            href="/lewis"
+            title="Lewis Structures"
+            description="Generate Lewis dot structures with formal charge analysis and resonance forms."
+            icon={<AtomIcon />}
+          />
+          <ToolCard
+            href="/tools"
+            title="All Tools"
+            description="Explore the full workbench: nuclear chemistry, lab safety, electron configuration, and more."
+            icon={<GridIcon />}
+          />
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-12">
+      {/* Why Verified */}
+      <section className="border-t border-border bg-calibration-grid">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+              Why verified?
+            </h2>
+            <p className="mt-2 text-muted-foreground max-w-xl">
+              AI can hallucinate. VerChem signs every answer so you can audit the chain of trust.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border border-border rounded-lg bg-card p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-primary-500 text-primary-foreground text-xs font-bold">
+                  1
+                </span>
+                <h3 className="font-semibold text-foreground">Engine computes</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Every number is produced by a deterministic algorithm — no stochastic LLM sampling. The same input always yields the same output.
+              </p>
+            </div>
+
+            <div className="border border-border rounded-lg bg-card p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-primary-500 text-primary-foreground text-xs font-bold">
+                  2
+                </span>
+                <h3 className="font-semibold text-foreground">HMAC signs</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Each result is sealed with an HMAC-SHA256 signature bound to the calculation inputs, engine version, and timestamp. Tamper-evident by design.
+              </p>
+            </div>
+
+            <div className="border border-border rounded-lg bg-card p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-primary-500 text-primary-foreground text-xs font-bold">
+                  3
+                </span>
+                <h3 className="font-semibold text-foreground">AI explains</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                AI only narrates around the signed numbers — it never generates the result itself. If the explanation drifts, the signature still validates the math.
+              </p>
+            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { value: "118", label: "Elements (NIST)" },
+              { value: "24+", label: "Deterministic tools" },
+              { value: "50+", label: "Compounds" },
+              { value: "0", label: "Hallucinated results" },
+            ].map((stat) => (
+              <div key={stat.label} className="border border-border rounded-lg bg-card p-4 text-center">
+                <div className="text-2xl font-bold text-foreground font-sans">{stat.value}</div>
+                <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer content on homepage */}
+      <section className="border-t border-border">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">V</span>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 flex items-center justify-center rounded bg-primary-500 text-primary-foreground font-bold text-xs">
+                  V
                 </div>
-                <span className="font-bold text-lg">VerChem</span>
+                <span className="font-bold text-foreground">VerChem</span>
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
-                Free chemistry platform with NIST-validated data. Built for students and educators.
+              <p className="text-sm text-muted-foreground">
+                Deterministic chemistry workbench. HMAC-signed results, NIST-validated data.
               </p>
-              <div className="badge-premium">
-                🎁 100% Free Forever
-              </div>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Chemistry</h3>
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Chemistry</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/periodic-table" className="hover:text-primary-600">Periodic Table</Link></li>
-                <li><Link href="/organic" className="hover:text-primary-600">Organic Chemistry</Link></li>
-                <li><Link href="/molecule-builder" className="hover:text-primary-600">Molecule Builder</Link></li>
-                <li><Link href="/calculators" className="hover:text-primary-600">All Calculators</Link></li>
+                <li><Link href="/periodic-table" className="hover:text-primary-500 transition-colors">Periodic Table</Link></li>
+                <li><Link href="/organic" className="hover:text-primary-500 transition-colors">Organic Chemistry</Link></li>
+                <li><Link href="/molecule-builder" className="hover:text-primary-500 transition-colors">Molecule Builder</Link></li>
+                <li><Link href="/calculators" className="hover:text-primary-500 transition-colors">Calculators</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Tools</h3>
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Tools</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/spectroscopy" className="hover:text-primary-600">Spectroscopy Tools</Link></li>
-                <li><Link href="/tools/lab-safety" className="hover:text-primary-600">Lab Safety & SDS</Link></li>
-                <li><Link href="/tools/nuclear" className="hover:text-primary-600">Nuclear Chemistry</Link></li>
-                <li><Link href="/tools" className="hover:text-primary-600">All Tools</Link></li>
+                <li><Link href="/spectroscopy" className="hover:text-primary-500 transition-colors">Spectroscopy</Link></li>
+                <li><Link href="/tools/lab-safety" className="hover:text-primary-500 transition-colors">Lab Safety</Link></li>
+                <li><Link href="/tools/nuclear" className="hover:text-primary-500 transition-colors">Nuclear Chemistry</Link></li>
+                <li><Link href="/tools" className="hover:text-primary-500 transition-colors">All Tools</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4">Support & Legal</h3>
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Legal</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/support" className="hover:text-primary-600">Support Us ♥</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary-600">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-primary-600">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary-500 transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary-500 transition-colors">Terms of Service</Link></li>
+                <li><Link href="/support" className="hover:text-primary-500 transition-colors">Support</Link></li>
               </ul>
             </div>
           </div>
 
-          <div className="divider-premium"></div>
-
-          <div className="text-center text-sm text-muted-foreground">
-            <p>© 2025 VerChem. All rights reserved.</p>
-            <p className="mt-2">Part of the <span className="text-primary-600 font-semibold">Ver* Ecosystem</span> by Job Prukpatarakul</p>
+          <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
+            <p>© 2026 VerChem. All rights reserved.</p>
+            <p className="mt-1">Part of the Ver* Ecosystem</p>
           </div>
         </div>
-      </footer>
-
-      {/* Support Banner - shows after 30 seconds */}
-      <SupportBanner delay={30000} />
+      </section>
     </div>
-  )
+  );
+}
+
+/* Simple icon components — no external deps, no emoji */
+function ToolCard({
+  href,
+  title,
+  description,
+  icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link href={href} className="group block">
+      <div className="h-full border border-border rounded-lg bg-card p-5 transition-colors hover:border-primary-500/50">
+        <div className="flex items-start gap-4">
+          <div className="shrink-0 w-10 h-10 rounded-md bg-muted flex items-center justify-center text-foreground">
+            {icon}
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground group-hover:text-primary-500 transition-colors">
+              {title}
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              {description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function BeakerIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+  );
+}
+
+function CalculatorIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function CubeIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+  );
+}
+
+function WrenchIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function FlaskIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function WaveIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  );
+}
+
+function ScaleIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+    </svg>
+  );
+}
+
+function AtomIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    </svg>
+  );
 }
