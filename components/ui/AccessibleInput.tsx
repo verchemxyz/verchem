@@ -53,8 +53,8 @@ export function AccessibleInput({
         className={`
           input-premium w-full
           min-h-[44px]
-          placeholder:text-gray-500 dark:placeholder:text-gray-400
-          ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+          placeholder:text-muted-foreground
+          ${error ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}
           ${className}
         `}
         {...props}

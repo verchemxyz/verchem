@@ -50,7 +50,7 @@ export default function ElementVisual({ element }: ElementVisualProps) {
   const radiusStep = 18
 
   return (
-    <div className="rounded-2xl bg-slate-900 text-white shadow-inner p-4">
+    <div className="rounded-2xl bg-[#171B20] text-white shadow-inner p-4">
       <div className="flex items-center justify-between mb-2">
         <div>
           <p className="text-xs uppercase tracking-widest text-white/60">Atomic Visual</p>

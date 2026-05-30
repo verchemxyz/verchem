@@ -78,7 +78,7 @@ export class CalculatorErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={() => this.setState({ hasError: false, error: null })}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors text-sm font-medium"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try again

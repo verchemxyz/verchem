@@ -82,12 +82,12 @@ const AuthButton = () => {
   if (isAuthenticated && user) {
     return (
       <div className="flex items-center gap-4">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-          <span className="text-sm font-medium text-primary-700 dark:text-primary-500">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-muted border border-border rounded-lg">
+          <span className="text-sm font-medium text-foreground">
             {user.name || user.email?.split('@')[0] || 'User'}
           </span>
           {user.subscription_tier && user.subscription_tier !== 'free' && (
-            <span className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded-full">
+            <span className="text-xs px-2 py-0.5 bg-primary-500 text-primary-foreground rounded-full">
               {user.subscription_tier}
             </span>
           )}
@@ -100,7 +100,7 @@ const AuthButton = () => {
         </Link>
         <button
           onClick={handleLogout}
-          className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+          className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
           Sign Out
         </button>

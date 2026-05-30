@@ -36,7 +36,7 @@ export default function MoleculeInput({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="text-sm font-medium text-foreground"
         >
           {label}
         </label>
@@ -50,12 +50,12 @@ export default function MoleculeInput({
           placeholder={placeholder}
           aria-label={label ? undefined : placeholder}
           maxLength={2000}
-          className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+          className="flex-1 px-3 py-2 rounded-lg border border-input-border bg-input text-foreground font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
         />
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors whitespace-nowrap"
+          className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors whitespace-nowrap"
         >
           Draw
         </button>

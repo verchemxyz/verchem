@@ -72,7 +72,7 @@ export function ServiceWorkerRegistration() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-teal-600 text-white rounded-lg shadow-lg p-4 z-50 animate-slide-up">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg p-4 z-50 animate-slide-up">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,7 +81,7 @@ export function ServiceWorkerRegistration() {
         </div>
         <div className="flex-1">
           <p className="font-medium">Update Available</p>
-          <p className="text-sm text-teal-100 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             A new version of VerChem is available with improvements and bug fixes.
           </p>
         </div>
@@ -89,13 +89,13 @@ export function ServiceWorkerRegistration() {
       <div className="flex gap-2 mt-3">
         <button
           onClick={handleUpdate}
-          className="flex-1 px-4 py-2 bg-white text-teal-600 rounded-md font-medium hover:bg-teal-50 transition-colors"
+          className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors"
         >
           Update Now
         </button>
         <button
           onClick={() => setUpdateAvailable(false)}
-          className="px-4 py-2 bg-teal-700 text-white rounded-md hover:bg-teal-800 transition-colors"
+          className="px-4 py-2 bg-card border border-border text-foreground rounded-md hover:bg-muted transition-colors"
         >
           Later
         </button>
@@ -149,22 +149,23 @@ export function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg p-4 z-50">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-12 h-12 bg-teal-100 dark:bg-teal-900/30 rounded-lg flex items-center justify-center">
-          <svg className="w-6 h-6 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex-shrink-0 w-12 h-12 bg-primary-500/10 rounded-lg flex items-center justify-center">
+          <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
         </div>
         <div className="flex-1">
-          <p className="font-medium text-gray-900 dark:text-gray-100">Install VerChem</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="font-medium text-foreground">Install VerChem</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Install our app for quick access and offline support.
           </p>
         </div>
         <button
           onClick={handleDismiss}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          aria-label="Dismiss install prompt"
+          className="text-muted-foreground hover:text-foreground"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -174,13 +175,13 @@ export function InstallPrompt() {
       <div className="flex gap-2 mt-4">
         <button
           onClick={handleInstall}
-          className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-md font-medium hover:bg-teal-700 transition-colors"
+          className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors"
         >
           Install
         </button>
         <button
           onClick={handleDismiss}
-          className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+          className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           Not now
         </button>

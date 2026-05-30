@@ -139,7 +139,6 @@ export function TutorialTooltip({
   content, 
   position = 'top',
   delay = 500,
-  theme = 'light' 
 }: {
   children: React.ReactNode;
   content: string;
@@ -208,19 +207,9 @@ export function TutorialTooltip({
             exit={{ opacity: 0, scale: 0.9 }}
             className={`absolute z-50 ${getPositionStyles()}`}
           >
-            <div
-              className={`px-3 py-2 rounded-lg shadow-lg text-sm max-w-xs ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-200'
-              }`}
-            >
+            <div className="px-3 py-2 rounded-lg shadow-lg text-sm max-w-xs bg-popover text-popover-foreground border border-border">
               {content}
-              <div
-                className={`${getArrowStyles()} ${
-                  theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                }`}
-              />
+              <div className={`${getArrowStyles()} bg-popover`} />
             </div>
           </motion.div>
         )}
