@@ -80,16 +80,16 @@ function formatCategory(category: ElementCategory): string {
 // matching ElementModal/PeriodicTableGrid and AA-safe in both themes.
 function getCategoryStyle(category: ElementCategory): string {
   const styles: Record<ElementCategory, string> = {
-    'alkali-metal': 'bg-element-alkali/15 text-element-alkali border border-element-alkali/50',
-    'alkaline-earth-metal': 'bg-element-alkaline/15 text-element-alkaline border border-element-alkaline/50',
-    'transition-metal': 'bg-element-transition/15 text-element-transition border border-element-transition/50',
-    'post-transition-metal': 'bg-element-metals/15 text-element-metals border border-element-metals/50',
-    'metalloid': 'bg-element-metalloids/15 text-element-metalloids border border-element-metalloids/50',
-    'nonmetal': 'bg-element-nonmetals/15 text-element-nonmetals border border-element-nonmetals/50',
-    'halogen': 'bg-element-halogens/15 text-element-halogens border border-element-halogens/50',
-    'noble-gas': 'bg-element-noble-gases/15 text-element-noble-gases border border-element-noble-gases/50',
-    'lanthanide': 'bg-element-lanthanides/15 text-element-lanthanides border border-element-lanthanides/50',
-    'actinide': 'bg-element-actinides/15 text-element-actinides border border-element-actinides/50',
+    'alkali-metal': 'bg-element-alkali/15 text-foreground border border-element-alkali/50',
+    'alkaline-earth-metal': 'bg-element-alkaline/15 text-foreground border border-element-alkaline/50',
+    'transition-metal': 'bg-element-transition/15 text-foreground border border-element-transition/50',
+    'post-transition-metal': 'bg-element-metals/15 text-foreground border border-element-metals/50',
+    'metalloid': 'bg-element-metalloids/15 text-foreground border border-element-metalloids/50',
+    'nonmetal': 'bg-element-nonmetals/15 text-foreground border border-element-nonmetals/50',
+    'halogen': 'bg-element-halogens/15 text-foreground border border-element-halogens/50',
+    'noble-gas': 'bg-element-noble-gases/15 text-foreground border border-element-noble-gases/50',
+    'lanthanide': 'bg-element-lanthanides/15 text-foreground border border-element-lanthanides/50',
+    'actinide': 'bg-element-actinides/15 text-foreground border border-element-actinides/50',
     'unknown': 'bg-muted text-muted-foreground border border-border',
   }
   return styles[category] || 'bg-muted text-muted-foreground border border-border'

@@ -235,16 +235,16 @@ export default function GasLawsCalculatorPage() {
         {/* Capability strip */}
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> 6 Gas Laws
+            <CheckCircle className="h-4 w-4 text-success-strong" /> 6 Gas Laws
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> Step-by-Step
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Step-by-Step
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> Unit Conversion
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Unit Conversion
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+            <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
           </span>
         </div>
 

@@ -96,9 +96,9 @@ export function TutorialDashboard() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'text-success bg-success/10';
+      case 'beginner': return 'text-success-strong bg-success/10';
       case 'intermediate': return 'text-warning-strong bg-warning/10';
-      case 'advanced': return 'text-destructive bg-destructive/10';
+      case 'advanced': return 'text-destructive-strong bg-destructive/10';
       default: return 'text-muted-foreground bg-muted';
     }
   };
@@ -160,7 +160,7 @@ export function TutorialDashboard() {
                   {userData?.completedTutorials.length || 0}
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-success" />
+              <CheckCircle className="w-8 h-8 text-success-strong" />
             </div>
           </motion.div>
 

@@ -16,10 +16,10 @@ interface CardSummary {
 }
 
 const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
-  verified: { label: 'Verified', cls: 'border-success/40 bg-success/10 text-success' },
+  verified: { label: 'Verified', cls: 'border-success/40 bg-success/10 text-success-strong' },
   partial: { label: 'Partial', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
   unverified: { label: 'Unverified', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
-  error: { label: 'Error', cls: 'border-destructive/40 bg-destructive/10 text-destructive' },
+  error: { label: 'Error', cls: 'border-destructive/40 bg-destructive/10 text-destructive-strong' },
 }
 
 export default function CardsPage() {
@@ -136,7 +136,7 @@ export default function CardsPage() {
                           {s.label}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-2 py-0.5 font-medium text-destructive">
+                        <span className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-2 py-0.5 font-medium text-destructive-strong">
                           Tampered
                         </span>
                       )}
@@ -156,7 +156,7 @@ export default function CardsPage() {
                     onClick={() => handleDelete(c.id)}
                     disabled={deletingId === c.id}
                     aria-label="Delete card"
-                    className="shrink-0 rounded-md border border-destructive/30 p-2 text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="shrink-0 rounded-md border border-destructive/30 p-2 text-destructive-strong transition-colors hover:bg-destructive/10 disabled:opacity-50 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

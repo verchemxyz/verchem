@@ -160,7 +160,7 @@ export default function MoleculesPage() {
                   {mol.name}
                 </h3>
                 {mol.is_public && (
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-md border border-success/40 bg-success/10 text-success">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-md border border-success/40 bg-success/10 text-success-strong">
                     Public
                   </span>
                 )}
@@ -198,7 +198,7 @@ export default function MoleculesPage() {
                   onClick={() => handleDelete(mol.id)}
                   disabled={deletingId === mol.id}
                   aria-label={`Delete ${mol.name}`}
-                  className="px-3 py-2 text-sm font-medium rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 disabled:opacity-50 transition-colors min-h-[44px]"
+                  className="px-3 py-2 text-sm font-medium rounded-md border border-destructive/30 text-destructive-strong hover:bg-destructive/10 disabled:opacity-50 transition-colors min-h-[44px]"
                 >
                   {deletingId === mol.id ? '...' : 'Delete'}
                 </button>

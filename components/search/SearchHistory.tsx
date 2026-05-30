@@ -210,7 +210,7 @@ function HistoryItem({
           </button>
           <button
             onClick={() => onDelete(item.id)}
-            className="text-muted-foreground hover:text-destructive transition-colors"
+            className="text-muted-foreground hover:text-destructive-strong transition-colors"
             title="Remove from history"
           >
             <XMarkIcon className="h-4 w-4" />

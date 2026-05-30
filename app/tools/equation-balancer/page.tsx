@@ -148,9 +148,9 @@ export default function EquationBalancerToolPage() {
                         <td className="text-center py-3 px-4 text-foreground font-mono">{counts.products}</td>
                         <td className="text-center py-3 px-4">
                           {counts.reactants === counts.products ? (
-                            <span className="text-success">✓ Balanced</span>
+                            <span className="text-success-strong">✓ Balanced</span>
                           ) : (
-                            <span className="text-destructive">✗ Unbalanced</span>
+                            <span className="text-destructive-strong">✗ Unbalanced</span>
                           )}
                         </td>
                       </tr>
@@ -193,9 +193,9 @@ export default function EquationBalancerToolPage() {
                     {example.type}
                   </span>
                   <span className={`px-2 py-1 rounded text-xs border ${
-                    example.difficulty === 'easy' ? 'border-success/40 bg-success/10 text-success' :
+                    example.difficulty === 'easy' ? 'border-success/40 bg-success/10 text-success-strong' :
                     example.difficulty === 'medium' ? 'border-warning/40 bg-warning/10 text-warning-strong' :
-                    'border-destructive/40 bg-destructive/10 text-destructive'
+                    'border-destructive/40 bg-destructive/10 text-destructive-strong'
                   }`}>
                     {example.difficulty}
                   </span>

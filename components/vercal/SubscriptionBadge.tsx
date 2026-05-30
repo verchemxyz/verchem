@@ -101,8 +101,8 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
           <span
             className={`font-medium ${
               subscription.status === 'active'
-                ? 'text-success'
-                : 'text-destructive'
+                ? 'text-success-strong'
+                : 'text-destructive-strong'
             }`}
           >
             {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}

@@ -98,7 +98,7 @@ export function UpgradePrompt({
         <ul className="space-y-2">
           {VERCAL_PRODUCTS.filter((p) => !('coming' in p) || !p.coming).map((product) => (
             <li key={product.id} className="flex items-center gap-2 text-sm text-foreground">
-              <span className="text-success font-semibold">+</span>
+              <span className="text-success-strong font-semibold">+</span>
               <span>
                 <strong>{product.name}</strong> - {product.displayName}
               </span>
@@ -140,15 +140,15 @@ export function UpgradePrompt({
       <div className="mt-6 pt-6 border-t border-border">
         <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <span className="text-success font-semibold">+</span>
+            <span className="text-success-strong font-semibold">+</span>
             <span>7-day money back</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="text-success font-semibold">+</span>
+            <span className="text-success-strong font-semibold">+</span>
             <span>Cancel anytime</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="text-success font-semibold">+</span>
+            <span className="text-success-strong font-semibold">+</span>
             <span>Lifetime student price</span>
           </span>
         </div>

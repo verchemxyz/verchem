@@ -273,9 +273,9 @@ export default function ChemistryChallengePage() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-success bg-success/10'
+      case 'easy': return 'text-success-strong bg-success/10'
       case 'medium': return 'text-warning-strong bg-warning/10'
-      case 'hard': return 'text-destructive bg-destructive/10'
+      case 'hard': return 'text-destructive-strong bg-destructive/10'
       default: return 'text-muted-foreground bg-muted'
     }
   }
@@ -303,7 +303,7 @@ export default function ChemistryChallengePage() {
           <div className="flex items-center gap-6 text-foreground">
             <div className="flex items-center gap-2">
               <Timer className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <span className={`font-mono text-lg ${timeLeft < 60 ? 'text-destructive' : ''}`}>
+              <span className={`font-mono text-lg ${timeLeft < 60 ? 'text-destructive-strong' : ''}`}>
                 {formatTime(timeLeft)}
               </span>
             </div>
@@ -432,9 +432,9 @@ export default function ChemistryChallengePage() {
                     className={`w-full rounded-md p-4 text-left font-medium transition-colors ${
                       showResult
                         ? isCorrect
-                          ? 'bg-success/10 border-2 border-success text-success'
+                          ? 'bg-success/10 border-2 border-success text-success-strong'
                           : isSelected
-                          ? 'bg-destructive/10 border-2 border-destructive text-destructive'
+                          ? 'bg-destructive/10 border-2 border-destructive text-destructive-strong'
                           : 'bg-muted border border-border text-muted-foreground'
                         : isSelected
                         ? 'bg-primary-500/10 border-2 border-primary-500 text-foreground'
@@ -454,8 +454,8 @@ export default function ChemistryChallengePage() {
                         {String.fromCharCode(65 + i)}
                       </span>
                       <span className="flex-1">{option}</span>
-                      {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />}
-                      {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive" aria-hidden="true" />}
+                      {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-success-strong" aria-hidden="true" />}
+                      {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive-strong" aria-hidden="true" />}
                     </div>
                   </button>
                 )
@@ -500,7 +500,7 @@ export default function ChemistryChallengePage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-4 text-center">
-              <CheckCircle className="h-6 w-6 text-success mx-auto mb-2" aria-hidden="true" />
+              <CheckCircle className="h-6 w-6 text-success-strong mx-auto mb-2" aria-hidden="true" />
               <p className="text-2xl font-bold font-mono text-foreground">{answeredQuestions.filter(q => q.correct).length}/{answeredQuestions.length}</p>
               <p className="text-xs text-muted-foreground">Correct</p>
             </Card>
@@ -568,9 +568,9 @@ export default function ChemistryChallengePage() {
                 >
                   <div className="flex items-start gap-3">
                     {item.correct ? (
-                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <CheckCircle className="h-5 w-5 text-success-strong flex-shrink-0 mt-0.5" aria-hidden="true" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <XCircle className="h-5 w-5 text-destructive-strong flex-shrink-0 mt-0.5" aria-hidden="true" />
                     )}
                     <div>
                       <p className="text-foreground font-medium">{item.question.question}</p>

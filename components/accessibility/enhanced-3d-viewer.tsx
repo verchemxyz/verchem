@@ -391,7 +391,7 @@ export function Enhanced3DViewer({
         )}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-destructive/10">
-            <div className="text-destructive">Error: {error}</div>
+            <div className="text-destructive-strong">Error: {error}</div>
           </div>
         )}
       </div>

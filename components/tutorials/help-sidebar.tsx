@@ -253,7 +253,7 @@ function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
               {tutorial.title}
             </h3>
             {isCompleted && (
-              <Award className="w-4 h-4 text-success" />
+              <Award className="w-4 h-4 text-success-strong" />
             )}
           </div>
           <p className="text-xs text-muted-foreground mb-2">

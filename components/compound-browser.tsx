@@ -162,7 +162,7 @@ export default function CompoundBrowser({
                 <span
                   key={idx}
                   className={`inline-block px-2 py-1 rounded text-xs mr-1 mb-1 ${
-                    isToxic ? 'bg-destructive/10 text-destructive' :
+                    isToxic ? 'bg-destructive/10 text-destructive-strong' :
                     isCorrosive ? 'bg-info/10 text-info-strong' :
                     isFlammable ? 'bg-warning/10 text-warning-strong' :
                     'bg-muted text-muted-foreground'
@@ -247,7 +247,7 @@ export default function CompoundBrowser({
                   <span
                     key={idx}
                     className={`px-2 py-1 rounded text-xs ${
-                      isToxic ? 'bg-destructive/10 text-destructive' :
+                      isToxic ? 'bg-destructive/10 text-destructive-strong' :
                       isCorrosive ? 'bg-info/10 text-info-strong' :
                       isFlammable ? 'bg-warning/10 text-warning-strong' :
                       'bg-muted text-muted-foreground'
@@ -394,7 +394,7 @@ export default function CompoundBrowser({
               <div className="text-sm text-muted-foreground">Total Compounds</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-success">{Object.keys(statistics.categories).length}</div>
+              <div className="text-2xl font-bold text-success-strong">{Object.keys(statistics.categories).length}</div>
               <div className="text-sm text-muted-foreground">Categories</div>
             </div>
             <div className="text-center">
@@ -516,7 +516,7 @@ export default function CompoundBrowser({
                     <span
                       key={idx}
                       className={`px-2 py-1 rounded text-xs ${
-                        isToxic ? 'bg-destructive/10 text-destructive' :
+                        isToxic ? 'bg-destructive/10 text-destructive-strong' :
                         isCorrosive ? 'bg-info/10 text-info-strong' :
                         isFlammable ? 'bg-warning/10 text-warning-strong' :
                         'bg-muted text-muted-foreground'

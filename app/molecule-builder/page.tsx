@@ -239,7 +239,7 @@ export default function MoleculeBuilderPage() {
                  <div className="space-y-2">
                     {validation.warnings.map((warn, i) => (
                       <div key={i} className="text-xs p-3 rounded-md bg-destructive/10 border border-destructive/30 text-foreground leading-relaxed flex gap-2">
-                        <span className="text-destructive font-bold">!</span>
+                        <span className="text-destructive-strong font-bold">!</span>
                         {warn}
                       </div>
                     ))}
@@ -248,7 +248,7 @@ export default function MoleculeBuilderPage() {
 
                {validation.isValid && validation.hints.length === 0 && (
                    <div className="text-center p-8 text-muted-foreground flex flex-col items-center gap-2">
-                       <p className="text-sm font-medium text-success">Perfectly Stable</p>
+                       <p className="text-sm font-medium text-success-strong">Perfectly Stable</p>
                        <p className="text-xs">Ready for 3D simulation</p>
                    </div>
                )}

@@ -215,8 +215,8 @@ export default function LewisPage() {
                   <span
                     className={`font-mono ${
                       structure.octetSatisfied
-                        ? 'text-success'
-                        : 'text-destructive'
+                        ? 'text-success-strong'
+                        : 'text-destructive-strong'
                     }`}
                   >
                     {structure.octetSatisfied ? 'Satisfied' : 'Not satisfied'}
@@ -257,23 +257,23 @@ export default function LewisPage() {
               <h4 className="text-sm font-bold text-foreground mb-2">Features:</h4>
               <ul className="text-xs text-muted-foreground space-y-1">
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Automatic generation
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Formal charge calculation
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Lone pair visualization
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Octet rule validation
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Step-by-step explanation
                 </li>
               </ul>

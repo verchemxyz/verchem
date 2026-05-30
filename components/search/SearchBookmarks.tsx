@@ -108,7 +108,7 @@ function BookmarkCard({
         </div>
         <button
           onClick={() => onDelete(bookmark.id)}
-          className="text-muted-foreground hover:text-destructive transition-colors"
+          className="text-muted-foreground hover:text-destructive-strong transition-colors"
           title="Delete bookmark"
         >
           <XMarkIcon className="h-4 w-4" />

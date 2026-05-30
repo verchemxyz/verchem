@@ -32,7 +32,7 @@ function statusBadge(status: CardStatus): {
     case 'verified':
       return {
         label: 'VERIFIED',
-        colorClass: 'text-success',
+        colorClass: 'text-success-strong',
         borderClass: 'border-success/30',
         bgClass: 'bg-success/10',
         icon: (
@@ -57,7 +57,7 @@ function statusBadge(status: CardStatus): {
     case 'error':
       return {
         label: 'CALCULATION ERROR',
-        colorClass: 'text-destructive',
+        colorClass: 'text-destructive-strong',
         borderClass: 'border-destructive/30',
         bgClass: 'bg-destructive/10',
         icon: (
@@ -102,15 +102,15 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {tampered && (
         <div
           role="alert"
-          className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
+          className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive-strong"
         >
-          <div className="flex items-center gap-2 font-semibold text-destructive">
+          <div className="flex items-center gap-2 font-semibold text-destructive-strong">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             Signature invalid — this card may have been altered
           </div>
-          <p className="mt-1 text-destructive/80">
+          <p className="mt-1 text-destructive-strong">
             The stored contents no longer match the cryptographic signature. Do not trust the values
             below as VerChem-verified.
           </p>
@@ -120,7 +120,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {/* Header: Verification badge */}
       <div className="flex flex-wrap items-center gap-3">
         {tampered ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive-strong">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -147,7 +147,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {/* Verified Engine Results — the authoritative answer */}
       {toolCalls.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-success uppercase tracking-wide flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-success-strong uppercase tracking-wide flex items-center gap-2">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -177,12 +177,12 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
                 {tc.result?.ok ? (
                   <div>
                     <span className="text-muted-foreground">Result:</span>{' '}
-                    <code className="rounded bg-success/10 px-1.5 py-0.5 text-success">
+                    <code className="rounded bg-success/10 px-1.5 py-0.5 text-success-strong">
                       {JSON.stringify(tc.result.value)}
                     </code>
                   </div>
                 ) : (
-                  <div className="text-destructive">
+                  <div className="text-destructive-strong">
                     <span className="text-muted-foreground">Error:</span> {tc.result?.error}
                   </div>
                 )}
@@ -234,7 +234,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
               Tamper-proof Signature
             </span>
             {signatureValid === true && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-success-strong">
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>

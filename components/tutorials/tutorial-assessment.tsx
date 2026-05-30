@@ -121,9 +121,9 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
             }`}
           >
             {passed ? (
-              <Award className="w-10 h-10 text-success" />
+              <Award className="w-10 h-10 text-success-strong" />
             ) : (
-              <RotateCcw className="w-10 h-10 text-destructive" />
+              <RotateCcw className="w-10 h-10 text-destructive-strong" />
             )}
           </motion.div>
 
@@ -142,7 +142,7 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
               transition={{ delay: 0.5 }}
               className="bg-muted border border-success rounded-lg p-4 mb-4"
             >
-              <p className="text-sm font-medium text-success">
+              <p className="text-sm font-medium text-success-strong">
                 Achievement Unlocked
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -167,9 +167,9 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
                   }`}
                 >
                   {status === 'correct' ? (
-                    <CheckCircle className="w-4 h-4 text-success" />
+                    <CheckCircle className="w-4 h-4 text-success-strong" />
                   ) : (
-                    <XCircle className="w-4 h-4 text-destructive" />
+                    <XCircle className="w-4 h-4 text-destructive-strong" />
                   )}
                   <span className="text-sm text-foreground">
                     Question {index + 1}

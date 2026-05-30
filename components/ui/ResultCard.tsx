@@ -139,7 +139,7 @@ export function ResultCard({
               <span className="text-muted-foreground">
                 Scientific Accuracy:
               </span>
-              <span className="font-semibold text-success">
+              <span className="font-semibold text-success-strong">
                 {(metadata.accuracy * 100).toFixed(1)}%
               </span>
             </div>
@@ -212,7 +212,7 @@ export function ResultCard({
           </div>
 
           {error && (
-            <p role="alert" className="mt-2 text-sm text-destructive">
+            <p role="alert" className="mt-2 text-sm text-destructive-strong">
               {error}
             </p>
           )}

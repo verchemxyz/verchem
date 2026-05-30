@@ -318,15 +318,15 @@ export default function DrawPage() {
           aria-live="polite"
           className="p-3 bg-destructive/10 border border-destructive/40 rounded-md flex items-start gap-3"
         >
-          <svg className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-destructive-strong flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="flex-1">
-            <p className="text-sm text-destructive">{shareError}</p>
+            <p className="text-sm text-destructive-strong">{shareError}</p>
           </div>
           <button
             onClick={() => setShareError(null)}
-            className="text-destructive hover:opacity-70 transition-opacity"
+            className="text-destructive-strong hover:opacity-70 transition-opacity"
             aria-label="Dismiss error"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

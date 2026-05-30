@@ -122,8 +122,8 @@ export default function PHCalculatorPage() {
   // Acidic / neutral / basic → semantic tokens (data meaning preserved).
   // Full literal class strings so Tailwind's content scanner picks them up.
   const ACID_BASE_STYLES: Record<CalculationResult['acidBase'], { box: string; text: string }> = {
-    acidic: { box: 'border-destructive/40 bg-destructive/10', text: 'text-destructive' },
-    neutral: { box: 'border-success/40 bg-success/10', text: 'text-success' },
+    acidic: { box: 'border-destructive/40 bg-destructive/10', text: 'text-destructive-strong' },
+    neutral: { box: 'border-success/40 bg-success/10', text: 'text-success-strong' },
     basic: { box: 'border-info/40 bg-info/10', text: 'text-info-strong' },
   }
 
@@ -141,16 +141,16 @@ export default function PHCalculatorPage() {
         {/* Capability strip */}
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+            <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> Instant Results
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Instant Results
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> Visual pH Scale
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Visual pH Scale
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> No Sign-up
+            <CheckCircle className="h-4 w-4 text-success-strong" /> No Sign-up
           </span>
         </div>
 

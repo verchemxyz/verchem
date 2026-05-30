@@ -321,9 +321,9 @@ export default function PracticePage() {
   // Difficulty badge color (semantic: easy/medium/hard → success/warning/destructive)
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-success/10 text-success border-success/30'
+      case 'easy': return 'bg-success/10 text-success-strong border-success/30'
       case 'medium': return 'bg-warning/10 text-warning-strong border-warning/40'
-      case 'hard': return 'bg-destructive/10 text-destructive border-destructive/30'
+      case 'hard': return 'bg-destructive/10 text-destructive-strong border-destructive/30'
       default: return 'bg-muted text-muted-foreground border-border'
     }
   }
@@ -338,7 +338,7 @@ export default function PracticePage() {
       maxWidth="5xl"
       action={
         <div className="text-sm text-muted-foreground">
-          <span className="text-success font-semibold">{completedProblems.size} completed</span>
+          <span className="text-success-strong font-semibold">{completedProblems.size} completed</span>
           {' · '}
           {PROBLEMS.length} total
         </div>
@@ -407,7 +407,7 @@ export default function PracticePage() {
                       {problem.difficulty}
                     </span>
                     {completedProblems.has(problem.id) && (
-                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-success/10 text-success border border-success/30">
+                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-success/10 text-success-strong border border-success/30">
                         Completed
                       </span>
                     )}
@@ -452,7 +452,7 @@ export default function PracticePage() {
                   </button>
                   {showSolutions[problem.id] && (
                     <div className="mt-3 p-4 bg-muted border border-border rounded-md">
-                      <div className="text-success font-bold mb-3 text-lg">
+                      <div className="text-success-strong font-bold mb-3 text-lg">
                         Answer: {problem.answer}
                       </div>
                       <div className="space-y-1 text-foreground text-sm font-mono">

@@ -21,7 +21,7 @@ export default function Error({
       <div className="max-w-md w-full bg-card border border-border rounded-lg p-8">
         <div className="flex items-center justify-center mb-6">
           <div className="bg-destructive/10 p-4 rounded-full">
-            <AlertTriangle className="w-12 h-12 text-destructive" />
+            <AlertTriangle className="w-12 h-12 text-destructive-strong" />
           </div>
         </div>
 

@@ -115,7 +115,7 @@ export default function VirtualLabPage() {
                   {/* Badge */}
                   <div className="flex items-start justify-between mb-4">
                     <h3 className="text-xl font-bold text-foreground">{lab.name}</h3>
-                    <span className="px-3 py-1 bg-success/10 text-success rounded-full text-xs font-medium shrink-0">
+                    <span className="px-3 py-1 bg-success/10 text-success-strong rounded-full text-xs font-medium shrink-0">
                       Available
                     </span>
                   </div>

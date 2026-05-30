@@ -222,7 +222,7 @@ export default function ThermodynamicsPage() {
                 <button
                   onClick={() => removeReactant(index)}
                   aria-label="Remove reactant"
-                  className="text-destructive hover:bg-destructive/10 rounded-md p-2"
+                  className="text-destructive-strong hover:bg-destructive/10 rounded-md p-2"
                 >
                   ×
                 </button>
@@ -275,7 +275,7 @@ export default function ThermodynamicsPage() {
                 <button
                   onClick={() => removeProduct(index)}
                   aria-label="Remove product"
-                  className="text-destructive hover:bg-destructive/10 rounded-md p-2"
+                  className="text-destructive-strong hover:bg-destructive/10 rounded-md p-2"
                 >
                   ×
                 </button>
@@ -338,7 +338,7 @@ export default function ThermodynamicsPage() {
                 <div className="text-2xl font-bold font-mono text-foreground">
                   {result.deltaG.toFixed(2)} kJ
                 </div>
-                <div className={`text-xs mt-1 font-medium ${result.spontaneous ? 'text-success' : 'text-muted-foreground'}`}>
+                <div className={`text-xs mt-1 font-medium ${result.spontaneous ? 'text-success-strong' : 'text-muted-foreground'}`}>
                   {result.spontaneous ? 'Spontaneous' : 'Non-spontaneous'}
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function ThermodynamicsPage() {
             <SectionTitle className="mb-4">Step-by-step solution</SectionTitle>
             <div className="bg-muted border border-border rounded-md p-4 font-mono text-sm space-y-2 overflow-x-auto">
               {result.steps.map((step, index) => (
-                <div key={index} className={step.startsWith('===') ? 'font-bold text-base mt-4 text-foreground' : step.startsWith('✓') || step.startsWith('✗') ? 'text-success font-medium' : step.startsWith('❌') ? 'text-destructive font-medium' : 'text-foreground'}>
+                <div key={index} className={step.startsWith('===') ? 'font-bold text-base mt-4 text-foreground' : step.startsWith('✓') || step.startsWith('✗') ? 'text-success-strong font-medium' : step.startsWith('❌') ? 'text-destructive-strong font-medium' : 'text-foreground'}>
                   {step}
                 </div>
               ))}

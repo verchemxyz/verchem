@@ -566,7 +566,7 @@ export default function KineticsPage() {
                       <button
                         onClick={() => removeDataPoint(index)}
                         aria-label="Remove data point"
-                        className="text-destructive hover:bg-destructive/10 rounded-md p-2"
+                        className="text-destructive-strong hover:bg-destructive/10 rounded-md p-2"
                       >
                         ×
                       </button>
@@ -709,11 +709,11 @@ export default function KineticsPage() {
                       step.startsWith('===')
                         ? 'font-bold text-base mt-3 text-foreground'
                         : step.startsWith('✓')
-                        ? 'text-success font-medium'
+                        ? 'text-success-strong font-medium'
                         : step.startsWith('⚠️')
                         ? 'text-warning-strong font-medium'
                         : step.startsWith('❌')
-                        ? 'text-destructive font-medium'
+                        ? 'text-destructive-strong font-medium'
                         : 'text-foreground'
                     }
                   >

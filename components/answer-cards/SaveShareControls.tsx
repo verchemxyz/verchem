@@ -112,7 +112,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
       ) : (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-1.5 text-sm text-success">
+            <span className="inline-flex items-center gap-1.5 text-sm text-success-strong">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
@@ -159,7 +159,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
           to save and share verified cards.
         </p>
       )}
-      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+      {error && <p className="mt-3 text-sm text-destructive-strong">{error}</p>}
     </div>
   )
 }

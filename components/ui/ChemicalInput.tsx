@@ -124,7 +124,7 @@ export function ChemicalInput({
       {label && (
         <label className="block text-sm font-medium text-foreground mb-2">
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className="text-destructive-strong ml-1">*</span>}
         </label>
       )}
 
@@ -222,7 +222,7 @@ export function ChemicalInput({
 
         {/* Error message */}
         {error && (
-          <p className="mt-2 text-sm text-destructive flex items-center gap-1">
+          <p className="mt-2 text-sm text-destructive-strong flex items-center gap-1">
             <span className="font-medium">Error:</span> {error}
           </p>
         )}

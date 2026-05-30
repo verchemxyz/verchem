@@ -112,35 +112,35 @@ export default function Viewer3DPage() {
               <h3 className="text-lg font-bold mb-3 text-foreground">Features</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Interactive 3D rotation (drag to rotate)
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Zoom control (scroll wheel)
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Multiple display styles
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Atom labels and info
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Auto-rotation mode
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   10 pre-built molecules
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   CPK color scheme
                 </li>
                 <li className="flex items-center">
-                  <span className="text-success mr-2">✓</span>
+                  <span className="text-success-strong mr-2">✓</span>
                   Perspective projection
                 </li>
               </ul>
@@ -175,11 +175,11 @@ export default function Viewer3DPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Interactive:</span>
-                <span className="text-success font-mono">Yes</span>
+                <span className="text-success-strong font-mono">Yes</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Free:</span>
-                <span className="text-success font-mono">Yes</span>
+                <span className="text-success-strong font-mono">Yes</span>
               </div>
             </div>
           </div>

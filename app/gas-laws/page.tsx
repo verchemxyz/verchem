@@ -666,7 +666,7 @@ export default function GasLawsPage() {
                       setPartialPressures(partialPressures.filter((_, i) => i !== index))
                     }}
                     aria-label="Remove gas"
-                    className="p-2 rounded-md text-destructive hover:bg-destructive/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="p-2 rounded-md text-destructive-strong hover:bg-destructive/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

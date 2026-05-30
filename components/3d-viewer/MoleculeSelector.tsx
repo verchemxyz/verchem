@@ -248,7 +248,7 @@ export default function MoleculeSelector({
                   {currentMolecule.metadata.hazards.map((hazard, i) => (
                     <span
                       key={i}
-                      className="bg-destructive/15 text-destructive text-xs px-2 py-0.5 rounded"
+                      className="bg-destructive/15 text-destructive-strong text-xs px-2 py-0.5 rounded"
                     >
                       {hazard}
                     </span>

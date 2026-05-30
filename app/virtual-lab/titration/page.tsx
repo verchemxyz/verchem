@@ -333,7 +333,7 @@ export default function TitrationLabPage() {
           {/* Results */}
           {showResults && result && (
             <Card className="p-6 border-l-2 border-l-success">
-              <h3 className="text-xl font-bold mb-4 text-success">Equivalence point reached</h3>
+              <h3 className="text-xl font-bold mb-4 text-success-strong">Equivalence point reached</h3>
               <div className="space-y-3">
                 <div className="bg-muted border border-border rounded-md p-3">
                   <div className="text-sm text-muted-foreground">Equivalence Volume</div>

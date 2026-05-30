@@ -16,52 +16,52 @@ const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string
   'alkali-metal': { 
     bg: 'bg-element-alkali/20', 
     border: 'border-element-alkali', 
-    text: 'text-element-alkali dark:text-element-alkali/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'alkaline-earth-metal': { 
     bg: 'bg-element-alkaline/20', 
     border: 'border-element-alkaline', 
-    text: 'text-element-alkaline dark:text-element-alkaline/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'transition-metal': { 
     bg: 'bg-element-transition/20', 
     border: 'border-element-transition', 
-    text: 'text-element-transition dark:text-element-transition/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'post-transition-metal': { 
     bg: 'bg-element-metals/20', 
     border: 'border-element-metals', 
-    text: 'text-element-metals dark:text-element-metals/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'metalloid': { 
     bg: 'bg-element-metalloids/20', 
     border: 'border-element-metalloids', 
-    text: 'text-element-metalloids dark:text-element-metalloids/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'nonmetal': { 
     bg: 'bg-element-nonmetals/20', 
     border: 'border-element-nonmetals', 
-    text: 'text-element-nonmetals dark:text-element-nonmetals/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'halogen': { 
     bg: 'bg-element-halogens/20', 
     border: 'border-element-halogens', 
-    text: 'text-element-halogens dark:text-element-halogens/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'noble-gas': { 
     bg: 'bg-element-noble-gases/20', 
     border: 'border-element-noble-gases', 
-    text: 'text-element-noble-gases dark:text-element-noble-gases/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'lanthanide': { 
     bg: 'bg-element-lanthanides/20', 
     border: 'border-element-lanthanides', 
-    text: 'text-element-lanthanides dark:text-element-lanthanides/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'actinide': { 
     bg: 'bg-element-actinides/20', 
     border: 'border-element-actinides', 
-    text: 'text-element-actinides dark:text-element-actinides/90' 
+    text: 'text-foreground dark:text-foreground/90' 
   },
   'unknown': { 
     bg: 'bg-muted', 

@@ -236,7 +236,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
                   </div>
                 </div>
                 {ex.yield && (
-                  <div className="mt-2 text-xs text-success bg-success/10 inline-block px-2 py-0.5 rounded">
+                  <div className="mt-2 text-xs text-success-strong bg-success/10 inline-block px-2 py-0.5 rounded">
                     Yield: {ex.yield}
                   </div>
                 )}
@@ -260,7 +260,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
             <ul className="space-y-1">
               {reaction.limitations.map((lim, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <svg className="w-4 h-4 text-destructive shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-destructive-strong shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
                   </svg>
                   <span className="text-foreground">{lim}</span>

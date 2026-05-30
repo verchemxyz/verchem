@@ -145,7 +145,7 @@ export function SearchBar({
               onClick={handleVoiceSearch}
               className={`p-2 rounded-md transition-colors ${
                 isListening
-                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
+                  ? 'text-destructive-strong bg-destructive/10 hover:bg-destructive/20'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               title={isListening ? 'Stop voice search' : 'Start voice search'}
@@ -223,9 +223,9 @@ export function SearchBar({
           <div className="bg-destructive/10 border border-destructive/40 rounded-lg p-3 text-center">
             <div className="flex items-center justify-center space-x-2">
               <div className="w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
-              <span className="text-destructive font-medium">Listening...</span>
+              <span className="text-destructive-strong font-medium">Listening...</span>
             </div>
-            <p className="text-destructive text-sm mt-1">Speak your search query</p>
+            <p className="text-destructive-strong text-sm mt-1">Speak your search query</p>
           </div>
         </div>
       )}

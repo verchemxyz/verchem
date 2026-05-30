@@ -357,7 +357,7 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
         {(hazardCodes.length > 0 || (compound.ghs && compound.ghs.length > 0)) && (
           <Card className="p-6 border-l-2 border-l-destructive">
             <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
-              <svg className="w-5 h-5 text-destructive shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-destructive-strong shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
               </svg>
               Safety Information
@@ -367,7 +367,7 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">GHS Pictograms</h3>
                 <div className="flex flex-wrap gap-2">
                   {compound.ghs.map((code) => (
-                    <span key={code} className="px-3 py-1 bg-destructive/10 text-destructive border border-destructive/30 rounded-full text-sm font-mono">
+                    <span key={code} className="px-3 py-1 bg-destructive/10 text-destructive-strong border border-destructive/30 rounded-full text-sm font-mono">
                       {code}
                     </span>
                   ))}

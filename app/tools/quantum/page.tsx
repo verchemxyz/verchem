@@ -87,7 +87,7 @@ function ResultCard({ title, children }: { title: string; children: React.ReactN
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div role="alert" className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+    <div role="alert" className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive-strong">
       {message}
     </div>
   )
@@ -356,7 +356,7 @@ function QuantumNumbersTab() {
               ? 'bg-success/10 border border-success/40'
               : 'bg-destructive/10 border border-destructive/40'
           }`}>
-            <p className={`text-2xl font-bold ${result.valid ? 'text-success' : 'text-destructive'}`}>
+            <p className={`text-2xl font-bold ${result.valid ? 'text-success-strong' : 'text-destructive-strong'}`}>
               {result.valid ? 'VALID' : 'INVALID'}
             </p>
             {result.orbitalName && (
@@ -370,7 +370,7 @@ function QuantumNumbersTab() {
           {!result.valid && result.errors.length > 0 && (
             <div className="mt-4 space-y-2">
               {result.errors.map((err, i) => (
-                <div key={i} className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+                <div key={i} className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive-strong">
                   {err}
                 </div>
               ))}

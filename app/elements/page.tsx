@@ -37,16 +37,16 @@ export const metadata: Metadata = {
 // Colors are SEMANTIC (encode element category) → mapped to the --element-*
 // tokens (text + tinted surface + border), matching ElementModal/PeriodicTableGrid.
 const CATEGORIES: { id: ElementCategory; name: string; chip: string; count: number }[] = [
-  { id: 'alkali-metal', name: 'Alkali Metals', chip: 'bg-element-alkali/15 text-element-alkali border border-element-alkali/40 hover:bg-element-alkali/25', count: 6 },
-  { id: 'alkaline-earth-metal', name: 'Alkaline Earth Metals', chip: 'bg-element-alkaline/15 text-element-alkaline border border-element-alkaline/40 hover:bg-element-alkaline/25', count: 6 },
-  { id: 'transition-metal', name: 'Transition Metals', chip: 'bg-element-transition/15 text-element-transition border border-element-transition/40 hover:bg-element-transition/25', count: 38 },
-  { id: 'post-transition-metal', name: 'Post-Transition Metals', chip: 'bg-element-metals/15 text-element-metals border border-element-metals/40 hover:bg-element-metals/25', count: 7 },
-  { id: 'metalloid', name: 'Metalloids', chip: 'bg-element-metalloids/15 text-element-metalloids border border-element-metalloids/40 hover:bg-element-metalloids/25', count: 7 },
-  { id: 'nonmetal', name: 'Nonmetals', chip: 'bg-element-nonmetals/15 text-element-nonmetals border border-element-nonmetals/40 hover:bg-element-nonmetals/25', count: 7 },
-  { id: 'halogen', name: 'Halogens', chip: 'bg-element-halogens/15 text-element-halogens border border-element-halogens/40 hover:bg-element-halogens/25', count: 5 },
-  { id: 'noble-gas', name: 'Noble Gases', chip: 'bg-element-noble-gases/15 text-element-noble-gases border border-element-noble-gases/40 hover:bg-element-noble-gases/25', count: 7 },
-  { id: 'lanthanide', name: 'Lanthanides', chip: 'bg-element-lanthanides/15 text-element-lanthanides border border-element-lanthanides/40 hover:bg-element-lanthanides/25', count: 15 },
-  { id: 'actinide', name: 'Actinides', chip: 'bg-element-actinides/15 text-element-actinides border border-element-actinides/40 hover:bg-element-actinides/25', count: 15 },
+  { id: 'alkali-metal', name: 'Alkali Metals', chip: 'bg-element-alkali/15 text-foreground border border-element-alkali/40 hover:bg-element-alkali/25', count: 6 },
+  { id: 'alkaline-earth-metal', name: 'Alkaline Earth Metals', chip: 'bg-element-alkaline/15 text-foreground border border-element-alkaline/40 hover:bg-element-alkaline/25', count: 6 },
+  { id: 'transition-metal', name: 'Transition Metals', chip: 'bg-element-transition/15 text-foreground border border-element-transition/40 hover:bg-element-transition/25', count: 38 },
+  { id: 'post-transition-metal', name: 'Post-Transition Metals', chip: 'bg-element-metals/15 text-foreground border border-element-metals/40 hover:bg-element-metals/25', count: 7 },
+  { id: 'metalloid', name: 'Metalloids', chip: 'bg-element-metalloids/15 text-foreground border border-element-metalloids/40 hover:bg-element-metalloids/25', count: 7 },
+  { id: 'nonmetal', name: 'Nonmetals', chip: 'bg-element-nonmetals/15 text-foreground border border-element-nonmetals/40 hover:bg-element-nonmetals/25', count: 7 },
+  { id: 'halogen', name: 'Halogens', chip: 'bg-element-halogens/15 text-foreground border border-element-halogens/40 hover:bg-element-halogens/25', count: 5 },
+  { id: 'noble-gas', name: 'Noble Gases', chip: 'bg-element-noble-gases/15 text-foreground border border-element-noble-gases/40 hover:bg-element-noble-gases/25', count: 7 },
+  { id: 'lanthanide', name: 'Lanthanides', chip: 'bg-element-lanthanides/15 text-foreground border border-element-lanthanides/40 hover:bg-element-lanthanides/25', count: 15 },
+  { id: 'actinide', name: 'Actinides', chip: 'bg-element-actinides/15 text-foreground border border-element-actinides/40 hover:bg-element-actinides/25', count: 15 },
   { id: 'unknown', name: 'Unknown Properties', chip: 'bg-muted text-muted-foreground border border-border hover:bg-accent', count: 5 },
 ]
 
@@ -54,16 +54,16 @@ const CATEGORIES: { id: ElementCategory; name: string; chip: string; count: numb
 // Tinted token surface + token text + token border, matching the rest of the app.
 function getCategoryStyle(category: ElementCategory): { bg: string; text: string; border: string } {
   const styles: Record<ElementCategory, { bg: string; text: string; border: string }> = {
-    'alkali-metal': { bg: 'bg-element-alkali/15 hover:bg-element-alkali/25', text: 'text-element-alkali', border: 'border-element-alkali/50' },
-    'alkaline-earth-metal': { bg: 'bg-element-alkaline/15 hover:bg-element-alkaline/25', text: 'text-element-alkaline', border: 'border-element-alkaline/50' },
-    'transition-metal': { bg: 'bg-element-transition/15 hover:bg-element-transition/25', text: 'text-element-transition', border: 'border-element-transition/50' },
-    'post-transition-metal': { bg: 'bg-element-metals/15 hover:bg-element-metals/25', text: 'text-element-metals', border: 'border-element-metals/50' },
-    'metalloid': { bg: 'bg-element-metalloids/15 hover:bg-element-metalloids/25', text: 'text-element-metalloids', border: 'border-element-metalloids/50' },
-    'nonmetal': { bg: 'bg-element-nonmetals/15 hover:bg-element-nonmetals/25', text: 'text-element-nonmetals', border: 'border-element-nonmetals/50' },
-    'halogen': { bg: 'bg-element-halogens/15 hover:bg-element-halogens/25', text: 'text-element-halogens', border: 'border-element-halogens/50' },
-    'noble-gas': { bg: 'bg-element-noble-gases/15 hover:bg-element-noble-gases/25', text: 'text-element-noble-gases', border: 'border-element-noble-gases/50' },
-    'lanthanide': { bg: 'bg-element-lanthanides/15 hover:bg-element-lanthanides/25', text: 'text-element-lanthanides', border: 'border-element-lanthanides/50' },
-    'actinide': { bg: 'bg-element-actinides/15 hover:bg-element-actinides/25', text: 'text-element-actinides', border: 'border-element-actinides/50' },
+    'alkali-metal': { bg: 'bg-element-alkali/15 hover:bg-element-alkali/25', text: 'text-foreground', border: 'border-element-alkali/50' },
+    'alkaline-earth-metal': { bg: 'bg-element-alkaline/15 hover:bg-element-alkaline/25', text: 'text-foreground', border: 'border-element-alkaline/50' },
+    'transition-metal': { bg: 'bg-element-transition/15 hover:bg-element-transition/25', text: 'text-foreground', border: 'border-element-transition/50' },
+    'post-transition-metal': { bg: 'bg-element-metals/15 hover:bg-element-metals/25', text: 'text-foreground', border: 'border-element-metals/50' },
+    'metalloid': { bg: 'bg-element-metalloids/15 hover:bg-element-metalloids/25', text: 'text-foreground', border: 'border-element-metalloids/50' },
+    'nonmetal': { bg: 'bg-element-nonmetals/15 hover:bg-element-nonmetals/25', text: 'text-foreground', border: 'border-element-nonmetals/50' },
+    'halogen': { bg: 'bg-element-halogens/15 hover:bg-element-halogens/25', text: 'text-foreground', border: 'border-element-halogens/50' },
+    'noble-gas': { bg: 'bg-element-noble-gases/15 hover:bg-element-noble-gases/25', text: 'text-foreground', border: 'border-element-noble-gases/50' },
+    'lanthanide': { bg: 'bg-element-lanthanides/15 hover:bg-element-lanthanides/25', text: 'text-foreground', border: 'border-element-lanthanides/50' },
+    'actinide': { bg: 'bg-element-actinides/15 hover:bg-element-actinides/25', text: 'text-foreground', border: 'border-element-actinides/50' },
     'unknown': { bg: 'bg-muted hover:bg-accent', text: 'text-muted-foreground', border: 'border-border' },
   }
   return styles[category] || styles.unknown

@@ -671,7 +671,7 @@ export default function MassSpecPage() {
                       <span
                         className={`text-[11px] px-2 py-0.5 rounded-full font-medium border ${
                           fl.category === 'radical'
-                            ? 'bg-destructive/10 text-destructive border-destructive/30'
+                            ? 'bg-destructive/10 text-destructive-strong border-destructive/30'
                             : fl.category === 'neutral'
                               ? 'bg-secondary-100 text-secondary-700 border-secondary-300'
                               : 'bg-primary-100 text-primary-700 border-primary-300'
@@ -792,7 +792,7 @@ export default function MassSpecPage() {
                           ion.category === 'aromatic'
                             ? 'bg-secondary-100 text-secondary-700 border-secondary-300'
                             : ion.category === 'alkyl'
-                              ? 'bg-success/10 text-success border-success/30'
+                              ? 'bg-success/10 text-success-strong border-success/30'
                               : ion.category === 'carbonyl'
                                 ? 'bg-warning/10 text-warning-strong border-warning/40'
                                 : ion.category === 'nitrogen'

@@ -20,7 +20,7 @@ import type { IRAbsorption, IRCategory } from '@/lib/data/spectroscopy/ir-data'
 function intensityBadge(intensity: string): string {
   switch (intensity) {
     case 'strong':
-      return 'bg-destructive/10 text-destructive'
+      return 'bg-destructive/10 text-destructive-strong'
     case 'medium':
       return 'bg-warning/10 text-warning-strong'
     case 'weak':

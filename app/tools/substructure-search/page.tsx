@@ -137,13 +137,13 @@ export default function SubstructureSearchPage() {
       {/* Capability strip */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" /> SMILES &amp; SMARTS
+          <CheckCircle className="h-4 w-4 text-success-strong" /> SMILES &amp; SMARTS
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" /> Formula-verified library
+          <CheckCircle className="h-4 w-4 text-success-strong" /> Formula-verified library
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+          <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
         </span>
       </div>
 

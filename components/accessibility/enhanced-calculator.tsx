@@ -447,7 +447,7 @@ export function EnhancedCalculator({
           </button>
           <button
             onClick={saveResult}
-            className="px-3 py-1 text-sm bg-success/15 text-success rounded-lg hover:bg-success/25 focus:outline-none focus:ring-2 focus:ring-success"
+            className="px-3 py-1 text-sm bg-success/15 text-success-strong rounded-lg hover:bg-success/25 focus:outline-none focus:ring-2 focus:ring-success"
             aria-label="Save result to clipboard"
             title="Ctrl+S - Save result"
           >

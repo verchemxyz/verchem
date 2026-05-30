@@ -648,7 +648,7 @@ export default function MoleculeEditor({
         <div className="w-px h-8 bg-border mx-1" />
         <button
           onClick={onClear}
-          className="p-2 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors"
+          className="p-2 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive-strong hover:bg-destructive/20 transition-colors"
           title="Clear All"
         >
           <Trash2 className="w-5 h-5" />
@@ -721,7 +721,7 @@ export default function MoleculeEditor({
         {validation && (
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-all ${
             validation.isStable
-              ? 'bg-success/10 border-success/30 text-success'
+              ? 'bg-success/10 border-success/30 text-success-strong'
               : 'bg-warning/10 border-warning/30 text-warning-strong'
           }`}>
             <div className={`w-2 h-2 rounded-full ${validation.isStable ? 'bg-success' : 'bg-warning'}`} />

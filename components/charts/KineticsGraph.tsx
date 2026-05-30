@@ -315,7 +315,7 @@ export default function KineticsGraph({
         </div>
         <div>
           <span className="font-medium">[A]₀:</span>{' '}
-          <span className="text-success">{initialConc} M</span>
+          <span className="text-success-strong">{initialConc} M</span>
         </div>
         <div>
           <span className="font-medium">k:</span>{' '}

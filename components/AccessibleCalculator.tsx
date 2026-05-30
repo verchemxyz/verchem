@@ -325,7 +325,7 @@ export function AccessibleInput({
     <div className="mb-4">
       <label
         htmlFor={inputId}
-        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive' : ''}`}
+        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive-strong' : ''}`}
       >
         {label}
       </label>
@@ -350,7 +350,7 @@ export function AccessibleInput({
       )}
 
       {error && (
-        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive font-medium">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive-strong font-medium">
           {error}
         </p>
       )}
@@ -386,7 +386,7 @@ export function AccessibleSelect({
     <div className="mb-4">
       <label
         htmlFor={selectId}
-        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive' : ''}`}
+        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive-strong' : ''}`}
       >
         {label}
       </label>
@@ -417,7 +417,7 @@ export function AccessibleSelect({
       )}
 
       {error && (
-        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive font-medium">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive-strong font-medium">
           {error}
         </p>
       )}

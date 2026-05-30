@@ -225,11 +225,11 @@ function GHSPictogramsSection() {
               {isExpanded && (
                 <div id={`ghs-detail-${pictogram.id}`} className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-destructive mb-2 uppercase tracking-wider">Hazards</h4>
+                    <h4 className="text-sm font-semibold text-destructive-strong mb-2 uppercase tracking-wider">Hazards</h4>
                     <ul className="space-y-1">
                       {pictogram.hazards.map((h, i) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive-strong mt-0.5 flex-shrink-0" />
                           {h}
                         </li>
                       ))}
@@ -248,11 +248,11 @@ function GHSPictogramsSection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-success mb-2 uppercase tracking-wider">Precautions</h4>
+                    <h4 className="text-sm font-semibold text-success-strong mb-2 uppercase tracking-wider">Precautions</h4>
                     <ul className="space-y-1">
                       {pictogram.precautions.map((p, i) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <CheckCircle className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
+                          <CheckCircle className="h-3.5 w-3.5 text-success-strong mt-0.5 flex-shrink-0" />
                           {p}
                         </li>
                       ))}
@@ -333,14 +333,14 @@ function CompatibilitySection() {
           }`}>
             <div className="flex items-center gap-3 mb-2">
               {pairResult.severity === 'safe' ? (
-                <CheckCircle className="h-5 w-5 text-success" />
+                <CheckCircle className="h-5 w-5 text-success-strong" />
               ) : pairResult.severity === 'caution' ? (
                 <AlertTriangle className="h-5 w-5 text-warning-strong" />
               ) : (
-                <XCircle className="h-5 w-5 text-destructive" />
+                <XCircle className="h-5 w-5 text-destructive-strong" />
               )}
               <span className={`font-semibold ${
-                pairResult.severity === 'safe' ? 'text-success' : pairResult.severity === 'caution' ? 'text-warning-strong' : 'text-destructive'
+                pairResult.severity === 'safe' ? 'text-success-strong' : pairResult.severity === 'caution' ? 'text-warning-strong' : 'text-destructive-strong'
               }`}>
                 {pairResult.severity === 'safe' ? 'Compatible' : pairResult.severity === 'caution' ? 'Use Caution' : 'INCOMPATIBLE - Do Not Store Together'}
               </span>
@@ -407,10 +407,10 @@ function CompatibilitySection() {
                       row.id === col.id
                         ? 'text-muted-foreground'
                         : result.severity === 'safe'
-                          ? 'text-success'
+                          ? 'text-success-strong'
                           : result.severity === 'caution'
                             ? 'text-warning-strong'
-                            : 'text-destructive'
+                            : 'text-destructive-strong'
                     return (
                       <td
                         key={col.id}
@@ -499,14 +499,14 @@ function EmergencySection() {
       {/* Emergency banner */}
       <div className="rounded-md border border-destructive/40 bg-destructive/10 p-5 flex items-center gap-4">
         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-destructive/15 flex items-center justify-center">
-          <AlertTriangle className="h-6 w-6 text-destructive" />
+          <AlertTriangle className="h-6 w-6 text-destructive-strong" />
         </div>
         <div>
-          <h3 className="text-destructive font-semibold">Emergency Numbers</h3>
+          <h3 className="text-destructive-strong font-semibold">Emergency Numbers</h3>
           <p className="text-sm text-foreground">
-            <span className="font-mono text-destructive">911</span> (US Emergency) &bull;{' '}
-            <span className="font-mono text-destructive">1-800-222-1222</span> (US Poison Control) &bull;{' '}
-            <span className="font-mono text-destructive">1669</span> (Thailand Emergency)
+            <span className="font-mono text-destructive-strong">911</span> (US Emergency) &bull;{' '}
+            <span className="font-mono text-destructive-strong">1-800-222-1222</span> (US Poison Control) &bull;{' '}
+            <span className="font-mono text-destructive-strong">1669</span> (Thailand Emergency)
           </p>
         </div>
       </div>
@@ -523,7 +523,7 @@ function EmergencySection() {
                 aria-controls={`emergency-detail-${procedure.id}`}
               >
                 <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  procedure.callEmergency ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning-strong'
+                  procedure.callEmergency ? 'bg-destructive/15 text-destructive-strong' : 'bg-warning/15 text-warning-strong'
                 }`}>
                   {getEmergencyIcon(procedure)}
                 </div>
@@ -531,7 +531,7 @@ function EmergencySection() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <h3 className="text-foreground font-semibold">{procedure.title}</h3>
                     {procedure.callEmergency && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/15 text-destructive border border-destructive/40 whitespace-nowrap">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/15 text-destructive-strong border border-destructive/40 whitespace-nowrap">
                         Call 911
                       </span>
                     )}
@@ -546,14 +546,14 @@ function EmergencySection() {
               {isExpanded && (
                 <div id={`emergency-detail-${procedure.id}`} className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-success mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-success-strong mb-3 uppercase tracking-wider flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Steps to Follow
                     </h4>
                     <ol className="space-y-2">
                       {procedure.steps.map((step, i) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-success/15 text-success flex items-center justify-center text-xs font-bold">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-success/15 text-success-strong flex items-center justify-center text-xs font-bold">
                             {i + 1}
                           </span>
                           <span className="pt-0.5">{step}</span>
@@ -563,14 +563,14 @@ function EmergencySection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-destructive mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-destructive-strong mb-3 uppercase tracking-wider flex items-center gap-2">
                       <XCircle className="h-4 w-4" />
                       Do NOT
                     </h4>
                     <ul className="space-y-2">
                       {procedure.doNot.map((item, i) => (
                         <li key={i} className="text-sm text-foreground flex items-start gap-2">
-                          <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                          <XCircle className="h-4 w-4 text-destructive-strong mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -723,12 +723,12 @@ function StatementsSection() {
       <div className="grid gap-4 md:grid-cols-2 mb-6">
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black text-destructive uppercase tracking-widest">DANGER</span>
+            <span className="text-2xl font-black text-destructive-strong uppercase tracking-widest">DANGER</span>
           </div>
           <p className="text-sm text-foreground mb-3">{SIGNAL_WORDS.Danger.description}</p>
           <div className="flex flex-wrap gap-1.5">
             {SIGNAL_WORDS.Danger.examples.map((ex, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded bg-destructive/15 text-destructive">{ex}</span>
+              <span key={i} className="text-xs px-2 py-0.5 rounded bg-destructive/15 text-destructive-strong">{ex}</span>
             ))}
           </div>
         </div>
@@ -814,7 +814,7 @@ function StatementsSection() {
                       <td className="px-4 py-3 text-foreground">{h.text}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                          h.signalWord === 'Danger' ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning-strong'
+                          h.signalWord === 'Danger' ? 'bg-destructive/15 text-destructive-strong' : 'bg-warning/15 text-warning-strong'
                         }`}>
                           {h.signalWord}
                         </span>
@@ -823,7 +823,7 @@ function StatementsSection() {
                         <span className={`text-xs capitalize px-2 py-0.5 rounded border ${
                           h.category === 'physical' ? 'border-warning/40 text-warning-strong' :
                           h.category === 'health' ? 'border-secondary-500/40 text-secondary-600' :
-                          'border-success/40 text-success'
+                          'border-success/40 text-success-strong'
                         }`}>
                           {h.category}
                         </span>
@@ -934,19 +934,19 @@ export default function LabSafetyPage() {
       {/* Reference scope summary */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" />
+          <CheckCircle className="h-4 w-4 text-success-strong" />
           9 GHS Pictograms
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" />
+          <CheckCircle className="h-4 w-4 text-success-strong" />
           11 Compatibility Groups
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" />
+          <CheckCircle className="h-4 w-4 text-success-strong" />
           8 Emergency Procedures
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success" />
+          <CheckCircle className="h-4 w-4 text-success-strong" />
           {H_STATEMENTS.length + P_STATEMENTS.length}+ H/P Statements
         </span>
       </div>

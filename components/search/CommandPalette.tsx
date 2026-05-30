@@ -225,7 +225,7 @@ function CommandItem({
       case 'suggestion':
         return 'text-primary-600'
       case 'recent':
-        return 'text-success'
+        return 'text-success-strong'
       case 'popular':
         return 'text-warning-strong'
       case 'bookmark':
@@ -262,7 +262,7 @@ function CommandItem({
       <div className="flex-shrink-0">
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
           item.type === 'suggestion' ? 'bg-primary-100 text-primary-800' :
-          item.type === 'recent' ? 'bg-success/15 text-success' :
+          item.type === 'recent' ? 'bg-success/15 text-success-strong' :
           item.type === 'popular' ? 'bg-warning/15 text-warning-strong' :
           item.type === 'bookmark' ? 'bg-secondary-100 text-secondary-800' :
           'bg-secondary-100 text-secondary-800'

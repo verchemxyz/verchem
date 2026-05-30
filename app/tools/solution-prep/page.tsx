@@ -877,7 +877,7 @@ function InputField({
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+    <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive-strong">
       {message}
     </div>
   )

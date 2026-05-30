@@ -76,7 +76,7 @@ export default function Home() {
                   <span className="font-mono text-[11px] text-muted-foreground">
                     {sigDisplay}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success-strong">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>

@@ -68,8 +68,10 @@
   --info: #199B95;
   --info-foreground: #FAFAF6;
   /* AA-safe foreground variants of warning/info for use as readable TEXT on light */
-  --warning-strong: #87650F;
+  --warning-strong: #6E5109;
   --info-strong: #0E6E6A;
+  --success-strong: #176844;
+  --destructive-strong: #A63A32;
 
   /* Gradients — neutralized, single-tone only */
   --gradient-primary: linear-gradient(180deg, #FAFAF6 0%, #F5F5F0 100%);
@@ -173,6 +175,8 @@
   /* On dark surfaces the vibrant warning/info already pass AA as text */
   --warning-strong: #d4a03a;
   --info-strong: #33afa7;
+  --success-strong: #3FBE82;
+  --destructive-strong: #E88277;
 
   /* Gradients */
   --gradient-primary: linear-gradient(180deg, #171B20 0%, #1E2329 100%);
@@ -240,6 +244,8 @@
   --color-info-foreground: var(--info-foreground);
   --color-warning-strong: var(--warning-strong);
   --color-info-strong: var(--info-strong);
+  --color-success-strong: var(--success-strong);
+  --color-destructive-strong: var(--destructive-strong);
 
   /* Primary color scale */
   --color-primary-50: var(--primary-50);

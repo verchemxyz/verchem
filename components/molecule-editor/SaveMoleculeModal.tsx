@@ -135,7 +135,7 @@ export default function SaveMoleculeModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="mol-name" className="block text-sm font-medium text-foreground mb-1">
-              Name <span className="text-destructive">*</span>
+              Name <span className="text-destructive-strong">*</span>
             </label>
             <input
               id="mol-name"
@@ -192,7 +192,7 @@ export default function SaveMoleculeModal({
           </label>
 
           {error && (
-            <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+            <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive-strong text-sm">
               {error}
             </div>
           )}

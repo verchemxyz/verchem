@@ -157,7 +157,7 @@ export function TutorialProgressTracker() {
                     {achievement.description}
                   </p>
                 </div>
-                <CheckCircle className="w-4 h-4 text-success" />
+                <CheckCircle className="w-4 h-4 text-success-strong" />
               </div>
             ))}
           </div>

@@ -16,7 +16,7 @@ export function ErrorBanner({
       role="alert"
       className={`border border-destructive/40 bg-destructive/10 rounded-md p-4 ${className}`}
     >
-      <div className="flex items-center gap-2 text-destructive font-semibold mb-1">
+      <div className="flex items-center gap-2 text-destructive-strong font-semibold mb-1">
         <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
@@ -27,7 +27,7 @@ export function ErrorBanner({
         </svg>
         Error
       </div>
-      <p className="text-sm text-destructive">{children}</p>
+      <p className="text-sm text-destructive-strong">{children}</p>
     </div>
   );
 }

@@ -95,11 +95,11 @@ function EquationBalancerContent() {
   const getDifficultyColor = (difficulty: string): string => {
     switch (difficulty) {
       case 'easy':
-        return 'bg-success/10 text-success border-success/30'
+        return 'bg-success/10 text-success-strong border-success/30'
       case 'medium':
         return 'bg-warning/10 text-warning-strong border-warning/30'
       case 'hard':
-        return 'bg-destructive/10 text-destructive border-destructive/30'
+        return 'bg-destructive/10 text-destructive-strong border-destructive/30'
       default:
         return 'bg-muted text-muted-foreground border-border'
     }
@@ -202,11 +202,11 @@ function EquationBalancerContent() {
                       <td className="text-center py-3 px-4 font-mono text-foreground">{counts.products}</td>
                       <td className="text-center py-3 px-4">
                         {counts.reactants === counts.products ? (
-                          <span className="inline-flex items-center px-3 py-1 bg-success/10 text-success border border-success/30 rounded-full text-sm font-semibold">
+                          <span className="inline-flex items-center px-3 py-1 bg-success/10 text-success-strong border border-success/30 rounded-full text-sm font-semibold">
                             Balanced
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-3 py-1 bg-destructive/10 text-destructive border border-destructive/30 rounded-full text-sm font-semibold">
+                          <span className="inline-flex items-center px-3 py-1 bg-destructive/10 text-destructive-strong border border-destructive/30 rounded-full text-sm font-semibold">
                             Unbalanced
                           </span>
                         )}
@@ -303,7 +303,7 @@ function EquationBalancerContent() {
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                 selectedDifficulty === 'easy'
                   ? 'bg-success text-success-foreground border-success'
-                  : 'bg-success/10 text-success border-success/30 hover:bg-success/20'
+                  : 'bg-success/10 text-success-strong border-success/30 hover:bg-success/20'
               }`}
             >
               Easy
@@ -323,7 +323,7 @@ function EquationBalancerContent() {
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                 selectedDifficulty === 'hard'
                   ? 'bg-destructive text-destructive-foreground border-destructive'
-                  : 'bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20'
+                  : 'bg-destructive/10 text-destructive-strong border-destructive/30 hover:bg-destructive/20'
               }`}
             >
               Hard

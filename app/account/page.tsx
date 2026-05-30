@@ -78,11 +78,11 @@ export default function AccountPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 border border-destructive/40 flex items-center justify-center">
-            <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-destructive-strong" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-destructive mb-4">{error || 'Not authenticated'}</p>
+          <p className="text-destructive-strong mb-4">{error || 'Not authenticated'}</p>
           <Link href="/" className="text-primary-600 hover:text-primary-500 transition-colors">
             Go to Home
           </Link>
@@ -129,7 +129,7 @@ export default function AccountPage() {
           <div className="min-w-0">
             <h2 className="text-xl font-bold text-foreground truncate">{displayName}</h2>
             <p className="text-sm text-muted-foreground truncate">{user.email || 'No email linked'}</p>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-0.5 text-xs font-medium text-success-strong">
               Active session
             </span>
           </div>
@@ -172,13 +172,13 @@ export default function AccountPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold text-foreground">Early Bird Member</h3>
-            <p className="text-success text-sm font-medium">All features unlocked</p>
+            <p className="text-success-strong text-sm font-medium">All features unlocked</p>
             <p className="text-muted-foreground text-sm mt-3 max-w-md">
               Thank you for being an early adopter. You have lifetime access to all VerChem features.
               When we launch premium tiers, you&apos;ll receive exclusive Early Bird pricing.
             </p>
           </div>
-          <span className="rounded-md border border-success/40 bg-success/10 px-3 py-1 text-sm font-bold text-success shrink-0">
+          <span className="rounded-md border border-success/40 bg-success/10 px-3 py-1 text-sm font-bold text-success-strong shrink-0">
             FREE
           </span>
         </div>

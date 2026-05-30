@@ -131,7 +131,7 @@ export default function FunctionalGroupsPage() {
                           {catData.label}
                         </span>
                         {group.priority === 'high' && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive-strong">
                             Must Know
                           </span>
                         )}
@@ -331,7 +331,7 @@ export default function FunctionalGroupsPage() {
                 <h3 className="font-bold text-foreground mb-3">Priority Guide</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive-strong text-xs">
                       Must Know
                     </span>
                     <span className="text-muted-foreground">Exam essential</span>
@@ -343,7 +343,7 @@ export default function FunctionalGroupsPage() {
                     <span className="text-muted-foreground">Important</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-success/10 text-success-strong text-xs">
                       Low
                     </span>
                     <span className="text-muted-foreground">Advanced/Specialty</span>

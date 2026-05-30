@@ -123,16 +123,16 @@ export default function PeriodicTablePage() {
         {/* Capability strip */}
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> 118 Elements
+            <CheckCircle className="h-4 w-4 text-success-strong" /> 118 Elements
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> NIST Certified
+            <CheckCircle className="h-4 w-4 text-success-strong" /> NIST Certified
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> Interactive
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Interactive
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+            <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
           </span>
         </div>
 

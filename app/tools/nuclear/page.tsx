@@ -45,10 +45,10 @@ const TABS: TabInfo[] = [
 // Decay-mode is categorical data \u2014 each mode keeps a distinct token hue so the
 // equation display, presets, isotope badges, and filters share one legend.
 const DECAY_TYPE_LABELS: Record<DecayType, { label: string; color: string; bgColor: string }> = {
-  'alpha': { label: '\u03B1 Alpha', color: 'text-destructive', bgColor: 'bg-destructive/15 border-destructive/40' },
+  'alpha': { label: '\u03B1 Alpha', color: 'text-destructive-strong', bgColor: 'bg-destructive/15 border-destructive/40' },
   'beta-minus': { label: '\u03B2\u207B Beta-minus', color: 'text-info-strong', bgColor: 'bg-info/15 border-info/40' },
   'beta-plus': { label: '\u03B2\u207A Beta-plus', color: 'text-secondary-600', bgColor: 'bg-secondary-500/15 border-secondary-500/40' },
-  'gamma': { label: '\u03B3 Gamma', color: 'text-success', bgColor: 'bg-success/15 border-success/40' },
+  'gamma': { label: '\u03B3 Gamma', color: 'text-success-strong', bgColor: 'bg-success/15 border-success/40' },
   'electron-capture': { label: 'EC Electron Capture', color: 'text-warning-strong', bgColor: 'bg-warning/15 border-warning/40' },
 }
 
@@ -96,7 +96,7 @@ function ResultCard({ title, children }: { title: string; children: React.ReactN
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div role="alert" className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive">
+    <div role="alert" className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive-strong">
       {message}
     </div>
   )
@@ -602,8 +602,8 @@ function EquationsTab() {
 
           {/* Conservation check */}
           <div className="mt-4 rounded-md bg-success/10 border border-success/40 p-3">
-            <p className="text-sm text-success font-medium">Conservation Check</p>
-            <p className="text-xs text-success mt-1">
+            <p className="text-sm text-success-strong font-medium">Conservation Check</p>
+            <p className="text-xs text-success-strong mt-1">
               Mass number: {result.parent.A} = {result.daughter.A} + {result.parent.A - result.daughter.A} {'\u2713'} |
               Atomic number: {result.parent.Z} = {result.daughter.Z} + {result.parent.Z - result.daughter.Z} {'\u2713'}
             </p>

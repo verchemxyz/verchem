@@ -65,7 +65,7 @@ export default function AskBox({ onSubmit, isLoading, error }: AskBoxProps) {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive-strong"
         >
           {error}
         </div>

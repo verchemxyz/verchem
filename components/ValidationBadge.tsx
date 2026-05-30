@@ -43,7 +43,7 @@ export function ValidationBadge({
     excellent: {
       icon: <SealIcon />,
       text: 'Validated',
-      color: 'bg-muted text-success border-success',
+      color: 'bg-muted text-success-strong border-success',
       description: 'Validated against NIST/CRC standards'
     },
     good: {

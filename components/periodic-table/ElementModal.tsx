@@ -14,16 +14,16 @@ interface ElementModalProps {
 // Element-category codings (SEMANTIC) — neutral surface + per-category element
 // token so categories stay visually distinct AND theme-safe (light/dark).
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  'alkali-metal': { bg: 'bg-muted', border: 'border-element-alkali', text: 'text-element-alkali' },
-  'alkaline-earth-metal': { bg: 'bg-muted', border: 'border-element-alkaline', text: 'text-element-alkaline' },
-  'transition-metal': { bg: 'bg-muted', border: 'border-element-transition', text: 'text-element-transition' },
-  'post-transition-metal': { bg: 'bg-muted', border: 'border-element-metals', text: 'text-element-metals' },
-  'metalloid': { bg: 'bg-muted', border: 'border-element-metalloids', text: 'text-element-metalloids' },
-  'nonmetal': { bg: 'bg-muted', border: 'border-element-nonmetals', text: 'text-element-nonmetals' },
-  'halogen': { bg: 'bg-muted', border: 'border-element-halogens', text: 'text-element-halogens' },
-  'noble-gas': { bg: 'bg-muted', border: 'border-element-noble-gases', text: 'text-element-noble-gases' },
-  'lanthanide': { bg: 'bg-muted', border: 'border-element-lanthanides', text: 'text-element-lanthanides' },
-  'actinide': { bg: 'bg-muted', border: 'border-element-actinides', text: 'text-element-actinides' },
+  'alkali-metal': { bg: 'bg-muted', border: 'border-element-alkali', text: 'text-foreground' },
+  'alkaline-earth-metal': { bg: 'bg-muted', border: 'border-element-alkaline', text: 'text-foreground' },
+  'transition-metal': { bg: 'bg-muted', border: 'border-element-transition', text: 'text-foreground' },
+  'post-transition-metal': { bg: 'bg-muted', border: 'border-element-metals', text: 'text-foreground' },
+  'metalloid': { bg: 'bg-muted', border: 'border-element-metalloids', text: 'text-foreground' },
+  'nonmetal': { bg: 'bg-muted', border: 'border-element-nonmetals', text: 'text-foreground' },
+  'halogen': { bg: 'bg-muted', border: 'border-element-halogens', text: 'text-foreground' },
+  'noble-gas': { bg: 'bg-muted', border: 'border-element-noble-gases', text: 'text-foreground' },
+  'lanthanide': { bg: 'bg-muted', border: 'border-element-lanthanides', text: 'text-foreground' },
+  'actinide': { bg: 'bg-muted', border: 'border-element-actinides', text: 'text-foreground' },
   'unknown': { bg: 'bg-muted', border: 'border-border', text: 'text-foreground' },
 }
 

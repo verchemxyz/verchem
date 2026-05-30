@@ -203,7 +203,7 @@ export default function ElectrochemistryPage() {
                       <span className="text-sm text-muted-foreground">Spontaneous:</span>
                       <p
                         className={`text-2xl font-bold ${
-                          cellResult.spontaneous ? 'text-success' : 'text-destructive'
+                          cellResult.spontaneous ? 'text-success-strong' : 'text-destructive-strong'
                         }`}
                       >
                         {cellResult.spontaneous ? 'Yes' : 'No'}
@@ -465,7 +465,7 @@ export default function ElectrochemistryPage() {
                         </td>
                         <td
                           className={`px-4 py-2 text-right font-mono font-bold ${
-                            hr.E0 > 0 ? 'text-success' : 'text-destructive'
+                            hr.E0 > 0 ? 'text-success-strong' : 'text-destructive-strong'
                           }`}
                         >
                           {hr.E0 > 0 ? '+' : ''}
@@ -483,11 +483,11 @@ export default function ElectrochemistryPage() {
                 </h3>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li className="flex items-center">
-                    <span className="text-success font-bold mr-2">+</span>
+                    <span className="text-success-strong font-bold mr-2">+</span>
                     Positive E°: Strong oxidizing agent (easily reduced)
                   </li>
                   <li className="flex items-center">
-                    <span className="text-destructive font-bold mr-2">-</span>
+                    <span className="text-destructive-strong font-bold mr-2">-</span>
                     Negative E°: Strong reducing agent (easily oxidized)
                   </li>
                 </ul>

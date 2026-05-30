@@ -916,9 +916,9 @@ export default function EnhancedStoichiometryPage() {
                           result.additionalInfo.efficiency === 'Fair' ? 'bg-warning/10 border-warning/40' : 'bg-destructive/10 border-destructive/40'
                         }`}>
                           <div className={`text-sm font-medium mb-2 ${
-                            result.additionalInfo.efficiency === 'Excellent' ? 'text-success' :
+                            result.additionalInfo.efficiency === 'Excellent' ? 'text-success-strong' :
                             result.additionalInfo.efficiency === 'Good' ? 'text-info-strong' :
-                            result.additionalInfo.efficiency === 'Fair' ? 'text-warning-strong' : 'text-destructive'
+                            result.additionalInfo.efficiency === 'Fair' ? 'text-warning-strong' : 'text-destructive-strong'
                           }`}>
                             Yield efficiency: {result.additionalInfo.efficiency}
                           </div>
