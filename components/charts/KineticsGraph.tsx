@@ -323,7 +323,7 @@ export default function KineticsGraph({
         </div>
         <div>
           <span className="font-medium">t½:</span>{' '}
-          <span className="text-warning">{halfLife.toFixed(2)} s</span>
+          <span className="text-warning-strong">{halfLife.toFixed(2)} s</span>
         </div>
       </div>
     </div>

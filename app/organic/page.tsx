@@ -140,7 +140,7 @@ export default function OrganicChemistryHub() {
               >
                 <Card className="h-full transition-colors hover:border-primary-500 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-warning text-xs font-semibold uppercase tracking-wide">Nobel Prize</span>
+                    <span className="text-warning-strong text-xs font-semibold uppercase tracking-wide">Nobel Prize</span>
                     <span className="text-xs text-muted-foreground">{reaction.year}</span>
                   </div>
                   <h4 className="font-semibold text-foreground group-hover:text-primary-600 transition-colors">

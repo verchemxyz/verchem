@@ -794,9 +794,9 @@ export default function MassSpecPage() {
                             : ion.category === 'alkyl'
                               ? 'bg-success/10 text-success border-success/30'
                               : ion.category === 'carbonyl'
-                                ? 'bg-warning/10 text-warning border-warning/40'
+                                ? 'bg-warning/10 text-warning-strong border-warning/40'
                                 : ion.category === 'nitrogen'
-                                  ? 'bg-info/10 text-info border-info/30'
+                                  ? 'bg-info/10 text-info-strong border-info/30'
                                   : 'bg-muted text-muted-foreground border-border'
                         }`}
                       >

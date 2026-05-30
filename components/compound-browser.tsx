@@ -163,8 +163,8 @@ export default function CompoundBrowser({
                   key={idx}
                   className={`inline-block px-2 py-1 rounded text-xs mr-1 mb-1 ${
                     isToxic ? 'bg-destructive/10 text-destructive' :
-                    isCorrosive ? 'bg-info/10 text-info' :
-                    isFlammable ? 'bg-warning/10 text-warning' :
+                    isCorrosive ? 'bg-info/10 text-info-strong' :
+                    isFlammable ? 'bg-warning/10 text-warning-strong' :
                     'bg-muted text-muted-foreground'
                   }`}
                 >
@@ -248,8 +248,8 @@ export default function CompoundBrowser({
                     key={idx}
                     className={`px-2 py-1 rounded text-xs ${
                       isToxic ? 'bg-destructive/10 text-destructive' :
-                      isCorrosive ? 'bg-info/10 text-info' :
-                      isFlammable ? 'bg-warning/10 text-warning' :
+                      isCorrosive ? 'bg-info/10 text-info-strong' :
+                      isFlammable ? 'bg-warning/10 text-warning-strong' :
                       'bg-muted text-muted-foreground'
                     }`}
                   >
@@ -398,7 +398,7 @@ export default function CompoundBrowser({
               <div className="text-sm text-muted-foreground">Categories</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-warning">
+              <div className="text-2xl font-bold text-warning-strong">
                 {Object.values(statistics.categories).reduce((sum, count) => sum + count, 0)}
               </div>
               <div className="text-sm text-muted-foreground">Organic Compounds</div>
@@ -517,8 +517,8 @@ export default function CompoundBrowser({
                       key={idx}
                       className={`px-2 py-1 rounded text-xs ${
                         isToxic ? 'bg-destructive/10 text-destructive' :
-                        isCorrosive ? 'bg-info/10 text-info' :
-                        isFlammable ? 'bg-warning/10 text-warning' :
+                        isCorrosive ? 'bg-info/10 text-info-strong' :
+                        isFlammable ? 'bg-warning/10 text-warning-strong' :
                         'bg-muted text-muted-foreground'
                       }`}
                     >

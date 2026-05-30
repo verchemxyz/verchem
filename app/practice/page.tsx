@@ -322,7 +322,7 @@ export default function PracticePage() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-success/10 text-success border-success/30'
-      case 'medium': return 'bg-warning/10 text-warning border-warning/40'
+      case 'medium': return 'bg-warning/10 text-warning-strong border-warning/40'
       case 'hard': return 'bg-destructive/10 text-destructive border-destructive/30'
       default: return 'bg-muted text-muted-foreground border-border'
     }

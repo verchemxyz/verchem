@@ -337,7 +337,7 @@ export default function FunctionalGroupsPage() {
                     <span className="text-muted-foreground">Exam essential</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-warning/15 text-warning text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-warning/15 text-warning-strong text-xs">
                       Medium
                     </span>
                     <span className="text-muted-foreground">Important</span>

@@ -274,7 +274,7 @@ export default function ChemistryChallengePage() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'text-success bg-success/10'
-      case 'medium': return 'text-warning bg-warning/10'
+      case 'medium': return 'text-warning-strong bg-warning/10'
       case 'hard': return 'text-destructive bg-destructive/10'
       default: return 'text-muted-foreground bg-muted'
     }

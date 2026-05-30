@@ -917,8 +917,8 @@ export default function EnhancedStoichiometryPage() {
                         }`}>
                           <div className={`text-sm font-medium mb-2 ${
                             result.additionalInfo.efficiency === 'Excellent' ? 'text-success' :
-                            result.additionalInfo.efficiency === 'Good' ? 'text-info' :
-                            result.additionalInfo.efficiency === 'Fair' ? 'text-warning' : 'text-destructive'
+                            result.additionalInfo.efficiency === 'Good' ? 'text-info-strong' :
+                            result.additionalInfo.efficiency === 'Fair' ? 'text-warning-strong' : 'text-destructive'
                           }`}>
                             Yield efficiency: {result.additionalInfo.efficiency}
                           </div>

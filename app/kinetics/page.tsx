@@ -711,7 +711,7 @@ export default function KineticsPage() {
                         : step.startsWith('✓')
                         ? 'text-success font-medium'
                         : step.startsWith('⚠️')
-                        ? 'text-warning font-medium'
+                        ? 'text-warning-strong font-medium'
                         : step.startsWith('❌')
                         ? 'text-destructive font-medium'
                         : 'text-foreground'

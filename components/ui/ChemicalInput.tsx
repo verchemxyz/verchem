@@ -200,7 +200,7 @@ export function ChemicalInput({
               >
                 {/* Icon based on type */}
                 {item.type === 'favorite' && (
-                  <Star className="w-4 h-4 text-warning fill-current" />
+                  <Star className="w-4 h-4 text-warning-strong fill-current" />
                 )}
                 {item.type === 'history' && (
                   <Clock className="w-4 h-4 text-muted-foreground" />

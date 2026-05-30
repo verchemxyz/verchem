@@ -380,7 +380,7 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
                 <ul className="space-y-2">
                   {hazardCodes.map((code) => (
                     <li key={code} className="flex items-start gap-2">
-                      <span className="font-mono text-sm bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded shrink-0">
+                      <span className="font-mono text-sm bg-warning/10 text-warning-strong border border-warning/30 px-2 py-0.5 rounded shrink-0">
                         {code}
                       </span>
                       <span className="text-foreground text-sm">

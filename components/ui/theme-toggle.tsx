@@ -151,7 +151,7 @@ export function ThemeToggle() {
     >
       {/* Dark mode icon (sun) */}
       <Sun
-        className={`absolute h-5 w-5 text-warning transition-all duration-300 ${
+        className={`absolute h-5 w-5 text-warning-strong transition-all duration-300 ${
           theme === 'dark'
             ? 'rotate-0 scale-100 opacity-100'
             : 'rotate-90 scale-0 opacity-0'

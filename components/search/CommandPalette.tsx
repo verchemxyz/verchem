@@ -227,7 +227,7 @@ function CommandItem({
       case 'recent':
         return 'text-success'
       case 'popular':
-        return 'text-warning'
+        return 'text-warning-strong'
       case 'bookmark':
         return 'text-secondary-600'
       case 'command':
@@ -263,7 +263,7 @@ function CommandItem({
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
           item.type === 'suggestion' ? 'bg-primary-100 text-primary-800' :
           item.type === 'recent' ? 'bg-success/15 text-success' :
-          item.type === 'popular' ? 'bg-warning/15 text-warning' :
+          item.type === 'popular' ? 'bg-warning/15 text-warning-strong' :
           item.type === 'bookmark' ? 'bg-secondary-100 text-secondary-800' :
           'bg-secondary-100 text-secondary-800'
         }`}>

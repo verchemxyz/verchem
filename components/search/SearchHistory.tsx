@@ -101,10 +101,10 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
         <div className="mb-6 p-4 bg-warning/10 border border-warning/40 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-warning">
+              <h4 className="text-sm font-medium text-warning-strong">
                 Clear search history?
               </h4>
-              <p className="text-sm text-warning mt-1">
+              <p className="text-sm text-warning-strong mt-1">
                 This will permanently delete all search history items.
               </p>
             </div>

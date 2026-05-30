@@ -55,7 +55,7 @@ export function ValidationBadge({
     acceptable: {
       icon: <CheckIcon />,
       text: 'Tested',
-      color: 'bg-muted text-warning border-warning',
+      color: 'bg-muted text-warning-strong border-warning',
       description: 'Tested for accuracy'
     },
     unvalidated: {

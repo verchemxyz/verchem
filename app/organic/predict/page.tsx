@@ -202,7 +202,7 @@ export default function ReactionPredictorPage() {
 
       {showResult && !prediction && (
         <Card className="p-6 text-center border-l-2 border-l-warning">
-          <p className="text-warning font-medium">
+          <p className="text-warning-strong font-medium">
             No prediction rule found for this combination. This combination may not be a common
             reaction, or it may not be in our database yet.
           </p>

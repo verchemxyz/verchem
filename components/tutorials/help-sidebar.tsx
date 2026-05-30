@@ -268,7 +268,7 @@ function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
               {tutorial.difficulty}
             </span>
             {tutorial.featured && (
-              <span className="flex items-center text-warning">
+              <span className="flex items-center text-warning-strong">
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </span>

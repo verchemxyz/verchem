@@ -124,7 +124,7 @@ export default function PHCalculatorPage() {
   const ACID_BASE_STYLES: Record<CalculationResult['acidBase'], { box: string; text: string }> = {
     acidic: { box: 'border-destructive/40 bg-destructive/10', text: 'text-destructive' },
     neutral: { box: 'border-success/40 bg-success/10', text: 'text-success' },
-    basic: { box: 'border-info/40 bg-info/10', text: 'text-info' },
+    basic: { box: 'border-info/40 bg-info/10', text: 'text-info-strong' },
   }
 
   return (

@@ -186,7 +186,7 @@ export default function ElectronConfigPage() {
 
                 {config.exceptions && (
                   <div className="mt-4 p-3 bg-warning/10 border-l-2 border-warning rounded-md">
-                    <div className="text-sm font-semibold text-warning">
+                    <div className="text-sm font-semibold text-warning-strong">
                       Exception:
                     </div>
                     <div className="text-sm text-muted-foreground">{config.exceptions}</div>

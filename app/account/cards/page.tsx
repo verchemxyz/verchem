@@ -17,8 +17,8 @@ interface CardSummary {
 
 const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
   verified: { label: 'Verified', cls: 'border-success/40 bg-success/10 text-success' },
-  partial: { label: 'Partial', cls: 'border-warning/40 bg-warning/10 text-warning' },
-  unverified: { label: 'Unverified', cls: 'border-warning/40 bg-warning/10 text-warning' },
+  partial: { label: 'Partial', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
+  unverified: { label: 'Unverified', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
   error: { label: 'Error', cls: 'border-destructive/40 bg-destructive/10 text-destructive' },
 }
 

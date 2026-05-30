@@ -1022,7 +1022,7 @@ export default function EnhancedSolutionsPage() {
                       {/* Instructions */}
                       {result.additionalInfo.instructions && (
                         <div className="bg-warning/10 border border-warning/40 rounded-md p-4">
-                          <div className="text-sm font-medium text-warning mb-2">
+                          <div className="text-sm font-medium text-warning-strong mb-2">
                             Preparation instructions
                           </div>
                           <div className="text-xs text-muted-foreground">

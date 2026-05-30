@@ -22,7 +22,7 @@ function intensityBadge(intensity: string): string {
     case 'strong':
       return 'bg-destructive/10 text-destructive'
     case 'medium':
-      return 'bg-warning/10 text-warning'
+      return 'bg-warning/10 text-warning-strong'
     case 'weak':
       return 'bg-muted text-muted-foreground'
     case 'variable':

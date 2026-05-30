@@ -97,7 +97,7 @@ export function TutorialDashboard() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'beginner': return 'text-success bg-success/10';
-      case 'intermediate': return 'text-warning bg-warning/10';
+      case 'intermediate': return 'text-warning-strong bg-warning/10';
       case 'advanced': return 'text-destructive bg-destructive/10';
       default: return 'text-muted-foreground bg-muted';
     }
@@ -177,7 +177,7 @@ export function TutorialDashboard() {
                   {userData?.achievements.length || 0}
                 </p>
               </div>
-              <Award className="w-8 h-8 text-warning" />
+              <Award className="w-8 h-8 text-warning-strong" />
             </div>
           </motion.div>
 
@@ -354,7 +354,7 @@ export function TutorialDashboard() {
                                 {tutorial.title}
                               </h3>
                               {tutorial.featured && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-warning/10 text-warning">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-warning/10 text-warning-strong">
                                   <Star className="w-3 h-3 mr-1" />
                                   Featured
                                 </span>

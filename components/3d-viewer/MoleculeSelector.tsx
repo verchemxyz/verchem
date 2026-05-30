@@ -243,7 +243,7 @@ export default function MoleculeSelector({
           {currentMolecule.metadata?.hazards &&
             currentMolecule.metadata.hazards.length > 0 && (
               <div>
-                <span className="text-warning text-xs font-medium">Hazards:</span>
+                <span className="text-warning-strong text-xs font-medium">Hazards:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {currentMolecule.metadata.hazards.map((hazard, i) => (
                     <span

@@ -45,7 +45,7 @@ export function TutorialProgressTracker() {
         <h2 className="text-xl font-semibold text-foreground">
           Learning Progress
         </h2>
-        <Award className="w-6 h-6 text-warning" />
+        <Award className="w-6 h-6 text-warning-strong" />
       </div>
 
       {/* Overall Progress */}
@@ -89,7 +89,7 @@ export function TutorialProgressTracker() {
         </div>
         <div className="bg-muted rounded-lg p-3">
           <div className="flex items-center space-x-2">
-            <Award className="w-4 h-4 text-warning" />
+            <Award className="w-4 h-4 text-warning-strong" />
             <span className="text-sm text-muted-foreground">Achievements</span>
           </div>
           <p className="text-lg font-semibold text-foreground mt-1">

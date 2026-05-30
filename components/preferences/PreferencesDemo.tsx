@@ -436,7 +436,7 @@ export function PreferencesDemo() {
           </div>
           
           {hasChanges && (
-            <div className="text-sm text-warning">
+            <div className="text-sm text-warning-strong">
               You have unsaved changes that will be automatically saved
             </div>
           )}

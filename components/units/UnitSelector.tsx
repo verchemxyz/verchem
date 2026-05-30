@@ -231,7 +231,7 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
                 ? 'bg-primary-100 text-primary-700'
                 : system === 'Imperial'
                 ? 'bg-secondary-100 text-secondary-700'
-                : 'bg-warning/10 text-warning'
+                : 'bg-warning/10 text-warning-strong'
             }`}
           >
             {system === 'SI' ? 'Metric (SI)' : system === 'Imperial' ? 'US/Imperial' : 'Custom'}

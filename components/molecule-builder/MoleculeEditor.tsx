@@ -722,7 +722,7 @@ export default function MoleculeEditor({
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-all ${
             validation.isStable
               ? 'bg-success/10 border-success/30 text-success'
-              : 'bg-warning/10 border-warning/30 text-warning'
+              : 'bg-warning/10 border-warning/30 text-warning-strong'
           }`}>
             <div className={`w-2 h-2 rounded-full ${validation.isStable ? 'bg-success' : 'bg-warning'}`} />
             <span className="text-xs font-bold tracking-wider uppercase">

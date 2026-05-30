@@ -194,7 +194,7 @@ export default function EquationBalancerToolPage() {
                   </span>
                   <span className={`px-2 py-1 rounded text-xs border ${
                     example.difficulty === 'easy' ? 'border-success/40 bg-success/10 text-success' :
-                    example.difficulty === 'medium' ? 'border-warning/40 bg-warning/10 text-warning' :
+                    example.difficulty === 'medium' ? 'border-warning/40 bg-warning/10 text-warning-strong' :
                     'border-destructive/40 bg-destructive/10 text-destructive'
                   }`}>
                     {example.difficulty}

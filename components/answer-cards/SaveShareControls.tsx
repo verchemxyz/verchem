@@ -151,7 +151,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
       )}
 
       {needLogin && (
-        <p className="mt-3 text-sm text-warning">
+        <p className="mt-3 text-sm text-warning-strong">
           Please{' '}
           <Link href="/" className="underline">
             log in

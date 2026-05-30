@@ -84,7 +84,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
               {diffMeta.label}
             </span>
             {reaction.tags.includes('Nobel') && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning-strong">
                 Nobel Prize {reaction.year}
               </span>
             )}
@@ -184,7 +184,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
                       Arrow: {step.arrowType}
                     </span>
                     {step.intermediateFormula && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning font-mono">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning-strong font-mono">
                         {step.intermediateFormula}
                       </span>
                     )}

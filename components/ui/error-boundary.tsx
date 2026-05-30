@@ -136,7 +136,7 @@ export function MoleculeBuilderErrorBoundary({ children }: { children: ReactNode
         <div className="min-h-[600px] flex items-center justify-center p-8">
           <div className="max-w-md w-full text-center">
             <div className="rounded-3xl border border-warning/40 bg-card p-8">
-              <AlertCircle className="w-16 h-16 text-warning mx-auto mb-4" />
+              <AlertCircle className="w-16 h-16 text-warning-strong mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-foreground mb-2">
                 Molecule Builder Error
               </h2>

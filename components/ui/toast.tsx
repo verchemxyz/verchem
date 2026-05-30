@@ -74,8 +74,8 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   const accents = {
     success: 'border-l-success text-success',
     error: 'border-l-destructive text-destructive',
-    warning: 'border-l-warning text-warning',
-    info: 'border-l-info text-info'
+    warning: 'border-l-warning text-warning-strong',
+    info: 'border-l-info text-info-strong'
   }
 
   return (

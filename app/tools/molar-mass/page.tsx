@@ -219,7 +219,7 @@ export default function MolarMassCalculatorPage() {
                 SMILES
               </button>
               {rdkitHookError && (
-                <span className="text-xs text-warning self-center ml-2">
+                <span className="text-xs text-warning-strong self-center ml-2">
                   Advanced features unavailable
                 </span>
               )}

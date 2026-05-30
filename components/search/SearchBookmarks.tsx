@@ -103,7 +103,7 @@ function BookmarkCard({
     <div className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <BookmarkIcon className="h-5 w-5 text-warning" />
+          <BookmarkIcon className="h-5 w-5 text-warning-strong" />
           <h3 className="font-medium text-foreground truncate">{bookmark.name}</h3>
         </div>
         <button

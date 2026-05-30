@@ -165,7 +165,7 @@ export default function ReactionsPage() {
                     {diffMeta.label}
                   </span>
                   {reaction.tags.includes('Nobel') && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning-strong">
                       Nobel
                     </span>
                   )}

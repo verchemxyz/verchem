@@ -227,7 +227,7 @@ export default function MoleculeBuilderPage() {
                  <div className="space-y-2">
                     {validation.hints.map((hint, i) => (
                       <div key={i} className="text-xs p-3 rounded-md bg-warning/10 border border-warning/30 text-foreground leading-relaxed flex gap-2">
-                        <span className="text-warning font-bold">!</span>
+                        <span className="text-warning-strong font-bold">!</span>
                         {hint}
                       </div>
                     ))}

@@ -97,7 +97,7 @@ function EquationBalancerContent() {
       case 'easy':
         return 'bg-success/10 text-success border-success/30'
       case 'medium':
-        return 'bg-warning/10 text-warning border-warning/30'
+        return 'bg-warning/10 text-warning-strong border-warning/30'
       case 'hard':
         return 'bg-destructive/10 text-destructive border-destructive/30'
       default:
@@ -313,7 +313,7 @@ function EquationBalancerContent() {
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
                 selectedDifficulty === 'medium'
                   ? 'bg-warning text-warning-foreground border-warning'
-                  : 'bg-warning/10 text-warning border-warning/30 hover:bg-warning/20'
+                  : 'bg-warning/10 text-warning-strong border-warning/30 hover:bg-warning/20'
               }`}
             >
               Medium

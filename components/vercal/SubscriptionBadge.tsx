@@ -41,7 +41,7 @@ export function SubscriptionBadge({
     gray: 'bg-muted text-muted-foreground',
     blue: 'bg-primary-100 text-primary-700',
     purple: 'bg-secondary-100 text-secondary-700',
-    gold: 'bg-warning/10 text-warning',
+    gold: 'bg-warning/10 text-warning-strong',
   }
 
   return (

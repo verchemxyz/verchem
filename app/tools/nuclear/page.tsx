@@ -46,10 +46,10 @@ const TABS: TabInfo[] = [
 // equation display, presets, isotope badges, and filters share one legend.
 const DECAY_TYPE_LABELS: Record<DecayType, { label: string; color: string; bgColor: string }> = {
   'alpha': { label: '\u03B1 Alpha', color: 'text-destructive', bgColor: 'bg-destructive/15 border-destructive/40' },
-  'beta-minus': { label: '\u03B2\u207B Beta-minus', color: 'text-info', bgColor: 'bg-info/15 border-info/40' },
+  'beta-minus': { label: '\u03B2\u207B Beta-minus', color: 'text-info-strong', bgColor: 'bg-info/15 border-info/40' },
   'beta-plus': { label: '\u03B2\u207A Beta-plus', color: 'text-secondary-600', bgColor: 'bg-secondary-500/15 border-secondary-500/40' },
   'gamma': { label: '\u03B3 Gamma', color: 'text-success', bgColor: 'bg-success/15 border-success/40' },
-  'electron-capture': { label: 'EC Electron Capture', color: 'text-warning', bgColor: 'bg-warning/15 border-warning/40' },
+  'electron-capture': { label: 'EC Electron Capture', color: 'text-warning-strong', bgColor: 'bg-warning/15 border-warning/40' },
 }
 
 // ============================================================

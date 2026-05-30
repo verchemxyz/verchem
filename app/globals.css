@@ -67,6 +67,9 @@
   --warning-foreground: #171B20;
   --info: #199B95;
   --info-foreground: #FAFAF6;
+  /* AA-safe foreground variants of warning/info for use as readable TEXT on light */
+  --warning-strong: #87650F;
+  --info-strong: #0E6E6A;
 
   /* Gradients — neutralized, single-tone only */
   --gradient-primary: linear-gradient(180deg, #FAFAF6 0%, #F5F5F0 100%);
@@ -87,13 +90,14 @@
   --text-inverse: #FAFAF6;
 
   /* Chemistry specific colors */
+  /* AA-tuned: text on /15 tint AND white-on-solid-tile both >=4.5:1 (verified) */
   --element-metals: #0F6764;
-  --element-nonmetals: #23825A;
-  --element-noble-gases: #199B95;
+  --element-nonmetals: #1E7550;
+  --element-noble-gases: #0E6E78;
   --element-alkali: #A63A32;
-  --element-alkaline: #C99222;
+  --element-alkaline: #8A6410;
   --element-transition: #7A4F8C;
-  --element-metalloids: #5E7A6B;
+  --element-metalloids: #46604F;
   --element-halogens: #8C6B3F;
   --element-lanthanides: #6B5E7A;
   --element-actinides: #7A5E6B;
@@ -166,6 +170,9 @@
   --warning-foreground: #171B20;
   --info: #33afa7;
   --info-foreground: #171B20;
+  /* On dark surfaces the vibrant warning/info already pass AA as text */
+  --warning-strong: #d4a03a;
+  --info-strong: #33afa7;
 
   /* Gradients */
   --gradient-primary: linear-gradient(180deg, #171B20 0%, #1E2329 100%);
@@ -186,9 +193,9 @@
   --text-inverse: #171B20;
 
   /* Chemistry specific colors (adjusted for dark theme) */
-  --element-metals: #33afa7;
+  --element-metals: #3FB8AF;
   --element-nonmetals: #2ea36e;
-  --element-noble-gases: #33afa7;
+  --element-noble-gases: #6CC6D9;
   --element-alkali: #c44f45;
   --element-alkaline: #d4a03a;
   --element-transition: #a87ec4;
@@ -231,6 +238,8 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-warning-strong: var(--warning-strong);
+  --color-info-strong: var(--info-strong);
 
   /* Primary color scale */
   --color-primary-50: var(--primary-50);

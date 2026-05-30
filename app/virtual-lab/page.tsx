@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalcShell, Card, SectionTitle, Button } from '@/components/lab'
+import { CalcShell, Card, SectionTitle } from '@/components/lab'
 
 export default function VirtualLabPage() {
   const labs = [
@@ -287,8 +287,11 @@ export default function VirtualLabPage() {
         <p className="text-muted-foreground mb-6">
           Choose a lab above and start your virtual chemistry session.
         </p>
-        <Link href="/virtual-lab/titration">
-          <Button>Start with Titration Lab</Button>
+        <Link
+          href="/virtual-lab/titration"
+          className="inline-flex items-center justify-center rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        >
+          Start with Titration Lab
         </Link>
       </Card>
     </CalcShell>

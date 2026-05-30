@@ -237,7 +237,7 @@ function GHSPictogramsSection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-warning mb-2 uppercase tracking-wider">Examples</h4>
+                    <h4 className="text-sm font-semibold text-warning-strong mb-2 uppercase tracking-wider">Examples</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {pictogram.examples.map((ex, i) => (
                         <span key={i} className="text-xs px-2 py-1 rounded-md bg-muted text-foreground border border-border">
@@ -335,12 +335,12 @@ function CompatibilitySection() {
               {pairResult.severity === 'safe' ? (
                 <CheckCircle className="h-5 w-5 text-success" />
               ) : pairResult.severity === 'caution' ? (
-                <AlertTriangle className="h-5 w-5 text-warning" />
+                <AlertTriangle className="h-5 w-5 text-warning-strong" />
               ) : (
                 <XCircle className="h-5 w-5 text-destructive" />
               )}
               <span className={`font-semibold ${
-                pairResult.severity === 'safe' ? 'text-success' : pairResult.severity === 'caution' ? 'text-warning' : 'text-destructive'
+                pairResult.severity === 'safe' ? 'text-success' : pairResult.severity === 'caution' ? 'text-warning-strong' : 'text-destructive'
               }`}>
                 {pairResult.severity === 'safe' ? 'Compatible' : pairResult.severity === 'caution' ? 'Use Caution' : 'INCOMPATIBLE - Do Not Store Together'}
               </span>
@@ -409,7 +409,7 @@ function CompatibilitySection() {
                         : result.severity === 'safe'
                           ? 'text-success'
                           : result.severity === 'caution'
-                            ? 'text-warning'
+                            ? 'text-warning-strong'
                             : 'text-destructive'
                     return (
                       <td
@@ -523,7 +523,7 @@ function EmergencySection() {
                 aria-controls={`emergency-detail-${procedure.id}`}
               >
                 <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  procedure.callEmergency ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning'
+                  procedure.callEmergency ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning-strong'
                 }`}>
                   {getEmergencyIcon(procedure)}
                 </div>
@@ -734,12 +734,12 @@ function StatementsSection() {
         </div>
         <div className="rounded-md border border-warning/40 bg-warning/10 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black text-warning uppercase tracking-widest">WARNING</span>
+            <span className="text-2xl font-black text-warning-strong uppercase tracking-widest">WARNING</span>
           </div>
           <p className="text-sm text-foreground mb-3">{SIGNAL_WORDS.Warning.description}</p>
           <div className="flex flex-wrap gap-1.5">
             {SIGNAL_WORDS.Warning.examples.map((ex, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded bg-warning/15 text-warning">{ex}</span>
+              <span key={i} className="text-xs px-2 py-0.5 rounded bg-warning/15 text-warning-strong">{ex}</span>
             ))}
           </div>
         </div>
@@ -814,14 +814,14 @@ function StatementsSection() {
                       <td className="px-4 py-3 text-foreground">{h.text}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                          h.signalWord === 'Danger' ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning'
+                          h.signalWord === 'Danger' ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning-strong'
                         }`}>
                           {h.signalWord}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <span className={`text-xs capitalize px-2 py-0.5 rounded border ${
-                          h.category === 'physical' ? 'border-warning/40 text-warning' :
+                          h.category === 'physical' ? 'border-warning/40 text-warning-strong' :
                           h.category === 'health' ? 'border-secondary-500/40 text-secondary-600' :
                           'border-success/40 text-success'
                         }`}>

@@ -44,7 +44,7 @@ function statusBadge(status: CardStatus): {
     case 'partial':
       return {
         label: 'PARTIALLY VERIFIED',
-        colorClass: 'text-warning',
+        colorClass: 'text-warning-strong',
         borderClass: 'border-warning/30',
         bgClass: 'bg-warning/10',
         icon: (
@@ -71,7 +71,7 @@ function statusBadge(status: CardStatus): {
     default:
       return {
         label: 'UNVERIFIED',
-        colorClass: 'text-warning',
+        colorClass: 'text-warning-strong',
         borderClass: 'border-warning/30',
         bgClass: 'bg-warning/10',
         icon: (
@@ -139,7 +139,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
 
       {/* Downgrade reason (engine-driven only) */}
       {badge.reason && (
-        <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning">
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning-strong">
           {badge.reason}
         </div>
       )}
@@ -202,7 +202,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
         <div
           role="status"
           aria-label="Audit warning: unverified figures in explanation"
-          className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning"
+          className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning-strong"
         >
           <span className="font-medium">Audit notice:</span> The explanation references figure(s) not produced by the verified engines. The authoritative values are shown in the Verified Engine Results above.
         </div>
@@ -247,7 +247,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       )}
 
       {card.status === 'unverified' && toolCalls.length === 0 && (
-        <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm text-warning">
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm text-warning-strong">
           This answer is conceptual and was not verified by a deterministic calculation engine.
           Numerical claims should be independently checked.
         </div>

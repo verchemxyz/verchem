@@ -230,7 +230,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       case 'calculator':
         return 'text-secondary-600 bg-secondary-50'
       case 'help':
-        return 'text-warning bg-warning/10'
+        return 'text-warning-strong bg-warning/10'
       default:
         return 'text-muted-foreground bg-muted'
     }
@@ -312,7 +312,7 @@ function SearchResultItem({ result }: { result: SearchResult }) {
       case 'calculator':
         return 'text-secondary-600 bg-secondary-50'
       case 'help':
-        return 'text-warning bg-warning/10'
+        return 'text-warning-strong bg-warning/10'
       default:
         return 'text-muted-foreground bg-muted'
     }
@@ -378,7 +378,7 @@ function CompactSearchResult({ result }: { result: SearchResult }) {
       case 'calculator':
         return 'text-secondary-600'
       case 'help':
-        return 'text-warning'
+        return 'text-warning-strong'
       default:
         return 'text-muted-foreground'
     }
