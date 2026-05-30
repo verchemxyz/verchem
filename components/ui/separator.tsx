@@ -21,7 +21,7 @@ export function Separator({
   
   return (
     <div 
-      className={`shrink-0 bg-gray-200 ${orientationClasses} ${className}`}
+      className={`shrink-0 bg-border ${orientationClasses} ${className}`}
       role={decorative ? 'none' : 'separator'}
       aria-orientation={orientation}
       {...props}

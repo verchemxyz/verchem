@@ -47,27 +47,27 @@ export class CalculatorErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-6">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
-              <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <AlertTriangle className="w-6 h-6 text-destructive" />
             </div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+              <h3 className="text-lg font-semibold text-destructive-strong mb-2">
                 Calculator Error
               </h3>
 
-              <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+              <p className="text-sm text-destructive-strong mb-4">
                 This calculator encountered an error. Please try again or use a different calculator.
               </p>
 
               {this.state.error && (
                 <details className="mb-4">
-                  <summary className="text-sm font-medium text-red-800 dark:text-red-200 cursor-pointer hover:underline">
+                  <summary className="text-sm font-medium text-destructive-strong cursor-pointer hover:underline">
                     Error details
                   </summary>
-                  <pre className="mt-2 text-xs text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/20 p-3 rounded overflow-x-auto">
+                  <pre className="mt-2 text-xs text-destructive-strong bg-destructive/10 p-3 rounded overflow-x-auto">
                     {this.state.error.message}
                     {this.state.error.stack && (
                       <>\n\n{this.state.error.stack}</>

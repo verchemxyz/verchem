@@ -212,7 +212,7 @@ export default function LewisStructureViewer({
         ref={canvasRef}
         width={width}
         height={height}
-        className="border border-gray-300 rounded-lg bg-white"
+        className="border border-border rounded-lg bg-[#FAFAF6]"
       />
     </div>
   )

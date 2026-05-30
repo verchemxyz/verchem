@@ -61,7 +61,7 @@ export function AccessibleInput({
       />
 
       {error && (
-        <p id={errorId} className="mt-1 text-sm text-red-600" role="alert">
+        <p id={errorId} className="mt-1 text-sm text-destructive-strong" role="alert">
           {error}
         </p>
       )}
@@ -120,7 +120,7 @@ export function AccessibleSelect({
         className={`
           input-premium w-full
           min-h-[44px]
-          ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+          ${error ? 'border-destructive focus:border-destructive focus:ring-destructive' : ''}
           ${className}
         `}
         {...props}
@@ -133,7 +133,7 @@ export function AccessibleSelect({
       </select>
 
       {error && (
-        <p id={errorId} className="mt-1 text-sm text-red-600" role="alert">
+        <p id={errorId} className="mt-1 text-sm text-destructive-strong" role="alert">
           {error}
         </p>
       )}

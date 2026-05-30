@@ -54,16 +54,16 @@ export function CalculatorSkeleton() {
     <div className="animate-pulse" aria-busy="true" aria-label="Loading calculation...">
       <div className="premium-card p-6 space-y-4">
         {/* Result header skeleton */}
-        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+        <div className="h-6 bg-muted rounded w-1/4" />
 
         {/* Result value skeleton */}
-        <div className="h-12 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded w-3/4" />
+        <div className="h-12 bg-muted rounded w-3/4" />
 
         {/* Steps skeleton */}
         <div className="space-y-2 pt-4">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6" />
+          <div className="h-4 bg-muted rounded w-full" />
+          <div className="h-4 bg-muted rounded w-5/6" />
+          <div className="h-4 bg-muted rounded w-4/6" />
         </div>
       </div>
     </div>
