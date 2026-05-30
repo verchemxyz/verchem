@@ -63,6 +63,7 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
             </div>
             <button
               onClick={onClose}
+              aria-label={`Close ${element.name} details`}
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg

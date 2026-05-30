@@ -190,10 +190,10 @@ export default function ElementsIndexPage() {
                         href={`/elements/${element.symbol.toLowerCase()}`}
                         className={`${style.bg} ${style.text} rounded-lg p-3 text-center transition-colors border ${style.border}`}
                       >
-                        <div className="text-xs opacity-75 font-mono">{element.atomicNumber}</div>
-                        <div className="text-2xl font-bold">{element.symbol}</div>
+                        <div className="text-xs text-foreground font-mono">{element.atomicNumber}</div>
+                        <div className="text-2xl font-bold text-foreground">{element.symbol}</div>
                         <div className="text-xs text-foreground truncate">{element.name}</div>
-                        <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                        <div className="text-[10px] text-foreground font-mono mt-1">
                           {element.atomicMass.toFixed(2)}
                         </div>
                       </Link>

@@ -155,6 +155,7 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
               </h3>
               <button
                 onClick={onClose}
+                aria-label="Close export dialog"
                 className="text-muted-foreground hover:text-foreground focus:outline-none"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

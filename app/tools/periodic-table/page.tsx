@@ -165,9 +165,9 @@ export default function PeriodicTablePage() {
                   selectedElement?.atomicNumber === el.atomicNumber ? 'ring-2 ring-foreground' : ''
                 }`}
               >
-                <p className="text-[10px] text-muted-foreground">{el.atomicNumber}</p>
+                <p className="text-[10px] text-foreground">{el.atomicNumber}</p>
                 <p className="text-2xl font-bold text-foreground">{el.symbol}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{el.name}</p>
+                <p className="text-[10px] text-foreground truncate">{el.name}</p>
               </button>
             ))}
           </div>
@@ -177,9 +177,9 @@ export default function PeriodicTablePage() {
             <div className="rounded-lg border border-border bg-muted p-6">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className={`w-32 h-32 rounded-lg ${getCategoryTile(selectedElement.category)} flex flex-col items-center justify-center flex-shrink-0`}>
-                  <p className="text-muted-foreground text-sm">{selectedElement.atomicNumber}</p>
+                  <p className="text-foreground text-sm">{selectedElement.atomicNumber}</p>
                   <p className="text-5xl font-bold text-foreground">{selectedElement.symbol}</p>
-                  <p className="text-muted-foreground text-sm">{selectedElement.atomicMass.toFixed(3)}</p>
+                  <p className="text-foreground text-sm">{selectedElement.atomicMass.toFixed(3)}</p>
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
