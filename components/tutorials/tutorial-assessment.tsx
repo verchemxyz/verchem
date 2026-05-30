@@ -265,7 +265,7 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
                   onClick={() => handleAnswerSelect(index)}
                   className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                     selectedAnswer === index
-                      ? 'border-primary-500 bg-accent text-primary-700 dark:text-primary-300'
+                      ? 'border-primary-500 bg-accent text-primary-700 dark:text-primary-500'
                       : 'border-border hover:border-ring'
                   }`}
                 >

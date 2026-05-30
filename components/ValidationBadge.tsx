@@ -49,7 +49,7 @@ export function ValidationBadge({
     good: {
       icon: <CheckIcon />,
       text: 'Verified',
-      color: 'bg-muted text-primary-600 border-primary-300 dark:text-primary-400 dark:border-primary-700',
+      color: 'bg-muted text-primary-600 border-primary-300 dark:text-primary-500 dark:border-primary-700',
       description: 'Verified with reference data'
     },
     acceptable: {

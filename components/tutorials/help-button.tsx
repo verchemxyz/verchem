@@ -163,7 +163,7 @@ export function HelpButton() {
             <span>Step {state.currentStep + 1} of {state.currentTutorial?.steps.length}</span>
             <button
               onClick={() => showHelp(true)}
-              className="text-primary-600 dark:text-primary-400 hover:underline"
+              className="text-primary-600 dark:text-primary-500 hover:underline"
             >
               Get Help
             </button>

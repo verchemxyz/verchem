@@ -105,7 +105,7 @@ export function ScientificResult({
         <div className="mt-3 pt-3 border-t border-border">
           <button
             onClick={() => setShowCitations(!showCitations)}
-            className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
+            className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 dark:text-primary-500 dark:hover:text-primary-500"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

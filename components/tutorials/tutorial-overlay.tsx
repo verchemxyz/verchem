@@ -190,7 +190,7 @@ export function TutorialOverlay() {
             <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                  <span className="text-primary-600 dark:text-primary-400 text-sm font-semibold">
+                  <span className="text-primary-600 dark:text-primary-500 text-sm font-semibold">
                     {currentStep + 1}
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export function TutorialOverlay() {
               {/* Interactive indicator */}
               {currentStepData.interactive && (
                 <div className="mt-3 p-2 bg-accent border border-border rounded-lg">
-                  <p className="text-xs text-primary-600 dark:text-primary-400">
+                  <p className="text-xs text-primary-600 dark:text-primary-500">
                     Try this yourself! {currentStepData.action && `(${currentStepData.action} the highlighted element)`}
                   </p>
                 </div>

@@ -83,7 +83,7 @@ const AuthButton = () => {
     return (
       <div className="flex items-center gap-4">
         <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-          <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+          <span className="text-sm font-medium text-primary-700 dark:text-primary-500">
             {user.name || user.email?.split('@')[0] || 'User'}
           </span>
           {user.subscription_tier && user.subscription_tier !== 'free' && (

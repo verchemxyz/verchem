@@ -97,7 +97,7 @@ export function ThemeSelector() {
             key={option.value}
             onClick={() => setTheme(option.value as 'light' | 'dark' | 'system')}
             className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent first:rounded-t-lg last:rounded-b-lg transition-colors ${
-              theme === option.value ? 'bg-accent text-primary-600 dark:text-primary-400' : 'text-foreground'
+              theme === option.value ? 'bg-accent text-primary-600 dark:text-primary-500' : 'text-foreground'
             }`}
           >
             <span>{option.icon}</span>

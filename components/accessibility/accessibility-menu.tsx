@@ -197,7 +197,7 @@ export function AccessibilityMenu({ className = '' }: AccessibilityMenuProps) {
                 setIsOpen(false);
                 announceToScreenReader('Keyboard shortcuts dialog opened');
               }}
-              className="w-full px-3 py-2 text-sm text-left text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:bg-accent rounded-lg transition-colors"
+              className="w-full px-3 py-2 text-sm text-left text-primary-600 dark:text-primary-500 hover:text-primary-700 dark:hover:text-primary-500 hover:bg-accent rounded-lg transition-colors"
               aria-label="View all keyboard shortcuts"
             >
               View Keyboard Shortcuts

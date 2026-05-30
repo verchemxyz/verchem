@@ -54,7 +54,7 @@ export const LanguageSelector: React.FC = () => {
                 onClick={() => handleLanguageChange(language.code)}
                 className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-3 hover:bg-accent transition-colors ${
                   currentLanguage === language.code
-                    ? 'bg-accent text-primary-600 dark:text-primary-400'
+                    ? 'bg-accent text-primary-600 dark:text-primary-500'
                     : 'text-foreground'
                 }`}
               >

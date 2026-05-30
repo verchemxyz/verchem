@@ -231,7 +231,7 @@ export default function MoleculeSelector({
                   {currentMolecule.metadata.uses.map((use, i) => (
                     <span
                       key={i}
-                      className="bg-primary-500/15 text-primary-700 dark:text-primary-300 text-xs px-2 py-0.5 rounded"
+                      className="bg-primary-500/15 text-primary-700 text-xs px-2 py-0.5 rounded"
                     >
                       {use}
                     </span>

@@ -147,7 +147,7 @@ export function HelpSidebar() {
                   onClick={() => setActiveTab(tab.id as 'tutorials' | 'articles' | 'faq' | 'shortcuts')}
                   className={`flex-1 flex items-center justify-center py-3 px-2 text-sm font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
+                      ? 'text-primary-600 dark:text-primary-500 border-b-2 border-primary-500'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -225,7 +225,7 @@ export function HelpSidebar() {
             <div className="p-4 border-t border-border bg-muted">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Need more help?</span>
-                <button className="text-primary-600 dark:text-primary-400 hover:underline">
+                <button className="text-primary-600 dark:text-primary-500 hover:underline">
                   Contact Support
                 </button>
               </div>
