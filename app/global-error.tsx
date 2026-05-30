@@ -27,15 +27,16 @@ export default function GlobalError({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f9fafb',
+          backgroundColor: '#FAFAF6',
           padding: '1rem'
         }}>
           <div style={{
             maxWidth: '28rem',
             width: '100%',
-            backgroundColor: 'white',
+            backgroundColor: '#F5F5F0',
+            border: '1px solid #C4D1CD',
             borderRadius: '0.5rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08)',
             padding: '2rem'
           }}>
             <div style={{
@@ -45,18 +46,18 @@ export default function GlobalError({
               marginBottom: '1.5rem'
             }}>
               <div style={{
-                backgroundColor: '#fee2e2',
+                backgroundColor: 'rgba(166, 58, 50, 0.1)',
                 padding: '1rem',
                 borderRadius: '9999px'
               }}>
-                <AlertTriangle style={{ width: '3rem', height: '3rem', color: '#dc2626' }} />
+                <AlertTriangle style={{ width: '3rem', height: '3rem', color: '#A63A32' }} />
               </div>
             </div>
 
             <h1 style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              color: '#111827',
+              color: '#27303A',
               textAlign: 'center',
               marginBottom: '0.5rem'
             }}>
@@ -64,7 +65,7 @@ export default function GlobalError({
             </h1>
 
             <p style={{
-              color: '#6b7280',
+              color: '#5E6B75',
               textAlign: 'center',
               marginBottom: '1.5rem'
             }}>
@@ -73,7 +74,7 @@ export default function GlobalError({
 
             {error.message && (
               <div style={{
-                backgroundColor: '#f3f4f6',
+                backgroundColor: '#E8EBE6',
                 borderRadius: '0.5rem',
                 padding: '1rem',
                 marginBottom: '1.5rem'
@@ -81,7 +82,7 @@ export default function GlobalError({
                 <p style={{
                   fontSize: '0.875rem',
                   fontFamily: 'monospace',
-                  color: '#374151',
+                  color: '#27303A',
                   wordBreak: 'break-word'
                 }}>
                   {error.message}
@@ -89,7 +90,7 @@ export default function GlobalError({
                 {error.digest && (
                   <p style={{
                     fontSize: '0.75rem',
-                    color: '#9ca3af',
+                    color: '#7A8794',
                     marginTop: '0.5rem'
                   }}>
                     Error ID: {error.digest}
@@ -103,16 +104,16 @@ export default function GlobalError({
               style={{
                 width: '100%',
                 padding: '0.75rem 1rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
+                backgroundColor: '#0F6764',
+                color: '#FAFAF6',
                 borderRadius: '0.5rem',
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '1rem',
                 fontWeight: '500'
               }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0c5653'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#0F6764'}
             >
               Reload Page
             </button>
