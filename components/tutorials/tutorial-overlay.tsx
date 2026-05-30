@@ -273,6 +273,7 @@ export function TutorialOverlay() {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={skipTutorial}
+                  aria-label="Skip tutorial"
                   className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <FastForward className="w-4 h-4" />

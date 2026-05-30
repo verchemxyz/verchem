@@ -122,8 +122,9 @@ export default function EquationBalancerToolPage() {
                   const type = identifyReactionType(equation)
                   const info = getReactionTypeLabel(type)
                   return (
-                    <div className={`px-4 py-2 ${info.color} rounded-md`}>
-                      <span className="text-white font-medium">{info.label}</span>
+                    <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-muted border border-border rounded-md">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${info.color}`} aria-hidden="true" />
+                      <span className="text-foreground font-medium">{info.label}</span>
                     </div>
                   )
                 })()}

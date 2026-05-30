@@ -602,80 +602,74 @@ export default function SolutionsPage() {
                 <SectionTitle className="mb-4 text-center">pH scale</SectionTitle>
 
                 {/* pH Meter */}
-                <div className="relative h-16 mb-8">
-                  {/* Gradient background — pH-scale data encoding */}
+                <div className="mb-8 pt-8">
+                  {/* Gradient bar — pH-scale data encoding */}
                   <div
-                    className="absolute inset-0 rounded-lg"
+                    className="relative h-10 rounded-lg"
                     style={{
                       background:
                         'linear-gradient(to right, #dc2626, #f97316, #fbbf24, #10b981, #3b82f6, #8b5cf6, #6b21a8)',
                     }}
-                  />
-
-                  {/* pH labels */}
-                  <div className="absolute inset-0 flex justify-between items-center px-2 text-white font-bold text-sm">
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((ph) => (
-                      <div key={ph} className="text-center">
-                        {ph}
+                  >
+                    {/* Current pH indicator */}
+                    <div
+                      className="absolute top-0 bottom-0 w-1 bg-foreground"
+                      style={{
+                        left: `${(phResult.pH / 14) * 100}%`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1 rounded font-bold whitespace-nowrap text-sm">
+                        pH {phResult.pH.toFixed(2)}
                       </div>
-                    ))}
+                    </div>
                   </div>
 
-                  {/* Current pH indicator */}
-                  <div
-                    className="absolute top-0 bottom-0 w-1 bg-foreground"
-                    style={{
-                      left: `${(phResult.pH / 14) * 100}%`,
-                      transform: 'translateX(-50%)',
-                    }}
-                  >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1 rounded font-bold whitespace-nowrap">
-                      pH {phResult.pH.toFixed(2)}
-                    </div>
+                  {/* Numeric scale below the gradient (off the colored fill — AA) */}
+                  <div className="flex justify-between px-1 mt-1.5 text-xs text-muted-foreground font-mono">
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((ph) => (
+                      <span key={ph}>{ph}</span>
+                    ))}
                   </div>
                 </div>
 
                 {/* pH Category Labels — pH semantics */}
                 <div className="flex justify-between text-sm font-semibold">
-                  <span style={{ color: '#dc2626' }}>ACIDIC</span>
-                  <span style={{ color: '#10b981' }}>NEUTRAL</span>
-                  <span style={{ color: '#8b5cf6' }}>BASIC</span>
+                  <span className="text-destructive-strong">ACIDIC</span>
+                  <span className="text-success-strong">NEUTRAL</span>
+                  <span className="text-foreground">BASIC</span>
                 </div>
               </Card>
 
               {/* pH Values Card — colored by pH (data encoding, preserved) */}
               <div
-                className="rounded-lg p-6 text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${getPhColor(
-                    phResult.pH
-                  )}, ${getPhColor(phResult.pH)}dd)`,
-                }}
+                className="rounded-lg border border-border bg-card p-6 border-l-4"
+                style={{ borderLeftColor: getPhColor(phResult.pH) }}
               >
-                <h2 className="text-lg font-semibold mb-4">Result</h2>
+                <h2 className="text-lg font-semibold mb-4 text-foreground">Result</h2>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white/20 rounded-lg p-4">
-                    <div className="text-sm opacity-90 mb-1">pH</div>
+                  <div className="bg-muted border border-border rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">pH</div>
                     <div className="text-3xl font-bold">{phResult.pH.toFixed(2)}</div>
                   </div>
                   {phResult.pOH !== undefined && (
-                    <div className="bg-white/20 rounded-lg p-4">
-                      <div className="text-sm opacity-90 mb-1">pOH</div>
+                    <div className="bg-muted border border-border rounded-lg p-4">
+                      <div className="text-sm text-muted-foreground mb-1">pOH</div>
                       <div className="text-3xl font-bold">{phResult.pOH.toFixed(2)}</div>
                     </div>
                   )}
                   {phResult.H_concentration !== undefined && (
-                    <div className="bg-white/20 rounded-lg p-4">
-                      <div className="text-sm opacity-90 mb-1">[H⁺]</div>
+                    <div className="bg-muted border border-border rounded-lg p-4">
+                      <div className="text-sm text-muted-foreground mb-1">[H⁺]</div>
                       <div className="text-lg font-bold">
                         {phResult.H_concentration.toExponential(2)} M
                       </div>
                     </div>
                   )}
                   {phResult.OH_concentration !== undefined && (
-                    <div className="bg-white/20 rounded-lg p-4">
-                      <div className="text-sm opacity-90 mb-1">[OH⁻]</div>
+                    <div className="bg-muted border border-border rounded-lg p-4">
+                      <div className="text-sm text-muted-foreground mb-1">[OH⁻]</div>
                       <div className="text-lg font-bold">
                         {phResult.OH_concentration.toExponential(2)} M
                       </div>

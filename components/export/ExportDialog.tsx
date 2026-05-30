@@ -142,6 +142,9 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
         {/* Dialog panel */}
         <div
           ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Export options"
           className="inline-block align-bottom bg-popover border border-border rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full"
         >
           {/* Header */}

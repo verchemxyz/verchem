@@ -158,6 +158,7 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
             <button
               onClick={onClose}
+              aria-label="Close search"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <XMarkIcon className="h-5 w-5" />

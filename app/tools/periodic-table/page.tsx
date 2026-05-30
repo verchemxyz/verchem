@@ -36,17 +36,19 @@ const ELEMENTS: Element[] = [
 
 // Element-category → design-system element tokens (chemistry-semantic colors,
 // NOT brand chrome). Full literal class strings for Tailwind's content scanner.
-const CATEGORY_TOKEN: Record<string, { solid: string; swatch: string }> = {
-  'alkali-metal': { solid: 'bg-element-alkali', swatch: 'bg-element-alkali' },
-  'alkaline-earth': { solid: 'bg-element-alkaline', swatch: 'bg-element-alkaline' },
-  'transition-metal': { solid: 'bg-element-transition', swatch: 'bg-element-transition' },
-  'post-transition': { solid: 'bg-element-metals', swatch: 'bg-element-metals' },
-  'metalloid': { solid: 'bg-element-metalloids', swatch: 'bg-element-metalloids' },
-  'nonmetal': { solid: 'bg-element-nonmetals', swatch: 'bg-element-nonmetals' },
-  'halogen': { solid: 'bg-element-halogens', swatch: 'bg-element-halogens' },
-  'noble-gas': { solid: 'bg-element-noble-gases', swatch: 'bg-element-noble-gases' },
-  'lanthanide': { solid: 'bg-element-lanthanides', swatch: 'bg-element-lanthanides' },
-  'actinide': { solid: 'bg-element-actinides', swatch: 'bg-element-actinides' },
+// `tile` = AA-safe TINT (color as 15% fill + 40% border, graphite text on top);
+// `swatch` = solid dot/legend chip (decorative, no text on it).
+const CATEGORY_TOKEN: Record<string, { tile: string; swatch: string }> = {
+  'alkali-metal': { tile: 'bg-element-alkali/15 border border-element-alkali/40', swatch: 'bg-element-alkali' },
+  'alkaline-earth': { tile: 'bg-element-alkaline/15 border border-element-alkaline/40', swatch: 'bg-element-alkaline' },
+  'transition-metal': { tile: 'bg-element-transition/15 border border-element-transition/40', swatch: 'bg-element-transition' },
+  'post-transition': { tile: 'bg-element-metals/15 border border-element-metals/40', swatch: 'bg-element-metals' },
+  'metalloid': { tile: 'bg-element-metalloids/15 border border-element-metalloids/40', swatch: 'bg-element-metalloids' },
+  'nonmetal': { tile: 'bg-element-nonmetals/15 border border-element-nonmetals/40', swatch: 'bg-element-nonmetals' },
+  'halogen': { tile: 'bg-element-halogens/15 border border-element-halogens/40', swatch: 'bg-element-halogens' },
+  'noble-gas': { tile: 'bg-element-noble-gases/15 border border-element-noble-gases/40', swatch: 'bg-element-noble-gases' },
+  'lanthanide': { tile: 'bg-element-lanthanides/15 border border-element-lanthanides/40', swatch: 'bg-element-lanthanides' },
+  'actinide': { tile: 'bg-element-actinides/15 border border-element-actinides/40', swatch: 'bg-element-actinides' },
 }
 
 const CATEGORIES = [
@@ -95,8 +97,8 @@ const FEATURES = [
   }
 ]
 
-function getCategorySolid(category: string): string {
-  return CATEGORY_TOKEN[category]?.solid ?? 'bg-muted'
+function getCategoryTile(category: string): string {
+  return CATEGORY_TOKEN[category]?.tile ?? 'bg-muted border border-border'
 }
 
 export default function PeriodicTablePage() {
@@ -159,13 +161,13 @@ export default function PeriodicTablePage() {
               <button
                 key={el.atomicNumber}
                 onClick={() => setSelectedElement(el)}
-                className={`group relative rounded-md p-3 text-center transition-colors ${getCategorySolid(el.category)} ${
+                className={`group relative rounded-md p-3 text-center transition-colors ${getCategoryTile(el.category)} ${
                   selectedElement?.atomicNumber === el.atomicNumber ? 'ring-2 ring-foreground' : ''
                 }`}
               >
-                <p className="text-[10px] text-white/80">{el.atomicNumber}</p>
-                <p className="text-2xl font-bold text-white">{el.symbol}</p>
-                <p className="text-[10px] text-white/80 truncate">{el.name}</p>
+                <p className="text-[10px] text-muted-foreground">{el.atomicNumber}</p>
+                <p className="text-2xl font-bold text-foreground">{el.symbol}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{el.name}</p>
               </button>
             ))}
           </div>
@@ -174,10 +176,10 @@ export default function PeriodicTablePage() {
           {selectedElement && (
             <div className="rounded-lg border border-border bg-muted p-6">
               <div className="flex flex-col md:flex-row gap-6">
-                <div className={`w-32 h-32 rounded-lg ${getCategorySolid(selectedElement.category)} flex flex-col items-center justify-center flex-shrink-0`}>
-                  <p className="text-white/80 text-sm">{selectedElement.atomicNumber}</p>
-                  <p className="text-5xl font-bold text-white">{selectedElement.symbol}</p>
-                  <p className="text-white/80 text-sm">{selectedElement.atomicMass.toFixed(3)}</p>
+                <div className={`w-32 h-32 rounded-lg ${getCategoryTile(selectedElement.category)} flex flex-col items-center justify-center flex-shrink-0`}>
+                  <p className="text-muted-foreground text-sm">{selectedElement.atomicNumber}</p>
+                  <p className="text-5xl font-bold text-foreground">{selectedElement.symbol}</p>
+                  <p className="text-muted-foreground text-sm">{selectedElement.atomicMass.toFixed(3)}</p>
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
@@ -283,8 +285,8 @@ export default function PeriodicTablePage() {
                 key={el.symbol}
                 className="rounded-lg border border-border bg-muted p-6 text-center"
               >
-                <div className={`w-20 h-20 rounded-lg ${getCategorySolid(el.category)} flex items-center justify-center mx-auto mb-4`}>
-                  <span className="text-3xl font-bold text-white">{el.symbol}</span>
+                <div className={`w-20 h-20 rounded-lg ${getCategoryTile(el.category)} flex items-center justify-center mx-auto mb-4`}>
+                  <span className="text-3xl font-bold text-foreground">{el.symbol}</span>
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{el.name}</h3>
                 <p className="text-muted-foreground text-sm">{el.fact}</p>

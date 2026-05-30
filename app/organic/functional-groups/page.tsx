@@ -83,14 +83,9 @@ export default function FunctionalGroupsPage() {
                 }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'text-white'
+                    ? 'bg-primary-500 text-primary-foreground'
                     : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
-                style={
-                  selectedCategory === cat
-                    ? { backgroundColor: catData.color }
-                    : undefined
-                }
               >
                 {catData.label} ({count})
               </button>
@@ -124,10 +119,8 @@ export default function FunctionalGroupsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-bold text-lg text-card-foreground">{group.name}</h3>
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full text-white"
-                          style={{ backgroundColor: catData.color }}
-                        >
+                        <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catData.color }} aria-hidden="true" />
                           {catData.label}
                         </span>
                         {group.priority === 'high' && (

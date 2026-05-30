@@ -36,6 +36,9 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${element.name} element details`}
         className="bg-card border border-border rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >

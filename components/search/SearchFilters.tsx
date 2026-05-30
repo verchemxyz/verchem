@@ -82,6 +82,7 @@ export function SearchFilters({ filters, onFiltersChange, className = "" }: Sear
       {label}
       <button
         onClick={onRemove}
+        aria-label={`Remove ${label} filter`}
         className="ml-1 inline-flex text-primary-600 hover:text-primary-800"
       >
         <XMarkIcon className="h-3 w-3" />

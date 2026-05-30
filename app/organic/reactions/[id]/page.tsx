@@ -71,16 +71,12 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         {/* Meta Section */}
         <section>
           <div className="flex flex-wrap gap-2 mb-3">
-            <span
-              className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: catMeta.color }}
-            >
+            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catMeta.color }} aria-hidden="true" />
               {catMeta.label}
             </span>
-            <span
-              className="text-xs px-2 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: diffMeta.color }}
-            >
+            <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: diffMeta.color }} aria-hidden="true" />
               {diffMeta.label}
             </span>
             {reaction.tags.includes('Nobel') && (

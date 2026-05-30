@@ -82,14 +82,9 @@ export default function ReactionsPage() {
                 onClick={() => setSelectedDifficulty(diff)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedDifficulty === diff
-                    ? 'text-white'
+                    ? 'bg-primary-500 text-primary-foreground'
                     : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
-                style={
-                  selectedDifficulty === diff
-                    ? { backgroundColor: meta.color }
-                    : undefined
-                }
               >
                 {meta.label} ({count})
               </button>
@@ -119,14 +114,9 @@ export default function ReactionsPage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'text-white'
+                    ? 'bg-primary-500 text-primary-foreground'
                     : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
-                style={
-                  selectedCategory === cat
-                    ? { backgroundColor: meta.color }
-                    : undefined
-                }
               >
                 {meta.label} ({count})
               </button>
@@ -152,16 +142,12 @@ export default function ReactionsPage() {
               >
                 {/* Category + Difficulty Badges */}
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: catMeta.color }}
-                  >
+                  <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catMeta.color }} aria-hidden="true" />
                     {catMeta.label}
                   </span>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: diffMeta.color }}
-                  >
+                  <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: diffMeta.color }} aria-hidden="true" />
                     {diffMeta.label}
                   </span>
                   {reaction.tags.includes('Nobel') && (
