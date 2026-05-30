@@ -79,12 +79,12 @@ export function HelpSidebar() {
   const categories = [
     { id: 'all', name: 'All Categories', icon: BookOpen },
     { id: 'getting-started', name: 'Getting Started', icon: Play },
-    { id: 'periodic-table', name: 'Periodic Table', icon: '🧪' },
-    { id: '3d-viewer', name: '3D Viewer', icon: '🔬' },
-    { id: 'molecule-builder', name: 'Molecule Builder', icon: '🏗️' },
-    { id: 'calculators', name: 'Calculators', icon: '🧮' },
-    { id: 'advanced-features', name: 'Advanced Features', icon: '⚙️' },
-    { id: 'chemistry-concepts', name: 'Chemistry Concepts', icon: '⚛️' },
+    { id: 'periodic-table', name: 'Periodic Table', icon: BookOpen },
+    { id: '3d-viewer', name: '3D Viewer', icon: BookOpen },
+    { id: 'molecule-builder', name: 'Molecule Builder', icon: BookOpen },
+    { id: 'calculators', name: 'Calculators', icon: BookOpen },
+    { id: 'advanced-features', name: 'Advanced Features', icon: BookOpen },
+    { id: 'chemistry-concepts', name: 'Chemistry Concepts', icon: BookOpen },
   ];
 
   return (
@@ -106,36 +106,36 @@ export function HelpSidebar() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-800 shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border z-50 flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Help & Tutorials</h2>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">Help &amp; Tutorials</h2>
               <button
                 onClick={() => showHelp(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
                 aria-label="Close help"
               >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
             {/* Search Bar */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-border">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search help, tutorials, FAQ..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent text-sm text-foreground"
                 />
               </div>
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-gray-700">
+            <div className="flex border-b border-border">
               {[
                 { id: 'tutorials', name: 'Tutorials', icon: Play },
                 { id: 'articles', name: 'Articles', icon: FileText },
@@ -147,8 +147,8 @@ export function HelpSidebar() {
                   onClick={() => setActiveTab(tab.id as 'tutorials' | 'articles' | 'faq' | 'shortcuts')}
                   className={`flex-1 flex items-center justify-center py-3 px-2 text-sm font-medium transition-colors ${
                     activeTab === tab.id
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <tab.icon className="w-4 h-4 mr-1" />
@@ -159,11 +159,11 @@ export function HelpSidebar() {
 
             {/* Category Filter */}
             {(activeTab === 'tutorials' || activeTab === 'articles') && (
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-border">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-sm text-foreground"
                 >
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
@@ -182,7 +182,7 @@ export function HelpSidebar() {
                     <TutorialCard key={tutorial.id} tutorial={tutorial} />
                   ))}
                   {getFilteredTutorials().length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <div className="text-center py-8 text-muted-foreground">
                       <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <p>No tutorials found</p>
                     </div>
@@ -196,7 +196,7 @@ export function HelpSidebar() {
                     <ArticleCard key={article.id} article={article} />
                   ))}
                   {getFilteredArticles().length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <div className="text-center py-8 text-muted-foreground">
                       <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <p>No articles found</p>
                     </div>
@@ -210,7 +210,7 @@ export function HelpSidebar() {
                     <FAQCard key={faq.id} faq={faq} />
                   ))}
                   {getFilteredFAQ().length === 0 && (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <div className="text-center py-8 text-muted-foreground">
                       <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <p>No FAQ items found</p>
                     </div>
@@ -222,10 +222,10 @@ export function HelpSidebar() {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div className="p-4 border-t border-border bg-muted">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Need more help?</span>
-                <button className="text-blue-600 dark:text-blue-400 hover:underline">
+                <button className="text-primary-600 dark:text-primary-400 hover:underline">
                   Contact Support
                 </button>
               </div>
@@ -243,23 +243,23 @@ function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
   const isCompleted = isTutorialCompleted(tutorial.id);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+    <div className="bg-muted rounded-lg p-3 hover:bg-accent transition-colors cursor-pointer"
          onClick={() => startTutorial(tutorial)}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
-            <span className="text-lg">{tutorial.icon}</span>
-            <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+            <BookOpen className="w-4 h-4 text-muted-foreground" />
+            <h3 className="font-medium text-foreground text-sm">
               {tutorial.title}
             </h3>
             {isCompleted && (
-              <Award className="w-4 h-4 text-green-500" />
+              <Award className="w-4 h-4 text-success" />
             )}
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             {tutorial.description}
           </p>
-          <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center space-x-3 text-xs text-muted-foreground">
             <span className="flex items-center">
               <Clock className="w-3 h-3 mr-1" />
               {tutorial.estimatedTime} min
@@ -268,14 +268,14 @@ function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
               {tutorial.difficulty}
             </span>
             {tutorial.featured && (
-              <span className="flex items-center text-yellow-600 dark:text-yellow-400">
+              <span className="flex items-center text-warning">
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </span>
             )}
           </div>
         </div>
-        <ChevronRight className="w-4 h-4 text-gray-400 mt-1" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground mt-1" />
       </div>
     </div>
   );
@@ -283,22 +283,22 @@ function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
 
 function ArticleCard({ article }: { article: HelpArticle }) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer">
+    <div className="bg-muted rounded-lg p-3 hover:bg-accent transition-colors cursor-pointer">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-1">
+          <h3 className="font-medium text-foreground text-sm mb-1">
             {article.title}
           </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 mb-2">
+          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
             {article.content.substring(0, 100)}...
           </p>
-          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
             <span className="capitalize">{article.category.replace('-', ' ')}</span>
             <span>•</span>
             <span>{article.views} views</span>
           </div>
         </div>
-        <ChevronRight className="w-4 h-4 text-gray-400 mt-1" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground mt-1" />
       </div>
     </div>
   );
@@ -308,25 +308,25 @@ function FAQCard({ faq }: { faq: FAQItem }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg">
+    <div className="bg-muted rounded-lg">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors rounded-lg"
+        className="w-full p-3 text-left hover:bg-accent transition-colors rounded-lg"
       >
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+          <h3 className="font-medium text-foreground text-sm">
             {faq.question}
           </h3>
-          <ChevronRight 
-            className={`w-4 h-4 text-gray-400 transition-transform ${
+          <ChevronRight
+            className={`w-4 h-4 text-muted-foreground transition-transform ${
               isExpanded ? 'rotate-90' : ''
-            }`} 
+            }`}
           />
         </div>
       </button>
       {isExpanded && (
         <div className="px-3 pb-3">
-          <p className="text-xs text-gray-600 dark:text-gray-300">
+          <p className="text-xs text-muted-foreground">
             {faq.answer}
           </p>
         </div>
@@ -358,16 +358,16 @@ function KeyboardShortcuts() {
     <div className="p-4 space-y-4">
       {shortcuts.map((group) => (
         <div key={group.category}>
-          <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2">
+          <h3 className="font-medium text-foreground text-sm mb-2">
             {group.category}
           </h3>
           <div className="space-y-2">
             {group.shortcuts.map((shortcut) => (
               <div key={shortcut.key} className="flex items-center justify-between py-1">
-                <span className="text-xs text-gray-600 dark:text-gray-300">
+                <span className="text-xs text-muted-foreground">
                   {shortcut.description}
                 </span>
-                <kbd className="px-2 py-1 text-xs font-mono bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded">
+                <kbd className="px-2 py-1 text-xs font-mono bg-muted border border-border rounded text-foreground">
                   {shortcut.key}
                 </kbd>
               </div>

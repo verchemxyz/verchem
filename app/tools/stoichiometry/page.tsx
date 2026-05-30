@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Beaker, Calculator, Scale, FlaskConical, Zap, BookOpen, ArrowRightLeft, Percent } from 'lucide-react'
 import { StoichiometrySchema } from '@/components/seo/JsonLd'
+import { CalcShell, Card, SectionTitle, Button, ResultPanel, StepList, ErrorBanner } from '@/components/lab'
 
 type CalculationMode = 'mass-to-mole' | 'mole-to-mass' | 'mass-to-mass' | 'limiting-reagent' | 'percent-yield'
 
@@ -209,55 +210,33 @@ export default function StoichiometryCalculatorPage() {
   return (
     <>
       <StoichiometrySchema />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-orange-950/20 to-slate-950">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-500/10 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm text-orange-300 mb-6">
-              <Beaker className="h-4 w-4" />
-              Step-by-Step Solutions
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Stoichiometry
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
-                Calculator
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Solve stoichiometry problems with step-by-step solutions.
-              Mass-mole conversions, limiting reagent, percent yield, and more.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                5 Calculation Modes
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Step-by-Step
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                NIST Data
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                100% Free
-              </span>
-            </div>
-          </div>
+      <CalcShell
+        eyebrow="Step-by-step solutions"
+        title="Stoichiometry Calculator"
+        subtitle="Solve stoichiometry problems with step-by-step solutions. Mass-mole conversions, limiting reagent, percent yield, and more."
+        backHref="/tools"
+        backLabel="All tools"
+        maxWidth="6xl"
+      >
+        {/* Capability strip */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 5 Calculation Modes
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Step-by-Step
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> NIST Data
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+          </span>
         </div>
-      </section>
 
-      {/* Mode Selector */}
-      <section className="py-8 px-4">
-        <div className="mx-auto max-w-4xl">
+        {/* Mode Selector */}
+        <Card className="p-6">
+          <SectionTitle className="mb-4">Select mode</SectionTitle>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {(Object.keys(MODES) as CalculationMode[]).map((m) => {
               const info = MODES[m]
@@ -270,10 +249,10 @@ export default function StoichiometryCalculatorPage() {
                     setResult(null)
                     setError('')
                   }}
-                  className={`rounded-xl p-4 text-center transition-all ${
+                  className={`rounded-md p-4 text-center transition-colors ${
                     mode === m
-                      ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg shadow-orange-500/25'
-                      : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                      ? 'bg-primary-500 text-primary-foreground'
+                      : 'border border-border bg-card text-foreground hover:bg-muted'
                   }`}
                 >
                   <info.icon className="h-5 w-5 mx-auto mb-2" />
@@ -282,150 +261,125 @@ export default function StoichiometryCalculatorPage() {
               )
             })}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Calculator Section */}
-      <section className="py-8 px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-900/90 to-orange-900/20 p-8 shadow-2xl shadow-orange-500/10 backdrop-blur-sm">
-            <div className="mb-6 text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">{currentMode.name}</h2>
-              <p className="text-slate-400">{currentMode.description}</p>
-            </div>
+        {/* Calculator */}
+        <Card className="p-6 sm:p-8">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">{currentMode.name}</h2>
+            <p className="text-muted-foreground">{currentMode.description}</p>
+          </div>
 
-            {/* Persistent CTA to the full calculator */}
-            <div className="mb-6 flex justify-center">
-              <Link
-                href="/stoichiometry"
-                className="inline-flex items-center gap-1 text-sm text-orange-300 hover:text-orange-200"
-              >
-                Need limiting reagent, empirical formula &amp; 8 modes? Open the full calculator
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          {/* Persistent CTA to the full calculator */}
+          <div className="mb-6 flex justify-center">
+            <Link
+              href="/stoichiometry"
+              className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+            >
+              Need limiting reagent, empirical formula &amp; 8 modes? Open the full calculator
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
 
-            {/* Quick-calc for the implemented modes; CTA to the full calculator otherwise */}
-            {getInputFields().length > 0 ? (
-            <>
-            {/* Input Fields */}
-            <div className="grid gap-4 md:grid-cols-2 mb-6">
-              {getInputFields().map((field) => (
-                <div key={field.key}>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    {field.label}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={inputs[field.key] || ''}
-                      onChange={(e) => handleInputChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 font-mono"
-                    />
-                    {field.unit && (
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
-                        {field.unit}
-                      </span>
-                    )}
-                  </div>
+          {/* Quick-calc for the implemented modes; CTA to the full calculator otherwise */}
+          {getInputFields().length > 0 ? (
+          <>
+          {/* Input Fields */}
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            {getInputFields().map((field) => (
+              <div key={field.key}>
+                <label htmlFor={`st-${field.key}`} className="block text-sm font-medium text-foreground mb-2">
+                  {field.label}
+                </label>
+                <div className="relative">
+                  <input
+                    id={`st-${field.key}`}
+                    type="text"
+                    value={inputs[field.key] || ''}
+                    onChange={(e) => handleInputChange(field.key, e.target.value)}
+                    placeholder={field.placeholder}
+                    className="input-premium w-full font-mono"
+                  />
+                  {field.unit && (
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      {field.unit}
+                    </span>
+                  )}
                 </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Molar Mass Reference */}
+          <div className="mb-6 p-4 rounded-lg bg-muted border border-border">
+            <p className="text-sm text-muted-foreground mb-2">Quick Reference - Common Molar Masses:</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(MOLAR_MASSES).slice(0, 8).map(([formula, mass]) => (
+                <button
+                  key={formula}
+                  onClick={() => {
+                    if (mode === 'mass-to-mole' || mode === 'mole-to-mass') {
+                      setInputs(prev => ({ ...prev, molarMass: mass.toString() }))
+                    }
+                  }}
+                  className="rounded-md bg-card border border-border px-3 py-1 text-xs text-foreground hover:border-primary-500 hover:bg-muted transition-colors font-mono"
+                >
+                  {formula}: {mass}
+                </button>
               ))}
             </div>
-
-            {/* Molar Mass Reference */}
-            <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
-              <p className="text-sm text-slate-400 mb-2">Quick Reference - Common Molar Masses:</p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(MOLAR_MASSES).slice(0, 8).map(([formula, mass]) => (
-                  <button
-                    key={formula}
-                    onClick={() => {
-                      if (mode === 'mass-to-mole' || mode === 'mole-to-mass') {
-                        setInputs(prev => ({ ...prev, molarMass: mass.toString() }))
-                      }
-                    }}
-                    className="rounded-lg bg-white/5 px-3 py-1 text-xs text-slate-300 hover:bg-orange-500/20 transition-colors"
-                  >
-                    {formula}: {mass}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={handleCalculate}
-              disabled={isCalculating}
-              className="w-full rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 py-4 font-semibold text-white transition-all hover:from-orange-500 hover:to-amber-500 hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50"
-            >
-              {isCalculating ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Calculating...
-                </div>
-              ) : (
-                'Calculate'
-              )}
-            </button>
-            </>
-            ) : (
-              <div className="rounded-2xl border border-orange-500/30 bg-orange-500/5 p-6 text-center">
-                <p className="text-slate-300 mb-4">
-                  <span className="font-semibold text-white">{currentMode.name}</span> — with full
-                  step-by-step solving — is available in the complete Stoichiometry calculator.
-                </p>
-                <Link
-                  href="/stoichiometry"
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 font-medium text-white hover:from-orange-500 hover:to-amber-500 transition-colors"
-                >
-                  Open the full Stoichiometry Calculator
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            )}
-
-            {error && (
-              <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                {error}
-              </div>
-            )}
-
-            {result && (
-              <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="rounded-2xl border border-orange-500/30 bg-orange-500/10 p-6 text-center">
-                  <p className="text-sm text-orange-300 mb-2">Result</p>
-                  <p className="text-4xl font-bold text-white font-mono">
-                    {result.value.toFixed(4)}
-                    <span className="text-2xl text-orange-300 ml-2">{result.unit}</span>
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-orange-400" />
-                    Step-by-Step Solution
-                  </h3>
-                  <div className="space-y-2">
-                    {result.steps.map((step, i) => (
-                      <p key={i} className="text-slate-300 font-mono text-sm">
-                        {step}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </section>
 
-      {/* Example Problems */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">
+          <Button
+            onClick={handleCalculate}
+            disabled={isCalculating}
+            className="w-full"
+          >
+            {isCalculating ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Calculating...
+              </div>
+            ) : (
+              'Calculate'
+            )}
+          </Button>
+          </>
+          ) : (
+            <div className="rounded-lg border border-border bg-muted p-6 text-center">
+              <p className="text-muted-foreground mb-4">
+                <span className="font-semibold text-foreground">{currentMode.name}</span> — with full
+                step-by-step solving — is available in the complete Stoichiometry calculator.
+              </p>
+              <Link
+                href="/stoichiometry"
+                className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
+              >
+                Open the full Stoichiometry Calculator
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
+
+          {error && <div className="mt-6"><ErrorBanner>{error}</ErrorBanner></div>}
+        </Card>
+
+        {result && (
+          <>
+            <ResultPanel>
+              {result.value.toFixed(4)}
+              <span className="text-xl text-muted-foreground ml-2">{result.unit}</span>
+            </ResultPanel>
+            <StepList steps={result.steps} title="Step-by-Step Solution" />
+          </>
+        )}
+
+        {/* Example Problems */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-2">
             Example Problems
-          </h2>
-          <p className="text-slate-400 text-center mb-12">
+          </SectionTitle>
+          <p className="text-muted-foreground text-center mb-8">
             Click any example to practice with our calculator
           </p>
 
@@ -434,68 +388,64 @@ export default function StoichiometryCalculatorPage() {
               <button
                 key={i}
                 onClick={() => setMode(example.mode)}
-                className="group rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition-all hover:border-orange-500/50 hover:bg-orange-500/10"
+                className="group rounded-lg border border-border bg-card p-6 text-left transition-colors hover:border-primary-500 hover:bg-muted"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-lg font-semibold text-white">{example.title}</span>
-                  <ArrowRight className="h-5 w-5 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-lg font-semibold text-foreground">{example.title}</span>
+                  <ArrowRight className="h-5 w-5 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <p className="font-mono text-orange-400 mb-2">{example.equation}</p>
-                <p className="text-slate-400 text-sm">{example.problem}</p>
-                <span className="inline-block mt-3 rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400">
+                <p className="font-mono text-primary-600 mb-2">{example.equation}</p>
+                <p className="text-muted-foreground text-sm">{example.problem}</p>
+                <span className="inline-block mt-3 rounded-full bg-muted border border-border px-3 py-1 text-xs text-muted-foreground">
                   {MODES[example.mode].name}
                 </span>
               </button>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Key Concepts */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* Key Concepts */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Stoichiometry Formulas
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <Scale className="h-8 w-8 text-orange-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-3">Mass-Mole Conversion</h3>
-              <div className="space-y-2 font-mono text-slate-300 text-sm">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <Scale className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-3">Mass-Mole Conversion</h3>
+              <div className="space-y-2 font-mono text-foreground text-sm">
                 <p>n = mass / M</p>
                 <p>mass = n × M</p>
-                <p className="text-slate-500 text-xs">n = moles, M = molar mass</p>
+                <p className="text-muted-foreground text-xs">n = moles, M = molar mass</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <ArrowRightLeft className="h-8 w-8 text-orange-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-3">Mole Ratio</h3>
-              <div className="space-y-2 font-mono text-slate-300 text-sm">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <ArrowRightLeft className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-3">Mole Ratio</h3>
+              <div className="space-y-2 font-mono text-foreground text-sm">
                 <p>n₂/n₁ = coeff₂/coeff₁</p>
-                <p className="text-slate-500 text-xs">From balanced equation coefficients</p>
+                <p className="text-muted-foreground text-xs">From balanced equation coefficients</p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <Percent className="h-8 w-8 text-orange-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-3">Percent Yield</h3>
-              <div className="space-y-2 font-mono text-slate-300 text-sm">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <Percent className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-3">Percent Yield</h3>
+              <div className="space-y-2 font-mono text-foreground text-sm">
                 <p>% Yield = (actual/theoretical) × 100</p>
-                <p className="text-slate-500 text-xs">Measures reaction efficiency</p>
+                <p className="text-muted-foreground text-xs">Measures reaction efficiency</p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Features */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* Features */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Why Use Our Stoichiometry Calculator?
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -532,23 +482,21 @@ export default function StoichiometryCalculatorPage() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-orange-500/30 transition-colors"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <feature.icon className="h-8 w-8 text-orange-400 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm">{feature.description}</p>
+                <feature.icon className="h-8 w-8 text-primary-600 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* FAQ */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* FAQ */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Frequently Asked Questions
-          </h2>
+          </SectionTitle>
 
           <div className="space-y-6">
             {[
@@ -575,59 +523,53 @@ export default function StoichiometryCalculatorPage() {
             ].map((faq, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <h3 className="text-lg font-semibold text-white mb-3">{faq.q}</h3>
-                <p className="text-slate-400">{faq.a}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{faq.q}</h3>
+                <p className="text-muted-foreground">{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+        {/* CTA */}
+        <Card className="p-6 sm:p-8 text-center">
+          <SectionTitle className="text-2xl mb-6">
             Explore More Chemistry Tools
-          </h2>
-          <p className="text-slate-400 mb-8">
-            VerChem offers a complete suite of chemistry calculators
-          </p>
+          </SectionTitle>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/tools/equation-balancer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Equation Balancer
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/molar-mass"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Molar Mass
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/ph-calculator"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               pH Calculator
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/periodic-table"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 font-medium text-white hover:from-orange-500 hover:to-amber-500 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
             >
               Interactive Periodic Table
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
-    </div>
+        </Card>
+      </CalcShell>
     </>
   )
 }

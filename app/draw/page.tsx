@@ -13,6 +13,7 @@ import { parseShareParams } from '@/lib/molecule/share-url';
 import SaveMoleculeModal, {
   type SaveMoleculeData,
 } from '@/components/molecule-editor/SaveMoleculeModal';
+import { CalcShell, Button } from '@/components/lab';
 
 const KetcherEditor = dynamic(
   () => import('@/components/molecule-editor/KetcherEditor'),
@@ -232,110 +233,116 @@ export default function DrawPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold mb-4 text-foreground">
-          Structure Editor
-        </h1>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button
-            onClick={handleExportSmiles}
-            disabled={!ketcher}
-            aria-label="Export as SMILES"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            SMILES
-          </button>
-          <button
-            onClick={handleExportMol}
-            disabled={!ketcher}
-            aria-label="Export as MOL v2000"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            MOL v2000
-          </button>
-          <button
-            onClick={handleExportInchi}
-            disabled={!ketcher}
-            aria-label="Export as InChI"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            InChI
-          </button>
-          <button
-            onClick={handleExportPng}
-            disabled={!ketcher}
-            aria-label="Export as PNG image"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            PNG
-          </button>
-          <button
-            onClick={handleExportSvg}
-            disabled={!ketcher}
-            aria-label="Export as SVG image"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            SVG
-          </button>
-          <button
-            onClick={handleSaveClick}
-            disabled={!ketcher}
-            aria-label="Save structure to library (Ctrl+S)"
-            className="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            Save to Library
-          </button>
-        </div>
-
-        <div className="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
-          {isLoadingShared && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
-              <div className="w-10 h-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
-            </div>
-          )}
-          <div className="h-[calc(100vh-280px)] min-h-[400px] sm:h-[600px]">
-            <KetcherEditor
-              height="100%"
-              onInit={handleInit}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-
-        {shareError && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3"
-          >
-            <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm text-red-700 dark:text-red-300">{shareError}</p>
-            </div>
-            <button
-              onClick={() => setShareError(null)}
-              className="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
-              aria-label="Dismiss error"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {smiles && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="text-sm font-mono break-all text-foreground">
-              <strong>SMILES:</strong> {smiles}
-            </p>
-          </div>
-        )}
+    <CalcShell
+      eyebrow="Cheminformatics · 2D editor"
+      title="Structure Editor"
+      subtitle="Draw a structure or paste a SMILES string, then export it or save it to your library."
+      backHref="/tools"
+      backLabel="All tools"
+      maxWidth="7xl"
+    >
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleExportSmiles}
+          disabled={!ketcher}
+          aria-label="Export as SMILES"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          SMILES
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleExportMol}
+          disabled={!ketcher}
+          aria-label="Export as MOL v2000"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          MOL v2000
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleExportInchi}
+          disabled={!ketcher}
+          aria-label="Export as InChI"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          InChI
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleExportPng}
+          disabled={!ketcher}
+          aria-label="Export as PNG image"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          PNG
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleExportSvg}
+          disabled={!ketcher}
+          aria-label="Export as SVG image"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          SVG
+        </Button>
+        <Button
+          onClick={handleSaveClick}
+          disabled={!ketcher}
+          aria-label="Save structure to library (Ctrl+S)"
+          className="px-3 sm:px-4 py-2 text-sm"
+        >
+          Save to Library
+        </Button>
       </div>
+
+      <div className="relative border border-border rounded-lg overflow-hidden bg-card">
+        {isLoadingShared && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
+            <div className="w-10 h-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
+          </div>
+        )}
+        <div className="h-[calc(100vh-280px)] min-h-[400px] sm:h-[600px]">
+          <KetcherEditor
+            height="100%"
+            onInit={handleInit}
+            onChange={handleChange}
+          />
+        </div>
+      </div>
+
+      {shareError && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="p-3 bg-destructive/10 border border-destructive/40 rounded-md flex items-start gap-3"
+        >
+          <svg className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm text-destructive">{shareError}</p>
+          </div>
+          <button
+            onClick={() => setShareError(null)}
+            className="text-destructive hover:opacity-70 transition-opacity"
+            aria-label="Dismiss error"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {smiles && (
+        <div className="p-3 bg-muted border border-border rounded-md">
+          <p className="text-sm font-mono break-all text-foreground">
+            <strong>SMILES:</strong> {smiles}
+          </p>
+        </div>
+      )}
 
       <SaveMoleculeModal
         key={saveModalKey}
@@ -345,6 +352,6 @@ export default function DrawPage() {
         isLoading={saveLoading}
         error={saveError}
       />
-    </div>
+    </CalcShell>
   );
 }

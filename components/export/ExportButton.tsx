@@ -124,7 +124,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
   const baseButtonClasses = `
     inline-flex items-center justify-center gap-2
     font-medium rounded-lg transition-colors
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed
     ${getButtonSizeClasses()}
     ${className}
@@ -132,8 +132,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
   const primaryButtonClasses = `
     ${baseButtonClasses}
-    bg-blue-600 text-white hover:bg-blue-700
-    dark:bg-blue-500 dark:hover:bg-blue-600
+    bg-primary-500 text-primary-foreground hover:bg-primary-600
   `;
 
   if (variant === 'icon') {
@@ -143,10 +142,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         disabled={isExporting}
         className={`
           p-2 rounded-lg transition-colors
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+          focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
           disabled:opacity-50 disabled:cursor-not-allowed
-          text-gray-600 hover:text-gray-900 hover:bg-gray-100
-          dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700
+          text-muted-foreground hover:text-foreground hover:bg-muted
           ${className}
         `}
         title={`Export as ${selectedFormat.toUpperCase()}`}
@@ -188,7 +186,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
             disabled={isExporting}
             className={`
               ${primaryButtonClasses}
-              border-l border-blue-700 dark:border-blue-400
+              border-l border-primary-700
               px-2
             `}
           >
@@ -199,9 +197,9 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         </div>
 
         {showFormatMenu && (
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-popover rounded-lg shadow-lg border border-border z-50">
             <div className="p-2">
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-3 py-1">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 py-1">
                 Format
               </div>
               {formats.map((format) => (
@@ -217,8 +215,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
                     transition-colors
                     ${
                       selectedFormat === format
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'text-foreground hover:bg-muted'
                     }
                   `}
                 >
@@ -228,8 +226,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
               {showQuality && (
                 <>
-                  <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                    <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-3 py-1">
+                  <div className="border-t border-border mt-2 pt-2">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 py-1">
                       Quality
                     </div>
                     {Object.entries(ExportManager.getQualitySettings()).map(([quality, label]) => (
@@ -244,8 +242,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
                           transition-colors
                           ${
                             selectedQuality === quality
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              ? 'bg-primary-100 text-primary-700'
+                              : 'text-foreground hover:bg-muted'
                           }
                         `}
                       >
@@ -256,24 +254,24 @@ const ExportButton: React.FC<ExportButtonProps> = ({
                 </>
               )}
 
-              <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
-                <label className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+              <div className="border-t border-border mt-2 pt-2">
+                <label className="flex items-center px-3 py-2 text-sm text-foreground">
                   <input
                     type="checkbox"
                     checked={includeTimestamp}
                     onChange={(e) => setIncludeTimestamp(e.target.checked)}
-                    className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="mr-2 rounded border-border text-primary-600 focus:ring-ring"
                   />
                   Include timestamp
                 </label>
-                
+
                 {showWatermark && (
-                  <label className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label className="flex items-center px-3 py-2 text-sm text-foreground">
                     <input
                       type="checkbox"
                       checked={addWatermark}
                       onChange={(e) => setAddWatermark(e.target.checked)}
-                      className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="mr-2 rounded border-border text-primary-600 focus:ring-ring"
                     />
                     Add watermark
                   </label>

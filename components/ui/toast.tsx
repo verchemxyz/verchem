@@ -71,27 +71,27 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     info: <Info className="w-5 h-5" />
   }
 
-  const colors = {
-    success: 'border-emerald-400/50 bg-emerald-500/10 text-emerald-100',
-    error: 'border-rose-400/50 bg-rose-500/10 text-rose-100',
-    warning: 'border-amber-400/50 bg-amber-500/10 text-amber-100',
-    info: 'border-cyan-400/50 bg-cyan-500/10 text-cyan-100'
+  const accents = {
+    success: 'border-l-success text-success',
+    error: 'border-l-destructive text-destructive',
+    warning: 'border-l-warning text-warning',
+    info: 'border-l-info text-info'
   }
 
   return (
     <div
       className={`
-        pointer-events-auto flex items-center gap-3 rounded-xl border px-4 py-3
-        shadow-lg backdrop-blur-sm transition-all duration-200
-        ${colors[toast.type]}
+        pointer-events-auto flex items-center gap-3 rounded-lg border border-border border-l-4 px-4 py-3
+        bg-popover text-popover-foreground shadow-lg transition-all duration-200
+        ${accents[toast.type]}
         ${isExiting ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
       `}
     >
-      {icons[toast.type]}
-      <p className="text-sm font-medium">{toast.message}</p>
+      <span className={accents[toast.type]}>{icons[toast.type]}</span>
+      <p className="text-sm font-medium text-foreground">{toast.message}</p>
       <button
         onClick={handleRemove}
-        className="ml-2 rounded-lg p-1 hover:bg-white/10 transition-colors"
+        className="ml-2 rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         aria-label="Dismiss notification"
       >
         <X className="w-4 h-4" />

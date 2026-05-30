@@ -137,18 +137,21 @@ export default function ElementStructurePreview({ element }: ElementStructurePre
   const assetSrc = STRUCTURE_IMAGES[info.type]
 
   return (
-    <div className="rounded-2xl bg-slate-900 text-white shadow-inner p-4">
+    <div className="rounded-2xl bg-card text-foreground border border-border p-4">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <p className="text-xs uppercase tracking-widest text-white/60">Bond motif</p>
-          <p className="text-base font-semibold text-white">{info.label}</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Bond motif</p>
+          <p className="text-base font-semibold text-foreground">{info.label}</p>
         </div>
-        <span className="px-2 py-1 text-[10px] font-semibold bg-white/10 rounded-full">
+        <span className="px-2 py-1 text-[10px] font-semibold bg-muted text-muted-foreground rounded-full">
           {element.category.replace(/-/g, ' ')}
         </span>
       </div>
 
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-slate-900/60 shadow-inner">
+      {/* Dark visualization well — the white-stroke SVG + element-category fills are a
+          chemistry-encoding visual that needs a FIXED dark backdrop in both themes
+          (a theme-inverting token would hide the literal white bond strokes in dark mode). */}
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-[#0D0F12] shadow-inner">
         {assetSrc ? (
           <>
             <Image
@@ -159,7 +162,7 @@ export default function ElementStructurePreview({ element }: ElementStructurePre
               className="object-cover opacity-90"
               priority={element.atomicNumber <= 5}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 to-slate-900/10" />
+            <div className="absolute inset-0 bg-black/40" />
             <StructureCanvas
               info={info}
               palette={palette}
@@ -175,7 +178,7 @@ export default function ElementStructurePreview({ element }: ElementStructurePre
         )}
       </div>
 
-      <p className="text-xs text-white/70 mt-3 leading-relaxed">{info.description}</p>
+      <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{info.description}</p>
     </div>
   )
 }

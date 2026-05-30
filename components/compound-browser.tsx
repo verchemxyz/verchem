@@ -132,18 +132,18 @@ export default function CompoundBrowser({
     const integrationData = mode === 'integration' ? getIntegrationData(compound) : null
     
     return (
-      <div 
-        className={`bg-white rounded-lg shadow-md p-4 cursor-pointer transition-all hover:shadow-lg ${
-          isSelected ? 'ring-2 ring-blue-500' : ''
-        } ${selectedCompound?.id === compound.id ? 'ring-2 ring-red-500' : ''}`}
+      <div
+        className={`bg-card border border-border rounded-lg shadow-sm p-4 cursor-pointer transition-shadow hover:shadow-md ${
+          isSelected ? 'ring-2 ring-primary-500' : ''
+        } ${selectedCompound?.id === compound.id ? 'ring-2 ring-destructive' : ''}`}
         onClick={() => handleCompoundSelect(compound)}
       >
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-lg text-gray-900">{compound.name}</h3>
-          <span className="text-sm text-gray-500">{compound.formula}</span>
+          <h3 className="font-bold text-lg text-foreground">{compound.name}</h3>
+          <span className="text-sm text-muted-foreground">{compound.formula}</span>
         </div>
-        
-        <div className="text-sm text-gray-600 mb-2">
+
+        <div className="text-sm text-muted-foreground mb-2">
           {compound.molecularMass && <div>MW: {compound.molecularMass.toFixed(2)} g/mol</div>}
           {compound.meltingPoint && <div>MP: {compound.meltingPoint}°C</div>}
           {compound.boilingPoint && <div>BP: {compound.boilingPoint}°C</div>}
@@ -162,10 +162,10 @@ export default function CompoundBrowser({
                 <span
                   key={idx}
                   className={`inline-block px-2 py-1 rounded text-xs mr-1 mb-1 ${
-                    isToxic ? 'bg-red-100 text-red-800' :
-                    isCorrosive ? 'bg-orange-100 text-orange-800' :
-                    isFlammable ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
+                    isToxic ? 'bg-destructive/10 text-destructive' :
+                    isCorrosive ? 'bg-info/10 text-info' :
+                    isFlammable ? 'bg-warning/10 text-warning' :
+                    'bg-muted text-muted-foreground'
                   }`}
                 >
                   {hazardCode}
@@ -176,14 +176,14 @@ export default function CompoundBrowser({
         )}
         
         {compound.uses && compound.uses.length > 0 && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             Uses: {compound.uses.slice(0, 2).join(', ')}
             {compound.uses.length > 2 && '...'}
           </div>
         )}
-        
+
         {integrationData && (
-          <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+          <div className="mt-2 p-2 bg-muted rounded text-xs">
             <div className="font-semibold">Integration Data:</div>
             {calculatorType === 'stoichiometry' && 'calculatedProperties' in integrationData && integrationData.calculatedProperties && (
               <div>
@@ -207,29 +207,29 @@ export default function CompoundBrowser({
     const isSelected = selectedCompounds.some(c => c.id === compound.id)
     
     return (
-      <div 
-        className={`bg-white rounded-lg shadow-sm p-4 cursor-pointer transition-all hover:shadow-md border ${
-          isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-        } ${selectedCompound?.id === compound.id ? 'border-red-500 bg-red-50' : ''}`}
+      <div
+        className={`bg-card rounded-lg shadow-sm p-4 cursor-pointer transition-shadow hover:shadow-md border ${
+          isSelected ? 'border-primary-500 bg-primary-50' : 'border-border'
+        } ${selectedCompound?.id === compound.id ? 'border-destructive bg-destructive/10' : ''}`}
         onClick={() => handleCompoundSelect(compound)}
       >
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h3 className="font-bold text-gray-900">{compound.name}</h3>
-              <span className="text-sm text-gray-500">{compound.formula}</span>
-              {compound.molecularMass && <span className="text-sm text-gray-400">MW: {compound.molecularMass.toFixed(1)}</span>}
+              <h3 className="font-bold text-foreground">{compound.name}</h3>
+              <span className="text-sm text-muted-foreground">{compound.formula}</span>
+              {compound.molecularMass && <span className="text-sm text-muted-foreground">MW: {compound.molecularMass.toFixed(1)}</span>}
             </div>
-            
-            <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+
+            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
               {compound.meltingPoint && <span>MP: {compound.meltingPoint}°C</span>}
               {compound.boilingPoint && <span>BP: {compound.boilingPoint}°C</span>}
               {compound.density && <span>ρ: {compound.density.toFixed(3)} g/cm³</span>}
               {compound.cas && <span>CAS: {compound.cas}</span>}
             </div>
-            
+
             {compound.uses && compound.uses.length > 0 && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 Uses: {compound.uses.join(', ')}
               </div>
             )}
@@ -247,10 +247,10 @@ export default function CompoundBrowser({
                   <span
                     key={idx}
                     className={`px-2 py-1 rounded text-xs ${
-                      isToxic ? 'bg-red-100 text-red-800' :
-                      isCorrosive ? 'bg-orange-100 text-orange-800' :
-                      isFlammable ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
+                      isToxic ? 'bg-destructive/10 text-destructive' :
+                      isCorrosive ? 'bg-info/10 text-info' :
+                      isFlammable ? 'bg-warning/10 text-warning' :
+                      'bg-muted text-muted-foreground'
                     }`}
                   >
                     {hazardCode}
@@ -268,36 +268,36 @@ export default function CompoundBrowser({
     <div className="w-full max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
           VerChem Compound Database
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Comprehensive database of {statistics.totalCompounds} chemical compounds with advanced search and filtering
         </p>
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-card border border-border rounded-lg shadow-sm p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {/* Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Search</label>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Name, formula, CAS..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card text-foreground"
             />
           </div>
-          
+
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Category</label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card text-foreground"
             >
               {categories.map(cat => (
                 <option key={cat} value={cat}>
@@ -309,11 +309,11 @@ export default function CompoundBrowser({
           
           {/* Hazard */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hazard</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Hazard</label>
             <select
               value={selectedHazard}
               onChange={(e) => setSelectedHazard(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card text-foreground"
             >
               {hazardTypes.map(hazard => (
                 <option key={hazard} value={hazard}>
@@ -325,12 +325,12 @@ export default function CompoundBrowser({
           
           {/* Sort */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Sort By</label>
             <div className="flex gap-2">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'molecularMass' | 'boilingPoint')}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card text-foreground"
               >
                 <option value="name">Name</option>
                 <option value="molecularMass">Molecular Mass</option>
@@ -338,22 +338,22 @@ export default function CompoundBrowser({
               </select>
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-3 py-2 border border-border rounded-md text-foreground hover:bg-muted"
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </button>
             </div>
           </div>
         </div>
-        
+
         {/* Advanced Controls */}
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">View:</label>
+            <label className="text-sm font-medium text-foreground">View:</label>
             <button
               onClick={() => setViewMode('grid')}
               className={`px-3 py-1 rounded text-sm ${
-                viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                viewMode === 'grid' ? 'bg-primary-600 text-primary-foreground' : 'bg-muted text-foreground'
               }`}
             >
               Grid
@@ -361,23 +361,23 @@ export default function CompoundBrowser({
             <button
               onClick={() => setViewMode('list')}
               className={`px-3 py-1 rounded text-sm ${
-                viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+                viewMode === 'list' ? 'bg-primary-600 text-primary-foreground' : 'bg-muted text-foreground'
               }`}
             >
               List
             </button>
           </div>
-          
+
           <button
             onClick={() => setShowStats(!showStats)}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+            className="px-4 py-2 bg-muted text-foreground border border-border rounded hover:bg-border text-sm"
           >
             {showStats ? 'Hide' : 'Show'} Statistics
           </button>
-          
+
           <button
             onClick={() => setCompounds(getRandomCompounds(20))}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+            className="px-4 py-2 bg-primary-600 text-primary-foreground rounded hover:bg-primary-700 text-sm"
           >
             Random Sample
           </button>
@@ -386,28 +386,28 @@ export default function CompoundBrowser({
 
       {/* Statistics Panel */}
       {showStats && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Database Statistics</h2>
+        <div className="bg-card border border-border rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4 text-foreground">Database Statistics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{statistics.totalCompounds}</div>
-              <div className="text-sm text-gray-600">Total Compounds</div>
+              <div className="text-2xl font-bold text-primary-600">{statistics.totalCompounds}</div>
+              <div className="text-sm text-muted-foreground">Total Compounds</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{Object.keys(statistics.categories).length}</div>
-              <div className="text-sm text-gray-600">Categories</div>
+              <div className="text-2xl font-bold text-success">{Object.keys(statistics.categories).length}</div>
+              <div className="text-sm text-muted-foreground">Categories</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-warning">
                 {Object.values(statistics.categories).reduce((sum, count) => sum + count, 0)}
               </div>
-              <div className="text-sm text-gray-600">Organic Compounds</div>
+              <div className="text-sm text-muted-foreground">Organic Compounds</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-secondary-600">
                 {statistics.categories.inorganic || 0}
               </div>
-              <div className="text-sm text-gray-600">Inorganic Compounds</div>
+              <div className="text-sm text-muted-foreground">Inorganic Compounds</div>
             </div>
           </div>
         </div>
@@ -416,11 +416,11 @@ export default function CompoundBrowser({
       {/* Results */}
       <div className="mb-4">
         <div className="flex justify-between items-center">
-          <div className="text-gray-600">
+          <div className="text-muted-foreground">
             Showing {compounds.length} compounds
           </div>
           {selectedCompound && (
-            <div className="text-sm text-blue-600">
+            <div className="text-sm text-primary-600">
               Selected: {selectedCompound.name} ({selectedCompound.formula})
             </div>
           )}
@@ -430,8 +430,8 @@ export default function CompoundBrowser({
       {/* Compound Display */}
       {loading ? (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading compounds...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading compounds...</p>
         </div>
       ) : (
         <div className={viewMode === 'grid' 
@@ -449,19 +449,19 @@ export default function CompoundBrowser({
       )}
 
       {compounds.length === 0 && !loading && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-muted-foreground">
           No compounds found matching your criteria.
         </div>
       )}
 
       {/* Selected Compound Details */}
       {selectedCompound && mode === 'browse' && (
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-4">{selectedCompound.name} Details</h2>
+        <div className="mt-8 bg-card border border-border rounded-lg shadow-sm p-6">
+          <h2 className="text-2xl font-bold mb-4 text-foreground">{selectedCompound.name} Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-2">Basic Properties</h3>
-              <div className="space-y-1 text-sm">
+              <h3 className="font-semibold mb-2 text-foreground">Basic Properties</h3>
+              <div className="space-y-1 text-sm text-foreground">
                 <div><strong>Formula:</strong> {selectedCompound.formula}</div>
                 {selectedCompound.molecularMass && <div><strong>Molecular Mass:</strong> {selectedCompound.molecularMass.toFixed(2)} g/mol</div>}
                 {selectedCompound.cas && <div><strong>CAS:</strong> {selectedCompound.cas}</div>}
@@ -472,8 +472,8 @@ export default function CompoundBrowser({
             </div>
             
             <div>
-              <h3 className="font-semibold mb-2">Additional Information</h3>
-              <div className="space-y-1 text-sm">
+              <h3 className="font-semibold mb-2 text-foreground">Additional Information</h3>
+              <div className="space-y-1 text-sm text-foreground">
                 {selectedCompound.appearance && <div><strong>Appearance:</strong> {selectedCompound.appearance}</div>}
                 {selectedCompound.odor && <div><strong>Odor:</strong> {selectedCompound.odor}</div>}
                 {selectedCompound.solubility && (
@@ -491,20 +491,20 @@ export default function CompoundBrowser({
           
           {selectedCompound.uses && selectedCompound.uses.length > 0 && (
             <div className="mt-4">
-              <h3 className="font-semibold mb-2">Common Uses</h3>
+              <h3 className="font-semibold mb-2 text-foreground">Common Uses</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedCompound.uses.map((use, idx) => (
-                  <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                  <span key={idx} className="px-2 py-1 bg-primary-100 text-primary-700 rounded text-sm">
                     {use}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          
+
           {selectedCompound.hazards && selectedCompound.hazards.length > 0 && (
             <div className="mt-4">
-              <h3 className="font-semibold mb-2">Hazards (GHS Codes)</h3>
+              <h3 className="font-semibold mb-2 text-foreground">Hazards (GHS Codes)</h3>
               <div className="flex flex-wrap gap-2">
                 {selectedCompound.hazards.map((hazard, idx) => {
                   const hazardCode = typeof hazard === 'string' ? hazard : (hazard.ghsCode || hazard.type || '');
@@ -516,10 +516,10 @@ export default function CompoundBrowser({
                     <span
                       key={idx}
                       className={`px-2 py-1 rounded text-xs ${
-                        isToxic ? 'bg-red-100 text-red-800' :
-                        isCorrosive ? 'bg-orange-100 text-orange-800' :
-                        isFlammable ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        isToxic ? 'bg-destructive/10 text-destructive' :
+                        isCorrosive ? 'bg-info/10 text-info' :
+                        isFlammable ? 'bg-warning/10 text-warning' :
+                        'bg-muted text-muted-foreground'
                       }`}
                     >
                       {hazardCode}

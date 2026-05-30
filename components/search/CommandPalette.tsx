@@ -140,12 +140,12 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
   }, [items, selectedIndex, handleItemSelect, onClose])
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-20 z-50">
+      <div className="bg-popover border border-border rounded-lg shadow-xl w-full max-w-2xl mx-4">
         {/* Search input */}
-        <div className="relative border-b border-gray-200 dark:border-gray-700">
+        <div className="relative border-b border-border">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <MagnifyingGlassIcon className="h-5 w-5 text-muted-foreground" />
           </div>
           <input
             ref={inputRef}
@@ -153,12 +153,12 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Type a command or search..."
-            className="block w-full pl-12 pr-12 py-4 text-lg border-0 rounded-t-lg bg-transparent text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-0 placeholder-gray-500 dark:placeholder-gray-400"
+            className="block w-full pl-12 pr-12 py-4 text-lg border-0 rounded-t-lg bg-transparent text-foreground focus:outline-none focus:ring-0 placeholder-muted-foreground"
           />
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -168,8 +168,8 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
         {/* Results */}
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-              <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+            <div className="p-8 text-center text-muted-foreground">
+              <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
               <p>No results found</p>
               <p className="text-sm mt-1">Try a different search term</p>
             </div>
@@ -188,7 +188,7 @@ export function CommandPalette({ onClose, onSearch }: CommandPaletteProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-border bg-muted text-xs text-muted-foreground flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <span>↑↓ Navigate</span>
             <span>↵ Select</span>
@@ -223,17 +223,17 @@ function CommandItem({
   const getItemColor = () => {
     switch (item.type) {
       case 'suggestion':
-        return 'text-blue-600'
+        return 'text-primary-600'
       case 'recent':
-        return 'text-green-600'
+        return 'text-success'
       case 'popular':
-        return 'text-orange-600'
+        return 'text-warning'
       case 'bookmark':
-        return 'text-yellow-600'
+        return 'text-secondary-600'
       case 'command':
-        return 'text-purple-600'
+        return 'text-secondary-600'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 
@@ -241,31 +241,31 @@ function CommandItem({
     <button
       onClick={onClick}
       className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors ${
-        isSelected 
-          ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' 
-          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+        isSelected
+          ? 'bg-primary-50 border-l-4 border-primary-500'
+          : 'hover:bg-muted'
       }`}
     >
       <div className={`flex-shrink-0 ${getItemColor()}`}>
         <item.icon className="h-5 w-5" />
       </div>
-      
+
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+        <div className="text-sm font-medium text-foreground truncate">
           {item.title}
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+        <div className="text-sm text-muted-foreground truncate">
           {item.subtitle}
         </div>
       </div>
-      
+
       <div className="flex-shrink-0">
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-          item.type === 'suggestion' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200' :
-          item.type === 'recent' ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200' :
-          item.type === 'popular' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200' :
-          item.type === 'bookmark' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200' :
-          'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'
+          item.type === 'suggestion' ? 'bg-primary-100 text-primary-800' :
+          item.type === 'recent' ? 'bg-success/15 text-success' :
+          item.type === 'popular' ? 'bg-warning/15 text-warning' :
+          item.type === 'bookmark' ? 'bg-secondary-100 text-secondary-800' :
+          'bg-secondary-100 text-secondary-800'
         }`}>
           {item.type}
         </span>

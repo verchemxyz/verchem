@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   IR_ABSORPTIONS,
   IR_CATEGORIES,
@@ -15,18 +15,20 @@ import type { IRAbsorption, IRCategory } from '@/lib/data/spectroscopy/ir-data'
 // Helpers
 // ---------------------------------------------------------------------------
 
+// Intensity is spectral DATA (strong/medium/weak/variable), not UI chrome —
+// keep the meaning. Neutral "weak"/default fold onto theme-safe tokens.
 function intensityBadge(intensity: string): string {
   switch (intensity) {
     case 'strong':
-      return 'bg-red-100 text-red-700'
+      return 'bg-destructive/10 text-destructive'
     case 'medium':
-      return 'bg-amber-100 text-amber-700'
+      return 'bg-warning/10 text-warning'
     case 'weak':
-      return 'bg-gray-100 text-gray-600'
+      return 'bg-muted text-muted-foreground'
     case 'variable':
-      return 'bg-blue-100 text-blue-700'
+      return 'bg-secondary-100 text-secondary-700'
     default:
-      return 'bg-gray-100 text-gray-600'
+      return 'bg-muted text-muted-foreground'
   }
 }
 
@@ -66,7 +68,7 @@ function PeakResults({
             No matches found
           </span>
         ) : (
-          <span className="text-teal-600">
+          <span className="text-primary-600">
             {matches.length} possible assignment{matches.length !== 1 ? 's' : ''}
           </span>
         )}
@@ -77,7 +79,7 @@ function PeakResults({
           {matches.map((m) => (
             <div
               key={m.id}
-              className="pl-3 border-l-4 rounded-r-md bg-white/50 dark:bg-white/5 p-3"
+              className="pl-3 border-l-4 rounded-r-md bg-muted p-3"
               style={{ borderColor: categoryColor(m.category) }}
             >
               <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -89,7 +91,7 @@ function PeakResults({
                 >
                   {m.intensity}
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground font-medium">
                   {m.bandShape}
                 </span>
               </div>
@@ -143,7 +145,7 @@ function SearchResults({ results }: { results: IRAbsorption[] }) {
             </span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-sm font-mono font-semibold text-teal-600">
+            <span className="text-sm font-mono font-semibold text-primary-600">
               {r.wavenumberMin}&ndash;{r.wavenumberMax} cm&sup1;
             </span>
             <span
@@ -194,7 +196,7 @@ function ReferenceTable() {
           >
             <button
               onClick={() => toggleCategory(cat.key)}
-              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-card hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
+              className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-left"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -230,7 +232,7 @@ function ReferenceTable() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-white/5 text-left">
+                      <tr className="bg-muted text-left">
                         <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
                           Functional Group
                         </th>
@@ -253,14 +255,14 @@ function ReferenceTable() {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {items.map((a) => (
-                        <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <tr key={a.id} className="hover:bg-muted">
                           <td className="px-4 py-2 text-card-foreground font-medium">
                             {a.functionalGroup}
                           </td>
                           <td className="px-4 py-2 text-muted-foreground font-mono">
                             {a.bond}
                           </td>
-                          <td className="px-4 py-2 text-teal-600 font-mono font-semibold">
+                          <td className="px-4 py-2 text-primary-600 font-mono font-semibold">
                             {a.wavenumberMin}&ndash;{a.wavenumberMax}
                           </td>
                           <td className="px-4 py-2">
@@ -358,52 +360,16 @@ export default function IRSpectroscopyPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image
-                src="/logo.png"
-                alt="VerChem Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/spectroscopy"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              &larr; Spectroscopy Hub
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-10">
-        {/* Title */}
-        <section className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium mb-4">
-            Infrared Spectroscopy
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-            IR Spectrum Interpreter
-          </h2>
-          <p className="text-secondary-600 max-w-2xl mx-auto">
-            Enter observed wavenumber peaks to identify functional groups, or
-            search by group name to find characteristic absorption ranges.
-          </p>
-        </section>
-
+    <CalcShell
+      eyebrow="Infrared spectroscopy · 4000–400 cm⁻¹"
+      title="IR Spectrum Interpreter"
+      subtitle="Enter observed wavenumber peaks to identify functional groups, or search by group name to find characteristic absorption ranges."
+      backHref="/spectroscopy"
+      backLabel="Spectroscopy Hub"
+      maxWidth="7xl"
+    >
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Peak Identification */}
           <section className="bg-card border border-border rounded-xl p-6">
             <h3 className="text-lg font-bold text-card-foreground mb-1">
@@ -422,11 +388,11 @@ export default function IRSpectroscopyPage() {
                   if (e.key === 'Enter') handleIdentify()
                 }}
                 placeholder="e.g. 3350, 1715, 2950"
-                className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
               <button
                 onClick={handleIdentify}
-                className="px-5 py-2.5 bg-teal-600 text-white rounded-lg font-medium text-sm hover:bg-teal-700 transition-colors flex-shrink-0"
+                className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
               >
                 Identify
               </button>
@@ -441,7 +407,7 @@ export default function IRSpectroscopyPage() {
                 <button
                   key={ex.value}
                   onClick={() => handleQuickExample(ex.value)}
-                  className="text-xs px-3 py-1 rounded-full border border-teal-300 text-teal-700 hover:bg-teal-50 transition-colors"
+                  className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
                 >
                   {ex.label}
                 </button>
@@ -481,11 +447,11 @@ export default function IRSpectroscopyPage() {
                   if (e.key === 'Enter') handleSearch()
                 }}
                 placeholder="e.g. ketone, C=O, amine, aldehyde"
-                className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
               <button
                 onClick={handleSearch}
-                className="px-5 py-2.5 bg-teal-600 text-white rounded-lg font-medium text-sm hover:bg-teal-700 transition-colors flex-shrink-0"
+                className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
               >
                 Search
               </button>
@@ -505,7 +471,7 @@ export default function IRSpectroscopyPage() {
                       setSearchResults(searchIRByFunctionalGroup(term))
                       setHasSearched(true)
                     }}
-                    className="text-xs px-3 py-1 rounded-full border border-teal-300 text-teal-700 hover:bg-teal-50 transition-colors"
+                    className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
                   >
                     {term}
                   </button>
@@ -547,7 +513,7 @@ export default function IRSpectroscopyPage() {
                 <span>1000</span>
                 <span>500</span>
               </div>
-              <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full relative overflow-hidden">
+              <div className="w-full h-3 bg-muted border border-border rounded-full relative overflow-hidden">
                 {/* O-H / N-H region */}
                 <div
                   className="absolute h-full rounded-l"
@@ -655,20 +621,19 @@ export default function IRSpectroscopyPage() {
           <p className="text-sm text-muted-foreground">
             <Link
               href="/spectroscopy"
-              className="text-teal-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               &larr; Spectroscopy Hub
             </Link>
             {' '}&middot;{' '}
             <Link
               href="/spectroscopy/nmr"
-              className="text-teal-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               NMR Analyzer &rarr;
             </Link>
           </p>
         </section>
-      </main>
-    </div>
+    </CalcShell>
   )
 }

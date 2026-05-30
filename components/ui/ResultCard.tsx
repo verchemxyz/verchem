@@ -93,26 +93,24 @@ export function ResultCard({
   return (
     <div
       className={`
-        bg-white dark:bg-gray-800
-        border-2 border-gray-200 dark:border-gray-700
-        rounded-xl shadow-lg
+        bg-card
+        border border-border
+        rounded-xl shadow-sm
         overflow-hidden
-        transition-all duration-300
-        hover:shadow-xl
         ${className}
       `}
     >
       {/* Captured-for-export region: header + content */}
       <div ref={exportRef}>
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 bg-muted border-b border-border">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h3 className="text-xl font-bold text-foreground">
                 {title}
               </h3>
               {metadata?.calculationType && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {metadata.calculationType}
                   {metadata.timestamp && (
                     <span className="ml-2">
@@ -124,7 +122,7 @@ export function ResultCard({
             </div>
 
             {isPremium && (
-              <div className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-bold rounded-full">
+              <div className="px-3 py-1 bg-warning text-warning-foreground text-xs font-bold rounded-full">
                 PRO
               </div>
             )}
@@ -138,16 +136,16 @@ export function ResultCard({
         {metadata?.accuracy && (
           <div className="px-6 pb-4 -mt-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
+              <span className="text-muted-foreground">
                 Scientific Accuracy:
               </span>
-              <span className="font-semibold text-green-600 dark:text-green-400">
+              <span className="font-semibold text-success">
                 {(metadata.accuracy * 100).toFixed(1)}%
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="mt-2 w-full bg-muted rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
+                className="bg-success h-2 rounded-full transition-all duration-500"
                 style={{ width: `${metadata.accuracy * 100}%` }}
               />
             </div>
@@ -157,15 +155,15 @@ export function ResultCard({
 
       {/* Actions (never exported) */}
       {showActions && (
-        <div className="no-print px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+        <div className="no-print px-6 py-4 bg-muted border-t border-border">
           <div className="flex flex-wrap gap-2">
             {/* Copy */}
             <button
               onClick={handleCopy}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 copied
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  ? 'bg-success text-success-foreground'
+                  : 'bg-card text-foreground border border-border hover:bg-muted'
               }`}
               title="Copy result to clipboard"
             >
@@ -185,7 +183,7 @@ export function ResultCard({
             {/* Export PDF (native print) */}
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card text-foreground border border-border hover:bg-muted transition-colors"
               title="Export as PDF (Save as PDF in the print dialog)"
             >
               <FileText className="w-4 h-4" />
@@ -196,7 +194,7 @@ export function ResultCard({
             <button
               onClick={handleExportPNG}
               disabled={exporting === 'png'}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-60"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card text-foreground border border-border hover:bg-muted transition-colors disabled:opacity-60"
               title="Export as PNG image"
             >
               {exporting === 'png' ? (
@@ -214,7 +212,7 @@ export function ResultCard({
           </div>
 
           {error && (
-            <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
+            <p role="alert" className="mt-2 text-sm text-destructive">
               {error}
             </p>
           )}

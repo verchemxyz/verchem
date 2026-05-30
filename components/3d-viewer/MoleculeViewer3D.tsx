@@ -461,7 +461,7 @@ export default function MoleculeViewer3D({
         ref={canvasRef}
         width={width}
         height={height}
-        className="border border-gray-700 rounded-lg cursor-move"
+        className="border border-border rounded-lg cursor-move"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -471,49 +471,49 @@ export default function MoleculeViewer3D({
       />
 
       {/* Controls */}
-      <div className="absolute bottom-4 left-4 bg-black/80 rounded-lg p-2 space-y-1">
+      <div className="absolute bottom-4 left-4 bg-popover border border-border rounded-lg p-2 space-y-1">
         <button
           onClick={resetView}
-          className="w-full px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded"
+          className="w-full px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-primary-foreground rounded"
         >
           Reset View
         </button>
         <button
           onClick={() => setPresetView('front')}
-          className="w-full px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded"
+          className="w-full px-3 py-1 text-sm bg-muted hover:bg-border text-foreground rounded"
         >
           Front
         </button>
         <button
           onClick={() => setPresetView('side')}
-          className="w-full px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded"
+          className="w-full px-3 py-1 text-sm bg-muted hover:bg-border text-foreground rounded"
         >
           Side
         </button>
         <button
           onClick={() => setPresetView('top')}
-          className="w-full px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded"
+          className="w-full px-3 py-1 text-sm bg-muted hover:bg-border text-foreground rounded"
         >
           Top
         </button>
       </div>
 
       {/* Info */}
-      <div className="absolute top-4 left-4 bg-black/80 rounded-lg p-3">
-        <h3 className="text-white font-bold">{molecule.name}</h3>
-        <p className="text-gray-300 text-sm">{molecule.formula}</p>
+      <div className="absolute top-4 left-4 bg-popover border border-border rounded-lg p-3">
+        <h3 className="text-foreground font-bold">{molecule.name}</h3>
+        <p className="text-muted-foreground text-sm">{molecule.formula}</p>
         {molecule.geometry && (
-          <p className="text-gray-400 text-xs mt-1">
+          <p className="text-muted-foreground text-xs mt-1">
             Geometry: {molecule.geometry}
           </p>
         )}
       </div>
 
       {/* Instructions */}
-      <div className="absolute bottom-4 right-4 bg-black/80 rounded-lg p-2 text-xs text-gray-300">
-        <p>🖱️ Drag to rotate</p>
-        <p>🔄 Scroll to zoom</p>
-        <p>👆 Click atom for info</p>
+      <div className="absolute bottom-4 right-4 bg-popover border border-border rounded-lg p-2 text-xs text-muted-foreground">
+        <p>Drag to rotate</p>
+        <p>Scroll to zoom</p>
+        <p>Click atom for info</p>
       </div>
     </div>
   )

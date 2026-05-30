@@ -104,7 +104,7 @@ export default function SaveMoleculeModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
       <div
@@ -112,30 +112,30 @@ export default function SaveMoleculeModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="save-molecule-title"
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
+        className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200"
       >
         <button
           ref={closeButtonRef}
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 id="save-molecule-title" className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+        <h2 id="save-molecule-title" className="text-xl font-bold text-foreground mb-1">
           Save to Library
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+        <p className="text-sm text-muted-foreground mb-5">
           Save this structure to your personal molecule library.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="mol-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Name <span className="text-red-500">*</span>
+            <label htmlFor="mol-name" className="block text-sm font-medium text-foreground mb-1">
+              Name <span className="text-destructive">*</span>
             </label>
             <input
               id="mol-name"
@@ -145,12 +145,12 @@ export default function SaveMoleculeModal({
               placeholder="e.g., Ethanol"
               maxLength={200}
               required
-              className="w-full px-3 py-2.5 min-h-[44px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2.5 min-h-[44px] rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="mol-tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="mol-tags" className="block text-sm font-medium text-foreground mb-1">
               Tags
             </label>
             <input
@@ -160,12 +160,12 @@ export default function SaveMoleculeModal({
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="organic, solvent, alcohol (comma-separated)"
               maxLength={500}
-              className="w-full px-3 py-2.5 min-h-[44px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none"
+              className="w-full px-3 py-2.5 min-h-[44px] rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="mol-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="mol-notes" className="block text-sm font-medium text-foreground mb-1">
               Notes
             </label>
             <textarea
@@ -175,7 +175,7 @@ export default function SaveMoleculeModal({
               placeholder="Optional notes..."
               maxLength={2000}
               rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-border bg-input text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:outline-none resize-none"
             />
           </div>
 
@@ -184,15 +184,15 @@ export default function SaveMoleculeModal({
               type="checkbox"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+              className="w-4 h-4 text-primary-600 rounded border-border focus:ring-primary-500"
             />
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+            <span className="text-sm text-foreground">
               Make this molecule publicly viewable
             </span>
           </label>
 
           {error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm">
+            <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
               {error}
             </div>
           )}
@@ -202,14 +202,14 @@ export default function SaveMoleculeModal({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !name.trim()}
-              className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg bg-primary-600 text-primary-foreground hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Saving...' : 'Save'}
             </button>

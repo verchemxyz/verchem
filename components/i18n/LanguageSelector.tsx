@@ -34,37 +34,37 @@ export const LanguageSelector: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         data-language-selector-button
       >
         <GlobeAltIcon className="h-4 w-4" />
         <span className="flex items-center space-x-2">
-          <span className="text-lg">{currentLang.flag}</span>
+          <span className="font-mono text-xs uppercase text-muted-foreground">{currentLang.code}</span>
           <span className="hidden sm:inline">{currentLang.nativeName}</span>
         </span>
         <ChevronDownIcon className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md z-50">
           <div className="py-1">
             {availableLanguages.map((language) => (
               <button
                 key={language.code}
                 onClick={() => handleLanguageChange(language.code)}
-                className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-3 hover:bg-accent transition-colors ${
                   currentLanguage === language.code
-                    ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
-                    : 'text-gray-700 dark:text-gray-200'
+                    ? 'bg-accent text-primary-600 dark:text-primary-400'
+                    : 'text-foreground'
                 }`}
               >
-                <span className="text-lg">{language.flag}</span>
+                <span className="font-mono text-xs uppercase text-muted-foreground w-6">{language.code}</span>
                 <div className="flex-1">
                   <div className="font-medium">{language.nativeName}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{language.name}</div>
+                  <div className="text-xs text-muted-foreground">{language.name}</div>
                 </div>
                 {currentLanguage === language.code && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
                 )}
               </button>
             ))}
@@ -84,16 +84,16 @@ export const LanguageSelectorInline: React.FC = () => {
 
   return (
     <div className="flex items-center space-x-2">
-      <GlobeAltIcon className="h-4 w-4 text-gray-500" />
+      <GlobeAltIcon className="h-4 w-4 text-muted-foreground" />
       <select
         value={currentLanguage}
         onChange={handleLanguageChange}
         disabled={isLoading}
-        className="text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+        className="text-sm border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
       >
         {availableLanguages.map((language) => (
           <option key={language.code} value={language.code}>
-            {language.flag} {language.nativeName}
+            {language.nativeName} ({language.code.toUpperCase()})
           </option>
         ))}
       </select>

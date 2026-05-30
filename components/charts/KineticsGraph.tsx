@@ -302,28 +302,28 @@ export default function KineticsGraph({
   }, [dataPoints, order, initialConc, maxTime, halfLife, highlightTime, width, height, getConcentration])
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+    <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
       <canvas
         ref={canvasRef}
         style={{ width, height }}
         className="rounded-lg"
       />
-      <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
+      <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
         <div>
           <span className="font-medium">Order:</span>{' '}
-          <span className="text-blue-600">{order}</span>
+          <span className="text-primary-600">{order}</span>
         </div>
         <div>
           <span className="font-medium">[A]₀:</span>{' '}
-          <span className="text-green-600">{initialConc} M</span>
+          <span className="text-success">{initialConc} M</span>
         </div>
         <div>
           <span className="font-medium">k:</span>{' '}
-          <span className="text-purple-600">{k.toExponential(3)}</span>
+          <span className="text-secondary-600">{k.toExponential(3)}</span>
         </div>
         <div>
           <span className="font-medium">t½:</span>{' '}
-          <span className="text-orange-600">{halfLife.toFixed(2)} s</span>
+          <span className="text-warning">{halfLife.toFixed(2)} s</span>
         </div>
       </div>
     </div>

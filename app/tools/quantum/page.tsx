@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell, Card } from '@/components/lab'
 import {
   validateQuantumNumbers,
   getSubshells,
@@ -26,7 +26,6 @@ type QuantumTab = 'quantum-numbers' | 'orbitals' | 'hydrogen' | 'debroglie' | 'p
 interface TabInfo {
   id: QuantumTab
   label: string
-  icon: string
   description: string
 }
 
@@ -35,12 +34,12 @@ interface TabInfo {
 // ============================================================
 
 const TABS: TabInfo[] = [
-  { id: 'quantum-numbers', label: 'Quantum Numbers', icon: '\uD83C\uDFB2', description: 'Validate n, l, m\u2097, m\u209B' },
-  { id: 'orbitals', label: 'Orbital Explorer', icon: '\uD83C\uDF0A', description: 'Shells & subshells' },
-  { id: 'hydrogen', label: 'Hydrogen Atom', icon: '\u269B', description: 'Energy levels & spectra' },
-  { id: 'debroglie', label: 'de Broglie', icon: '\u03BB', description: 'Matter wave \u03BB' },
-  { id: 'photon', label: 'Photon Energy', icon: '\uD83D\uDCA1', description: 'E = hc/\u03BB' },
-  { id: 'bohr', label: 'Bohr Model', icon: '\uD83D\uDD35', description: 'Orbit radii' },
+  { id: 'quantum-numbers', label: 'Quantum Numbers', description: 'Validate n, l, m\u2097, m\u209B' },
+  { id: 'orbitals', label: 'Orbital Explorer', description: 'Shells & subshells' },
+  { id: 'hydrogen', label: 'Hydrogen Atom', description: 'Energy levels & spectra' },
+  { id: 'debroglie', label: 'de Broglie', description: 'Matter wave \u03BB' },
+  { id: 'photon', label: 'Photon Energy', description: 'E = hc/\u03BB' },
+  { id: 'bohr', label: 'Bohr Model', description: 'Orbit radii' },
 ]
 
 // ============================================================
@@ -58,7 +57,7 @@ function InputField({ label, value, onChange, placeholder, unit, disabled, type 
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-300 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-foreground mb-2">{label}</label>
       <div className="relative">
         <input
           type={type || 'text'}
@@ -67,10 +66,10 @@ function InputField({ label, value, onChange, placeholder, unit, disabled, type 
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 font-mono disabled:opacity-40 disabled:cursor-not-allowed"
         />
         {unit && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">{unit}</span>
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{unit}</span>
         )}
       </div>
     </div>
@@ -79,16 +78,16 @@ function InputField({ label, value, onChange, placeholder, unit, disabled, type 
 
 function ResultCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-6 rounded-2xl border border-violet-500/30 bg-violet-500/10 p-6">
-      <h3 className="text-lg font-semibold text-violet-300 mb-4">{title}</h3>
+    <Card className="mt-6 p-6 border-l-2 border-l-primary-500">
+      <h3 className="text-xs uppercase tracking-wider text-primary-600 mb-4 font-medium">{title}</h3>
       {children}
-    </div>
+    </Card>
   )
 }
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
+    <div role="alert" className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-destructive">
       {message}
     </div>
   )
@@ -112,7 +111,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
     return (
       <div className="flex items-center justify-center" style={{ width: s, height: s }}>
         <div
-          className="rounded-full bg-violet-500/40 border border-violet-400/60"
+          className="rounded-full bg-primary-500/40 border border-primary-500/60"
           style={{ width: s * 0.6, height: s * 0.6 }}
         />
       </div>
@@ -120,12 +119,12 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
   }
 
   if (l === 1) {
-    // p orbital: figure-8 (two lobes)
+    // p orbital: figure-8 (two lobes — distinct hues mark the two wavefunction lobes)
     return (
       <div className="flex items-center justify-center" style={{ width: s, height: s }}>
         <div className="relative" style={{ width: s * 0.8, height: s * 0.8 }}>
           <div
-            className="absolute rounded-full bg-violet-500/40 border border-violet-400/60"
+            className="absolute rounded-full bg-primary-500/40 border border-primary-500/60"
             style={{
               width: s * 0.35,
               height: s * 0.35,
@@ -135,7 +134,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
             }}
           />
           <div
-            className="absolute rounded-full bg-purple-500/40 border border-purple-400/60"
+            className="absolute rounded-full bg-secondary-500/40 border border-secondary-500/60"
             style={{
               width: s * 0.35,
               height: s * 0.35,
@@ -145,7 +144,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
             }}
           />
           <div
-            className="absolute bg-white rounded-full"
+            className="absolute bg-foreground rounded-full"
             style={{
               width: 4,
               height: 4,
@@ -167,7 +166,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
           {[0, 90, 180, 270].map((angle) => (
             <div
               key={angle}
-              className="absolute rounded-full bg-violet-500/30 border border-violet-400/50"
+              className="absolute rounded-full bg-primary-500/30 border border-primary-500/50"
               style={{
                 width: s * 0.28,
                 height: s * 0.28,
@@ -178,7 +177,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
             />
           ))}
           <div
-            className="absolute bg-white rounded-full"
+            className="absolute bg-foreground rounded-full"
             style={{
               width: 4,
               height: 4,
@@ -199,7 +198,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
         {[0, 60, 120, 180, 240, 300].map((angle) => (
           <div
             key={angle}
-            className="absolute rounded-full bg-violet-500/25 border border-violet-400/40"
+            className="absolute rounded-full bg-primary-500/25 border border-primary-500/40"
             style={{
               width: s * 0.22,
               height: s * 0.22,
@@ -210,7 +209,7 @@ function OrbitalShape({ l, size }: { l: number; size?: number }) {
           />
         ))}
         <div
-          className="absolute bg-white rounded-full"
+          className="absolute bg-foreground rounded-full"
           style={{
             width: 4,
             height: 4,
@@ -237,10 +236,10 @@ function SpectrumBar({ wavelengthNm, region }: { wavelengthNm: number; region: s
   const clampedPct = Math.max(0, Math.min(100, pct))
 
   return (
-    <div className="mt-4 rounded-xl bg-white/5 p-4">
-      <p className="text-sm text-slate-300 mb-3">Electromagnetic Spectrum Position</p>
-      <div className="relative h-6 rounded-full overflow-hidden">
-        {/* Spectrum gradient */}
+    <Card className="mt-4 p-4">
+      <p className="text-sm text-foreground mb-3">Electromagnetic Spectrum Position</p>
+      <div className="relative h-6 rounded-full overflow-hidden border border-border">
+        {/* Spectrum gradient \u2014 encodes real wavelength\u2192colour physics (kept) */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -249,11 +248,11 @@ function SpectrumBar({ wavelengthNm, region }: { wavelengthNm: number; region: s
         />
         {/* Marker */}
         <div
-          className="absolute top-0 h-full w-0.5 bg-white shadow-lg shadow-white/50"
+          className="absolute top-0 h-full w-0.5 bg-foreground"
           style={{ left: `${clampedPct}%` }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+      <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
         <span>{'\u03B3'}-rays</span>
         <span>X-rays</span>
         <span>UV</span>
@@ -262,8 +261,8 @@ function SpectrumBar({ wavelengthNm, region }: { wavelengthNm: number; region: s
         <span>Micro</span>
         <span>Radio</span>
       </div>
-      <p className="text-center text-sm text-violet-300 mt-2 font-medium">{region}</p>
-    </div>
+      <p className="text-center text-sm text-primary-600 mt-2 font-medium">{region}</p>
+    </Card>
   )
 }
 
@@ -319,49 +318,49 @@ function QuantumNumbersTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">Quantum Number Validator</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Quantum Number Validator</h2>
+      <p className="text-muted-foreground mb-6">
         Verify if a set of quantum numbers (n, l, m{'\u2097'}, m{'\u209B'}) is valid for an electron in an atom.
       </p>
 
       <div className="grid gap-4 md:grid-cols-4">
         <div>
           <InputField label="n (principal)" value={n} onChange={setN} placeholder="e.g., 3" />
-          <p className="text-xs text-slate-500 mt-1">Shell number (1, 2, 3, ...)</p>
+          <p className="text-xs text-muted-foreground mt-1">Shell number (1, 2, 3, ...)</p>
         </div>
         <div>
           <InputField label="l (angular)" value={l} onChange={setL} placeholder="e.g., 2" />
-          <p className="text-xs text-slate-500 mt-1">0 to n-1 (s, p, d, f)</p>
+          <p className="text-xs text-muted-foreground mt-1">0 to n-1 (s, p, d, f)</p>
         </div>
         <div>
           <InputField label="m\u2097 (magnetic)" value={ml} onChange={setMl} placeholder="e.g., 0" />
-          <p className="text-xs text-slate-500 mt-1">-l to +l</p>
+          <p className="text-xs text-muted-foreground mt-1">-l to +l</p>
         </div>
         <div>
           <InputField label="m\u209B (spin)" value={ms} onChange={setMs} placeholder="+0.5 or -0.5" />
-          <p className="text-xs text-slate-500 mt-1">+1/2 or -1/2</p>
+          <p className="text-xs text-muted-foreground mt-1">+1/2 or -1/2</p>
         </div>
       </div>
 
       <button
         onClick={validate}
-        className="mt-6 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 font-semibold text-white transition-all hover:from-violet-500 hover:to-purple-500 hover:shadow-lg hover:shadow-violet-500/25"
+        className="mt-6 w-full rounded-md bg-primary-500 py-4 font-semibold text-primary-foreground transition-colors hover:bg-primary-600 min-h-[44px]"
       >
         Validate
       </button>
 
       {result && (
         <ResultCard title="Validation Result">
-          <div className={`rounded-xl p-4 text-center ${
+          <div className={`rounded-md p-4 text-center ${
             result.valid
-              ? 'bg-green-500/10 border border-green-500/30'
-              : 'bg-red-500/10 border border-red-500/30'
+              ? 'bg-success/10 border border-success/40'
+              : 'bg-destructive/10 border border-destructive/40'
           }`}>
-            <p className={`text-2xl font-bold ${result.valid ? 'text-green-300' : 'text-red-300'}`}>
+            <p className={`text-2xl font-bold ${result.valid ? 'text-success' : 'text-destructive'}`}>
               {result.valid ? 'VALID' : 'INVALID'}
             </p>
             {result.orbitalName && (
-              <p className="text-lg text-violet-300 mt-2">
+              <p className="text-lg text-primary-600 mt-2">
                 Orbital: <span className="font-mono font-bold">{result.orbitalName}</span>
                 {parseFloat(ms) === 0.5 ? ' (spin up \u2191)' : ' (spin down \u2193)'}
               </p>
@@ -371,7 +370,7 @@ function QuantumNumbersTab() {
           {!result.valid && result.errors.length > 0 && (
             <div className="mt-4 space-y-2">
               {result.errors.map((err, i) => (
-                <div key={i} className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-300">
+                <div key={i} className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
                   {err}
                 </div>
               ))}
@@ -379,21 +378,21 @@ function QuantumNumbersTab() {
           )}
 
           {/* Rules reminder */}
-          <div className="mt-4 rounded-xl bg-white/5 p-4">
-            <p className="text-sm text-slate-300 font-medium mb-2">Quantum Number Rules</p>
-            <div className="grid gap-2 text-xs text-slate-400">
-              <p><span className="text-violet-300 font-mono">n</span>: Principal quantum number. n = 1, 2, 3, ... (positive integer)</p>
-              <p><span className="text-violet-300 font-mono">l</span>: Angular momentum. l = 0 to n-1 (0=s, 1=p, 2=d, 3=f)</p>
-              <p><span className="text-violet-300 font-mono">m{'\u2097'}</span>: Magnetic. m{'\u2097'} = -l to +l (integer)</p>
-              <p><span className="text-violet-300 font-mono">m{'\u209B'}</span>: Spin. m{'\u209B'} = +1/2 (\u2191) or -1/2 (\u2193)</p>
+          <div className="mt-4 rounded-md bg-muted border border-border p-4">
+            <p className="text-sm text-foreground font-medium mb-2">Quantum Number Rules</p>
+            <div className="grid gap-2 text-xs text-muted-foreground">
+              <p><span className="text-primary-600 font-mono">n</span>: Principal quantum number. n = 1, 2, 3, ... (positive integer)</p>
+              <p><span className="text-primary-600 font-mono">l</span>: Angular momentum. l = 0 to n-1 (0=s, 1=p, 2=d, 3=f)</p>
+              <p><span className="text-primary-600 font-mono">m{'\u2097'}</span>: Magnetic. m{'\u2097'} = -l to +l (integer)</p>
+              <p><span className="text-primary-600 font-mono">m{'\u209B'}</span>: Spin. m{'\u209B'} = +1/2 (\u2191) or -1/2 (\u2193)</p>
             </div>
           </div>
         </ResultCard>
       )}
 
       {/* Quick test examples */}
-      <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
-        <h4 className="text-sm font-medium text-slate-300 mb-3">Try These Examples</h4>
+      <Card className="mt-6 p-4">
+        <h4 className="text-sm font-medium text-foreground mb-3">Try These Examples</h4>
         <div className="flex flex-wrap gap-2">
           {[
             { label: '1s (valid)', n: '1', l: '0', ml: '0', ms: '0.5' },
@@ -405,13 +404,13 @@ function QuantumNumbersTab() {
             <button
               key={ex.label}
               onClick={() => { setN(ex.n); setL(ex.l); setMl(ex.ml); setMs(ex.ms) }}
-              className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs text-violet-300 hover:bg-violet-500/20 transition-colors"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
             >
               {ex.label}
             </button>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -428,23 +427,24 @@ function OrbitalsTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">Orbital Explorer</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Orbital Explorer</h2>
+      <p className="text-muted-foreground mb-6">
         Explore electron shells, subshells, and orbital shapes.
       </p>
 
       {/* Shell selector */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-slate-300 mb-3">Select Shell (n)</label>
+        <label className="block text-sm font-medium text-foreground mb-3">Select Shell (n)</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5, 6, 7].map((n) => (
             <button
               key={n}
               onClick={() => setSelectedN(n)}
-              className={`w-12 h-12 rounded-xl text-lg font-bold transition-all ${
+              aria-pressed={selectedN === n}
+              className={`w-12 h-12 rounded-md text-lg font-bold transition-colors border ${
                 selectedN === n
-                  ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25'
-                  : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                  ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                  : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               {n}
@@ -454,14 +454,14 @@ function OrbitalsTab() {
       </div>
 
       {/* Shell info */}
-      <div className="rounded-xl bg-white/5 border border-white/10 p-4 mb-6">
+      <div className="rounded-md bg-muted border border-border p-4 mb-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-bold text-white">Shell n = {selectedN}</h3>
-          <span className="rounded-full bg-violet-500/20 border border-violet-500/30 px-3 py-1 text-sm text-violet-300">
+          <h3 className="text-lg font-bold text-foreground">Shell n = {selectedN}</h3>
+          <span className="rounded-full bg-card border border-primary-500/40 px-3 py-1 text-sm text-primary-600">
             Max {totalElectrons} electrons
           </span>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           {subshells.length} subshell{subshells.length > 1 ? 's' : ''}: {subshells.map((s) => s.name).join(', ')}
         </p>
       </div>
@@ -469,30 +469,30 @@ function OrbitalsTab() {
       {/* Subshell cards */}
       <div className="grid gap-4 md:grid-cols-2">
         {subshells.map((sub) => (
-          <div
+          <Card
             key={sub.name}
-            className="rounded-2xl border border-white/10 bg-white/5 p-5 hover:border-violet-500/30 transition-colors"
+            className="p-5 hover:border-primary-500/40 transition-colors"
           >
             <div className="flex items-start justify-between">
               <div>
-                <h4 className="text-xl font-bold text-violet-300 font-mono">{sub.name}</h4>
-                <p className="text-sm text-slate-400">l = {sub.l}</p>
+                <h4 className="text-xl font-bold text-primary-600 font-mono">{sub.name}</h4>
+                <p className="text-sm text-muted-foreground">l = {sub.l}</p>
               </div>
               <OrbitalShape l={sub.l} size={64} />
             </div>
 
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-white/5 p-2">
-                <p className="text-xs text-slate-400">Orbitals</p>
-                <p className="text-lg font-bold text-white">{2 * sub.l + 1}</p>
+              <div className="rounded-md bg-muted border border-border p-2">
+                <p className="text-xs text-muted-foreground">Orbitals</p>
+                <p className="text-lg font-bold text-foreground">{2 * sub.l + 1}</p>
               </div>
-              <div className="rounded-lg bg-white/5 p-2">
-                <p className="text-xs text-slate-400">Max e{'\u207B'}</p>
-                <p className="text-lg font-bold text-white">{sub.maxE}</p>
+              <div className="rounded-md bg-muted border border-border p-2">
+                <p className="text-xs text-muted-foreground">Max e{'\u207B'}</p>
+                <p className="text-lg font-bold text-foreground">{sub.maxE}</p>
               </div>
-              <div className="rounded-lg bg-white/5 p-2">
-                <p className="text-xs text-slate-400">m{'\u2097'} values</p>
-                <p className="text-sm font-mono text-white">
+              <div className="rounded-md bg-muted border border-border p-2">
+                <p className="text-xs text-muted-foreground">m{'\u2097'} values</p>
+                <p className="text-sm font-mono text-foreground">
                   {Array.from({ length: 2 * sub.l + 1 }, (_, i) => i - sub.l).join(', ')}
                 </p>
               </div>
@@ -500,26 +500,26 @@ function OrbitalsTab() {
 
             {/* Electron boxes */}
             <div className="mt-3">
-              <p className="text-xs text-slate-400 mb-1">Orbital boxes (m{'\u2097'})</p>
+              <p className="text-xs text-muted-foreground mb-1">Orbital boxes (m{'\u2097'})</p>
               <div className="flex gap-1.5 flex-wrap">
                 {Array.from({ length: 2 * sub.l + 1 }, (_, i) => i - sub.l).map((mlVal) => (
-                  <div key={mlVal} className="rounded-lg border border-violet-500/30 bg-violet-500/10 p-1.5 text-center min-w-[40px]">
+                  <div key={mlVal} className="rounded-md border border-border bg-muted p-1.5 text-center min-w-[40px]">
                     <div className="flex justify-center gap-0.5 text-xs mb-0.5">
-                      <span className="text-violet-300">{'\u2191'}</span>
-                      <span className="text-purple-300">{'\u2193'}</span>
+                      <span className="text-primary-600">{'\u2191'}</span>
+                      <span className="text-secondary-600">{'\u2193'}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500">{mlVal >= 0 ? '+' : ''}{mlVal}</p>
+                    <p className="text-[10px] text-muted-foreground">{mlVal >= 0 ? '+' : ''}{mlVal}</p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Energy level diagram */}
-      <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
-        <h4 className="text-sm font-medium text-slate-300 mb-3">Energy Level Summary (All Shells)</h4>
+      <Card className="mt-6 p-4">
+        <h4 className="text-sm font-medium text-foreground mb-3">Energy Level Summary (All Shells)</h4>
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((shellN) => {
             const subs = getSubshells(shellN)
@@ -528,33 +528,33 @@ function OrbitalsTab() {
             return (
               <div
                 key={shellN}
-                className={`flex items-center gap-3 rounded-lg p-2 transition-colors ${
-                  isActive ? 'bg-violet-500/10 border border-violet-500/20' : ''
+                className={`flex items-center gap-3 rounded-md p-2 transition-colors ${
+                  isActive ? 'bg-muted border border-primary-500/30' : ''
                 }`}
               >
-                <span className={`text-sm font-bold w-8 ${isActive ? 'text-violet-300' : 'text-slate-500'}`}>
+                <span className={`text-sm font-bold w-8 ${isActive ? 'text-primary-600' : 'text-muted-foreground'}`}>
                   n={shellN}
                 </span>
                 <div className="flex gap-1.5 flex-wrap flex-1">
                   {subs.map((s) => (
                     <span
                       key={s.name}
-                      className={`rounded-md px-2 py-0.5 text-xs font-mono ${
-                        isActive ? 'bg-violet-500/20 text-violet-300' : 'bg-white/5 text-slate-400'
+                      className={`rounded-md px-2 py-0.5 text-xs font-mono border ${
+                        isActive ? 'bg-card border-primary-500/40 text-primary-600' : 'bg-muted border-border text-muted-foreground'
                       }`}
                     >
                       {s.name} ({s.maxE})
                     </span>
                   ))}
                 </div>
-                <span className={`text-xs ${isActive ? 'text-violet-300' : 'text-slate-500'}`}>
+                <span className={`text-xs ${isActive ? 'text-primary-600' : 'text-muted-foreground'}`}>
                   {total}e{'\u207B'}
                 </span>
               </div>
             )
           })}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -604,15 +604,15 @@ function HydrogenTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">Hydrogen Atom Energy Levels</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Hydrogen Atom Energy Levels</h2>
+      <p className="text-muted-foreground mb-6">
         Calculate electron transitions, emission wavelengths, and explore spectral series.
         E{'\u2099'} = -13.6/n{'\u00B2'} eV
       </p>
 
       {/* Energy level diagram */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4 mb-6">
-        <h4 className="text-sm font-medium text-slate-300 mb-3">Energy Level Diagram</h4>
+      <Card className="p-4 mb-6">
+        <h4 className="text-sm font-medium text-foreground mb-3">Energy Level Diagram</h4>
         <div className="relative" style={{ height: '200px' }}>
           {energyLevels.map((level) => {
             const yPct = ((1 - (1 / (level.n * level.n))) / 1) * 100
@@ -622,9 +622,9 @@ function HydrogenTab() {
                 className="absolute left-0 right-0 flex items-center gap-3"
                 style={{ top: `${100 - yPct - 5}%` }}
               >
-                <span className="text-xs text-slate-500 w-8 text-right">n={level.n}</span>
-                <div className="flex-1 h-px bg-violet-500/40 relative">
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-violet-300 font-mono">
+                <span className="text-xs text-muted-foreground w-8 text-right">n={level.n}</span>
+                <div className="flex-1 h-px bg-primary-500/50 relative">
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-primary-600 font-mono">
                     {level.energy.toFixed(2)} eV
                   </div>
                 </div>
@@ -633,46 +633,46 @@ function HydrogenTab() {
           })}
           {/* n=infinity */}
           <div className="absolute left-0 right-0 flex items-center gap-3" style={{ top: '0%' }}>
-            <span className="text-xs text-slate-500 w-8 text-right">n={'\u221E'}</span>
-            <div className="flex-1 h-px bg-white/20 border-dashed relative">
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-mono">
+            <span className="text-xs text-muted-foreground w-8 text-right">n={'\u221E'}</span>
+            <div className="flex-1 h-px bg-border border-dashed relative">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-mono">
                 0.00 eV
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Mode selector */}
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={() => setShowSeries('single')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-            showSeries === 'single' ? 'bg-violet-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-colors border ${
+            showSeries === 'single' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           Single Transition
         </button>
         <button
           onClick={() => calculateSeries('lyman')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-            showSeries === 'lyman' ? 'bg-violet-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-colors border ${
+            showSeries === 'lyman' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           Lyman Series (UV)
         </button>
         <button
           onClick={() => calculateSeries('balmer')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-            showSeries === 'balmer' ? 'bg-violet-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-colors border ${
+            showSeries === 'balmer' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           Balmer Series (Visible)
         </button>
         <button
           onClick={() => calculateSeries('paschen')}
-          className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-            showSeries === 'paschen' ? 'bg-violet-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-colors border ${
+            showSeries === 'paschen' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           Paschen Series (IR)
@@ -688,7 +688,7 @@ function HydrogenTab() {
 
           <button
             onClick={calculateSingle}
-            className="mt-6 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 font-semibold text-white transition-all hover:from-violet-500 hover:to-purple-500 hover:shadow-lg hover:shadow-violet-500/25"
+            className="mt-6 w-full rounded-md bg-primary-500 py-4 font-semibold text-primary-foreground transition-colors hover:bg-primary-600 min-h-[44px]"
           >
             Calculate Transition
           </button>
@@ -698,14 +698,14 @@ function HydrogenTab() {
           {singleResult && (
             <ResultCard title={`Transition: n=${singleResult.nInitial} \u2192 n=${singleResult.nFinal}`}>
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Energy</p>
-                  <p className="text-2xl font-bold font-mono text-violet-300">{singleResult.energyEV.toFixed(4)} eV</p>
-                  <p className="text-xs text-slate-500">{formatSci(singleResult.energyJ)} J</p>
+                <div className="rounded-md bg-muted border border-border p-4">
+                  <p className="text-sm text-muted-foreground">Energy</p>
+                  <p className="text-2xl font-bold font-mono text-primary-600">{singleResult.energyEV.toFixed(4)} eV</p>
+                  <p className="text-xs text-muted-foreground">{formatSci(singleResult.energyJ)} J</p>
                 </div>
-                <div className="rounded-xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Wavelength</p>
-                  <p className="text-2xl font-bold font-mono text-violet-300">{singleResult.wavelengthNm.toFixed(2)} nm</p>
+                <div className="rounded-md bg-muted border border-border p-4">
+                  <p className="text-sm text-muted-foreground">Wavelength</p>
+                  <p className="text-2xl font-bold font-mono text-primary-600">{singleResult.wavelengthNm.toFixed(2)} nm</p>
                   {singleResult.isVisible && (
                     <div
                       className="mt-1 h-3 w-full rounded-full"
@@ -713,14 +713,14 @@ function HydrogenTab() {
                     />
                   )}
                 </div>
-                <div className="rounded-xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Frequency</p>
-                  <p className="text-xl font-bold font-mono text-white">{formatSci(singleResult.frequencyHz)} Hz</p>
+                <div className="rounded-md bg-muted border border-border p-4">
+                  <p className="text-sm text-muted-foreground">Frequency</p>
+                  <p className="text-xl font-bold font-mono text-foreground">{formatSci(singleResult.frequencyHz)} Hz</p>
                 </div>
-                <div className="rounded-xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Series</p>
-                  <p className="text-xl font-bold text-white">{singleResult.seriesName}</p>
-                  <p className="text-xs text-slate-500">{singleResult.isVisible ? 'Visible light' : 'Not visible'}</p>
+                <div className="rounded-md bg-muted border border-border p-4">
+                  <p className="text-sm text-muted-foreground">Series</p>
+                  <p className="text-xl font-bold text-foreground">{singleResult.seriesName}</p>
+                  <p className="text-xs text-muted-foreground">{singleResult.isVisible ? 'Visible light' : 'Not visible'}</p>
                 </div>
               </div>
             </ResultCard>
@@ -730,11 +730,11 @@ function HydrogenTab() {
 
       {showSeries !== 'single' && transitions.length > 0 && (
         <ResultCard title={`${showSeries.charAt(0).toUpperCase() + showSeries.slice(1)} Series`}>
-          {/* Emission lines visualization */}
+          {/* Emission lines visualization \u2014 spectroscope view (dark backdrop is intrinsic to reading emission lines) */}
           {showSeries === 'balmer' && (
-            <div className="mb-4 rounded-xl bg-black p-3">
+            <div className="mb-4 rounded-md bg-[#0b0b10] border border-border p-3">
               <p className="text-xs text-slate-400 mb-2">Visible Emission Lines</p>
-              <div className="relative h-8 rounded bg-gray-950">
+              <div className="relative h-8 rounded bg-[#05050a]">
                 {transitions.filter((t) => t.isVisible).map((t, i) => {
                   const pos = ((t.wavelengthNm - 380) / (750 - 380)) * 100
                   return (
@@ -760,7 +760,7 @@ function HydrogenTab() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-slate-400 border-b border-white/10">
+                <tr className="text-muted-foreground border-b border-border">
                   <th className="text-left py-2 px-2">Transition</th>
                   <th className="text-right py-2 px-2">Energy (eV)</th>
                   <th className="text-right py-2 px-2">{'\u03BB'} (nm)</th>
@@ -770,7 +770,7 @@ function HydrogenTab() {
               </thead>
               <tbody>
                 {transitions.map((t, i) => (
-                  <tr key={i} className="border-b border-white/5 text-slate-300">
+                  <tr key={i} className="border-b border-border text-foreground">
                     <td className="py-2 px-2 font-mono">{t.nInitial} {'\u2192'} {t.nFinal}</td>
                     <td className="text-right px-2 font-mono">{t.energyEV.toFixed(4)}</td>
                     <td className="text-right px-2 font-mono">{t.wavelengthNm.toFixed(2)}</td>
@@ -782,7 +782,7 @@ function HydrogenTab() {
                           style={{ backgroundColor: wavelengthToColor(t.wavelengthNm) }}
                         />
                       ) : (
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs text-muted-foreground">
                           {t.wavelengthNm < 380 ? 'UV' : 'IR'}
                         </span>
                       )}
@@ -831,8 +831,8 @@ function DeBroglieTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">de Broglie Wavelength</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">de Broglie Wavelength</h2>
+      <p className="text-muted-foreground mb-6">
         Calculate the wavelength of matter waves: {'\u03BB'} = h / (m {'\u00D7'} v).
         All matter has wave-like properties, but only significant for subatomic particles.
       </p>
@@ -848,7 +848,7 @@ function DeBroglieTab() {
           <button
             key={ex.label}
             onClick={() => { setMass(ex.mass.toExponential(6)); setVelocity(ex.velocity.toFixed(2)) }}
-            className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs text-violet-300 hover:bg-violet-500/20 transition-colors"
+            className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
           >
             {ex.label}
           </button>
@@ -857,7 +857,7 @@ function DeBroglieTab() {
 
       <button
         onClick={calculate}
-        className="mt-6 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 font-semibold text-white transition-all hover:from-violet-500 hover:to-purple-500 hover:shadow-lg hover:shadow-violet-500/25"
+        className="mt-6 w-full rounded-md bg-primary-500 py-4 font-semibold text-primary-foreground transition-colors hover:bg-primary-600 min-h-[44px]"
       >
         Calculate Wavelength
       </button>
@@ -867,31 +867,31 @@ function DeBroglieTab() {
       {result !== null && (
         <ResultCard title="de Broglie Wavelength">
           <div className="text-center mb-4">
-            <p className="text-sm text-violet-300 mb-2">{'\u03BB'} = h / (m {'\u00D7'} v)</p>
-            <p className="text-4xl font-bold text-white font-mono">
-              {formatSci(result)} <span className="text-2xl text-violet-300">m</span>
+            <p className="text-sm text-muted-foreground mb-2">{'\u03BB'} = h / (m {'\u00D7'} v)</p>
+            <p className="text-4xl font-bold text-foreground font-mono">
+              {formatSci(result)} <span className="text-2xl text-muted-foreground">m</span>
             </p>
           </div>
 
           <div className="grid gap-3 md:grid-cols-3 text-center">
-            <div className="rounded-xl bg-white/5 p-3">
-              <p className="text-xs text-slate-400">In pm</p>
-              <p className="text-lg font-mono text-white">{formatSci(result * 1e12)}</p>
+            <div className="rounded-md bg-muted border border-border p-3">
+              <p className="text-xs text-muted-foreground">In pm</p>
+              <p className="text-lg font-mono text-foreground">{formatSci(result * 1e12)}</p>
             </div>
-            <div className="rounded-xl bg-white/5 p-3">
-              <p className="text-xs text-slate-400">In nm</p>
-              <p className="text-lg font-mono text-white">{formatSci(result * 1e9)}</p>
+            <div className="rounded-md bg-muted border border-border p-3">
+              <p className="text-xs text-muted-foreground">In nm</p>
+              <p className="text-lg font-mono text-foreground">{formatSci(result * 1e9)}</p>
             </div>
-            <div className="rounded-xl bg-white/5 p-3">
-              <p className="text-xs text-slate-400">In {'\u00C5'} (angstrom)</p>
-              <p className="text-lg font-mono text-white">{formatSci(result * 1e10)}</p>
+            <div className="rounded-md bg-muted border border-border p-3">
+              <p className="text-xs text-muted-foreground">In {'\u00C5'} (angstrom)</p>
+              <p className="text-lg font-mono text-foreground">{formatSci(result * 1e10)}</p>
             </div>
           </div>
 
           {/* Comparison */}
-          <div className="mt-4 rounded-xl bg-white/5 p-4">
-            <p className="text-sm text-slate-300 mb-2">Scale Comparison</p>
-            <div className="space-y-2 text-xs text-slate-400">
+          <div className="mt-4 rounded-md bg-muted border border-border p-4">
+            <p className="text-sm text-foreground mb-2">Scale Comparison</p>
+            <div className="space-y-2 text-xs text-muted-foreground">
               <div className="flex justify-between">
                 <span>Atom diameter</span>
                 <span className="font-mono">~100 pm (1 {'\u00C5'})</span>
@@ -904,7 +904,7 @@ function DeBroglieTab() {
                 <span>Visible light</span>
                 <span className="font-mono">380-750 nm</span>
               </div>
-              <div className="flex justify-between font-medium text-violet-300">
+              <div className="flex justify-between font-medium text-primary-600">
                 <span>This wavelength</span>
                 <span className="font-mono">{formatSci(result * 1e9)} nm</span>
               </div>
@@ -949,8 +949,8 @@ function PhotonEnergyTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">Photon Energy Calculator</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Photon Energy Calculator</h2>
+      <p className="text-muted-foreground mb-6">
         Calculate photon energy from wavelength using E = hc/{'\u03BB'}.
       </p>
 
@@ -961,7 +961,7 @@ function PhotonEnergyTab() {
           <button
             key={p.label}
             onClick={() => setWavelength(p.wl)}
-            className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs text-violet-300 hover:bg-violet-500/20 transition-colors"
+            className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
           >
             {p.label}
           </button>
@@ -970,7 +970,7 @@ function PhotonEnergyTab() {
 
       <button
         onClick={calculate}
-        className="mt-6 w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 py-4 font-semibold text-white transition-all hover:from-violet-500 hover:to-purple-500 hover:shadow-lg hover:shadow-violet-500/25"
+        className="mt-6 w-full rounded-md bg-primary-500 py-4 font-semibold text-primary-foreground transition-colors hover:bg-primary-600 min-h-[44px]"
       >
         Calculate Energy
       </button>
@@ -980,37 +980,37 @@ function PhotonEnergyTab() {
       {result && (
         <ResultCard title="Photon Energy">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl bg-white/5 p-4 text-center">
-              <p className="text-sm text-slate-400">Energy</p>
-              <p className="text-2xl font-bold font-mono text-violet-300">{formatSci(result.energyEV)} eV</p>
+            <div className="rounded-md bg-muted border border-border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Energy</p>
+              <p className="text-2xl font-bold font-mono text-primary-600">{formatSci(result.energyEV)} eV</p>
             </div>
-            <div className="rounded-xl bg-white/5 p-4 text-center">
-              <p className="text-sm text-slate-400">Energy (per mole)</p>
-              <p className="text-2xl font-bold font-mono text-violet-300">{formatSci(result.energyKJmol)} kJ/mol</p>
+            <div className="rounded-md bg-muted border border-border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Energy (per mole)</p>
+              <p className="text-2xl font-bold font-mono text-primary-600">{formatSci(result.energyKJmol)} kJ/mol</p>
             </div>
-            <div className="rounded-xl bg-white/5 p-4 text-center">
-              <p className="text-sm text-slate-400">Frequency</p>
-              <p className="text-xl font-bold font-mono text-white">{formatSci(result.frequencyHz)} Hz</p>
+            <div className="rounded-md bg-muted border border-border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Frequency</p>
+              <p className="text-xl font-bold font-mono text-foreground">{formatSci(result.frequencyHz)} Hz</p>
             </div>
-            <div className="rounded-xl bg-white/5 p-4 text-center">
-              <p className="text-sm text-slate-400">Energy (Joules)</p>
-              <p className="text-xl font-bold font-mono text-white">{formatSci(result.energyJ)} J</p>
+            <div className="rounded-md bg-muted border border-border p-4 text-center">
+              <p className="text-sm text-muted-foreground">Energy (Joules)</p>
+              <p className="text-xl font-bold font-mono text-foreground">{formatSci(result.energyJ)} J</p>
             </div>
           </div>
 
-          {/* Visible color indicator */}
+          {/* Visible color indicator — swatch colour is the real photon colour (kept) */}
           {result.wavelengthNm >= 380 && result.wavelengthNm <= 750 && (
-            <div className="mt-4 flex items-center gap-3 rounded-xl bg-white/5 p-4">
+            <div className="mt-4 flex items-center gap-3 rounded-md bg-muted border border-border p-4">
               <div
-                className="w-12 h-12 rounded-xl shadow-lg"
+                className="w-12 h-12 rounded-md"
                 style={{
                   backgroundColor: wavelengthToColor(result.wavelengthNm),
                   boxShadow: `0 0 20px ${wavelengthToColor(result.wavelengthNm)}`,
                 }}
               />
               <div>
-                <p className="text-sm text-slate-300">Visible Color</p>
-                <p className="text-lg font-bold text-white">{result.region}</p>
+                <p className="text-sm text-muted-foreground">Visible Color</p>
+                <p className="text-lg font-bold text-foreground">{result.region}</p>
               </div>
             </div>
           )}
@@ -1047,36 +1047,37 @@ function BohrModelTab() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-white mb-2">Bohr Model Calculator</h2>
-      <p className="text-slate-400 mb-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Bohr Model Calculator</h2>
+      <p className="text-muted-foreground mb-6">
         Calculate orbital radii for hydrogen-like atoms.
         r{'\u2099'} = n{'\u00B2'} {'\u00D7'} a{'\u2080'} / Z, where a{'\u2080'} = 52.9 pm.
       </p>
 
       {/* Atom selector */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-slate-300 mb-3">Select Atom/Ion</label>
+        <label className="block text-sm font-medium text-foreground mb-3">Select Atom/Ion</label>
         <div className="flex gap-2">
           {atoms.map((atom) => (
             <button
               key={atom.Z}
               onClick={() => setSelectedZ(atom.Z)}
-              className={`rounded-xl px-4 py-3 text-center transition-all ${
+              aria-pressed={selectedZ === atom.Z}
+              className={`rounded-md px-4 py-3 text-center transition-colors border ${
                 selectedZ === atom.Z
-                  ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25'
-                  : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                  ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                  : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
               <p className="font-bold text-lg">{atom.name}</p>
-              <p className="text-xs opacity-75">{atom.label}</p>
+              <p className="text-xs text-muted-foreground">{atom.label}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* Visual Bohr model */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4 mb-6">
-        <h4 className="text-sm font-medium text-slate-300 mb-3">Bohr Model (not to scale)</h4>
+      <Card className="p-4 mb-6">
+        <h4 className="text-sm font-medium text-foreground mb-3">Bohr Model (not to scale)</h4>
         <div className="relative mx-auto" style={{ width: '280px', height: '280px' }}>
           {/* Orbits */}
           {levels.map((level) => {
@@ -1084,7 +1085,7 @@ function BohrModelTab() {
             return (
               <div
                 key={level.n}
-                className="absolute rounded-full border border-violet-500/30"
+                className="absolute rounded-full border border-primary-500/30"
                 style={{
                   width: `${size}px`,
                   height: `${size}px`,
@@ -1094,7 +1095,7 @@ function BohrModelTab() {
               >
                 {/* Electron dot */}
                 <div
-                  className="absolute w-2.5 h-2.5 rounded-full bg-violet-400 shadow-lg shadow-violet-400/50"
+                  className="absolute w-2.5 h-2.5 rounded-full bg-primary-500"
                   style={{
                     top: '-5px',
                     left: '50%',
@@ -1103,7 +1104,7 @@ function BohrModelTab() {
                 />
                 {/* Label */}
                 <span
-                  className="absolute text-[10px] text-violet-300 font-mono"
+                  className="absolute text-[10px] text-primary-600 font-mono"
                   style={{
                     top: '-16px',
                     right: '-8px',
@@ -1116,25 +1117,25 @@ function BohrModelTab() {
           })}
           {/* Nucleus */}
           <div
-            className="absolute w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/50"
+            className="absolute w-6 h-6 rounded-full bg-primary-500"
             style={{ top: '127px', left: '127px' }}
           >
-            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
+            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-primary-foreground">
               {selectedZ > 1 ? `+${selectedZ}` : '+'}
             </span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Data table */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <h4 className="text-sm font-medium text-slate-300 mb-3">
+      <Card className="p-4">
+        <h4 className="text-sm font-medium text-foreground mb-3">
           Orbital Data for Z = {selectedZ} ({atoms.find((a) => a.Z === selectedZ)?.label})
         </h4>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-slate-400 border-b border-white/10">
+              <tr className="text-muted-foreground border-b border-border">
                 <th className="text-left py-2 px-2">n</th>
                 <th className="text-right py-2 px-2">Radius (pm)</th>
                 <th className="text-right py-2 px-2">Radius ({'\u00C5'})</th>
@@ -1144,8 +1145,8 @@ function BohrModelTab() {
             </thead>
             <tbody>
               {levels.map((level) => (
-                <tr key={level.n} className="border-b border-white/5 text-slate-300">
-                  <td className="py-2 px-2 font-mono font-bold text-violet-300">{level.n}</td>
+                <tr key={level.n} className="border-b border-border text-foreground">
+                  <td className="py-2 px-2 font-mono font-bold text-primary-600">{level.n}</td>
                   <td className="text-right px-2 font-mono">{level.radius.toFixed(2)}</td>
                   <td className="text-right px-2 font-mono">{(level.radius / 100).toFixed(4)}</td>
                   <td className="text-right px-2 font-mono">{level.energy.toFixed(4)}</td>
@@ -1155,17 +1156,17 @@ function BohrModelTab() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Formulas reference */}
-      <div className="mt-4 rounded-xl bg-white/5 p-4">
-        <h4 className="text-sm font-medium text-slate-300 mb-2">Key Formulas</h4>
-        <div className="space-y-1 text-xs font-mono text-slate-400">
+      <Card className="mt-4 p-4">
+        <h4 className="text-sm font-medium text-foreground mb-2">Key Formulas</h4>
+        <div className="space-y-1 text-xs font-mono text-muted-foreground">
           <p>r{'\u2099'} = n{'\u00B2'} {'\u00D7'} a{'\u2080'} / Z = n{'\u00B2'} {'\u00D7'} 52.9 pm / {selectedZ}</p>
           <p>E{'\u2099'} = -13.6 {'\u00D7'} Z{'\u00B2'} / n{'\u00B2'} = -13.6 {'\u00D7'} {selectedZ}{'\u00B2'} / n{'\u00B2'} eV</p>
           <p>a{'\u2080'} = 52.9177 pm (Bohr radius)</p>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -1189,148 +1190,101 @@ export default function QuantumChemistryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
-      {/* Header */}
-      <header className="border-b border-violet-500/20 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">VerChem</span>
-            </h1>
-          </Link>
-          <Link href="/tools" className="text-slate-400 hover:text-violet-400 transition-colors font-medium text-sm">
-            {'\u2190'} All Tools
-          </Link>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="relative overflow-hidden pt-16 pb-12">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-500/10 via-transparent to-transparent" />
-        <div className="relative mx-auto max-w-6xl px-4 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-300 mb-6">
-            {'\u269B'} Quantum Mechanics &amp; Atomic Structure
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight">
-            Quantum Chemistry
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">
-              Calculator
-            </span>
-          </h1>
-          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
-            Quantum numbers, orbital explorer, hydrogen atom spectra,
-            de Broglie wavelength, photon energy, and Bohr model.
-          </p>
-        </div>
-      </section>
-
+    <CalcShell
+      eyebrow="Advanced chemistry \u00B7 Quantum & atomic structure"
+      title="Quantum Chemistry Calculator"
+      subtitle="Quantum numbers, orbital explorer, hydrogen atom spectra, de Broglie wavelength, photon energy, and Bohr model."
+      backHref="/tools"
+      backLabel="All tools"
+      maxWidth="6xl"
+    >
       {/* Tab Selector */}
-      <section className="py-4 px-4">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`rounded-xl p-3 text-center transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                <p className="text-lg mb-0.5">{tab.icon}</p>
-                <p className="font-semibold text-xs">{tab.label}</p>
-                <p className="text-[10px] mt-0.5 opacity-75">{tab.description}</p>
-              </button>
-            ))}
-          </div>
+      <Card className="p-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              aria-pressed={activeTab === tab.id}
+              className={`rounded-md p-3 text-left border transition-colors min-h-[44px] ${
+                activeTab === tab.id
+                  ? 'border-primary-500 bg-muted ring-1 ring-primary-500/40'
+                  : 'border-border bg-card hover:bg-muted hover:border-primary-500/40'
+              }`}
+            >
+              <p className={`font-semibold text-xs ${activeTab === tab.id ? 'text-primary-600' : 'text-foreground'}`}>{tab.label}</p>
+              <p className="text-[10px] mt-0.5 text-muted-foreground">{tab.description}</p>
+            </button>
+          ))}
         </div>
-      </section>
+      </Card>
 
       {/* Main Calculator Section */}
-      <section className="py-8 px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-slate-900/90 to-purple-900/20 p-6 md:p-8 shadow-2xl shadow-violet-500/10 backdrop-blur-sm">
-            {renderTab()}
-          </div>
-        </div>
-      </section>
+      <Card className="p-6 md:p-8">
+        {renderTab()}
+      </Card>
 
       {/* Educational Info */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">Understanding Quantum Chemistry</h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
-            Key concepts in quantum mechanics and atomic structure
-          </p>
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Understanding Quantum Chemistry</h2>
+        <p className="text-muted-foreground mb-6 max-w-2xl">
+          Key concepts in quantum mechanics and atomic structure.
+        </p>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                icon: '\uD83C\uDFB2',
-                title: 'Quantum Numbers',
-                description: 'Four quantum numbers (n, l, m\u2097, m\u209B) uniquely describe each electron in an atom. No two electrons can share all four (Pauli Exclusion Principle).'
-              },
-              {
-                icon: '\uD83C\uDF0A',
-                title: 'Wave-Particle Duality',
-                description: 'All matter exhibits both wave and particle properties. The de Broglie wavelength \u03BB = h/mv is significant only for subatomic particles.'
-              },
-              {
-                icon: '\u269B',
-                title: 'Bohr Model',
-                description: 'Electrons orbit the nucleus at quantized energy levels. E\u2099 = -13.6/n\u00B2 eV for hydrogen. Predicts spectral lines accurately.'
-              },
-              {
-                icon: '\uD83D\uDCA1',
-                title: 'Photon Energy',
-                description: 'Light consists of photons with energy E = hf = hc/\u03BB. Higher frequency (shorter wavelength) means higher energy.'
-              },
-              {
-                icon: '\uD83D\uDD2C',
-                title: 'Atomic Orbitals',
-                description: 'Orbitals are probability distributions for finding electrons. s(sphere), p(dumbbell), d(clover), f(complex) shapes.'
-              },
-              {
-                icon: '\uD83C\uDF08',
-                title: 'Emission Spectra',
-                description: 'When electrons drop to lower energy levels, they emit photons. The Balmer series (n\u21922) produces visible hydrogen lines.'
-              },
-            ].map((item) => (
-              <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-violet-500/30 transition-colors">
-                <div className="text-3xl mb-3">{item.icon}</div>
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-slate-400 text-sm">{item.description}</p>
-              </div>
-            ))}
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              title: 'Quantum Numbers',
+              description: 'Four quantum numbers (n, l, m\u2097, m\u209B) uniquely describe each electron in an atom. No two electrons can share all four (Pauli Exclusion Principle).'
+            },
+            {
+              title: 'Wave-Particle Duality',
+              description: 'All matter exhibits both wave and particle properties. The de Broglie wavelength \u03BB = h/mv is significant only for subatomic particles.'
+            },
+            {
+              title: 'Bohr Model',
+              description: 'Electrons orbit the nucleus at quantized energy levels. E\u2099 = -13.6/n\u00B2 eV for hydrogen. Predicts spectral lines accurately.'
+            },
+            {
+              title: 'Photon Energy',
+              description: 'Light consists of photons with energy E = hf = hc/\u03BB. Higher frequency (shorter wavelength) means higher energy.'
+            },
+            {
+              title: 'Atomic Orbitals',
+              description: 'Orbitals are probability distributions for finding electrons. s(sphere), p(dumbbell), d(clover), f(complex) shapes.'
+            },
+            {
+              title: 'Emission Spectra',
+              description: 'When electrons drop to lower energy levels, they emit photons. The Balmer series (n\u21922) produces visible hydrogen lines.'
+            },
+          ].map((item) => (
+            <Card key={item.title} className="p-6 hover:border-primary-500/40 transition-colors">
+              <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+              <p className="text-muted-foreground text-sm">{item.description}</p>
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">Explore More Chemistry Tools</h2>
-          <p className="text-slate-400 mb-8">VerChem offers a complete suite of chemistry calculators and tools</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/tools/nuclear" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 px-6 py-3 font-medium text-white hover:from-amber-500 hover:to-yellow-500 transition-colors">
-              Nuclear Chemistry {'\u2192'}
-            </Link>
-            <Link href="/tools/equation-balancer" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors">
-              Equation Balancer {'\u2192'}
-            </Link>
-            <Link href="/tools/ph-calculator" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors">
-              pH Calculator {'\u2192'}
-            </Link>
-            <Link href="/tools/periodic-table" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors">
-              Periodic Table {'\u2192'}
-            </Link>
-          </div>
+      <Card className="p-8 text-center">
+        <h2 className="text-2xl font-bold text-foreground mb-3">Explore more chemistry tools</h2>
+        <p className="text-muted-foreground mb-6">VerChem offers a complete suite of chemistry calculators and tools.</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/tools/nuclear" className="inline-flex items-center gap-2 rounded-md bg-primary-500 text-primary-foreground px-5 py-2.5 font-medium hover:bg-primary-600 transition-colors min-h-[44px]">
+            Nuclear Chemistry {'\u2192'}
+          </Link>
+          <Link href="/tools/equation-balancer" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
+            Equation Balancer {'\u2192'}
+          </Link>
+          <Link href="/tools/ph-calculator" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
+            pH Calculator {'\u2192'}
+          </Link>
+          <Link href="/tools/periodic-table" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
+            Periodic Table {'\u2192'}
+          </Link>
         </div>
-      </section>
-    </div>
+      </Card>
+    </CalcShell>
   )
 }

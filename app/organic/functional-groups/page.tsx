@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   FUNCTIONAL_GROUPS,
   FUNCTIONAL_GROUP_CATEGORIES,
@@ -31,43 +31,16 @@ export default function FunctionalGroupsPage() {
   }, [searchQuery, selectedCategory])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/organic"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              ← Organic Hub
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Page Title */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            Functional Groups Reference
-          </h2>
-          <p className="text-secondary-600 max-w-xl mx-auto">
-            {FUNCTIONAL_GROUPS.length} functional groups with structures, properties, spectroscopy,
-            and common reactions.
-          </p>
-        </div>
-
+    <CalcShell
+      eyebrow="Organic chemistry · reference"
+      title="Functional Groups Reference"
+      subtitle={`${FUNCTIONAL_GROUPS.length} functional groups with structures, properties, spectroscopy, and common reactions.`}
+      backHref="/organic"
+      backLabel="Organic Hub"
+      maxWidth="7xl"
+    >
         {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input
               type="text"
@@ -84,16 +57,16 @@ export default function FunctionalGroupsPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => {
               setSelectedCategory('all')
               setSearchQuery('')
             }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               selectedCategory === 'all' && !searchQuery
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                ? 'bg-primary-500 text-primary-foreground'
+                : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
             }`}
           >
             All ({FUNCTIONAL_GROUPS.length})
@@ -108,10 +81,10 @@ export default function FunctionalGroupsPage() {
                   setSelectedCategory(cat)
                   setSearchQuery('')
                 }}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'text-white shadow-md'
-                    : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                    ? 'text-white'
+                    : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
                 style={
                   selectedCategory === cat
@@ -119,14 +92,14 @@ export default function FunctionalGroupsPage() {
                     : undefined
                 }
               >
-                {catData.icon} {catData.label} ({count})
+                {catData.label} ({count})
               </button>
             )
           })}
         </div>
 
         {/* Results count */}
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-muted-foreground">
           Showing {filteredGroups.length} of {FUNCTIONAL_GROUPS.length} functional groups
         </p>
 
@@ -141,10 +114,10 @@ export default function FunctionalGroupsPage() {
                 <button
                   key={group.id}
                   onClick={() => setSelectedGroup(isSelected ? null : group)}
-                  className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                  className={`w-full text-left rounded-lg border p-4 transition-colors ${
                     isSelected
-                      ? 'border-primary-500 bg-primary-50 shadow-lg'
-                      : 'border-border bg-card hover:border-primary-300 hover:shadow-md'
+                      ? 'border-primary-500 bg-muted'
+                      : 'border-border bg-card hover:border-primary-400'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -158,12 +131,12 @@ export default function FunctionalGroupsPage() {
                           {catData.label}
                         </span>
                         {group.priority === 'high' && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">
                             Must Know
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 font-mono text-sm text-secondary-600">
+                      <div className="mt-1 font-mono text-sm text-muted-foreground">
                         {group.generalFormula} — <span className="text-primary-600">{group.structure}</span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
@@ -185,31 +158,31 @@ export default function FunctionalGroupsPage() {
                       <div>
                         <h4 className="font-semibold text-foreground text-sm mb-2">Properties</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">Polarity:</span>{' '}
                             <span className="font-medium text-foreground">{group.properties.polarity}</span>
                           </div>
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">H-Bond Donor:</span>{' '}
                             <span className="font-medium text-foreground">
                               {group.properties.hBondDonor ? 'Yes' : 'No'}
                             </span>
                           </div>
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">H-Bond Acceptor:</span>{' '}
                             <span className="font-medium text-foreground">
                               {group.properties.hBondAcceptor ? 'Yes' : 'No'}
                             </span>
                           </div>
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">Solubility:</span>{' '}
                             <span className="font-medium text-foreground">{group.properties.solubility}</span>
                           </div>
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">Acidity:</span>{' '}
                             <span className="font-medium text-foreground">{group.properties.acidity}</span>
                           </div>
-                          <div className="bg-background rounded-lg p-2">
+                          <div className="bg-card border border-border rounded-lg p-2">
                             <span className="text-muted-foreground">BP Range:</span>{' '}
                             <span className="font-medium text-foreground">
                               {group.properties.typicalBoilingPoint}
@@ -225,7 +198,7 @@ export default function FunctionalGroupsPage() {
                           {group.examples.map(ex => (
                             <div
                               key={ex.name}
-                              className="bg-background rounded-lg px-3 py-1.5 text-xs"
+                              className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs"
                             >
                               <span className="font-semibold text-foreground">{ex.name}</span>
                               <span className="text-muted-foreground ml-1">({ex.formula})</span>
@@ -243,19 +216,19 @@ export default function FunctionalGroupsPage() {
                           </h4>
                           <div className="space-y-1 text-xs">
                             {group.spectroscopy.ir && (
-                              <div className="bg-background rounded-lg px-3 py-1.5">
+                              <div className="bg-card border border-border rounded-lg px-3 py-1.5">
                                 <span className="font-medium text-foreground">IR:</span>{' '}
                                 <span className="text-muted-foreground">{group.spectroscopy.ir}</span>
                               </div>
                             )}
                             {group.spectroscopy.nmrH && (
-                              <div className="bg-background rounded-lg px-3 py-1.5">
+                              <div className="bg-card border border-border rounded-lg px-3 py-1.5">
                                 <span className="font-medium text-foreground">¹H NMR:</span>{' '}
                                 <span className="text-muted-foreground">{group.spectroscopy.nmrH}</span>
                               </div>
                             )}
                             {group.spectroscopy.nmrC && (
-                              <div className="bg-background rounded-lg px-3 py-1.5">
+                              <div className="bg-card border border-border rounded-lg px-3 py-1.5">
                                 <span className="font-medium text-foreground">¹³C NMR:</span>{' '}
                                 <span className="text-muted-foreground">{group.spectroscopy.nmrC}</span>
                               </div>
@@ -297,7 +270,7 @@ export default function FunctionalGroupsPage() {
                                     const found = FUNCTIONAL_GROUPS.find(g => g.id === rg)
                                     if (found) setSelectedGroup(found)
                                   }}
-                                  className="text-xs px-2 py-1 bg-secondary-100 text-secondary-700 rounded-full hover:bg-secondary-200 transition-colors"
+                                  className="text-xs px-2 py-1 bg-muted text-foreground border border-border rounded-full hover:bg-card transition-colors"
                                 >
                                   {related?.name || rg}
                                 </button>
@@ -337,7 +310,7 @@ export default function FunctionalGroupsPage() {
                           setSelectedCategory(cat)
                           setSearchQuery('')
                         }}
-                        className="w-full flex items-center justify-between text-sm px-3 py-2 rounded-lg hover:bg-primary-50 transition-colors"
+                        className="w-full flex items-center justify-between text-sm px-3 py-2 rounded-lg hover:bg-muted transition-colors"
                       >
                         <span className="flex items-center gap-2">
                           <span
@@ -358,19 +331,19 @@ export default function FunctionalGroupsPage() {
                 <h3 className="font-bold text-foreground mb-3">Priority Guide</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs">
                       Must Know
                     </span>
                     <span className="text-muted-foreground">Exam essential</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-warning/15 text-warning text-xs">
                       Medium
                     </span>
                     <span className="text-muted-foreground">Important</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">
+                    <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-xs">
                       Low
                     </span>
                     <span className="text-muted-foreground">Advanced/Specialty</span>
@@ -405,7 +378,6 @@ export default function FunctionalGroupsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </CalcShell>
   )
 }

@@ -20,10 +20,10 @@ export default function Toolbar({
 }: ToolbarProps) {
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-slate-950/80 backdrop-blur-xl border border-cyan-500/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all">
-      
+    <div className="flex flex-col gap-4 p-4 bg-card border border-border rounded-2xl shadow-sm transition-all">
+
       {/* Section Header: Elements */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+      <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
         <Beaker className="w-3 h-3" /> Elements
       </div>
 
@@ -34,21 +34,20 @@ export default function Toolbar({
             key={el}
             onClick={() => onSelectElement(el)}
             className={`
-              relative group flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-200
-              ${selectedElement === el 
-                ? 'bg-cyan-500/20 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
-                : 'bg-slate-900 border-slate-700 hover:border-slate-500 hover:bg-slate-800'}
+              relative group flex items-center justify-center w-10 h-10 rounded-xl border transition-colors duration-200
+              ${selectedElement === el
+                ? 'bg-primary-50 border-primary-500'
+                : 'bg-muted border-border hover:border-primary-300 hover:bg-card'}
             `}
           >
-            <span 
-              className={`font-bold text-sm ${selectedElement === el ? 'text-cyan-300' : 'text-slate-300'}`}
-              style={{ textShadow: selectedElement === el ? '0 0 8px rgba(6,182,212,0.5)' : 'none' }}
+            <span
+              className={`font-bold text-sm ${selectedElement === el ? 'text-primary-700' : 'text-foreground'}`}
             >
               {el}
             </span>
-            
-            {/* Color indicator dot */}
-            <div 
+
+            {/* Color indicator dot — CPK atom color (data) */}
+            <div
               className="absolute bottom-1.5 w-1 h-1 rounded-full opacity-70"
               style={{ backgroundColor: ATOM_COLORS[el] }}
             />
@@ -57,10 +56,10 @@ export default function Toolbar({
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full bg-slate-800/50" />
+      <div className="h-px w-full bg-border" />
 
       {/* Section Header: Bonds */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+      <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
         <Zap className="w-3 h-3" /> Bonds
       </div>
 
@@ -71,17 +70,17 @@ export default function Toolbar({
             key={type}
             onClick={() => onSelectBondType(type as 1 | 2 | 3)}
             className={`
-              flex items-center justify-center h-10 rounded-xl border transition-all duration-200
+              flex items-center justify-center h-10 rounded-xl border transition-colors duration-200
               ${bondType === type
-                ? 'bg-violet-500/20 border-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]' 
-                : 'bg-slate-900 border-slate-700 hover:border-slate-500 hover:bg-slate-800'}
+                ? 'bg-secondary-50 border-secondary-500'
+                : 'bg-muted border-border hover:border-secondary-300 hover:bg-card'}
             `}
           >
             <div className="flex flex-col gap-[3px]">
               {Array.from({ length: type }).map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`w-8 h-[2px] rounded-full ${bondType === type ? 'bg-violet-300 shadow-[0_0_5px_rgba(139,92,246,0.8)]' : 'bg-slate-500'}`} 
+                <div
+                  key={i}
+                  className={`w-8 h-[2px] rounded-full ${bondType === type ? 'bg-secondary-600' : 'bg-muted-foreground'}`}
                 />
               ))}
             </div>
@@ -90,14 +89,14 @@ export default function Toolbar({
       </div>
 
       {/* Info / Helper */}
-      <div className="mt-2 p-3 rounded-lg bg-slate-900/50 border border-slate-800 text-[10px] text-slate-400 leading-relaxed space-y-1">
-        <p><span className="text-cyan-400 font-bold">Tip:</span> Drag between atoms to create bonds.</p>
-        <p><span className="text-violet-400 font-bold">Pro:</span> Click existing bond to cycle order (1→2→3).</p>
+      <div className="mt-2 p-3 rounded-lg bg-muted border border-border text-[10px] text-muted-foreground leading-relaxed space-y-1">
+        <p><span className="text-primary-600 font-bold">Tip:</span> Drag between atoms to create bonds.</p>
+        <p><span className="text-secondary-600 font-bold">Pro:</span> Click existing bond to cycle order (1-2-3).</p>
       </div>
 
       {/* Common Molecules Quick-Add */}
       <div className="mt-2">
-        <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-2">Quick Templates</div>
+        <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Quick Templates</div>
         <div className="grid grid-cols-2 gap-1.5">
           {[
             { name: 'H₂O', formula: 'Water' },
@@ -107,7 +106,7 @@ export default function Toolbar({
           ].map((mol) => (
             <button
               key={mol.name}
-              className="px-2 py-1.5 text-[10px] rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-800 transition-all text-slate-300"
+              className="px-2 py-1.5 text-[10px] rounded-lg bg-muted border border-border hover:border-primary-300 hover:bg-card transition-colors text-foreground"
               title={mol.formula}
             >
               {mol.name}

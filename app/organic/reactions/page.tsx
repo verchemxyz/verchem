@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   NAMED_REACTIONS,
   REACTION_CATEGORIES,
@@ -40,43 +40,16 @@ export default function ReactionsPage() {
   }, [searchQuery, selectedCategory, selectedDifficulty])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/organic"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              ← Organic Hub
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Page Title */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            Named Reactions Database
-          </h2>
-          <p className="text-secondary-600 max-w-xl mx-auto">
-            {NAMED_REACTIONS.length} organic chemistry reactions with mechanisms, conditions,
-            examples, and study tips.
-          </p>
-        </div>
-
+    <CalcShell
+      eyebrow="Organic chemistry · reference"
+      title="Named Reactions Database"
+      subtitle={`${NAMED_REACTIONS.length} organic chemistry reactions with mechanisms, conditions, examples, and study tips.`}
+      backHref="/organic"
+      backLabel="Organic Hub"
+      maxWidth="7xl"
+    >
         {/* Search */}
-        <div className="mb-6">
+        <div>
           <input
             type="text"
             value={searchQuery}
@@ -88,14 +61,14 @@ export default function ReactionsPage() {
         </div>
 
         {/* Difficulty Filter */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2">
           <span className="text-sm text-muted-foreground flex items-center mr-2">Level:</span>
           <button
             onClick={() => setSelectedDifficulty('all')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               selectedDifficulty === 'all'
-                ? 'bg-gray-800 text-white'
-                : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                ? 'bg-foreground text-background'
+                : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
             }`}
           >
             All
@@ -107,10 +80,10 @@ export default function ReactionsPage() {
               <button
                 key={diff}
                 onClick={() => setSelectedDifficulty(diff)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedDifficulty === diff
-                    ? 'text-white shadow-md'
-                    : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                    ? 'text-white'
+                    : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
                 style={
                   selectedDifficulty === diff
@@ -125,14 +98,14 @@ export default function ReactionsPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2">
           <span className="text-sm text-muted-foreground flex items-center mr-2">Type:</span>
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               selectedCategory === 'all'
-                ? 'bg-gray-800 text-white'
-                : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                ? 'bg-foreground text-background'
+                : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
             }`}
           >
             All
@@ -144,10 +117,10 @@ export default function ReactionsPage() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'text-white shadow-md'
-                    : 'bg-card border border-border text-secondary-600 hover:border-primary-400'
+                    ? 'text-white'
+                    : 'bg-card border border-border text-muted-foreground hover:border-primary-400'
                 }`}
                 style={
                   selectedCategory === cat
@@ -162,7 +135,7 @@ export default function ReactionsPage() {
         </div>
 
         {/* Results count */}
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-muted-foreground">
           Showing {filteredReactions.length} of {NAMED_REACTIONS.length} reactions
         </p>
 
@@ -175,7 +148,7 @@ export default function ReactionsPage() {
               <Link
                 key={reaction.id}
                 href={`/organic/reactions/${reaction.id}`}
-                className="group rounded-xl border-2 border-border bg-card hover:border-primary-400 hover:shadow-lg transition-all p-5"
+                className="group rounded-lg border border-border bg-card hover:border-primary-400 transition-colors p-5"
               >
                 {/* Category + Difficulty Badges */}
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -192,7 +165,7 @@ export default function ReactionsPage() {
                     {diffMeta.label}
                   </span>
                   {reaction.tags.includes('Nobel') && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning">
                       Nobel
                     </span>
                   )}
@@ -237,7 +210,6 @@ export default function ReactionsPage() {
             <p className="text-sm mt-1">Try a different search or filter combination</p>
           </div>
         )}
-      </main>
-    </div>
+    </CalcShell>
   )
 }

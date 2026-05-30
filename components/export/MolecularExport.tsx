@@ -41,38 +41,38 @@ const MolecularExport: React.FC<MolecularExportProps> = ({
   return (
     <div ref={containerRef} className={className}>
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-foreground">
           Molecular Structure Export
         </h3>
-        
+
         <div className="flex gap-1">
           <button
             onClick={() => handleExport3D('png')}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-xs font-medium text-primary-foreground bg-primary-500 hover:bg-primary-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
             title="Export as high-resolution PNG"
           >
             PNG
           </button>
-          
+
           <button
             onClick={() => handleExport3D('svg')}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
             title="Export as scalable SVG"
           >
             SVG
           </button>
-          
+
           <button
             onClick={() => handleExport3D('pdf')}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
             title="Export as PDF document"
           >
             PDF
           </button>
-          
+
           <button
             onClick={() => setShowExportDialog(true)}
-            className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
             title="Advanced export options"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@ const MolecularExport: React.FC<MolecularExportProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground">
         <div>
           <h4 className="font-medium mb-2">Export Options:</h4>
           <ul className="space-y-1">
@@ -215,28 +215,28 @@ export const CalculatorExport: React.FC<CalculatorExportProps> = ({
   return (
     <div className={className}>
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-foreground">
           Export Results
         </h3>
-        
+
         <button
           onClick={() => handleExportResults('pdf')}
           disabled={isExporting}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-1.5 text-xs font-medium text-primary-foreground bg-primary-500 hover:bg-primary-600 disabled:opacity-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           PDF
         </button>
-        
+
         <button
           onClick={() => handleExportResults('png')}
           disabled={isExporting}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted disabled:opacity-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           PNG
         </button>
       </div>
 
-      <div className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-sm text-muted-foreground">
         <p>Export your calculation results in a formatted document or image.</p>
       </div>
     </div>
@@ -273,33 +273,33 @@ export const PeriodicTableExport: React.FC<PeriodicTableExportProps> = ({
   return (
     <div className={className}>
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-foreground">
           Export Periodic Table
         </h3>
-        
+
         <button
           onClick={() => handleExport('png')}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-1.5 text-xs font-medium text-primary-foreground bg-primary-500 hover:bg-primary-600 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           PNG
         </button>
-        
+
         <button
           onClick={() => handleExport('svg')}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           SVG
         </button>
-        
+
         <button
           onClick={() => handleExport('pdf')}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="px-3 py-1.5 text-xs font-medium text-foreground bg-card border border-border hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           PDF
         </button>
       </div>
 
-      <div className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="text-sm text-muted-foreground">
         <p>Export the periodic table in high resolution for printing or digital use.</p>
       </div>
     </div>

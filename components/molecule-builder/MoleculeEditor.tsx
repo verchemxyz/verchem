@@ -625,44 +625,44 @@ export default function MoleculeEditor({
   }
 
   return (
-    <div 
-        ref={containerRef} 
-        className={`relative w-full h-full overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-950 shadow-2xl transition-all duration-300 ${isFullscreen ? 'rounded-none' : ''}`}
+    <div
+        ref={containerRef}
+        className={`relative w-full h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 ${isFullscreen ? 'rounded-none' : ''}`}
     >
       {/* Top Controls */}
       <div className="absolute top-4 right-4 z-20 flex gap-2">
         <button
             onClick={() => setShowGrid(!showGrid)}
-            className={`p-2 rounded-lg backdrop-blur-md border transition-all ${showGrid ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' : 'bg-slate-800/50 border-slate-700 text-slate-400'}`}
+            className={`p-2 rounded-lg border transition-colors ${showGrid ? 'bg-primary-50 border-primary-500 text-primary-700' : 'bg-popover border-border text-muted-foreground'}`}
             title="Toggle Grid"
         >
             <Grid className="w-5 h-5" />
         </button>
         <button
             onClick={() => setSnapToGrid(!snapToGrid)}
-            className={`p-2 rounded-lg backdrop-blur-md border transition-all ${snapToGrid ? 'bg-violet-500/20 border-violet-500/50 text-violet-300' : 'bg-slate-800/50 border-slate-700 text-slate-400'}`}
+            className={`p-2 rounded-lg border transition-colors ${snapToGrid ? 'bg-secondary-50 border-secondary-500 text-secondary-700' : 'bg-popover border-border text-muted-foreground'}`}
             title="Snap to Grid"
         >
             <Zap className="w-5 h-5" />
         </button>
-        <div className="w-px h-8 bg-slate-700 mx-1" />
+        <div className="w-px h-8 bg-border mx-1" />
         <button
           onClick={onClear}
-          className="p-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
+          className="p-2 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors"
           title="Clear All"
         >
           <Trash2 className="w-5 h-5" />
         </button>
         <button
           onClick={exportAsPNG}
-          className="p-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white hover:bg-slate-700 transition-colors backdrop-blur-md"
+          className="p-2 rounded-lg bg-popover border border-border text-foreground hover:bg-muted transition-colors"
           title="Download PNG"
         >
           <Download className="w-5 h-5" />
         </button>
         <button
           onClick={toggleFullscreen}
-          className="p-2 rounded-lg bg-slate-800/50 border border-slate-700 text-white hover:bg-slate-700 transition-colors backdrop-blur-md"
+          className="p-2 rounded-lg bg-popover border border-border text-foreground hover:bg-muted transition-colors"
           title="Toggle Fullscreen"
         >
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
@@ -694,37 +694,37 @@ export default function MoleculeEditor({
       <div className="absolute bottom-4 left-4 flex flex-col gap-2 pointer-events-none">
           {/* Atom/Bond Count */}
           <div className="flex items-center gap-3 text-[10px] font-mono">
-            <span className="text-cyan-400">
-              <span className="text-slate-500">ATOMS:</span> {atoms.length}
+            <span className="text-primary-600">
+              <span className="text-muted-foreground">ATOMS:</span> {atoms.length}
             </span>
-            <span className="text-violet-400">
-              <span className="text-slate-500">BONDS:</span> {bonds.length}
+            <span className="text-secondary-600">
+              <span className="text-muted-foreground">BONDS:</span> {bonds.length}
             </span>
           </div>
           {/* Coordinates (Debug/Pro feel) */}
-          <div className="text-[10px] font-mono text-slate-600">
+          <div className="text-[10px] font-mono text-muted-foreground">
               {canvasSize.width}×{canvasSize.height} | {Math.round(canvasScale * 100)}%
           </div>
       </div>
 
       {/* Keyboard Shortcuts Help */}
       <div className="absolute bottom-4 right-4 pointer-events-none">
-        <div className="text-[9px] font-mono text-slate-600 text-right space-y-0.5">
-          <div><kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Del</kbd> Delete selected</div>
-          <div><kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Click</kbd> Add atom</div>
-          <div><kbd className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">Drag</kbd> Create bond</div>
+        <div className="text-[9px] font-mono text-muted-foreground text-right space-y-0.5">
+          <div><kbd className="px-1 py-0.5 bg-muted border border-border rounded text-foreground">Del</kbd> Delete selected</div>
+          <div><kbd className="px-1 py-0.5 bg-muted border border-border rounded text-foreground">Click</kbd> Add atom</div>
+          <div><kbd className="px-1 py-0.5 bg-muted border border-border rounded text-foreground">Drag</kbd> Create bond</div>
         </div>
       </div>
-      
+
       {/* Stability Badge */}
       <div className="absolute top-4 left-4 pointer-events-none">
         {validation && (
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg transition-all ${
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-all ${
             validation.isStable
-              ? 'bg-green-500/10 border-green-500/30 text-green-400'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              ? 'bg-success/10 border-success/30 text-success'
+              : 'bg-warning/10 border-warning/30 text-warning'
           }`}>
-            <div className={`w-2 h-2 rounded-full ${validation.isStable ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-amber-500 animate-pulse'}`} />
+            <div className={`w-2 h-2 rounded-full ${validation.isStable ? 'bg-success' : 'bg-warning'}`} />
             <span className="text-xs font-bold tracking-wider uppercase">
                 {validation.isStable ? 'STABLE' : 'UNSTABLE'}
             </span>

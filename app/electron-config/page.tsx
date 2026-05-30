@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+} from '@/components/lab'
 import {
   calculateElectronConfiguration,
   generateOrbitalFillingAnimation,
@@ -76,167 +82,134 @@ export default function ElectronConfigPage() {
   const element = getElementByAtomicNumber(atomicNumber)
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                <span className="text-premium">VerChem</span>
-              </h1>
-              <p className="text-xs text-muted-foreground">Electron Configuration</p>
-            </div>
-          </Link>
-          <Link
-            href="/"
-            className="px-4 py-2 text-muted-foreground hover:text-primary-600 transition-colors font-medium"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
+    <CalcShell
+      eyebrow="Atomic structure · orbitals & quantum numbers"
+      title="Electron Configuration"
+      subtitle="Visualize electron orbitals, quantum numbers, and filling order."
+      backHref="/"
+      backLabel="Home"
+      maxWidth="7xl"
+    >
+      {/* Element Selector */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Select element</SectionTitle>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            Electron Configuration
-          </h1>
-          <p className="text-xl text-gray-600">
-            Visualize electron orbitals, quantum numbers, and filling order
-          </p>
-        </div>
+        {/* Atomic Number Input */}
+        <Field label="Atomic Number (Z = 1-118)" className="mb-4">
+          <div className="flex gap-4">
+            <input
+              type="number"
+              min="1"
+              max="118"
+              value={atomicNumber}
+              onChange={(e) => {
+                const value = parseInt(e.target.value)
+                if (value >= 1 && value <= 118) {
+                  setAtomicNumber(value)
+                }
+              }}
+              className="input-premium flex-1 text-lg"
+            />
+            <button
+              disabled
+              className="px-6 py-2 border border-border bg-muted text-muted-foreground rounded-md font-medium cursor-not-allowed"
+              title="Auto-calculates when you change the atomic number"
+            >
+              Auto-Calculate
+            </button>
+          </div>
+        </Field>
 
-        {/* Element Selector */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-4">Select Element</h2>
-
-          {/* Atomic Number Input */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Atomic Number (Z = 1-118)
-            </label>
-            <div className="flex gap-4">
-              <input
-                type="number"
-                min="1"
-                max="118"
-                value={atomicNumber}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value)
-                  if (value >= 1 && value <= 118) {
-                    setAtomicNumber(value)
-                  }
-                }}
-                className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:border-purple-500 focus:outline-none text-lg text-gray-900 dark:text-gray-100"
-              />
+        {/* Quick Element Buttons */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Quick Select:
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {quickElements.map((elem) => (
               <button
-                disabled
-                className="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed"
-                title="Auto-calculates when you change the atomic number"
+                key={elem.Z}
+                onClick={() => {
+                  setAtomicNumber(elem.Z)
+                }}
+                className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+                  atomicNumber === elem.Z
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-foreground hover:bg-muted hover:border-primary-500/40'
+                }`}
               >
-                Auto-Calculate
+                {elem.symbol}
               </button>
-            </div>
-          </div>
-
-          {/* Quick Element Buttons */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Quick Select:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {quickElements.map((elem) => (
-                <button
-                  key={elem.Z}
-                  onClick={() => {
-                    setAtomicNumber(elem.Z)
-                  }}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    atomicNumber === elem.Z
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {elem.symbol}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
+      </Card>
 
         {/* Results */}
         {config && element && (
           <>
             {/* Element Info */}
-            <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl p-6 shadow-lg mb-6 text-white">
+            <Card className="p-6 border-l-2 border-l-primary-500">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-6xl font-bold mb-2">{element.symbol}</div>
-                  <div className="text-2xl font-semibold">{element.name}</div>
-                  <div className="text-purple-100 mt-2">
+                  <div className="text-6xl font-bold mb-2 text-foreground">{element.symbol}</div>
+                  <div className="text-2xl font-semibold text-foreground">{element.name}</div>
+                  <div className="text-muted-foreground mt-2">
                     Atomic Number: {atomicNumber} | Mass: {element.atomicMass.toFixed(2)} u
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-purple-100 mb-1">Category</div>
-                  <div className="text-lg font-semibold capitalize">
+                  <div className="text-sm text-muted-foreground mb-1">Category</div>
+                  <div className="text-lg font-semibold capitalize text-foreground">
                     {element.category.replace(/-/g, ' ')}
                   </div>
-                  <div className="text-sm text-purple-100 mt-2">
+                  <div className="text-sm text-muted-foreground mt-2">
                     {getPeriodicBlock(config)}
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Electron Configuration Display */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Full Configuration */}
-              <div className="bg-white text-gray-900 rounded-xl p-6 shadow-lg">
-                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                  <span className="text-2xl">⚛️</span>
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-foreground tracking-tight mb-3">
                   Full Configuration
                 </h3>
-                <div className="text-2xl font-mono mb-4">{config.fullConfig}</div>
+                <div className="text-2xl font-mono mb-4 text-foreground break-words">{config.fullConfig}</div>
 
-                <h4 className="font-semibold text-gray-700 mb-2">Noble Gas Notation:</h4>
-                <div className="text-xl font-mono text-purple-600">
+                <h4 className="font-semibold text-foreground mb-2">Noble Gas Notation:</h4>
+                <div className="text-xl font-mono text-primary-600 break-words">
                   {config.nobleGasConfig}
                 </div>
 
                 {config.exceptions && (
-                  <div className="mt-4 p-3 bg-amber-50 border-l-4 border-amber-500 rounded">
-                    <div className="text-sm font-semibold text-amber-700">
-                      ⚠️ Exception:
+                  <div className="mt-4 p-3 bg-warning/10 border-l-2 border-warning rounded-md">
+                    <div className="text-sm font-semibold text-warning">
+                      Exception:
                     </div>
-                    <div className="text-sm text-amber-600">{config.exceptions}</div>
+                    <div className="text-sm text-muted-foreground">{config.exceptions}</div>
                   </div>
                 )}
-              </div>
+              </Card>
 
               {/* Valence Electrons */}
-              <div className="bg-white text-gray-900 rounded-xl p-6 shadow-lg">
-                <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                  <span className="text-2xl">🔵</span>
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold text-foreground tracking-tight mb-3">
                   Valence Electrons
                 </h3>
-                <div className="text-4xl font-bold text-purple-600 mb-4">
+                <div className="text-4xl font-bold font-mono text-primary-600 mb-4">
                   {config.valenceElectrons}
                 </div>
-                <div className="text-gray-600 mb-4">{config.valenceConfig}</div>
+                <div className="text-muted-foreground mb-4">{config.valenceConfig}</div>
 
                 {/* Lewis Dot Structure */}
-                <h4 className="font-semibold text-gray-700 mb-2">Lewis Dot Structure:</h4>
+                <h4 className="font-semibold text-foreground mb-2">Lewis Dot Structure:</h4>
                 <div className="flex items-center justify-center">
                   <div className="relative w-20 h-20">
                     {/* Element symbol in center */}
-                    <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold">
+                    <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-foreground">
                       {element.symbol}
                     </div>
                     {/* Electron dots */}
@@ -250,7 +223,7 @@ export default function ElectronConfigPage() {
                       return (
                         <div
                           key={i}
-                          className={`absolute ${positions[position]} w-2 h-2 bg-purple-600 rounded-full`}
+                          className={`absolute ${positions[position]} w-2 h-2 bg-primary-500 rounded-full`}
                         />
                       )
                     })}
@@ -259,10 +232,10 @@ export default function ElectronConfigPage() {
 
                 {/* Ion Charge Prediction */}
                 <div className="mt-4">
-                  <h4 className="font-semibold text-gray-700 mb-2">
+                  <h4 className="font-semibold text-foreground mb-2">
                     Common Ion Charge:
                   </h4>
-                  <div className="text-lg">
+                  <div className="text-lg font-mono text-foreground">
                     {predictIonCharge(atomicNumber, config.valenceElectrons)
                       .map((charge) => {
                         if (charge > 0) return `${element.symbol}${charge}⁺`
@@ -272,38 +245,33 @@ export default function ElectronConfigPage() {
                       .join(', ')}
                   </div>
                 </div>
-              </div>
+              </Card>
             </div>
 
             {/* Orbital Box Diagram */}
-            <div className="premium-card p-6 mb-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <span className="text-2xl">📦</span>
+                <h3 className="text-lg font-semibold text-foreground tracking-tight">
                   Orbital Box Diagram
                 </h3>
-                <button
-                  onClick={startAnimation}
-                  disabled={isAnimating}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
-                >
-                  {isAnimating ? 'Animating...' : '▶ Animate Filling'}
-                </button>
+                <Button onClick={startAnimation} disabled={isAnimating}>
+                  {isAnimating ? 'Animating...' : 'Animate Filling'}
+                </Button>
               </div>
 
               {/* Animation Progress */}
               {isAnimating && animationSteps[currentStep] && (
-                <div className="mb-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-                  <div className="font-semibold text-purple-900">
+                <div className="mb-4 p-4 bg-muted border-l-2 border-l-primary-500 rounded-md">
+                  <div className="font-semibold text-foreground">
                     {animationSteps[currentStep].description}
                   </div>
-                  <div className="text-sm text-purple-700 mt-1">
+                  <div className="text-sm text-muted-foreground mt-1 font-mono">
                     Configuration: {animationSteps[currentStep].configSoFar}
                   </div>
                 </div>
               )}
 
-              {/* Orbital Boxes */}
+              {/* Orbital Boxes — subshell colors encode s/p/d/f (data), kept as-is */}
               <div className="space-y-4">
                 {config.orbitalBoxDiagram.map((subshell, idx) => {
                   const lSymbol = subshell.subshell.slice(-1)
@@ -318,7 +286,7 @@ export default function ElectronConfigPage() {
                         style={{ color }}
                       >
                         {subshell.subshell}
-                        <div className="text-xs text-gray-500">{shape.symbol}</div>
+                        <div className="text-xs text-muted-foreground">{shape.symbol}</div>
                       </div>
 
                       {/* Orbital boxes */}
@@ -333,9 +301,9 @@ export default function ElectronConfigPage() {
                               <div
                                 key={spinIdx}
                                 className="text-2xl font-bold"
-                                style={{ color: spin ? color : '#e5e7eb' }}
+                                style={spin ? { color } : undefined}
                               >
-                                {spin || '○'}
+                                {spin || <span className="text-muted-foreground/40">○</span>}
                               </div>
                             ))}
                           </div>
@@ -343,41 +311,40 @@ export default function ElectronConfigPage() {
                       </div>
 
                       {/* Orbital type label */}
-                      <div className="text-sm text-gray-500">{shape.description}</div>
+                      <div className="text-sm text-muted-foreground">{shape.description}</div>
                     </div>
                   )
                 })}
               </div>
-            </div>
+            </Card>
 
             {/* Quantum Numbers Table */}
-            <div className="premium-card p-6 mb-6">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="text-2xl">🔢</span>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground tracking-tight mb-4">
                 Quantum Numbers (First 10 Electrons)
               </h3>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b-2 border-gray-200">
-                      <th className="text-left p-2">Electron #</th>
-                      <th className="text-left p-2">n (Shell)</th>
-                      <th className="text-left p-2">l (Subshell)</th>
-                      <th className="text-left p-2">m (Orbital)</th>
-                      <th className="text-left p-2">s (Spin)</th>
-                      <th className="text-left p-2">Notation</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-2 text-foreground">Electron #</th>
+                      <th className="text-left p-2 text-foreground">n (Shell)</th>
+                      <th className="text-left p-2 text-foreground">l (Subshell)</th>
+                      <th className="text-left p-2 text-foreground">m (Orbital)</th>
+                      <th className="text-left p-2 text-foreground">s (Spin)</th>
+                      <th className="text-left p-2 text-foreground">Notation</th>
                     </tr>
                   </thead>
                   <tbody>
                     {config.quantumNumbers.slice(0, 10).map((qn, i) => (
-                      <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="p-2 font-semibold">{i + 1}</td>
-                        <td className="p-2">{qn.n}</td>
-                        <td className="p-2">{qn.l}</td>
-                        <td className="p-2">{qn.m}</td>
-                        <td className="p-2">{qn.s > 0 ? '+½' : '-½'}</td>
-                        <td className="p-2 text-gray-600">
+                      <tr key={i} className="border-b border-border hover:bg-muted">
+                        <td className="p-2 font-semibold text-foreground">{i + 1}</td>
+                        <td className="p-2 text-foreground">{qn.n}</td>
+                        <td className="p-2 text-foreground">{qn.l}</td>
+                        <td className="p-2 text-foreground">{qn.m}</td>
+                        <td className="p-2 text-foreground">{qn.s > 0 ? '+½' : '-½'}</td>
+                        <td className="p-2 text-muted-foreground font-mono">
                           ({qn.n}, {qn.l}, {qn.m}, {qn.s > 0 ? '+½' : '-½'})
                         </td>
                       </tr>
@@ -387,69 +354,72 @@ export default function ElectronConfigPage() {
               </div>
 
               {config.quantumNumbers.length > 10 && (
-                <div className="text-sm text-gray-500 mt-2">
+                <div className="text-sm text-muted-foreground mt-2">
                   Showing first 10 of {config.quantumNumbers.length} electrons
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* Theory Section */}
-            <div className="bg-white text-gray-900 rounded-xl p-6 shadow-lg">
+            <Card className="p-6">
               <button
                 onClick={() => setShowTheory(!showTheory)}
-                className="w-full flex items-center justify-between text-xl font-bold mb-4"
+                className="w-full flex items-center justify-between text-lg font-semibold text-foreground tracking-tight"
               >
-                <span className="flex items-center gap-2">
-                  <span className="text-2xl">📚</span>
-                  Theory & Principles
-                </span>
-                <span className="text-2xl">{showTheory ? '▼' : '▶'}</span>
+                <span>Theory &amp; Principles</span>
+                <svg
+                  className={`w-5 h-5 text-muted-foreground transition-transform ${showTheory ? 'rotate-90' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
 
               {showTheory && (
-                <div className="space-y-6">
+                <div className="space-y-6 mt-4">
                   {/* Quantum Numbers */}
                   <div>
-                    <h4 className="font-bold text-purple-600 mb-2">Quantum Numbers</h4>
+                    <h4 className="font-semibold text-primary-600 mb-2">Quantum Numbers</h4>
                     {Object.entries(getQuantumNumberExplanation()).map(([key, value]) => (
                       <div key={key} className="mb-2">
-                        <span className="font-semibold">{key.toUpperCase()}:</span>{' '}
-                        <span className="text-gray-700">{value}</span>
+                        <span className="font-semibold text-foreground">{key.toUpperCase()}:</span>{' '}
+                        <span className="text-muted-foreground">{value}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* Aufbau Principle */}
                   <div>
-                    <h4 className="font-bold text-blue-600 mb-2">Aufbau Principle</h4>
-                    <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <h4 className="font-semibold text-primary-600 mb-2">Aufbau Principle</h4>
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono">
                       {getAufbauPrincipleExplanation()}
                     </pre>
                   </div>
 
                   {/* Hund's Rule */}
                   <div>
-                    <h4 className="font-bold text-green-600 mb-2">Hund&apos;s Rule</h4>
-                    <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <h4 className="font-semibold text-primary-600 mb-2">Hund&apos;s Rule</h4>
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono">
                       {getHundsRuleExplanation()}
                     </pre>
                   </div>
 
                   {/* Pauli Exclusion */}
                   <div>
-                    <h4 className="font-bold text-amber-600 mb-2">
+                    <h4 className="font-semibold text-primary-600 mb-2">
                       Pauli Exclusion Principle
                     </h4>
-                    <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono">
                       {getPauliExclusionExplanation()}
                     </pre>
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           </>
         )}
-      </main>
-    </div>
+    </CalcShell>
   )
 }

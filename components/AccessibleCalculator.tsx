@@ -134,7 +134,7 @@ export default function AccessibleCalculator({
       {/* Skip to main content */}
       <a
         href="#main-calculator"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-primary-foreground focus:rounded-lg focus:shadow-lg"
       >
         Skip to calculator
       </a>
@@ -213,7 +213,7 @@ export default function AccessibleCalculator({
             role="dialog"
             aria-modal="true"
             aria-labelledby="shortcuts-title"
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-6 max-w-md w-full"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card border border-border rounded-xl shadow-2xl p-6 max-w-md w-full"
           >
             <div className="flex items-center justify-between mb-4">
               <h2 id="shortcuts-title" className="text-2xl font-bold text-foreground">
@@ -234,7 +234,7 @@ export default function AccessibleCalculator({
               {onCalculate && (
                 <div className="flex items-center justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Calculate</span>
-                  <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                  <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                     Enter
                   </kbd>
                 </div>
@@ -243,7 +243,7 @@ export default function AccessibleCalculator({
               {onClear && (
                 <div className="flex items-center justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Clear</span>
-                  <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                  <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                     Escape
                   </kbd>
                 </div>
@@ -252,7 +252,7 @@ export default function AccessibleCalculator({
               {onReset && (
                 <div className="flex items-center justify-between py-2 border-b border-border">
                   <span className="text-muted-foreground">Reset</span>
-                  <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                  <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                     Ctrl+R
                   </kbd>
                 </div>
@@ -260,21 +260,21 @@ export default function AccessibleCalculator({
 
               <div className="flex items-center justify-between py-2 border-b border-border">
                 <span className="text-muted-foreground">Focus first input</span>
-                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                   Ctrl+I
                 </kbd>
               </div>
 
               <div className="flex items-center justify-between py-2 border-b border-border">
                 <span className="text-muted-foreground">Show/hide shortcuts</span>
-                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                   Ctrl+/
                 </kbd>
               </div>
 
               <div className="flex items-center justify-between py-2">
                 <span className="text-muted-foreground">Navigate elements</span>
-                <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                <kbd className="px-2 py-1 bg-muted rounded text-sm font-mono">
                   Tab
                 </kbd>
               </div>
@@ -287,7 +287,7 @@ export default function AccessibleCalculator({
                 </svg>
                 <span>
                   All VerChem calculators support keyboard navigation for accessibility.
-                  Press <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">Tab</kbd> to
+                  Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs font-mono">Tab</kbd> to
                   navigate between fields.
                 </span>
               </p>
@@ -325,7 +325,7 @@ export function AccessibleInput({
     <div className="mb-4">
       <label
         htmlFor={inputId}
-        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-red-500' : ''}`}
+        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive' : ''}`}
       >
         {label}
       </label>
@@ -337,8 +337,8 @@ export function AccessibleInput({
         aria-describedby={`${error ? errorId : ''} ${helperText ? helperId : ''}`.trim() || undefined}
         className={`w-full px-4 py-2 border rounded-lg transition-colors text-foreground placeholder:text-muted-foreground ${
           error
-            ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-200'
-            : 'border-border bg-background focus:border-primary-600 focus:ring-primary-200'
+            ? 'border-destructive bg-destructive/10 focus:border-destructive focus:ring-destructive/20'
+            : 'border-border bg-background focus:border-primary-600 focus:ring-primary-500/20'
         } focus:outline-none focus:ring-2`}
         {...props}
       />
@@ -350,7 +350,7 @@ export function AccessibleInput({
       )}
 
       {error && (
-        <p id={errorId} role="alert" className="mt-1 text-sm text-red-600 font-medium">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive font-medium">
           {error}
         </p>
       )}
@@ -386,7 +386,7 @@ export function AccessibleSelect({
     <div className="mb-4">
       <label
         htmlFor={selectId}
-        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-red-500' : ''}`}
+        className={`block mb-2 font-medium ${required ? 'after:content-["*"] after:ml-1 after:text-destructive' : ''}`}
       >
         {label}
       </label>
@@ -398,8 +398,8 @@ export function AccessibleSelect({
         aria-describedby={`${error ? errorId : ''} ${helperText ? helperId : ''}`.trim() || undefined}
         className={`w-full px-4 py-2 border rounded-lg transition-colors text-foreground ${
           error
-            ? 'border-red-500 bg-red-50 focus:border-red-600 focus:ring-red-200'
-            : 'border-border bg-background focus:border-primary-600 focus:ring-primary-200'
+            ? 'border-destructive bg-destructive/10 focus:border-destructive focus:ring-destructive/20'
+            : 'border-border bg-background focus:border-primary-600 focus:ring-primary-500/20'
         } focus:outline-none focus:ring-2`}
         {...props}
       >
@@ -417,7 +417,7 @@ export function AccessibleSelect({
       )}
 
       {error && (
-        <p id={errorId} role="alert" className="mt-1 text-sm text-red-600 font-medium">
+        <p id={errorId} role="alert" className="mt-1 text-sm text-destructive font-medium">
           {error}
         </p>
       )}
@@ -447,10 +447,10 @@ export function AccessibleButton({
   const baseClasses = 'rounded-lg font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed'
 
   const variantClasses = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-    secondary: 'bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
+    primary: 'bg-primary-600 text-primary-foreground hover:bg-primary-700 focus:ring-primary-500',
+    secondary: 'bg-secondary-600 text-primary-foreground hover:bg-secondary-700 focus:ring-secondary-500',
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive',
+    success: 'bg-success text-success-foreground hover:bg-success/90 focus:ring-success',
   }
 
   const sizeClasses = {

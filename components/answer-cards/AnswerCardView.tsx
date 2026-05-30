@@ -32,9 +32,9 @@ function statusBadge(status: CardStatus): {
     case 'verified':
       return {
         label: 'VERIFIED',
-        colorClass: 'text-green-400',
-        borderClass: 'border-green-500/30',
-        bgClass: 'bg-green-500/10',
+        colorClass: 'text-success',
+        borderClass: 'border-success/30',
+        bgClass: 'bg-success/10',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -44,9 +44,9 @@ function statusBadge(status: CardStatus): {
     case 'partial':
       return {
         label: 'PARTIALLY VERIFIED',
-        colorClass: 'text-orange-300',
-        borderClass: 'border-orange-500/30',
-        bgClass: 'bg-orange-500/10',
+        colorClass: 'text-warning',
+        borderClass: 'border-warning/30',
+        bgClass: 'bg-warning/10',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -57,9 +57,9 @@ function statusBadge(status: CardStatus): {
     case 'error':
       return {
         label: 'CALCULATION ERROR',
-        colorClass: 'text-red-300',
-        borderClass: 'border-red-500/30',
-        bgClass: 'bg-red-500/10',
+        colorClass: 'text-destructive',
+        borderClass: 'border-destructive/30',
+        bgClass: 'bg-destructive/10',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -71,9 +71,9 @@ function statusBadge(status: CardStatus): {
     default:
       return {
         label: 'UNVERIFIED',
-        colorClass: 'text-yellow-300',
-        borderClass: 'border-yellow-500/30',
-        bgClass: 'bg-yellow-500/10',
+        colorClass: 'text-warning',
+        borderClass: 'border-warning/30',
+        bgClass: 'bg-warning/10',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -102,15 +102,15 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {tampered && (
         <div
           role="alert"
-          className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200"
+          className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
         >
-          <div className="flex items-center gap-2 font-semibold text-red-300">
+          <div className="flex items-center gap-2 font-semibold text-destructive">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             Signature invalid — this card may have been altered
           </div>
-          <p className="mt-1 text-red-200/80">
+          <p className="mt-1 text-destructive/80">
             The stored contents no longer match the cryptographic signature. Do not trust the values
             below as VerChem-verified.
           </p>
@@ -120,7 +120,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {/* Header: Verification badge */}
       <div className="flex flex-wrap items-center gap-3">
         {tampered ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-sm font-medium text-red-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -132,14 +132,14 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
             {badge.label}
           </span>
         )}
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-muted-foreground">
           {card.model} · {card.version}
         </span>
       </div>
 
       {/* Downgrade reason (engine-driven only) */}
       {badge.reason && (
-        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-3 text-sm text-orange-200">
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning">
           {badge.reason}
         </div>
       )}
@@ -147,7 +147,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       {/* Verified Engine Results — the authoritative answer */}
       {toolCalls.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-emerald-300 uppercase tracking-wide flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-success uppercase tracking-wide flex items-center gap-2">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -158,36 +158,36 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
               key={`${tc.name}-${idx}`}
               className={`rounded-xl border p-4 ${
                 tc.result?.ok
-                  ? 'border-green-500/20 bg-green-500/5'
-                  : 'border-red-500/20 bg-red-500/5'
+                  ? 'border-success/20 bg-success/5'
+                  : 'border-destructive/20 bg-destructive/5'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-white">{tc.engine}</span>
-                <span className="text-xs text-slate-500">{tc.name}</span>
+                <span className="text-sm font-medium text-foreground">{tc.engine}</span>
+                <span className="text-xs text-muted-foreground">{tc.name}</span>
               </div>
 
               <div className="grid gap-2 text-sm">
                 <div>
-                  <span className="text-slate-500">Inputs:</span>{' '}
-                  <code className="rounded bg-white/5 px-1.5 py-0.5 text-slate-300">
+                  <span className="text-muted-foreground">Inputs:</span>{' '}
+                  <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
                     {JSON.stringify(tc.input)}
                   </code>
                 </div>
                 {tc.result?.ok ? (
                   <div>
-                    <span className="text-slate-500">Result:</span>{' '}
-                    <code className="rounded bg-white/5 px-1.5 py-0.5 text-green-300">
+                    <span className="text-muted-foreground">Result:</span>{' '}
+                    <code className="rounded bg-success/10 px-1.5 py-0.5 text-success">
                       {JSON.stringify(tc.result.value)}
                     </code>
                   </div>
                 ) : (
-                  <div className="text-red-300">
-                    <span className="text-slate-500">Error:</span> {tc.result?.error}
+                  <div className="text-destructive">
+                    <span className="text-muted-foreground">Error:</span> {tc.result?.error}
                   </div>
                 )}
                 {tc.citation && (
-                  <div className="text-xs text-slate-500 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     Citation: {tc.citation}
                   </div>
                 )}
@@ -202,22 +202,22 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
         <div
           role="status"
           aria-label="Audit warning: unverified figures in explanation"
-          className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-3 text-sm text-yellow-200"
+          className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning"
         >
-          <span className="font-medium">⚠ Audit notice:</span> The explanation references figure(s) not produced by the verified engines. The authoritative values are shown in the Verified Engine Results above.
+          <span className="font-medium">Audit notice:</span> The explanation references figure(s) not produced by the verified engines. The authoritative values are shown in the Verified Engine Results above.
         </div>
       )}
 
       {/* Explanation */}
       {card.explanation && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
             Explanation
           </h3>
-          <div className="prose prose-invert max-w-none text-slate-200 whitespace-pre-wrap">
+          <div className="prose max-w-none text-foreground whitespace-pre-wrap">
             {card.explanation}
           </div>
-          <p className="mt-4 text-xs text-slate-500 italic">
+          <p className="mt-4 text-xs text-muted-foreground italic">
             This explanation is AI-generated narrative. Only the values in the Verified Engine Results above are computed by deterministic, signed engines.
           </p>
         </div>
@@ -225,16 +225,16 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
 
       {/* Signature */}
       {card.signature && (
-        <div className="rounded-xl border border-white/5 bg-white/5 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <div className="flex items-center gap-2 mb-1">
-            <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Tamper-proof Signature
             </span>
             {signatureValid === true && (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-green-400">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -242,12 +242,12 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
               </span>
             )}
           </div>
-          <code className="text-xs text-slate-400 break-all">{truncateSignature(card.signature)}</code>
+          <code className="text-xs text-muted-foreground break-all">{truncateSignature(card.signature)}</code>
         </div>
       )}
 
       {card.status === 'unverified' && toolCalls.length === 0 && (
-        <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-200">
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm text-warning">
           This answer is conceptual and was not verified by a deterministic calculation engine.
           Numerical claims should be independently checked.
         </div>

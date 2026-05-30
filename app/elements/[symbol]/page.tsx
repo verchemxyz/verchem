@@ -75,21 +75,24 @@ function formatCategory(category: ElementCategory): string {
   return categoryNames[category] || category
 }
 
-function getCategoryColor(category: ElementCategory): string {
-  const colors: Record<ElementCategory, string> = {
-    'alkali-metal': 'bg-red-500',
-    'alkaline-earth-metal': 'bg-orange-500',
-    'transition-metal': 'bg-yellow-500',
-    'post-transition-metal': 'bg-green-500',
-    'metalloid': 'bg-teal-500',
-    'nonmetal': 'bg-blue-500',
-    'halogen': 'bg-indigo-500',
-    'noble-gas': 'bg-purple-500',
-    'lanthanide': 'bg-pink-500',
-    'actinide': 'bg-rose-500',
-    'unknown': 'bg-gray-500',
+// Category color is SEMANTIC (encodes element category). Mapped to the
+// --element-* tokens as a tinted surface + token text + token border —
+// matching ElementModal/PeriodicTableGrid and AA-safe in both themes.
+function getCategoryStyle(category: ElementCategory): string {
+  const styles: Record<ElementCategory, string> = {
+    'alkali-metal': 'bg-element-alkali/15 text-element-alkali border border-element-alkali/50',
+    'alkaline-earth-metal': 'bg-element-alkaline/15 text-element-alkaline border border-element-alkaline/50',
+    'transition-metal': 'bg-element-transition/15 text-element-transition border border-element-transition/50',
+    'post-transition-metal': 'bg-element-metals/15 text-element-metals border border-element-metals/50',
+    'metalloid': 'bg-element-metalloids/15 text-element-metalloids border border-element-metalloids/50',
+    'nonmetal': 'bg-element-nonmetals/15 text-element-nonmetals border border-element-nonmetals/50',
+    'halogen': 'bg-element-halogens/15 text-element-halogens border border-element-halogens/50',
+    'noble-gas': 'bg-element-noble-gases/15 text-element-noble-gases border border-element-noble-gases/50',
+    'lanthanide': 'bg-element-lanthanides/15 text-element-lanthanides border border-element-lanthanides/50',
+    'actinide': 'bg-element-actinides/15 text-element-actinides border border-element-actinides/50',
+    'unknown': 'bg-muted text-muted-foreground border border-border',
   }
-  return colors[category] || 'bg-gray-500'
+  return styles[category] || 'bg-muted text-muted-foreground border border-border'
 }
 
 function formatTemperature(kelvin?: number): string {
@@ -188,50 +191,50 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
     <>
       <ElementSchema element={element} />
 
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
+      <main className="min-h-screen bg-background py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm">
             <ol className="flex items-center space-x-2">
-              <li><Link href="/" className="text-blue-600 hover:underline">Home</Link></li>
-              <li className="text-gray-400">/</li>
-              <li><Link href="/periodic-table" className="text-blue-600 hover:underline">Periodic Table</Link></li>
-              <li className="text-gray-400">/</li>
-              <li className="text-gray-600 dark:text-gray-300">{element.name}</li>
+              <li><Link href="/" className="text-primary-600 hover:text-primary-500 transition-colors">Home</Link></li>
+              <li className="text-muted-foreground">/</li>
+              <li><Link href="/periodic-table" className="text-primary-600 hover:text-primary-500 transition-colors">Periodic Table</Link></li>
+              <li className="text-muted-foreground">/</li>
+              <li className="text-foreground">{element.name}</li>
             </ol>
           </nav>
 
           {/* Hero Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+          <div className="border border-border rounded-lg bg-card p-8 mb-8">
             <div className="flex flex-col md:flex-row items-center gap-8">
               {/* Element Symbol Card */}
-              <div className={`w-40 h-40 ${getCategoryColor(element.category)} rounded-2xl flex flex-col items-center justify-center text-white shadow-lg`}>
-                <span className="text-sm opacity-80">{element.atomicNumber}</span>
+              <div className={`w-40 h-40 ${getCategoryStyle(element.category)} rounded-lg flex flex-col items-center justify-center`}>
+                <span className="text-sm font-mono opacity-80">{element.atomicNumber}</span>
                 <span className="text-5xl font-bold">{element.symbol}</span>
-                <span className="text-sm mt-1">{element.atomicMass.toFixed(4)}</span>
+                <span className="text-sm font-mono mt-1">{element.atomicMass.toFixed(4)}</span>
               </div>
 
               {/* Element Info */}
               <div className="flex-1 text-center md:text-left">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-4xl font-bold text-foreground mb-2">
                   {element.name}
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
+                <p className="text-xl text-muted-foreground mb-4">
                   {formatCategory(element.category)}
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                  <span className="px-3 py-1 bg-muted border border-border text-foreground rounded-full text-sm">
                     Period {element.period}
                   </span>
                   {element.group && (
-                    <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                    <span className="px-3 py-1 bg-muted border border-border text-foreground rounded-full text-sm">
                       Group {element.group}
                     </span>
                   )}
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                  <span className="px-3 py-1 bg-muted border border-border text-foreground rounded-full text-sm">
                     Block {element.block.toUpperCase()}
                   </span>
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm capitalize">
+                  <span className="px-3 py-1 bg-muted border border-border text-foreground rounded-full text-sm capitalize">
                     {element.standardState}
                   </span>
                 </div>
@@ -242,44 +245,44 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
           {/* Properties Grid */}
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Atomic Properties */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <div className="border border-border rounded-lg bg-card p-6">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 Atomic Properties
               </h2>
               <dl className="space-y-3">
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Atomic Number</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">{element.atomicNumber}</dd>
+                  <dt className="text-muted-foreground">Atomic Number</dt>
+                  <dd className="font-medium text-foreground font-mono">{element.atomicNumber}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Atomic Mass</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">{element.atomicMass.toFixed(4)} amu</dd>
+                  <dt className="text-muted-foreground">Atomic Mass</dt>
+                  <dd className="font-medium text-foreground font-mono">{element.atomicMass.toFixed(4)} amu</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Electron Configuration</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white font-mono text-sm">{element.electronConfiguration}</dd>
+                  <dt className="text-muted-foreground">Electron Configuration</dt>
+                  <dd className="font-medium text-foreground font-mono text-sm">{element.electronConfiguration}</dd>
                 </div>
                 {element.electronegativity && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Electronegativity</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.electronegativity} (Pauling)</dd>
+                    <dt className="text-muted-foreground">Electronegativity</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.electronegativity} (Pauling)</dd>
                   </div>
                 )}
                 {element.ionizationEnergy && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Ionization Energy</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.ionizationEnergy} kJ/mol</dd>
+                    <dt className="text-muted-foreground">Ionization Energy</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.ionizationEnergy} kJ/mol</dd>
                   </div>
                 )}
                 {element.electronAffinity && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Electron Affinity</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.electronAffinity} kJ/mol</dd>
+                    <dt className="text-muted-foreground">Electron Affinity</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.electronAffinity} kJ/mol</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Oxidation States</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">
+                  <dt className="text-muted-foreground">Oxidation States</dt>
+                  <dd className="font-medium text-foreground font-mono">
                     {element.oxidationStates.map(s => s > 0 ? `+${s}` : s).join(', ')}
                   </dd>
                 </div>
@@ -287,45 +290,45 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
             </div>
 
             {/* Physical Properties */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <div className="border border-border rounded-lg bg-card p-6">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 Physical Properties
               </h2>
               <dl className="space-y-3">
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Standard State</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white capitalize">{element.standardState}</dd>
+                  <dt className="text-muted-foreground">Standard State</dt>
+                  <dd className="font-medium text-foreground capitalize">{element.standardState}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Melting Point</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">{formatTemperature(element.meltingPoint)}</dd>
+                  <dt className="text-muted-foreground">Melting Point</dt>
+                  <dd className="font-medium text-foreground font-mono">{formatTemperature(element.meltingPoint)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Boiling Point</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">{formatTemperature(element.boilingPoint)}</dd>
+                  <dt className="text-muted-foreground">Boiling Point</dt>
+                  <dd className="font-medium text-foreground font-mono">{formatTemperature(element.boilingPoint)}</dd>
                 </div>
                 {element.density && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Density</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.density} g/cm³</dd>
+                    <dt className="text-muted-foreground">Density</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.density} g/cm³</dd>
                   </div>
                 )}
                 {element.atomicRadius && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Atomic Radius</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.atomicRadius} pm</dd>
+                    <dt className="text-muted-foreground">Atomic Radius</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.atomicRadius} pm</dd>
                   </div>
                 )}
                 {element.covalentRadius && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Covalent Radius</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.covalentRadius} pm</dd>
+                    <dt className="text-muted-foreground">Covalent Radius</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.covalentRadius} pm</dd>
                   </div>
                 )}
                 {element.vanDerWaalsRadius && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Van der Waals Radius</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.vanDerWaalsRadius} pm</dd>
+                    <dt className="text-muted-foreground">Van der Waals Radius</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.vanDerWaalsRadius} pm</dd>
                   </div>
                 )}
               </dl>
@@ -334,27 +337,27 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
 
           {/* Discovery Section */}
           {(element.discoveryYear || element.discoverer || element.nameMeaning) && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <div className="border border-border rounded-lg bg-card p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 Discovery & Etymology
               </h2>
               <dl className="space-y-3">
                 {element.discoveryYear && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Discovery Year</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.discoveryYear}</dd>
+                    <dt className="text-muted-foreground">Discovery Year</dt>
+                    <dd className="font-medium text-foreground font-mono">{element.discoveryYear}</dd>
                   </div>
                 )}
                 {element.discoverer && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Discoverer</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.discoverer}</dd>
+                    <dt className="text-muted-foreground">Discoverer</dt>
+                    <dd className="font-medium text-foreground">{element.discoverer}</dd>
                   </div>
                 )}
                 {element.nameMeaning && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Name Origin</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{element.nameMeaning}</dd>
+                    <dt className="text-muted-foreground">Name Origin</dt>
+                    <dd className="font-medium text-foreground">{element.nameMeaning}</dd>
                   </div>
                 )}
               </dl>
@@ -363,8 +366,8 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
 
           {/* Related Elements */}
           {relatedElements.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+            <div className="border border-border rounded-lg bg-card p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4 text-foreground">
                 Related Elements
               </h2>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -372,11 +375,11 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
                   <Link
                     key={el.symbol}
                     href={`/elements/${el.symbol.toLowerCase()}`}
-                    className={`${getCategoryColor(el.category)} rounded-lg p-3 text-white text-center hover:opacity-90 transition-opacity`}
+                    className={`${getCategoryStyle(el.category)} rounded-lg p-3 text-center transition-opacity hover:opacity-80`}
                   >
-                    <span className="text-xs opacity-80">{el.atomicNumber}</span>
+                    <span className="text-xs font-mono opacity-80">{el.atomicNumber}</span>
                     <div className="text-xl font-bold">{el.symbol}</div>
-                    <span className="text-xs truncate block">{el.name}</span>
+                    <span className="text-xs text-foreground truncate block">{el.name}</span>
                   </Link>
                 ))}
               </div>
@@ -384,27 +387,27 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
           )}
 
           {/* Tools CTA */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
-            <h2 className="text-xl font-semibold mb-2">Explore More Chemistry Tools</h2>
-            <p className="opacity-90 mb-4">
+          <div className="border border-border rounded-lg bg-card p-6 border-l-2 border-l-primary-500">
+            <h2 className="text-xl font-semibold mb-2 text-foreground">Explore more chemistry tools</h2>
+            <p className="text-muted-foreground mb-4">
               Use our calculators to work with {element.name} in chemical reactions and calculations.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/periodic-table"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                className="px-4 py-2 bg-primary-500 text-primary-foreground hover:bg-primary-600 rounded-md font-medium transition-colors"
               >
                 Interactive Periodic Table
               </Link>
               <Link
                 href="/tools/stoichiometry"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                className="px-4 py-2 border border-border bg-card text-foreground hover:bg-muted rounded-md font-medium transition-colors"
               >
                 Stoichiometry Calculator
               </Link>
               <Link
                 href="/tools/molar-mass"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                className="px-4 py-2 border border-border bg-card text-foreground hover:bg-muted rounded-md font-medium transition-colors"
               >
                 Molar Mass Calculator
               </Link>

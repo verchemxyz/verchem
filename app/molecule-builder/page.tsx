@@ -150,25 +150,26 @@ export default function MoleculeBuilderPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 flex flex-col md:flex-row overflow-hidden font-sans">
-      
+    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row overflow-hidden">
+
       {/* Main Canvas Area */}
       <main className="flex-1 relative order-2 md:order-1 h-[100vh] md:h-auto overflow-hidden">
-        
+
         {/* Header / Title Overlay */}
         <div className="absolute top-6 left-8 z-10 pointer-events-none">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-violet-500 filter drop-shadow-lg">
-            Molecule Builder <span className="text-xs align-top opacity-50 font-mono border border-cyan-500/30 px-1 rounded">PRO</span>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-baseline gap-2">
+            Molecule Builder
+            <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground border border-border px-1.5 py-0.5 rounded">Pro</span>
           </h1>
-          <p className="text-slate-400 text-sm max-w-md mt-1 text-shadow-sm">
+          <p className="text-muted-foreground text-sm max-w-md mt-1">
             Construct 2D molecules with intelligent validation.
           </p>
-          
+
           {/* Dynamic Molecule Name */}
           <div className="mt-4 h-8 transition-all duration-300">
             {moleculeName && (
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/40 backdrop-blur-md animate-in fade-in slide-in-from-left-4">
-                <span className="text-cyan-300 font-bold tracking-wide">{moleculeName}</span>
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-card border border-primary-500/40">
+                <span className="text-primary-600 font-bold tracking-wide">{moleculeName}</span>
               </div>
             )}
           </div>
@@ -194,8 +195,8 @@ export default function MoleculeBuilderPage() {
       </main>
 
       {/* Sidebar / Toolbar */}
-      <aside className="w-full md:w-80 p-4 md:p-6 bg-[#020617]/50 backdrop-blur-sm border-t md:border-t-0 md:border-l border-slate-800 flex flex-col gap-6 order-1 md:order-2 z-20 shadow-2xl">
-        
+      <aside className="w-full md:w-80 p-4 md:p-6 bg-card border-t md:border-t-0 md:border-l border-border flex flex-col gap-6 order-1 md:order-2 z-20">
+
         {/* Toolbar Component */}
         <Toolbar
           selectedElement={selectedElement}
@@ -205,18 +206,18 @@ export default function MoleculeBuilderPage() {
         />
 
         {/* Validation Hints Panel */}
-        <div className="flex-1 bg-slate-900/60 rounded-2xl border border-slate-800/60 p-5 backdrop-blur-md overflow-y-auto">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <div className="flex-1 bg-muted rounded-lg border border-border p-5 overflow-y-auto">
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
              Analysis Engine
-             {validation?.isStable && <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]"></span>}
-          </h3>
-          
+             {validation?.isStable && <span className="w-2 h-2 rounded-full bg-success"></span>}
+          </h2>
+
           {validation ? (
             <div className="space-y-3">
                {/* Formula */}
-               <div className="flex justify-between items-center p-3 rounded-xl bg-slate-950/50 border border-slate-800">
-                  <span className="text-xs text-slate-500">Formula</span>
-                  <span className="font-mono text-cyan-300 font-bold text-lg tracking-wider">
+               <div className="flex justify-between items-center p-3 rounded-md bg-card border border-border">
+                  <span className="text-xs text-muted-foreground">Formula</span>
+                  <span className="font-mono text-primary-600 font-bold text-lg tracking-wider">
                     {validation.formula === 'Empty' ? '—' : validation.formula}
                   </span>
                </div>
@@ -225,8 +226,8 @@ export default function MoleculeBuilderPage() {
                {validation.hints.length > 0 && (
                  <div className="space-y-2">
                     {validation.hints.map((hint, i) => (
-                      <div key={i} className="text-xs p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-200/90 leading-relaxed flex gap-2">
-                        <span className="text-amber-500 font-bold">!</span>
+                      <div key={i} className="text-xs p-3 rounded-md bg-warning/10 border border-warning/30 text-foreground leading-relaxed flex gap-2">
+                        <span className="text-warning font-bold">!</span>
                         {hint}
                       </div>
                     ))}
@@ -237,26 +238,23 @@ export default function MoleculeBuilderPage() {
                {validation.warnings.length > 0 && (
                  <div className="space-y-2">
                     {validation.warnings.map((warn, i) => (
-                      <div key={i} className="text-xs p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300/90 leading-relaxed flex gap-2">
-                        <span className="text-red-500 font-bold">⚠</span>
+                      <div key={i} className="text-xs p-3 rounded-md bg-destructive/10 border border-destructive/30 text-foreground leading-relaxed flex gap-2">
+                        <span className="text-destructive font-bold">!</span>
                         {warn}
                       </div>
                     ))}
                  </div>
                )}
-               
+
                {validation.isValid && validation.hints.length === 0 && (
-                   <div className="text-center p-8 text-slate-600 flex flex-col items-center gap-2">
-                       <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-2">
-                           <span className="text-2xl">✨</span>
-                       </div>
-                       <p className="text-sm font-medium text-green-400">Perfectly Stable</p>
+                   <div className="text-center p-8 text-muted-foreground flex flex-col items-center gap-2">
+                       <p className="text-sm font-medium text-success">Perfectly Stable</p>
                        <p className="text-xs">Ready for 3D simulation</p>
                    </div>
                )}
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-600 space-y-2">
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-2">
               <p className="text-sm">Start building to see analysis</p>
             </div>
           )}

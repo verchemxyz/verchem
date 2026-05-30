@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
 import { ElementCategory } from '@/lib/types/chemistry'
+import { CalcShell, Card, SectionTitle } from '@/components/lab'
 
 // Static metadata for SEO
 export const metadata: Metadata = {
@@ -32,34 +33,38 @@ export const metadata: Metadata = {
   },
 }
 
-// Element categories with display info
-const CATEGORIES: { id: ElementCategory; name: string; color: string; bgColor: string; count: number }[] = [
-  { id: 'alkali-metal', name: 'Alkali Metals', color: 'text-red-700', bgColor: 'bg-red-100 hover:bg-red-200', count: 6 },
-  { id: 'alkaline-earth-metal', name: 'Alkaline Earth Metals', color: 'text-orange-700', bgColor: 'bg-orange-100 hover:bg-orange-200', count: 6 },
-  { id: 'transition-metal', name: 'Transition Metals', color: 'text-yellow-700', bgColor: 'bg-yellow-100 hover:bg-yellow-200', count: 38 },
-  { id: 'post-transition-metal', name: 'Post-Transition Metals', color: 'text-green-700', bgColor: 'bg-green-100 hover:bg-green-200', count: 7 },
-  { id: 'metalloid', name: 'Metalloids', color: 'text-teal-700', bgColor: 'bg-teal-100 hover:bg-teal-200', count: 7 },
-  { id: 'nonmetal', name: 'Nonmetals', color: 'text-blue-700', bgColor: 'bg-blue-100 hover:bg-blue-200', count: 7 },
-  { id: 'halogen', name: 'Halogens', color: 'text-indigo-700', bgColor: 'bg-indigo-100 hover:bg-indigo-200', count: 5 },
-  { id: 'noble-gas', name: 'Noble Gases', color: 'text-purple-700', bgColor: 'bg-purple-100 hover:bg-purple-200', count: 7 },
-  { id: 'lanthanide', name: 'Lanthanides', color: 'text-pink-700', bgColor: 'bg-pink-100 hover:bg-pink-200', count: 15 },
-  { id: 'actinide', name: 'Actinides', color: 'text-rose-700', bgColor: 'bg-rose-100 hover:bg-rose-200', count: 15 },
-  { id: 'unknown', name: 'Unknown Properties', color: 'text-gray-700', bgColor: 'bg-gray-100 hover:bg-gray-200', count: 5 },
+// Element categories with display info.
+// Colors are SEMANTIC (encode element category) → mapped to the --element-*
+// tokens (text + tinted surface + border), matching ElementModal/PeriodicTableGrid.
+const CATEGORIES: { id: ElementCategory; name: string; chip: string; count: number }[] = [
+  { id: 'alkali-metal', name: 'Alkali Metals', chip: 'bg-element-alkali/15 text-element-alkali border border-element-alkali/40 hover:bg-element-alkali/25', count: 6 },
+  { id: 'alkaline-earth-metal', name: 'Alkaline Earth Metals', chip: 'bg-element-alkaline/15 text-element-alkaline border border-element-alkaline/40 hover:bg-element-alkaline/25', count: 6 },
+  { id: 'transition-metal', name: 'Transition Metals', chip: 'bg-element-transition/15 text-element-transition border border-element-transition/40 hover:bg-element-transition/25', count: 38 },
+  { id: 'post-transition-metal', name: 'Post-Transition Metals', chip: 'bg-element-metals/15 text-element-metals border border-element-metals/40 hover:bg-element-metals/25', count: 7 },
+  { id: 'metalloid', name: 'Metalloids', chip: 'bg-element-metalloids/15 text-element-metalloids border border-element-metalloids/40 hover:bg-element-metalloids/25', count: 7 },
+  { id: 'nonmetal', name: 'Nonmetals', chip: 'bg-element-nonmetals/15 text-element-nonmetals border border-element-nonmetals/40 hover:bg-element-nonmetals/25', count: 7 },
+  { id: 'halogen', name: 'Halogens', chip: 'bg-element-halogens/15 text-element-halogens border border-element-halogens/40 hover:bg-element-halogens/25', count: 5 },
+  { id: 'noble-gas', name: 'Noble Gases', chip: 'bg-element-noble-gases/15 text-element-noble-gases border border-element-noble-gases/40 hover:bg-element-noble-gases/25', count: 7 },
+  { id: 'lanthanide', name: 'Lanthanides', chip: 'bg-element-lanthanides/15 text-element-lanthanides border border-element-lanthanides/40 hover:bg-element-lanthanides/25', count: 15 },
+  { id: 'actinide', name: 'Actinides', chip: 'bg-element-actinides/15 text-element-actinides border border-element-actinides/40 hover:bg-element-actinides/25', count: 15 },
+  { id: 'unknown', name: 'Unknown Properties', chip: 'bg-muted text-muted-foreground border border-border hover:bg-accent', count: 5 },
 ]
 
+// Per-element tile style by category (semantic — --element-* tokens).
+// Tinted token surface + token text + token border, matching the rest of the app.
 function getCategoryStyle(category: ElementCategory): { bg: string; text: string; border: string } {
   const styles: Record<ElementCategory, { bg: string; text: string; border: string }> = {
-    'alkali-metal': { bg: 'bg-red-500', text: 'text-white', border: 'border-red-600' },
-    'alkaline-earth-metal': { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-600' },
-    'transition-metal': { bg: 'bg-yellow-500', text: 'text-gray-900', border: 'border-yellow-600' },
-    'post-transition-metal': { bg: 'bg-green-500', text: 'text-white', border: 'border-green-600' },
-    'metalloid': { bg: 'bg-teal-500', text: 'text-white', border: 'border-teal-600' },
-    'nonmetal': { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-600' },
-    'halogen': { bg: 'bg-indigo-500', text: 'text-white', border: 'border-indigo-600' },
-    'noble-gas': { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-600' },
-    'lanthanide': { bg: 'bg-pink-500', text: 'text-white', border: 'border-pink-600' },
-    'actinide': { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-600' },
-    'unknown': { bg: 'bg-gray-400', text: 'text-white', border: 'border-gray-500' },
+    'alkali-metal': { bg: 'bg-element-alkali/15 hover:bg-element-alkali/25', text: 'text-element-alkali', border: 'border-element-alkali/50' },
+    'alkaline-earth-metal': { bg: 'bg-element-alkaline/15 hover:bg-element-alkaline/25', text: 'text-element-alkaline', border: 'border-element-alkaline/50' },
+    'transition-metal': { bg: 'bg-element-transition/15 hover:bg-element-transition/25', text: 'text-element-transition', border: 'border-element-transition/50' },
+    'post-transition-metal': { bg: 'bg-element-metals/15 hover:bg-element-metals/25', text: 'text-element-metals', border: 'border-element-metals/50' },
+    'metalloid': { bg: 'bg-element-metalloids/15 hover:bg-element-metalloids/25', text: 'text-element-metalloids', border: 'border-element-metalloids/50' },
+    'nonmetal': { bg: 'bg-element-nonmetals/15 hover:bg-element-nonmetals/25', text: 'text-element-nonmetals', border: 'border-element-nonmetals/50' },
+    'halogen': { bg: 'bg-element-halogens/15 hover:bg-element-halogens/25', text: 'text-element-halogens', border: 'border-element-halogens/50' },
+    'noble-gas': { bg: 'bg-element-noble-gases/15 hover:bg-element-noble-gases/25', text: 'text-element-noble-gases', border: 'border-element-noble-gases/50' },
+    'lanthanide': { bg: 'bg-element-lanthanides/15 hover:bg-element-lanthanides/25', text: 'text-element-lanthanides', border: 'border-element-lanthanides/50' },
+    'actinide': { bg: 'bg-element-actinides/15 hover:bg-element-actinides/25', text: 'text-element-actinides', border: 'border-element-actinides/50' },
+    'unknown': { bg: 'bg-muted hover:bg-accent', text: 'text-muted-foreground', border: 'border-border' },
   }
   return styles[category] || styles.unknown
 }
@@ -108,95 +113,70 @@ export default function ElementsIndexPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-        {/* Header */}
-        <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">V</span>
-              </div>
-              <h1 className="text-2xl font-bold">
-                <span className="text-blue-600">Ver</span>
-                <span className="text-gray-900">Chem</span>
-              </h1>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/tools/periodic-table"
-                className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
-              >
-                Interactive Periodic Table →
-              </Link>
-              <Link href="/" className="text-gray-600 hover:text-blue-600 transition-colors">
-                ← Back to Home
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* Hero Section */}
-        <section className="py-12 px-4">
-          <div className="max-w-7xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 bg-clip-text text-transparent">
-              Periodic Table of Elements
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Explore all <span className="font-bold text-purple-600">118 chemical elements</span> with detailed
-              atomic properties, electron configurations, and physical data. Click any element to learn more.
-            </p>
-
-            {/* Stats */}
-            <div className="flex flex-wrap justify-center gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-md px-6 py-4">
-                <div className="text-3xl font-bold text-purple-600">118</div>
-                <div className="text-sm text-gray-500">Elements</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-md px-6 py-4">
-                <div className="text-3xl font-bold text-blue-600">11</div>
-                <div className="text-sm text-gray-500">Categories</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-md px-6 py-4">
-                <div className="text-3xl font-bold text-teal-600">7</div>
-                <div className="text-sm text-gray-500">Periods</div>
-              </div>
-              <div className="bg-white rounded-xl shadow-md px-6 py-4">
-                <div className="text-3xl font-bold text-green-600">18</div>
-                <div className="text-sm text-gray-500">Groups</div>
-              </div>
-            </div>
-          </div>
-        </section>
+      <CalcShell
+        eyebrow="Reference data · 118 elements · NIST/IUPAC 2021"
+        title="Periodic Table of Elements"
+        subtitle="Explore all 118 chemical elements with detailed atomic properties, electron configurations, and physical data. Click any element to learn more."
+        backHref="/"
+        backLabel="Home"
+        maxWidth="7xl"
+        action={
+          <Link
+            href="/tools/periodic-table"
+            className="inline-flex items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium px-4 py-2 min-h-[44px]"
+          >
+            Interactive Periodic Table →
+          </Link>
+        }
+      >
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Card className="px-6 py-4 text-center">
+            <div className="text-3xl font-bold font-mono text-primary-600">118</div>
+            <div className="text-sm text-muted-foreground">Elements</div>
+          </Card>
+          <Card className="px-6 py-4 text-center">
+            <div className="text-3xl font-bold font-mono text-primary-600">11</div>
+            <div className="text-sm text-muted-foreground">Categories</div>
+          </Card>
+          <Card className="px-6 py-4 text-center">
+            <div className="text-3xl font-bold font-mono text-primary-600">7</div>
+            <div className="text-sm text-muted-foreground">Periods</div>
+          </Card>
+          <Card className="px-6 py-4 text-center">
+            <div className="text-3xl font-bold font-mono text-primary-600">18</div>
+            <div className="text-sm text-muted-foreground">Groups</div>
+          </Card>
+        </div>
 
         {/* Category Legend */}
-        <section className="px-4 mb-8">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Element Categories</h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {CATEGORIES.map((cat) => (
-                <a
-                  key={cat.id}
-                  href={`#${cat.id}`}
-                  className={`px-4 py-2 rounded-full ${cat.bgColor} ${cat.color} text-sm font-medium transition-all`}
-                >
-                  {cat.name} ({cat.count})
-                </a>
-              ))}
-            </div>
+        <Card className="p-6">
+          <SectionTitle className="mb-4 text-center">Element categories</SectionTitle>
+          <div className="flex flex-wrap justify-center gap-3">
+            {CATEGORIES.map((cat) => (
+              <a
+                key={cat.id}
+                href={`#${cat.id}`}
+                className={`px-4 py-2 rounded-full ${cat.chip} text-sm font-medium transition-colors`}
+              >
+                {cat.name} ({cat.count})
+              </a>
+            ))}
           </div>
-        </section>
+        </Card>
 
         {/* Elements by Category */}
-        <main className="max-w-7xl mx-auto px-4 pb-16">
+        <div>
           {CATEGORIES.map((category) => {
             const elements = groupedElements[category.id] || []
             if (elements.length === 0) return null
 
+            const headingStyle = getCategoryStyle(category.id)
             return (
               <section key={category.id} id={category.id} className="mb-12 scroll-mt-24">
-                <h2 className={`text-2xl font-bold mb-4 ${category.color}`}>
+                <h2 className={`text-2xl font-bold mb-4 ${headingStyle.text}`}>
                   {category.name}
-                  <span className="text-gray-400 text-lg font-normal ml-2">
+                  <span className="text-muted-foreground text-lg font-normal ml-2">
                     ({elements.length} element{elements.length !== 1 ? 's' : ''})
                   </span>
                 </h2>
@@ -208,12 +188,12 @@ export default function ElementsIndexPage() {
                       <Link
                         key={element.symbol}
                         href={`/elements/${element.symbol.toLowerCase()}`}
-                        className={`${style.bg} ${style.text} rounded-lg p-3 text-center transition-all hover:scale-105 hover:shadow-lg border-2 ${style.border}`}
+                        className={`${style.bg} ${style.text} rounded-lg p-3 text-center transition-colors border ${style.border}`}
                       >
-                        <div className="text-xs opacity-75">{element.atomicNumber}</div>
+                        <div className="text-xs opacity-75 font-mono">{element.atomicNumber}</div>
                         <div className="text-2xl font-bold">{element.symbol}</div>
-                        <div className="text-xs truncate">{element.name}</div>
-                        <div className="text-[10px] opacity-75 mt-1">
+                        <div className="text-xs text-foreground truncate">{element.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono mt-1">
                           {element.atomicMass.toFixed(2)}
                         </div>
                       </Link>
@@ -223,59 +203,49 @@ export default function ElementsIndexPage() {
               </section>
             )
           })}
-        </main>
+        </div>
 
         {/* Quick Links */}
-        <section className="bg-gray-50 py-12 px-4">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Quick Links</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Link
-                href="/tools/periodic-table"
-                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="text-3xl mb-2">🔬</div>
-                <h3 className="text-lg font-semibold text-gray-800">Interactive Periodic Table</h3>
-                <p className="text-gray-600 text-sm mt-2">
-                  Explore elements with our interactive periodic table tool
-                </p>
-              </Link>
+        <Card className="p-6">
+          <SectionTitle className="mb-6 text-center">Quick links</SectionTitle>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link
+              href="/tools/periodic-table"
+              className="border border-border rounded-lg bg-muted p-6 hover:border-primary-500/40 hover:bg-accent transition-colors"
+            >
+              <h3 className="text-lg font-semibold text-foreground">Interactive Periodic Table</h3>
+              <p className="text-muted-foreground text-sm mt-2">
+                Explore elements with our interactive periodic table tool
+              </p>
+            </Link>
 
-              <Link
-                href="/compounds"
-                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="text-3xl mb-2">🧪</div>
-                <h3 className="text-lg font-semibold text-gray-800">Compound Database</h3>
-                <p className="text-gray-600 text-sm mt-2">
-                  Browse 1,300+ chemical compounds with detailed properties
-                </p>
-              </Link>
+            <Link
+              href="/compounds"
+              className="border border-border rounded-lg bg-muted p-6 hover:border-primary-500/40 hover:bg-accent transition-colors"
+            >
+              <h3 className="text-lg font-semibold text-foreground">Compound Database</h3>
+              <p className="text-muted-foreground text-sm mt-2">
+                Browse 1,300+ chemical compounds with detailed properties
+              </p>
+            </Link>
 
-              <Link
-                href="/tools/molar-mass"
-                className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="text-3xl mb-2">⚖️</div>
-                <h3 className="text-lg font-semibold text-gray-800">Molar Mass Calculator</h3>
-                <p className="text-gray-600 text-sm mt-2">
-                  Calculate molar mass for any chemical formula
-                </p>
-              </Link>
-            </div>
+            <Link
+              href="/tools/molar-mass"
+              className="border border-border rounded-lg bg-muted p-6 hover:border-primary-500/40 hover:bg-accent transition-colors"
+            >
+              <h3 className="text-lg font-semibold text-foreground">Molar Mass Calculator</h3>
+              <p className="text-muted-foreground text-sm mt-2">
+                Calculate molar mass for any chemical formula
+              </p>
+            </Link>
           </div>
-        </section>
+        </Card>
 
-        {/* Footer */}
-        <footer className="border-t border-gray-200 py-8 px-4 bg-white">
-          <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
-            <p>Data sourced from NIST and IUPAC (2021)</p>
-            <p className="mt-2">
-              © 2025 VerChem. All 118 elements with verified atomic data.
-            </p>
-          </div>
-        </footer>
-      </div>
+        {/* Footnote */}
+        <p className="text-center text-xs text-muted-foreground">
+          Data sourced from NIST and IUPAC (2021). All 118 elements with verified atomic data.
+        </p>
+      </CalcShell>
     </>
   )
 }

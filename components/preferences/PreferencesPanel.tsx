@@ -173,7 +173,7 @@ export function PreferencesPanel({ open, onClose, defaultCategory = 'general' }:
               {Object.entries(LANGUAGES).map(([key, lang]) => (
                 <SelectItem key={key} value={key}>
                   <div className="flex items-center gap-2">
-                    <span>{lang.flag}</span>
+                    <span className="font-mono text-xs uppercase text-muted-foreground">{key}</span>
                     <span>{lang.name}</span>
                     <span className="text-muted-foreground">({lang.native})</span>
                   </div>
@@ -196,7 +196,7 @@ export function PreferencesPanel({ open, onClose, defaultCategory = 'general' }:
               {Object.entries(REGIONS).map(([key, region]) => (
                 <SelectItem key={key} value={key}>
                   <div className="flex items-center gap-2">
-                    <span>{region.flag}</span>
+                    <span className="font-mono text-xs uppercase text-muted-foreground">{key}</span>
                     <span>{region.name}</span>
                   </div>
                 </SelectItem>

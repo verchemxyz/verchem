@@ -159,7 +159,7 @@ export function TutorialOverlay() {
             >
               <div className="absolute inset-0 bg-black bg-opacity-50" />
               <div
-                className="absolute bg-transparent border-4 border-blue-400 rounded-lg"
+                className="absolute bg-transparent border-4 border-primary-500 rounded-lg"
                 style={{
                   top: spotlightRect.top - 8,
                   left: spotlightRect.left - 8,
@@ -177,7 +177,7 @@ export function TutorialOverlay() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 max-w-md"
+            className="fixed z-50 bg-card rounded-lg border border-border max-w-md"
             style={
               tooltipStyle ?? {
                 top: '50%',
@@ -187,36 +187,36 @@ export function TutorialOverlay() {
             }
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 dark:text-blue-400 text-sm font-semibold">
+                <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 dark:text-primary-400 text-sm font-semibold">
                     {currentStep + 1}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                  <h3 className="font-semibold text-foreground">
                     {currentTutorial.title}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-muted-foreground">
                     Step {currentStep + 1} of {currentTutorial.steps.length}
                   </p>
                 </div>
               </div>
               <button
                 onClick={skipTutorial}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                className="p-1 hover:bg-accent rounded transition-colors"
                 aria-label="Close tutorial"
               >
-                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
 
             {/* Progress Bar */}
             <div className="px-4 pt-2">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+              <div className="w-full bg-muted rounded-full h-1">
                 <motion.div
-                  className="bg-blue-500 h-1 rounded-full"
+                  className="bg-primary-500 h-1 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3 }}
@@ -226,46 +226,46 @@ export function TutorialOverlay() {
 
             {/* Content */}
             <div className="p-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+              <h4 className="font-semibold text-foreground mb-2">
                 {currentStepData.title}
               </h4>
-              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {currentStepData.content}
               </p>
 
               {/* Interactive indicator */}
               {currentStepData.interactive && (
-                <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    💡 Try this yourself! {currentStepData.action && `(${currentStepData.action} the highlighted element)`}
+                <div className="mt-3 p-2 bg-accent border border-border rounded-lg">
+                  <p className="text-xs text-primary-600 dark:text-primary-400">
+                    Try this yourself! {currentStepData.action && `(${currentStepData.action} the highlighted element)`}
                   </p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 border-t border-border">
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => preferences.narration ? updatePreferences({ narration: false }) : updatePreferences({ narration: true })}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="p-2 hover:bg-accent rounded transition-colors"
                   aria-label="Toggle narration"
                 >
                   {preferences.narration ? (
-                    <Volume2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <Volume2 className="w-4 h-4 text-muted-foreground" />
                   ) : (
-                    <VolumeX className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <VolumeX className="w-4 h-4 text-muted-foreground" />
                   )}
                 </button>
                 <button
                   onClick={isPaused ? resumeTutorial : pauseTutorial}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="p-2 hover:bg-accent rounded transition-colors"
                   aria-label={isPaused ? "Resume tutorial" : "Pause tutorial"}
                 >
                   {isPaused ? (
-                    <Play className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <Play className="w-4 h-4 text-muted-foreground" />
                   ) : (
-                    <Pause className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    <Pause className="w-4 h-4 text-muted-foreground" />
                   )}
                 </button>
               </div>
@@ -273,21 +273,21 @@ export function TutorialOverlay() {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={skipTutorial}
-                  className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                  className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <FastForward className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handlePrevious}
                   disabled={currentStep === 0}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 hover:bg-accent rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Previous step"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center space-x-1"
+                  className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-primary-foreground text-sm font-medium rounded-lg transition-colors flex items-center space-x-1"
                 >
                   <span>{isLastStep ? 'Finish' : 'Next'}</span>
                   {!isLastStep && <ChevronRight className="w-4 h-4" />}

@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Beaker, Calculator, CheckCircle, Droplets, FlaskConical, Sparkles, Zap } from 'lucide-react'
 import { PHCalculatorSchema } from '@/components/seo/JsonLd'
+import { CalcShell, Card, SectionTitle, Button, ErrorBanner } from '@/components/lab'
 
 type CalculationType = 'ph' | 'poh' | 'h+' | 'oh-'
 
@@ -39,19 +40,19 @@ function calculateFromOH(ohConcentration: number): CalculationResult {
 }
 
 const pH_EXAMPLES = [
-  { name: 'Battery Acid', pH: 0, color: 'from-red-600 to-red-500' },
-  { name: 'Stomach Acid', pH: 1.5, color: 'from-red-500 to-orange-500' },
-  { name: 'Lemon Juice', pH: 2.4, color: 'from-orange-500 to-orange-400' },
-  { name: 'Vinegar', pH: 2.9, color: 'from-orange-400 to-yellow-500' },
-  { name: 'Orange Juice', pH: 3.5, color: 'from-yellow-500 to-yellow-400' },
-  { name: 'Coffee', pH: 5, color: 'from-yellow-400 to-green-400' },
-  { name: 'Pure Water', pH: 7, color: 'from-green-400 to-green-500' },
-  { name: 'Blood', pH: 7.4, color: 'from-green-500 to-teal-400' },
-  { name: 'Seawater', pH: 8.1, color: 'from-teal-400 to-cyan-400' },
-  { name: 'Baking Soda', pH: 9, color: 'from-cyan-400 to-blue-400' },
-  { name: 'Ammonia', pH: 11.5, color: 'from-blue-400 to-blue-500' },
-  { name: 'Bleach', pH: 12.5, color: 'from-blue-500 to-purple-500' },
-  { name: 'Drain Cleaner', pH: 14, color: 'from-purple-500 to-purple-600' },
+  { name: 'Battery Acid', pH: 0 },
+  { name: 'Stomach Acid', pH: 1.5 },
+  { name: 'Lemon Juice', pH: 2.4 },
+  { name: 'Vinegar', pH: 2.9 },
+  { name: 'Orange Juice', pH: 3.5 },
+  { name: 'Coffee', pH: 5 },
+  { name: 'Pure Water', pH: 7 },
+  { name: 'Blood', pH: 7.4 },
+  { name: 'Seawater', pH: 8.1 },
+  { name: 'Baking Soda', pH: 9 },
+  { name: 'Ammonia', pH: 11.5 },
+  { name: 'Bleach', pH: 12.5 },
+  { name: 'Drain Cleaner', pH: 14 },
 ]
 
 export default function PHCalculatorPage() {
@@ -113,217 +114,174 @@ export default function PHCalculatorPage() {
     }, 300)
   }, [calcType, inputValue])
 
-  const getpHColor = (pH: number) => {
-    if (pH <= 2) return 'text-red-500'
-    if (pH <= 4) return 'text-orange-500'
-    if (pH <= 6) return 'text-yellow-500'
-    if (pH <= 8) return 'text-green-500'
-    if (pH <= 10) return 'text-cyan-500'
-    if (pH <= 12) return 'text-blue-500'
-    return 'text-purple-500'
-  }
-
+  // pH scale spectrum — this gradient encodes acid→neutral→base data, not decoration.
   const getpHGradient = () => {
     return `linear-gradient(to right, #ef4444 0%, #f97316 14%, #eab308 28%, #22c55e 50%, #06b6d4 64%, #3b82f6 78%, #8b5cf6 100%)`
+  }
+
+  // Acidic / neutral / basic → semantic tokens (data meaning preserved).
+  // Full literal class strings so Tailwind's content scanner picks them up.
+  const ACID_BASE_STYLES: Record<CalculationResult['acidBase'], { box: string; text: string }> = {
+    acidic: { box: 'border-destructive/40 bg-destructive/10', text: 'text-destructive' },
+    neutral: { box: 'border-success/40 bg-success/10', text: 'text-success' },
+    basic: { box: 'border-info/40 bg-info/10', text: 'text-info' },
   }
 
   return (
     <>
       <PHCalculatorSchema />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-300 mb-6">
-              <Droplets className="h-4 w-4" />
-              Acid-Base Chemistry Made Easy
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              pH
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-green-400 to-blue-400">
-                Calculator
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Calculate pH, pOH, and ion concentrations instantly.
-              Perfect for chemistry homework, lab work, and understanding acid-base reactions.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                100% Free
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Instant Results
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Visual pH Scale
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                No Sign-up
-              </span>
-            </div>
-          </div>
+      <CalcShell
+        eyebrow="Acid–base chemistry"
+        title="pH Calculator"
+        subtitle="Calculate pH, pOH, and ion concentrations instantly. Perfect for chemistry homework, lab work, and understanding acid-base reactions."
+        backHref="/tools"
+        backLabel="All tools"
+        maxWidth="6xl"
+      >
+        {/* Capability strip */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Instant Results
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Visual pH Scale
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> No Sign-up
+          </span>
         </div>
-      </section>
 
-      {/* Calculator Section */}
-      <section className="py-12 px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-blue-500/20 bg-gradient-to-br from-slate-900/90 to-blue-900/20 p-8 shadow-2xl shadow-blue-500/10 backdrop-blur-sm">
-            <div className="space-y-6">
-              {/* Calculation Type Selector */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
-                  Calculate From
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { type: 'ph' as const, label: 'pH' },
-                    { type: 'poh' as const, label: 'pOH' },
-                    { type: 'h+' as const, label: '[H⁺]' },
-                    { type: 'oh-' as const, label: '[OH⁻]' },
-                  ].map((option) => (
-                    <button
-                      key={option.type}
-                      onClick={() => setCalcType(option.type)}
-                      className={`rounded-xl px-4 py-3 font-medium transition-all ${
-                        calcType === option.type
-                          ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white'
-                          : 'bg-white/5 text-slate-400 hover:bg-white/10'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Input */}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Enter {calcType === 'ph' ? 'pH' : calcType === 'poh' ? 'pOH' : calcType === 'h+' ? '[H⁺] (M)' : '[OH⁻] (M)'}
-                </label>
-                <div className="flex gap-4">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
-                    placeholder={calcType === 'ph' || calcType === 'poh' ? 'e.g., 7' : 'e.g., 1e-7'}
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-xl text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
-                  />
+        {/* Calculator */}
+        <Card className="p-6 sm:p-8">
+          <div className="space-y-6">
+            {/* Calculation Type Selector */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-3">
+                Calculate From
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { type: 'ph' as const, label: 'pH' },
+                  { type: 'poh' as const, label: 'pOH' },
+                  { type: 'h+' as const, label: '[H⁺]' },
+                  { type: 'oh-' as const, label: '[OH⁻]' },
+                ].map((option) => (
                   <button
-                    onClick={handleCalculate}
-                    disabled={isCalculating}
-                    className="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-8 py-4 font-semibold text-white transition-all hover:from-blue-500 hover:to-cyan-500 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50"
+                    key={option.type}
+                    onClick={() => setCalcType(option.type)}
+                    className={`rounded-md px-4 py-3 font-medium transition-colors ${
+                      calcType === option.type
+                        ? 'bg-primary-500 text-primary-foreground'
+                        : 'border border-border bg-card text-foreground hover:bg-muted'
+                    }`}
                   >
-                    {isCalculating ? (
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    ) : (
-                      'Calculate'
-                    )}
+                    {option.label}
                   </button>
-                </div>
+                ))}
               </div>
+            </div>
 
-              {error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                  {error}
-                </div>
-              )}
+            {/* Input */}
+            <div>
+              <label htmlFor="ph-input" className="block text-sm font-medium text-foreground mb-2">
+                Enter {calcType === 'ph' ? 'pH' : calcType === 'poh' ? 'pOH' : calcType === 'h+' ? '[H⁺] (M)' : '[OH⁻] (M)'}
+              </label>
+              <div className="flex gap-4">
+                <input
+                  id="ph-input"
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
+                  placeholder={calcType === 'ph' || calcType === 'poh' ? 'e.g., 7' : 'e.g., 1e-7'}
+                  className="input-premium flex-1 text-xl font-mono"
+                />
+                <Button onClick={handleCalculate} disabled={isCalculating}>
+                  {isCalculating ? (
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    'Calculate'
+                  )}
+                </Button>
+              </div>
+            </div>
 
-              {result && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {/* pH Scale Visualization */}
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">pH Scale Position</h3>
-                    <div className="relative h-12 rounded-full overflow-hidden"
-                         style={{ background: getpHGradient() }}>
-                      <div
-                        className="absolute top-0 bottom-0 w-1 bg-white shadow-lg"
-                        style={{ left: `${(result.pH / 14) * 100}%`, transform: 'translateX(-50%)' }}
-                      >
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-white font-bold text-lg">
-                          {result.pH.toFixed(2)}
-                        </div>
+            {error && <ErrorBanner>{error}</ErrorBanner>}
+
+            {result && (
+              <div className="space-y-6">
+                {/* pH Scale Visualization (data gradient kept) */}
+                <div className="rounded-lg border border-border bg-muted p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">pH Scale Position</h3>
+                  <div className="relative h-12 rounded-full overflow-hidden"
+                       style={{ background: getpHGradient() }}>
+                    <div
+                      className="absolute top-0 bottom-0 w-1 bg-foreground shadow-lg"
+                      style={{ left: `${(result.pH / 14) * 100}%`, transform: 'translateX(-50%)' }}
+                    >
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-foreground font-bold text-lg">
+                        {result.pH.toFixed(2)}
                       </div>
                     </div>
-                    <div className="flex justify-between mt-2 text-sm">
-                      <span className="text-red-400">Acidic (0)</span>
-                      <span className="text-green-400">Neutral (7)</span>
-                      <span className="text-blue-400">Basic (14)</span>
-                    </div>
                   </div>
-
-                  {/* Results Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-6 text-center">
-                      <p className="text-sm text-blue-300 mb-1">pH</p>
-                      <p className={`text-4xl font-bold ${getpHColor(result.pH)}`}>
-                        {result.pH.toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6 text-center">
-                      <p className="text-sm text-cyan-300 mb-1">pOH</p>
-                      <p className="text-4xl font-bold text-cyan-400">
-                        {result.pOH.toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
-                      <p className="text-sm text-slate-300 mb-1">[H⁺]</p>
-                      <p className="text-2xl font-bold text-white font-mono">
-                        {result.hConcentration.toExponential(2)} M
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
-                      <p className="text-sm text-slate-300 mb-1">[OH⁻]</p>
-                      <p className="text-2xl font-bold text-white font-mono">
-                        {result.ohConcentration.toExponential(2)} M
-                      </p>
-                    </div>
+                  <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+                    <span>Acidic (0)</span>
+                    <span>Neutral (7)</span>
+                    <span>Basic (14)</span>
                   </div>
+                </div>
 
-                  {/* Solution Type */}
-                  <div className={`rounded-2xl p-6 text-center ${
-                    result.acidBase === 'acidic' ? 'border border-red-500/30 bg-red-500/10' :
-                    result.acidBase === 'basic' ? 'border border-blue-500/30 bg-blue-500/10' :
-                    'border border-green-500/30 bg-green-500/10'
-                  }`}>
-                    <p className="text-lg font-semibold text-white">
-                      This solution is{' '}
-                      <span className={
-                        result.acidBase === 'acidic' ? 'text-red-400' :
-                        result.acidBase === 'basic' ? 'text-blue-400' :
-                        'text-green-400'
-                      }>
-                        {result.acidBase.toUpperCase()}
-                      </span>
+                {/* Results Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg border border-border bg-muted p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-1">pH</p>
+                    <p className="text-4xl font-bold text-foreground font-mono">
+                      {result.pH.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-1">pOH</p>
+                    <p className="text-4xl font-bold text-foreground font-mono">
+                      {result.pOH.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-1">[H⁺]</p>
+                    <p className="text-2xl font-bold text-foreground font-mono">
+                      {result.hConcentration.toExponential(2)} M
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted p-6 text-center">
+                    <p className="text-sm text-muted-foreground mb-1">[OH⁻]</p>
+                    <p className="text-2xl font-bold text-foreground font-mono">
+                      {result.ohConcentration.toExponential(2)} M
                     </p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* pH Scale Examples */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">
+                {/* Solution Type (semantic token by acidity) */}
+                <div className={`rounded-lg p-6 text-center border ${ACID_BASE_STYLES[result.acidBase].box}`}>
+                  <p className="text-lg font-semibold text-foreground">
+                    This solution is{' '}
+                    <span className={ACID_BASE_STYLES[result.acidBase].text}>
+                      {result.acidBase.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* pH Scale Examples */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-2">
             pH Scale Examples
-          </h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
+          </SectionTitle>
+          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
             Common substances and their typical pH values
           </p>
 
@@ -337,34 +295,29 @@ export default function PHCalculatorPage() {
                   setResult(calculateFrompH(example.pH))
                   setError('')
                 }}
-                className="group rounded-xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-blue-500/50 hover:bg-blue-500/10"
+                className="group rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary-500 hover:bg-muted"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-medium">{example.name}</span>
-                  <ArrowRight className="h-4 w-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-foreground font-medium">{example.name}</span>
+                  <ArrowRight className="h-4 w-4 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${example.color}`} />
-                  <span className="text-slate-400">pH {example.pH}</span>
-                </div>
+                <span className="text-muted-foreground font-mono text-sm">pH {example.pH}</span>
               </button>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Formulas */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
-            pH Formulas & Relationships
-          </h2>
+        {/* Formulas */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
+            pH Formulas &amp; Relationships
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <Beaker className="h-8 w-8 text-blue-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-4">Basic Formulas</h3>
-              <div className="space-y-3 font-mono text-slate-300">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <Beaker className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-4">Basic Formulas</h3>
+              <div className="space-y-3 font-mono text-foreground">
                 <p>pH = -log₁₀[H⁺]</p>
                 <p>pOH = -log₁₀[OH⁻]</p>
                 <p>pH + pOH = 14</p>
@@ -372,10 +325,10 @@ export default function PHCalculatorPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <FlaskConical className="h-8 w-8 text-blue-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-4">Conversions</h3>
-              <div className="space-y-3 font-mono text-slate-300">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <FlaskConical className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-4">Conversions</h3>
+              <div className="space-y-3 font-mono text-foreground">
                 <p>[H⁺] = 10⁻ᵖᴴ</p>
                 <p>[OH⁻] = 10⁻ᵖᴼᴴ</p>
                 <p>pOH = 14 - pH</p>
@@ -383,15 +336,13 @@ export default function PHCalculatorPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Features */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* Features */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Why Use Our pH Calculator?
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -428,23 +379,21 @@ export default function PHCalculatorPage() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-blue-500/30 transition-colors"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <feature.icon className="h-8 w-8 text-blue-400 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm">{feature.description}</p>
+                <feature.icon className="h-8 w-8 text-primary-600 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* FAQ */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* FAQ */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Frequently Asked Questions
-          </h2>
+          </SectionTitle>
 
           <div className="space-y-6">
             {[
@@ -471,59 +420,53 @@ export default function PHCalculatorPage() {
             ].map((faq, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <h3 className="text-lg font-semibold text-white mb-3">{faq.q}</h3>
-                <p className="text-slate-400">{faq.a}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{faq.q}</h3>
+                <p className="text-muted-foreground">{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+        {/* CTA */}
+        <Card className="p-6 sm:p-8 text-center">
+          <SectionTitle className="text-2xl mb-6">
             Explore More Chemistry Tools
-          </h2>
-          <p className="text-slate-400 mb-8">
-            VerChem offers a complete suite of chemistry calculators and tools
-          </p>
+          </SectionTitle>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/tools/equation-balancer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Equation Balancer
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/molar-mass"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Molar Mass
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/stoichiometry"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Stoichiometry
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/periodic-table"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-3 font-medium text-white hover:from-blue-500 hover:to-cyan-500 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
             >
               Interactive Periodic Table
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
-    </div>
+        </Card>
+      </CalcShell>
     </>
   )
 }

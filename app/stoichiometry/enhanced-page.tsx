@@ -5,6 +5,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Card, Button } from '@/components/lab'
 import {
   calculateMolecularMass,
   massToMoles,
@@ -431,12 +432,12 @@ export default function EnhancedStoichiometryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-6xl mx-auto px-4">
         {/* Navigation */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary-500 transition-colors mb-8"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -468,23 +469,25 @@ export default function EnhancedStoichiometryPage() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Section */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Input Parameters</h3>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Input parameters</h3>
 
               {/* Mode selector */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Calculation Type:
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Calculation type
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['molecular-mass', 'conversions', 'percent-comp', 'empirical', 'limiting-reagent', 'yield'] as const).map((calcMode) => (
                     <button
                       key={calcMode}
+                      type="button"
                       onClick={() => setMode(calcMode)}
-                      className={`px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                      aria-pressed={mode === calcMode}
+                      className={`px-3 py-2 rounded-md font-medium text-sm border transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                         mode === calcMode
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                          : 'border-border bg-card text-foreground hover:bg-muted hover:border-primary-500/40'
                       }`}
                     >
                       {calcMode === 'molecular-mass' ? 'Molecular Mass' :
@@ -502,17 +505,17 @@ export default function EnhancedStoichiometryPage() {
               <div className="space-y-4">
                 {mode === 'molecular-mass' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Chemical Formula
                     </label>
                     <input
                       type="text"
                       value={formula}
                       onChange={(e) => setFormula(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="input-premium w-full"
                       placeholder="C6H12O6"
                     />
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       Examples: H2O, C6H12O6, Ca(OH)2, CuSO4·5H2O
                     </div>
                   </div>
@@ -521,7 +524,7 @@ export default function EnhancedStoichiometryPage() {
                 {mode === 'conversions' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Conversion Type:
                       </label>
                       <select
@@ -537,7 +540,7 @@ export default function EnhancedStoichiometryPage() {
                               | 'volume-to-moles'
                           )
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                       >
                         <option value="mass-to-moles">Mass → Moles</option>
                         <option value="moles-to-mass">Moles → Mass</option>
@@ -549,7 +552,7 @@ export default function EnhancedStoichiometryPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Input Value {conversionType.includes('mass') ? '(g)' :
                                     conversionType.includes('molecules') ? '(molecules)' :
                                     conversionType.includes('volume') ? '(L)' : '(mol)'}
@@ -559,7 +562,7 @@ export default function EnhancedStoichiometryPage() {
                           type="text"
                           value={inputValue}
                           onChange={(e) => setInputValue(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="180.16"
                         />
                         {showUncertainty && (
@@ -567,7 +570,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={inputUnc}
                             onChange={(e) => setInputUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -577,7 +580,7 @@ export default function EnhancedStoichiometryPage() {
 
                     {(conversionType === 'mass-to-moles' || conversionType === 'moles-to-mass') && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Molar Mass (g/mol)
                         </label>
                         <div className="flex gap-2">
@@ -585,7 +588,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={molarMassInput}
                             onChange={(e) => setMolarMassInput(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium flex-1"
                             placeholder="180.16"
                           />
                           {showUncertainty && (
@@ -593,7 +596,7 @@ export default function EnhancedStoichiometryPage() {
                               type="text"
                               value={molarMassInputUnc}
                               onChange={(e) => setMolarMassInputUnc(e.target.value)}
-                              className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              className="input-premium w-24"
                               placeholder="±0.01"
                               title="Uncertainty"
                             />
@@ -606,14 +609,14 @@ export default function EnhancedStoichiometryPage() {
 
                 {mode === 'percent-comp' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Chemical Formula
                     </label>
                     <input
                       type="text"
                       value={percentFormula}
                       onChange={(e) => setPercentFormula(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="input-premium w-full"
                       placeholder="H2O"
                     />
                   </div>
@@ -621,12 +624,12 @@ export default function EnhancedStoichiometryPage() {
 
                 {mode === 'empirical' && (
                   <div className="space-y-3">
-                    <div className="text-sm font-medium text-gray-700 mb-2">
+                    <div className="text-sm font-medium text-foreground mb-2">
                       Element Percentages (%)
                     </div>
                     {Object.entries(elementPercentages).map(([element, percent]) => (
                       <div key={element} className="flex items-center gap-2">
-                        <span className="w-8 font-medium">{element}:</span>
+                        <span className="w-8 font-medium text-foreground">{element}:</span>
                         <input
                           type="text"
                           value={percent}
@@ -634,13 +637,13 @@ export default function EnhancedStoichiometryPage() {
                             ...elementPercentages,
                             [element]: e.target.value
                           })}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="0.0"
                         />
-                        <span className="text-gray-500">%</span>
+                        <span className="text-muted-foreground">%</span>
                       </div>
                     ))}
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       Total should equal 100%
                     </div>
                   </div>
@@ -648,7 +651,7 @@ export default function EnhancedStoichiometryPage() {
 
                 {mode === 'limiting-reagent' && (
                   <>
-                    <div className="text-sm font-medium text-gray-700 mb-2">
+                    <div className="text-sm font-medium text-foreground mb-2">
                       Reactant 1
                     </div>
                     <div className="grid grid-cols-3 gap-2">
@@ -656,14 +659,14 @@ export default function EnhancedStoichiometryPage() {
                         type="text"
                         value={reactant1Coeff}
                         onChange={(e) => setReactant1Coeff(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="Coeff"
                       />
                       <input
                         type="text"
                         value={reactant1Formula}
                         onChange={(e) => setReactant1Formula(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="H2"
                       />
                       <div className="flex gap-1">
@@ -671,7 +674,7 @@ export default function EnhancedStoichiometryPage() {
                           type="text"
                           value={reactant1Mass}
                           onChange={(e) => setReactant1Mass(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="Mass (g)"
                         />
                         {showUncertainty && (
@@ -679,7 +682,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={reactant1MassUnc}
                             onChange={(e) => setReactant1MassUnc(e.target.value)}
-                            className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium w-16"
                             placeholder="±"
                             title="Uncertainty"
                           />
@@ -687,7 +690,7 @@ export default function EnhancedStoichiometryPage() {
                       </div>
                     </div>
 
-                    <div className="text-sm font-medium text-gray-700 mb-2 mt-4">
+                    <div className="text-sm font-medium text-foreground mb-2 mt-4">
                       Reactant 2
                     </div>
                     <div className="grid grid-cols-3 gap-2">
@@ -695,14 +698,14 @@ export default function EnhancedStoichiometryPage() {
                         type="text"
                         value={reactant2Coeff}
                         onChange={(e) => setReactant2Coeff(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="Coeff"
                       />
                       <input
                         type="text"
                         value={reactant2Formula}
                         onChange={(e) => setReactant2Formula(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="O2"
                       />
                       <div className="flex gap-1">
@@ -710,7 +713,7 @@ export default function EnhancedStoichiometryPage() {
                           type="text"
                           value={reactant2Mass}
                           onChange={(e) => setReactant2Mass(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="Mass (g)"
                         />
                         {showUncertainty && (
@@ -718,7 +721,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={reactant2MassUnc}
                             onChange={(e) => setReactant2MassUnc(e.target.value)}
-                            className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium w-16"
                             placeholder="±"
                             title="Uncertainty"
                           />
@@ -726,7 +729,7 @@ export default function EnhancedStoichiometryPage() {
                       </div>
                     </div>
 
-                    <div className="text-sm font-medium text-gray-700 mb-2 mt-4">
+                    <div className="text-sm font-medium text-foreground mb-2 mt-4">
                       Product
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -734,14 +737,14 @@ export default function EnhancedStoichiometryPage() {
                         type="text"
                         value={productCoeff}
                         onChange={(e) => setProductCoeff(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="Coefficient"
                       />
                       <input
                         type="text"
                         value={productFormula}
                         onChange={(e) => setProductFormula(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="input-premium w-full"
                         placeholder="H2O"
                       />
                     </div>
@@ -751,7 +754,7 @@ export default function EnhancedStoichiometryPage() {
                 {mode === 'yield' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Theoretical Yield (g)
                       </label>
                       <div className="flex gap-2">
@@ -759,7 +762,7 @@ export default function EnhancedStoichiometryPage() {
                           type="text"
                           value={theoreticalYield}
                           onChange={(e) => setTheoreticalYield(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="10.0"
                         />
                         {showUncertainty && (
@@ -767,7 +770,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={theoreticalYieldUnc}
                             onChange={(e) => setTheoreticalYieldUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium w-24"
                             placeholder="±0.1"
                             title="Uncertainty"
                           />
@@ -776,7 +779,7 @@ export default function EnhancedStoichiometryPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Actual Yield (g)
                       </label>
                       <div className="flex gap-2">
@@ -784,7 +787,7 @@ export default function EnhancedStoichiometryPage() {
                           type="text"
                           value={actualYield}
                           onChange={(e) => setActualYield(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="input-premium flex-1"
                           placeholder="8.5"
                         />
                         {showUncertainty && (
@@ -792,7 +795,7 @@ export default function EnhancedStoichiometryPage() {
                             type="text"
                             value={actualYieldUnc}
                             onChange={(e) => setActualYieldUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="input-premium w-24"
                             placeholder="±0.1"
                             title="Uncertainty"
                           />
@@ -810,9 +813,9 @@ export default function EnhancedStoichiometryPage() {
                     type="checkbox"
                     checked={showUncertainty}
                     onChange={(e) => setShowUncertainty(e.target.checked)}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="rounded border-border text-primary-500 focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-foreground">
                     Include uncertainty analysis
                   </span>
                 </label>
@@ -822,54 +825,51 @@ export default function EnhancedStoichiometryPage() {
                     type="checkbox"
                     checked={showDetails}
                     onChange={(e) => setShowDetails(e.target.checked)}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="rounded border-border text-primary-500 focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-foreground">
                     Show detailed scientific information
                   </span>
                 </label>
               </div>
 
               {/* Calculate Button */}
-              <button
-                onClick={handleCalculate}
-                className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
-              >
+              <Button onClick={handleCalculate} className="w-full mt-6">
                 Calculate
-              </button>
-            </div>
+              </Button>
+            </Card>
 
             {/* Result Section */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Result</h3>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Result</h3>
 
               {result ? (
                 <>
                   {/* Show different display based on calculation type */}
                   {mode === 'empirical' && result.additionalInfo?.empiricalFormula ? (
-                    <div className="bg-purple-50 rounded-lg p-6">
-                      <div className="text-sm font-medium text-purple-700 mb-2">
-                        Empirical Formula
+                    <div className="bg-muted border-l-2 border-l-primary-500 rounded-md p-6">
+                      <div className="text-xs uppercase tracking-wider text-primary-600 mb-2 font-medium">
+                        Empirical formula
                       </div>
-                      <div className="text-4xl font-bold text-purple-900">
+                      <div className="font-mono text-4xl font-bold text-foreground">
                         {result.additionalInfo.empiricalFormula}
                       </div>
                       {result.additionalInfo.note && (
-                        <div className="text-xs text-gray-600 mt-2">
+                        <div className="text-xs text-muted-foreground mt-2">
                           {result.additionalInfo.note}
                         </div>
                       )}
                     </div>
                   ) : mode === 'percent-comp' && result.additionalInfo?.details ? (
-                    <div className="bg-pink-50 rounded-lg p-6">
-                      <div className="text-sm font-medium text-pink-700 mb-3">
-                        Percent Composition of {result.additionalInfo.formula}
+                    <div className="bg-muted border-l-2 border-l-primary-500 rounded-md p-6">
+                      <div className="text-xs uppercase tracking-wider text-primary-600 mb-3 font-medium">
+                        Percent composition of {result.additionalInfo.formula}
                       </div>
                       <div className="space-y-2">
                         {Object.entries(result.additionalInfo.details).map(([element, percent]) => (
                           <div key={element} className="flex justify-between items-center">
-                            <span className="font-medium text-gray-700">{element}:</span>
-                            <span className="text-2xl font-bold text-pink-900">{percent.toFixed(2)}%</span>
+                            <span className="font-medium text-foreground">{element}:</span>
+                            <span className="font-mono text-2xl font-bold text-foreground">{percent.toFixed(2)}%</span>
                           </div>
                         ))}
                       </div>
@@ -893,15 +893,15 @@ export default function EnhancedStoichiometryPage() {
                     <div className="mt-6 space-y-4">
                       {/* Limiting Reagent Info */}
                       {mode === 'limiting-reagent' && result.additionalInfo.limitingReagent && (
-                        <div className="bg-red-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-red-700 mb-2">
-                            Limiting Reagent Analysis
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Limiting reagent analysis
                           </div>
-                          <div className="text-xs space-y-1">
-                            <div>Limiting Reagent: <span className="font-bold">{result.additionalInfo.limitingReagent}</span></div>
-                            <div>Excess Reagent: {result.additionalInfo.excessReagent}</div>
+                          <div className="text-xs space-y-1 text-muted-foreground">
+                            <div>Limiting reagent: <span className="font-bold text-foreground">{result.additionalInfo.limitingReagent}</span></div>
+                            <div>Excess reagent: {result.additionalInfo.excessReagent}</div>
                             {typeof result.additionalInfo.productMoles === 'number' && (
-                              <div>Product Moles: {result.additionalInfo.productMoles.toFixed(4)} mol</div>
+                              <div>Product moles: {result.additionalInfo.productMoles.toFixed(4)} mol</div>
                             )}
                             <div>Reaction: {result.additionalInfo.reaction}</div>
                           </div>
@@ -910,19 +910,19 @@ export default function EnhancedStoichiometryPage() {
 
                       {/* Yield Efficiency */}
                       {mode === 'yield' && result.additionalInfo.efficiency && (
-                        <div className={`rounded-lg p-4 ${
-                          result.additionalInfo.efficiency === 'Excellent' ? 'bg-green-50' :
-                          result.additionalInfo.efficiency === 'Good' ? 'bg-blue-50' :
-                          result.additionalInfo.efficiency === 'Fair' ? 'bg-yellow-50' : 'bg-red-50'
+                        <div className={`rounded-md p-4 border ${
+                          result.additionalInfo.efficiency === 'Excellent' ? 'bg-success/10 border-success/40' :
+                          result.additionalInfo.efficiency === 'Good' ? 'bg-info/10 border-info/40' :
+                          result.additionalInfo.efficiency === 'Fair' ? 'bg-warning/10 border-warning/40' : 'bg-destructive/10 border-destructive/40'
                         }`}>
                           <div className={`text-sm font-medium mb-2 ${
-                            result.additionalInfo.efficiency === 'Excellent' ? 'text-green-700' :
-                            result.additionalInfo.efficiency === 'Good' ? 'text-blue-700' :
-                            result.additionalInfo.efficiency === 'Fair' ? 'text-yellow-700' : 'text-red-700'
+                            result.additionalInfo.efficiency === 'Excellent' ? 'text-success' :
+                            result.additionalInfo.efficiency === 'Good' ? 'text-info' :
+                            result.additionalInfo.efficiency === 'Fair' ? 'text-warning' : 'text-destructive'
                           }`}>
-                            Yield Efficiency: {result.additionalInfo.efficiency}
+                            Yield efficiency: {result.additionalInfo.efficiency}
                           </div>
-                          <div className="text-xs space-y-1 text-gray-600">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>Theoretical: {result.additionalInfo.theoreticalYield}</div>
                             <div>Actual: {result.additionalInfo.actualYield}</div>
                           </div>
@@ -931,11 +931,11 @@ export default function EnhancedStoichiometryPage() {
 
                       {/* Conversion Info */}
                       {mode === 'conversions' && result.additionalInfo.conversionType && (
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-blue-700 mb-2">
-                            Conversion Details
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Conversion details
                           </div>
-                          <div className="text-xs space-y-1">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>Type: {result.additionalInfo.conversionType.replace('-', ' → ')}</div>
                             <div>Input: {result.additionalInfo.inputValue}</div>
                             {result.additionalInfo.conditions && (
@@ -947,17 +947,17 @@ export default function EnhancedStoichiometryPage() {
 
                       {/* Constants Used */}
                       {showDetails && (mode === 'conversions' || mode === 'molecular-mass') && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-gray-700 mb-2">
-                            Physical Constants
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Physical constants
                           </div>
-                          <div className="text-xs space-y-1 font-mono">
+                          <div className="text-xs space-y-1 font-mono text-muted-foreground">
                             <div>Avogadro&apos;s Number: {AVOGADRO_CONSTANT.toExponential(9)} mol⁻¹</div>
                             <div>STP: {STP.temperature} K, {STP.pressure} atm</div>
                             <div>Molar Volume (STP): {STP.molarVolume} L/mol</div>
                           </div>
                           {result.additionalInfo?.atomicMassSource && (
-                            <div className="text-xs text-gray-500 mt-2">
+                            <div className="text-xs text-muted-foreground mt-2">
                               Source: {result.additionalInfo.atomicMassSource}
                             </div>
                           )}
@@ -966,11 +966,11 @@ export default function EnhancedStoichiometryPage() {
 
                       {/* Common Formulas Reference */}
                       {showDetails && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-gray-700 mb-2">
-                            Key Formulas
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Key formulas
                           </div>
-                          <div className="text-xs space-y-1 font-mono">
+                          <div className="text-xs space-y-1 font-mono text-muted-foreground">
                             <div>n = m/M (moles = mass/molar mass)</div>
                             <div>N = n × Nₐ (molecules = moles × Avogadro)</div>
                             <div>V = n × 22.414 L (at STP)</div>
@@ -982,11 +982,11 @@ export default function EnhancedStoichiometryPage() {
                   )}
                 </>
               ) : (
-                <div className="text-gray-500 text-center py-12">
+                <div className="text-muted-foreground text-center py-12">
                   Enter values and click Calculate to see results
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </EnhancedCalculator>
       </div>

@@ -33,15 +33,15 @@ export function UnitSystemToggle({ className = '', compact = false }: UnitSystem
       <button
         onClick={handleToggle}
         className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-colors
-          bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
-          text-gray-700 dark:text-gray-300 ${className}`}
+          bg-muted hover:bg-border
+          text-foreground ${className}`}
         title={`Switch to ${system === 'SI' ? 'Imperial' : 'SI'} units`}
       >
-        <span className={system === 'SI' ? 'text-teal-600 dark:text-teal-400' : 'text-gray-400 dark:text-gray-500'}>
+        <span className={system === 'SI' ? 'text-primary-600' : 'text-muted-foreground'}>
           SI
         </span>
-        <span className="text-gray-400 dark:text-gray-500">/</span>
-        <span className={system === 'Imperial' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}>
+        <span className="text-muted-foreground">/</span>
+        <span className={system === 'Imperial' ? 'text-secondary-600' : 'text-muted-foreground'}>
           US
         </span>
       </button>
@@ -49,13 +49,13 @@ export function UnitSystemToggle({ className = '', compact = false }: UnitSystem
   }
 
   return (
-    <div className={`inline-flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 ${className}`}>
+    <div className={`inline-flex rounded-lg bg-muted p-1 ${className}`}>
       <button
         onClick={() => setSystem('SI')}
         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
           system === 'SI'
-            ? 'bg-white dark:bg-gray-700 text-teal-600 dark:text-teal-400 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            ? 'bg-card text-primary-600 shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         SI (Metric)
@@ -64,8 +64,8 @@ export function UnitSystemToggle({ className = '', compact = false }: UnitSystem
         onClick={() => setSystem('Imperial')}
         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
           system === 'Imperial'
-            ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            ? 'bg-card text-secondary-600 shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         US (Imperial)
@@ -170,16 +170,16 @@ export function UnitCategorySelector({ category, label, className = '' }: UnitCa
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       {label && (
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-foreground">
           {label}
         </label>
       )}
       <select
         value={currentUnit}
         onChange={(e) => setUnit(category, e.target.value)}
-        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700
-          bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100
-          focus:ring-2 focus:ring-teal-500 focus:border-teal-500
+        className="px-3 py-2 rounded-lg border border-border
+          bg-card text-foreground
+          focus:ring-2 focus:ring-primary-500 focus:border-primary-500
           text-sm"
       >
         {options.map((opt) => (
@@ -206,11 +206,11 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className={`bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-card rounded-lg border border-border ${className}`}>
       {showTitle && (
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Unit Preferences</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <div className="px-4 py-3 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">Unit Preferences</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Choose your preferred unit system
           </p>
         </div>
@@ -219,7 +219,7 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
       <div className="p-4 space-y-4">
         {/* Quick System Toggle */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Unit System</span>
+          <span className="text-sm font-medium text-foreground">Unit System</span>
           <UnitSystemToggle />
         </div>
 
@@ -228,10 +228,10 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
           <span
             className={`px-2 py-1 rounded text-xs font-medium ${
               system === 'SI'
-                ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                ? 'bg-primary-100 text-primary-700'
                 : system === 'Imperial'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                ? 'bg-secondary-100 text-secondary-700'
+                : 'bg-warning/10 text-warning'
             }`}
           >
             {system === 'SI' ? 'Metric (SI)' : system === 'Imperial' ? 'US/Imperial' : 'Custom'}
@@ -239,7 +239,7 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
           {system === 'Custom' && (
             <button
               onClick={resetToDefaults}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               Reset to SI
             </button>
@@ -249,7 +249,7 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
         {/* Expand/Collapse for detailed settings */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <svg
             className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -264,7 +264,7 @@ export function UnitPreferencesPanel({ className = '', showTitle = true }: UnitP
 
         {/* Detailed Settings */}
         {isExpanded && (
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
             <UnitCategorySelector category="temperature" label="Temperature" />
             <UnitCategorySelector category="pressure" label="Pressure" />
             <UnitCategorySelector category="volume" label="Volume" />
@@ -327,7 +327,7 @@ export function UnitValueDisplay({
     return (
       <span className={className}>
         <span className="font-medium">{formatted} {symbol}</span>
-        <span className="text-gray-500 dark:text-gray-400 text-sm ml-1">
+        <span className="text-muted-foreground text-sm ml-1">
           ({originalFormatted} {getUnitSymbol(baseUnit, category)})
         </span>
       </span>

@@ -32,7 +32,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        'bg-white/10 dark:bg-white/5',
+        'bg-muted',
         {
           // Variants
           'rounded-md': variant === 'rectangular',
@@ -40,8 +40,7 @@ export function Skeleton({
           'h-4 rounded': variant === 'text',
 
           // Animations
-          'animate-pulse': animation === 'pulse',
-          'animate-shimmer-premium': animation === 'wave',
+          'animate-pulse': animation === 'pulse' || animation === 'wave',
         },
         className
       )}
@@ -59,7 +58,7 @@ export function MoleculeBuilderSkeleton() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
       {/* Header skeleton */}
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6">
+      <div className="rounded-3xl border border-border bg-card p-6">
         <div className="space-y-4">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-8 w-64" />
@@ -82,7 +81,7 @@ export function MoleculeBuilderSkeleton() {
         {/* Sidebar skeleton (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Palette skeleton */}
-          <div className="rounded-2xl border border-white/10 bg-slate-950/80 p-4 space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
             <Skeleton className="h-6 w-40" />
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -98,7 +97,7 @@ export function MoleculeBuilderSkeleton() {
           </div>
 
           {/* Stability skeleton */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
             <Skeleton className="h-6 w-40" />
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (
@@ -176,7 +175,7 @@ export function PresetSelectorSkeleton() {
       {/* Molecule grid skeleton */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900 to-slate-800 p-4 space-y-3">
+          <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3">
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-12 w-full" />
@@ -190,7 +189,7 @@ export function PresetSelectorSkeleton() {
       </div>
 
       {/* Info footer skeleton */}
-      <div className="rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-3 space-y-2">
+      <div className="rounded-lg border border-border bg-muted p-3 space-y-2">
         <Skeleton className="h-4 w-16" />
         <Skeleton className="h-4 w-full" />
       </div>
@@ -219,7 +218,7 @@ export function LoadingSpinner({
   return (
     <div
       className={cn(
-        'animate-spin rounded-full border-blue-200 border-t-blue-600',
+        'animate-spin rounded-full border-border border-t-primary-500',
         sizeClasses[size],
         className
       )}
@@ -236,10 +235,10 @@ export function LoadingSpinner({
  */
 export function PageLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
         <LoadingSpinner size="lg" />
-        <p className="mt-4 text-slate-400 animate-pulse">Loading...</p>
+        <p className="mt-4 text-muted-foreground animate-pulse">Loading...</p>
       </div>
     </div>
   )
@@ -260,7 +259,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon = '📭',
+  icon,
   title,
   description,
   action,
@@ -268,13 +267,32 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={cn('text-center py-12 px-4', className)}>
-      <div className="text-6xl mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">{description}</p>
+      <div className="mb-4 flex justify-center text-muted-foreground">
+        {icon ? (
+          <span className="text-6xl">{icon}</span>
+        ) : (
+          <svg
+            className="w-12 h-12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-3.5l-1 2h-5l-1-2H4"
+            />
+          </svg>
+        )}
+      </div>
+      <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+      <p className="text-muted-foreground mb-6 max-w-md mx-auto">{description}</p>
       {action && (
         <button
           onClick={action.onClick}
-          className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-primary-500 text-primary-foreground font-medium rounded-lg hover:bg-primary-600 transition-colors"
         >
           {action.label}
         </button>
@@ -288,14 +306,14 @@ export function EmptyState({
  */
 export function ResultSkeleton() {
   return (
-    <div className="space-y-4 p-6 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="space-y-4 p-6 rounded-xl border border-border bg-card">
       <Skeleton className="h-6 w-32" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+        <div className="p-4 rounded-lg bg-muted">
           <Skeleton className="h-4 w-24 mb-2" />
           <Skeleton className="h-8 w-32" />
         </div>
-        <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+        <div className="p-4 rounded-lg bg-muted">
           <Skeleton className="h-4 w-24 mb-2" />
           <Skeleton className="h-8 w-32" />
         </div>
@@ -314,7 +332,7 @@ export function ResultSkeleton() {
  */
 export function GraphSkeleton() {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       <Skeleton className="h-6 w-48 mb-4" />
       <Skeleton className="h-[300px] w-full rounded-lg" />
       <div className="mt-4 flex gap-4">

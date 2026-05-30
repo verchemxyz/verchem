@@ -56,9 +56,9 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
   if (history.length === 0) {
     return (
       <div className="text-center py-12">
-        <ClockIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No search history</h3>
-        <p className="text-gray-500 dark:text-gray-400">
+        <ClockIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">No search history</h3>
+        <p className="text-muted-foreground">
           Your search history will appear here once you start searching.
         </p>
       </div>
@@ -69,26 +69,26 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Search History</h2>
+        <h2 className="text-xl font-semibold text-foreground">Search History</h2>
         <div className="flex items-center space-x-3">
           {/* Search within history */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <MagnifyingGlassIcon className="h-4 w-4 text-muted-foreground" />
             </div>
             <input
               type="text"
               placeholder="Search history..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-48 pl-9 pr-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-48 pl-9 pr-3 py-1.5 text-sm border border-border rounded-md leading-5 bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
-          
+
           {/* Clear history button */}
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-700 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="inline-flex items-center px-3 py-1.5 border border-border text-xs font-medium rounded text-foreground bg-card hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
           >
             <TrashIcon className="h-4 w-4 mr-1" />
             Clear All
@@ -98,26 +98,26 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
 
       {/* Clear confirmation dialog */}
       {showClearConfirm && (
-        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+        <div className="mb-6 p-4 bg-warning/10 border border-warning/40 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+              <h4 className="text-sm font-medium text-warning">
                 Clear search history?
               </h4>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+              <p className="text-sm text-warning mt-1">
                 This will permanently delete all search history items.
               </p>
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-3 py-1.5 text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded text-foreground bg-card border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleClearHistory}
-                className="px-3 py-1.5 text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded text-warning-foreground bg-warning hover:bg-warning/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-warning transition-colors"
               >
                 Clear All
               </button>
@@ -142,8 +142,8 @@ export function SearchHistory({ history, onSearchClick }: SearchHistoryProps) {
 
       {filteredHistory.length === 0 && searchTerm && (
         <div className="text-center py-8">
-          <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-500">No history items match your search.</p>
+          <SearchIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">No history items match your search.</p>
         </div>
       )}
     </div>
@@ -166,32 +166,32 @@ function HistoryItem({
   const hasFilters = item.filters && Object.keys(item.filters).length > 0
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
+    <div className="bg-card border border-border rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-2">
-            <ClockIcon className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-500">
+            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
               {formatDate(item.timestamp)} at {formatTime(item.timestamp)}
             </span>
-            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
               {item.resultCount} result{item.resultCount !== 1 ? 's' : ''}
             </span>
           </div>
 
           <div className="mb-3">
-            <p className="text-sm text-gray-600 mb-1">Query:</p>
-            <code className="block text-sm bg-gray-50 border border-gray-200 rounded px-3 py-2 text-gray-700 font-mono">
+            <p className="text-sm text-muted-foreground mb-1">Query:</p>
+            <code className="block text-sm bg-muted border border-border rounded px-3 py-2 text-foreground font-mono">
               {item.query}
             </code>
           </div>
 
           {hasFilters && (
             <div className="mb-3">
-              <p className="text-sm text-gray-600 mb-1">Filters:</p>
+              <p className="text-sm text-muted-foreground mb-1">Filters:</p>
               <div className="flex flex-wrap gap-1">
                 {Object.entries(item.filters || {}).map(([key, value]) => (
-                  <span key={key} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  <span key={key} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800">
                     {key}: {Array.isArray(value) ? value.join(', ') : String(value)}
                   </span>
                 ))}
@@ -203,14 +203,14 @@ function HistoryItem({
         <div className="flex items-center space-x-2 ml-4">
           <button
             onClick={() => onSearchClick(item.query, item.filters)}
-            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
           >
             <MagnifyingGlassIcon className="h-3 w-3 mr-1" />
             Search
           </button>
           <button
             onClick={() => onDelete(item.id)}
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            className="text-muted-foreground hover:text-destructive transition-colors"
             title="Remove from history"
           >
             <XMarkIcon className="h-4 w-4" />

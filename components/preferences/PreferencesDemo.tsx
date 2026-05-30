@@ -436,8 +436,8 @@ export function PreferencesDemo() {
           </div>
           
           {hasChanges && (
-            <div className="text-sm text-muted-foreground">
-              ⚠️ You have unsaved changes that will be automatically saved
+            <div className="text-sm text-warning">
+              You have unsaved changes that will be automatically saved
             </div>
           )}
         </CardContent>

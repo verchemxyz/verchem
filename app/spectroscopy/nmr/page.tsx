@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   PROTON_NMR_SHIFTS,
   CARBON_NMR_SHIFTS,
@@ -95,7 +95,7 @@ function ShiftResults({
             No matches found
           </span>
         ) : (
-          <span className="text-violet-600">
+          <span className="text-primary-600">
             {matches.length} possible environment
             {matches.length !== 1 ? 's' : ''}
           </span>
@@ -107,18 +107,18 @@ function ShiftResults({
           {matches.map((m) => (
             <div
               key={m.id}
-              className="pl-3 border-l-4 rounded-r-md bg-white/50 dark:bg-white/5 p-3"
+              className="pl-3 border-l-4 rounded-r-md bg-muted p-3"
               style={{ borderColor: categoryColor(m.category) }}
             >
               <div className="flex flex-wrap items-center gap-2 mb-1">
                 <span className="font-semibold text-sm text-card-foreground">
                   {m.environment}
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground font-medium">
                   {m.category}
                 </span>
                 {m.multiplicity && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground font-medium">
                     {m.multiplicity}
                   </span>
                 )}
@@ -171,7 +171,7 @@ function ChemicalShiftScale({
       </div>
 
       {/* Scale bar */}
-      <div className="w-full h-6 bg-gray-200 dark:bg-gray-700 rounded-full relative overflow-hidden">
+      <div className="w-full h-6 bg-muted border border-border rounded-full relative overflow-hidden">
         {regions.map((r) => (
           <div
             key={r.label}
@@ -226,7 +226,7 @@ function SolventTable() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gray-50 dark:bg-white/5 text-left">
+          <tr className="bg-muted text-left">
             <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
               Solvent
             </th>
@@ -249,17 +249,17 @@ function SolventTable() {
         </thead>
         <tbody className="divide-y divide-border">
           {NMR_SOLVENTS.map((s: NMRSolvent) => (
-            <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-white/5">
+            <tr key={s.id} className="hover:bg-muted">
               <td className="px-4 py-2 font-medium text-card-foreground">
                 {s.name}
               </td>
               <td className="px-4 py-2 font-mono text-muted-foreground">
                 {s.formula}
               </td>
-              <td className="px-4 py-2 font-mono text-violet-600 font-semibold">
+              <td className="px-4 py-2 font-mono text-primary-600 font-semibold">
                 {s.protonShift !== null ? s.protonShift.toFixed(2) : '\u2014'}
               </td>
-              <td className="px-4 py-2 font-mono text-violet-600 font-semibold">
+              <td className="px-4 py-2 font-mono text-primary-600 font-semibold">
                 {s.carbonShift !== null ? s.carbonShift.toFixed(2) : '\u2014'}
               </td>
               <td className="px-4 py-2 text-muted-foreground hidden md:table-cell">
@@ -353,69 +353,33 @@ export default function NMRSpectroscopyPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image
-                src="/logo.png"
-                alt="VerChem Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/spectroscopy"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              &larr; Spectroscopy Hub
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-10">
-        {/* Title */}
-        <section className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-100 text-violet-700 rounded-full text-sm font-medium mb-4">
-            Nuclear Magnetic Resonance
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-            NMR Chemical Shift Analyzer
-          </h2>
-          <p className="text-secondary-600 max-w-2xl mx-auto">
-            Look up proton and carbon chemical shifts to identify molecular
-            environments. Includes visual scale and solvent reference table.
-          </p>
-        </section>
-
+    <CalcShell
+      eyebrow="Nuclear magnetic resonance \u00B7 \u00B9H & \u00B9\u00B3C"
+      title="NMR Chemical Shift Analyzer"
+      subtitle="Look up proton and carbon chemical shifts to identify molecular environments. Includes visual scale and solvent reference table."
+      backHref="/spectroscopy"
+      backLabel="Spectroscopy Hub"
+      maxWidth="7xl"
+    >
         {/* Tab switcher */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-lg border border-border overflow-hidden">
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-md border border-border overflow-hidden">
             <button
               onClick={() => handleTabSwitch('proton')}
-              className={`px-6 py-2.5 text-sm font-semibold transition-colors ${
+              className={`px-6 py-2.5 text-sm font-semibold transition-colors min-h-[44px] ${
                 activeTab === 'proton'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-card text-muted-foreground hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'bg-primary-500 text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:bg-muted'
               }`}
             >
               \u00B9H NMR (Proton)
             </button>
             <button
               onClick={() => handleTabSwitch('carbon')}
-              className={`px-6 py-2.5 text-sm font-semibold transition-colors ${
+              className={`px-6 py-2.5 text-sm font-semibold transition-colors min-h-[44px] ${
                 activeTab === 'carbon'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-card text-muted-foreground hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'bg-primary-500 text-primary-foreground'
+                  : 'bg-card text-muted-foreground hover:bg-muted'
               }`}
             >
               \u00B9\u00B3C NMR (Carbon)
@@ -461,11 +425,11 @@ export default function NMRSpectroscopyPage() {
                     ? 'e.g. 7.26, 2.17, 9.8'
                     : 'e.g. 77, 128, 206'
                 }
-                className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
               <button
                 onClick={handleIdentify}
-                className="px-5 py-2.5 bg-violet-600 text-white rounded-lg font-medium text-sm hover:bg-violet-700 transition-colors flex-shrink-0"
+                className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
               >
                 Identify
               </button>
@@ -478,7 +442,7 @@ export default function NMRSpectroscopyPage() {
                 <button
                   key={ex.value}
                   onClick={() => handleQuickExample(ex.value)}
-                  className="text-xs px-3 py-1 rounded-full border border-violet-300 text-violet-700 hover:bg-violet-50 transition-colors"
+                  className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
                 >
                   {ex.label}
                 </button>
@@ -516,11 +480,11 @@ export default function NMRSpectroscopyPage() {
                   if (e.key === 'Enter') handleSearch()
                 }}
                 placeholder="e.g. aromatic, aldehyde, methoxy, benzene"
-                className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
               <button
                 onClick={handleSearch}
-                className="px-5 py-2.5 bg-violet-600 text-white rounded-lg font-medium text-sm hover:bg-violet-700 transition-colors flex-shrink-0"
+                className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
               >
                 Search
               </button>
@@ -540,7 +504,7 @@ export default function NMRSpectroscopyPage() {
                       setSearchResults(searchNMR(term))
                       setHasSearched(true)
                     }}
-                    className="text-xs px-3 py-1 rounded-full border border-violet-300 text-violet-700 hover:bg-violet-50 transition-colors"
+                    className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
                   >
                     {term}
                   </button>
@@ -564,7 +528,7 @@ export default function NMRSpectroscopyPage() {
                     {searchResults.map((r) => (
                       <div
                         key={r.id}
-                        className="flex flex-col sm:flex-row sm:items-center gap-2 bg-white/50 dark:bg-white/5 border border-border rounded-lg px-4 py-3"
+                        className="flex flex-col sm:flex-row sm:items-center gap-2 bg-card border border-border rounded-lg px-4 py-3"
                       >
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0 hidden sm:block"
@@ -578,7 +542,7 @@ export default function NMRSpectroscopyPage() {
                             ({r.category})
                           </span>
                         </div>
-                        <span className="text-sm font-mono font-semibold text-violet-600 flex-shrink-0">
+                        <span className="text-sm font-mono font-semibold text-primary-600 flex-shrink-0">
                           {r.chemicalShiftMin.toFixed(1)}&ndash;
                           {r.chemicalShiftMax.toFixed(1)} ppm
                         </span>
@@ -605,7 +569,7 @@ export default function NMRSpectroscopyPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-white/5 text-left">
+                <tr className="bg-muted text-left">
                   <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
                     Environment
                   </th>
@@ -629,12 +593,12 @@ export default function NMRSpectroscopyPage() {
                 {allShifts.map((s: NMRShift) => (
                   <tr
                     key={s.id}
-                    className="hover:bg-gray-50 dark:hover:bg-white/5"
+                    className="hover:bg-muted"
                   >
                     <td className="px-4 py-2 font-medium text-card-foreground">
                       {s.environment}
                     </td>
-                    <td className="px-4 py-2 font-mono text-violet-600 font-semibold">
+                    <td className="px-4 py-2 font-mono text-primary-600 font-semibold">
                       {s.chemicalShiftMin.toFixed(1)}&ndash;
                       {s.chemicalShiftMax.toFixed(1)}
                     </td>
@@ -681,27 +645,26 @@ export default function NMRSpectroscopyPage() {
           <p className="text-sm text-muted-foreground">
             <Link
               href="/spectroscopy/ir"
-              className="text-violet-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               &larr; IR Interpreter
             </Link>
             {' '}&middot;{' '}
             <Link
               href="/spectroscopy"
-              className="text-violet-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               Spectroscopy Hub
             </Link>
             {' '}&middot;{' '}
             <Link
               href="/spectroscopy/mass-spec"
-              className="text-violet-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               Mass Spec Analyzer &rarr;
             </Link>
           </p>
         </section>
-      </main>
-    </div>
+    </CalcShell>
   )
 }

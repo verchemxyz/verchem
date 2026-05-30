@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Wind, Thermometer, Gauge, FlaskConical, Zap, Calculator, BookOpen } from 'lucide-react'
 import { GasLawsSchema } from '@/components/seo/JsonLd'
+import { CalcShell, Card, SectionTitle, Button, ResultPanel, ErrorBanner } from '@/components/lab'
 
 type GasLaw = 'ideal' | 'boyle' | 'charles' | 'gay-lussac' | 'combined' | 'avogadro'
 
@@ -223,55 +224,33 @@ export default function GasLawsCalculatorPage() {
   return (
     <>
       <GasLawsSchema />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950/20 to-slate-950">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300 mb-6">
-              <Wind className="h-4 w-4" />
-              All Major Gas Laws in One Place
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Gas Laws
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
-                Calculator
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Calculate pressure, volume, temperature, and moles using Ideal Gas Law,
-              Boyle&apos;s Law, Charles&apos;s Law, and more.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                6 Gas Laws
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Step-by-Step
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Unit Conversion
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                100% Free
-              </span>
-            </div>
-          </div>
+      <CalcShell
+        eyebrow="Physical chemistry · gas laws"
+        title="Gas Laws Calculator"
+        subtitle="Calculate pressure, volume, temperature, and moles using Ideal Gas Law, Boyle's Law, Charles's Law, and more."
+        backHref="/tools"
+        backLabel="All tools"
+        maxWidth="6xl"
+      >
+        {/* Capability strip */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 6 Gas Laws
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Step-by-Step
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Unit Conversion
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+          </span>
         </div>
-      </section>
 
-      {/* Law Selector */}
-      <section className="py-8 px-4">
-        <div className="mx-auto max-w-6xl">
+        {/* Law Selector */}
+        <Card className="p-6">
+          <SectionTitle className="mb-4">Select gas law</SectionTitle>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {(Object.keys(GAS_LAWS) as GasLaw[]).map((law) => (
               <button
@@ -283,10 +262,10 @@ export default function GasLawsCalculatorPage() {
                   setResult(null)
                   setError('')
                 }}
-                className={`rounded-xl p-4 text-center transition-all ${
+                className={`rounded-md p-4 text-center transition-colors ${
                   selectedLaw === law
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-foreground hover:bg-muted'
                 }`}
               >
                 <p className="font-semibold text-sm">{GAS_LAWS[law].name}</p>
@@ -294,145 +273,133 @@ export default function GasLawsCalculatorPage() {
               </button>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Calculator Section */}
-      <section className="py-8 px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-slate-900/90 to-emerald-900/20 p-8 shadow-2xl shadow-emerald-500/10 backdrop-blur-sm">
-            {/* Law Info */}
-            <div className="mb-8 text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">{currentLaw.name}</h2>
-              <p className="text-3xl font-mono text-emerald-400 mb-2">{currentLaw.formula}</p>
-              <p className="text-slate-400">{currentLaw.description}</p>
-              <p className="text-sm text-emerald-300 mt-2">Constant: {currentLaw.constant}</p>
-            </div>
+        {/* Calculator */}
+        <Card className="p-6 sm:p-8">
+          {/* Law Info */}
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-2">{currentLaw.name}</h2>
+            <p className="text-3xl font-mono text-primary-600 mb-2">{currentLaw.formula}</p>
+            <p className="text-muted-foreground">{currentLaw.description}</p>
+            <p className="text-sm text-muted-foreground mt-2">Constant: {currentLaw.constant}</p>
+          </div>
 
-            {/* Persistent CTA to the full calculator */}
-            <div className="mb-6 flex justify-center">
-              <Link
-                href="/gas-laws"
-                className="inline-flex items-center gap-1 text-sm text-emerald-300 hover:text-emerald-200"
-              >
-                Need all 9 laws + Van der Waals &amp; step-by-step? Open the full calculator
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          {/* Persistent CTA to the full calculator */}
+          <div className="mb-6 flex justify-center">
+            <Link
+              href="/gas-laws"
+              className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+            >
+              Need all 9 laws + Van der Waals &amp; step-by-step? Open the full calculator
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
 
-            {/* Quick-calc for the implemented laws; CTA to the full calculator otherwise */}
-            {getInputFields().length > 0 ? (
-            <>
-            {/* Solve For Selector */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-300 mb-3">
-                Solve For
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {getInputFields().map((field) => (
-                  <button
-                    key={field.key}
-                    onClick={() => setSolveFor(field.key)}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                      solveFor === field.key
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-white/5 text-slate-400 hover:bg-white/10'
-                    }`}
-                  >
-                    {field.key}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Input Fields */}
-            <div className="grid gap-4 md:grid-cols-2 mb-6">
+          {/* Quick-calc for the implemented laws; CTA to the full calculator otherwise */}
+          {getInputFields().length > 0 ? (
+          <>
+          {/* Solve For Selector */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-foreground mb-3">
+              Solve For
+            </label>
+            <div className="flex flex-wrap gap-2">
               {getInputFields().map((field) => (
-                <div
+                <button
                   key={field.key}
-                  className={solveFor === field.key ? 'opacity-50' : ''}
+                  onClick={() => setSolveFor(field.key)}
+                  className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                    solveFor === field.key
+                      ? 'bg-primary-500 text-primary-foreground'
+                      : 'border border-border bg-card text-foreground hover:bg-muted'
+                  }`}
                 >
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    {field.label}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={inputs[field.key] || ''}
-                      onChange={(e) => handleInputChange(field.key, e.target.value)}
-                      disabled={solveFor === field.key}
-                      placeholder={field.placeholder}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-mono disabled:cursor-not-allowed"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
-                      {field.unit}
-                    </span>
-                  </div>
-                </div>
+                  {field.key}
+                </button>
               ))}
             </div>
-
-            {/* Calculate Button */}
-            <button
-              onClick={handleCalculate}
-              disabled={isCalculating || !solveFor}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-4 font-semibold text-white transition-all hover:from-emerald-500 hover:to-teal-500 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50"
-            >
-              {isCalculating ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Calculating...
-                </div>
-              ) : (
-                'Calculate'
-              )}
-            </button>
-            </>
-            ) : (
-              <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-center">
-                <p className="text-slate-300 mb-4">
-                  <span className="font-semibold text-white">{currentLaw.name}</span> — with full
-                  step-by-step solving, plus Van der Waals, Dalton&apos;s, Graham&apos;s and the
-                  Combined Gas Law — is available in the complete calculator.
-                </p>
-                <Link
-                  href="/gas-laws"
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white hover:from-emerald-500 hover:to-teal-500 transition-colors"
-                >
-                  Open the full Gas Laws Calculator
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            )}
-
-            {error && (
-              <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                {error}
-              </div>
-            )}
-
-            {result && (
-              <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-center">
-                  <p className="text-sm text-emerald-300 mb-2">Result for {solveFor}</p>
-                  <p className="text-4xl font-bold text-white font-mono">
-                    {result.value.toExponential(4)}
-                    <span className="text-2xl text-emerald-300 ml-2">{result.unit}</span>
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      </section>
 
-      {/* Gas Laws Overview */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">
+          {/* Input Fields */}
+          <div className="grid gap-4 md:grid-cols-2 mb-6">
+            {getInputFields().map((field) => (
+              <div
+                key={field.key}
+                className={solveFor === field.key ? 'opacity-50' : ''}
+              >
+                <label htmlFor={`gl-${field.key}`} className="block text-sm font-medium text-foreground mb-2">
+                  {field.label}
+                </label>
+                <div className="relative">
+                  <input
+                    id={`gl-${field.key}`}
+                    type="text"
+                    value={inputs[field.key] || ''}
+                    onChange={(e) => handleInputChange(field.key, e.target.value)}
+                    disabled={solveFor === field.key}
+                    placeholder={field.placeholder}
+                    className="input-premium w-full font-mono disabled:cursor-not-allowed"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {field.unit}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Calculate Button */}
+          <Button
+            onClick={handleCalculate}
+            disabled={isCalculating || !solveFor}
+            className="w-full"
+          >
+            {isCalculating ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Calculating...
+              </div>
+            ) : (
+              'Calculate'
+            )}
+          </Button>
+          </>
+          ) : (
+            <div className="rounded-lg border border-border bg-muted p-6 text-center">
+              <p className="text-muted-foreground mb-4">
+                <span className="font-semibold text-foreground">{currentLaw.name}</span> — with full
+                step-by-step solving, plus Van der Waals, Dalton&apos;s, Graham&apos;s and the
+                Combined Gas Law — is available in the complete calculator.
+              </p>
+              <Link
+                href="/gas-laws"
+                className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
+              >
+                Open the full Gas Laws Calculator
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
+
+          {error && <div className="mt-6"><ErrorBanner>{error}</ErrorBanner></div>}
+
+          {result && (
+            <div className="mt-6">
+              <ResultPanel label={`Result for ${solveFor}`}>
+                {result.value.toExponential(4)}
+                <span className="text-xl text-muted-foreground ml-2">{result.unit}</span>
+              </ResultPanel>
+            </div>
+          )}
+        </Card>
+
+        {/* Gas Laws Overview */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-2">
             Understanding Gas Laws
-          </h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
+          </SectionTitle>
+          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
             The fundamental laws that describe how gases behave under different conditions
           </p>
 
@@ -440,19 +407,19 @@ export default function GasLawsCalculatorPage() {
             {(Object.entries(GAS_LAWS) as [GasLaw, GasLawInfo][]).map(([key, law]) => (
               <div
                 key={key}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-emerald-500/30 transition-colors"
+                className="rounded-lg border border-border bg-muted p-6"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center">
-                    <Wind className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-md bg-primary-500 flex items-center justify-center">
+                    <Wind className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{law.name}</h3>
+                  <h3 className="text-lg font-semibold text-foreground">{law.name}</h3>
                 </div>
-                <p className="text-2xl font-mono text-emerald-400 mb-3">{law.formula}</p>
-                <p className="text-slate-400 text-sm mb-4">{law.description}</p>
+                <p className="text-2xl font-mono text-primary-600 mb-3">{law.formula}</p>
+                <p className="text-muted-foreground text-sm mb-4">{law.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {law.variables.map((v) => (
-                    <span key={v} className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400">
+                    <span key={v} className="rounded-full bg-card border border-border px-3 py-1 text-xs text-muted-foreground">
                       {v}
                     </span>
                   ))}
@@ -460,15 +427,13 @@ export default function GasLawsCalculatorPage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Features */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* Features */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Why Use Our Gas Laws Calculator?
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -505,23 +470,21 @@ export default function GasLawsCalculatorPage() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-emerald-500/30 transition-colors"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <feature.icon className="h-8 w-8 text-emerald-400 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm">{feature.description}</p>
+                <feature.icon className="h-8 w-8 text-primary-600 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* FAQ */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* FAQ */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Frequently Asked Questions
-          </h2>
+          </SectionTitle>
 
           <div className="space-y-6">
             {[
@@ -548,59 +511,53 @@ export default function GasLawsCalculatorPage() {
             ].map((faq, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <h3 className="text-lg font-semibold text-white mb-3">{faq.q}</h3>
-                <p className="text-slate-400">{faq.a}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{faq.q}</h3>
+                <p className="text-muted-foreground">{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+        {/* CTA */}
+        <Card className="p-6 sm:p-8 text-center">
+          <SectionTitle className="text-2xl mb-6">
             Explore More Chemistry Tools
-          </h2>
-          <p className="text-slate-400 mb-8">
-            VerChem offers a complete suite of chemistry calculators and tools
-          </p>
+          </SectionTitle>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/tools/equation-balancer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Equation Balancer
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/molar-mass"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Molar Mass
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/ph-calculator"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               pH Calculator
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/periodic-table"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 font-medium text-white hover:from-emerald-500 hover:to-teal-500 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
             >
               Interactive Periodic Table
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
-    </div>
+        </Card>
+      </CalcShell>
     </>
   )
 }

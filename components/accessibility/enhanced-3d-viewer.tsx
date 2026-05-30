@@ -299,30 +299,30 @@ export function Enhanced3DViewer({
   }, [controls, onControlsChange]);
   
   return (
-    <div 
+    <div
       ref={viewerRef}
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}
+      className={`bg-card border border-border rounded-lg shadow-lg p-6 ${className}`}
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground">
             {title}
           </h2>
-          <p id="viewer-description" className="text-sm text-gray-600 dark:text-gray-400">
+          <p id="viewer-description" className="text-sm text-muted-foreground">
             {description}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
               setHelpVisible(!helpVisible);
               announceToScreenReader(`Help ${!helpVisible ? 'opened' : 'closed'}`);
             }}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-expanded={helpVisible}
             aria-label="Toggle help information"
           >
@@ -335,63 +335,63 @@ export function Enhanced3DViewer({
       
       {/* Help Panel */}
       {helpVisible && (
-        <div 
-          className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+        <div
+          className="mb-4 p-4 bg-muted border border-border rounded-lg"
           role="region"
           aria-label="Viewer help information"
         >
-          <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
+          <h3 className="text-lg font-medium text-foreground mb-2">
             Keyboard Controls
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-foreground">
             <div>
               <div className="font-medium mb-1">Rotation:</div>
               <div>↑↓←→ Arrow keys</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 Rotate the molecule in 3D space
               </div>
             </div>
             <div>
               <div className="font-medium mb-1">Zoom:</div>
               <div>+ / - keys</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 Zoom in and out of the molecule
               </div>
             </div>
             <div>
               <div className="font-medium mb-1">Auto-rotate:</div>
               <div>Space bar</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 Toggle automatic rotation
               </div>
             </div>
             <div>
               <div className="font-medium mb-1">Reset:</div>
               <div>R key</div>
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-xs text-muted-foreground mt-1">
                 Reset view to default position
               </div>
             </div>
           </div>
         </div>
       )}
-      
+
       {/* 3D Canvas */}
       <div className="mb-4">
         <canvas
           ref={canvasRef}
-          className="w-full h-96 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600"
+          className="w-full h-96 bg-muted rounded-lg border border-border"
           id="canvas-description"
           aria-label="3D molecular visualization canvas"
         />
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 bg-opacity-75">
-            <div className="text-gray-600 dark:text-gray-400">Loading 3D model...</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-card/75">
+            <div className="text-muted-foreground">Loading 3D model...</div>
           </div>
         )}
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20">
-            <div className="text-red-600 dark:text-red-400">Error: {error}</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-destructive/10">
+            <div className="text-destructive">Error: {error}</div>
           </div>
         )}
       </div>
@@ -403,7 +403,7 @@ export function Enhanced3DViewer({
           <div></div>
           <button
             onClick={() => rotateView('up')}
-            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={ARIA_LABELS.rotateUp}
             title="↑ - Rotate up"
           >
@@ -415,7 +415,7 @@ export function Enhanced3DViewer({
           
           <button
             onClick={() => rotateView('left')}
-            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={ARIA_LABELS.rotateLeft}
             title="← - Rotate left"
           >
@@ -426,18 +426,18 @@ export function Enhanced3DViewer({
           
           <button
             onClick={resetView}
-            className="p-2 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 bg-primary-100 hover:bg-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={ARIA_LABELS.resetView}
             title="R - Reset view"
           >
-            <svg className="w-5 h-5 mx-auto text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mx-auto text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
           
           <button
             onClick={() => rotateView('right')}
-            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={ARIA_LABELS.rotateRight}
             title="→ - Rotate right"
           >
@@ -449,7 +449,7 @@ export function Enhanced3DViewer({
           <div></div>
           <button
             onClick={() => rotateView('down')}
-            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label={ARIA_LABELS.rotateDown}
             title="↓ - Rotate down"
           >
@@ -465,7 +465,7 @@ export function Enhanced3DViewer({
           <div className="flex items-center gap-2">
             <button
               onClick={() => zoomView('out')}
-              className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label={ARIA_LABELS.zoomOut}
               title="- - Zoom out"
             >
@@ -474,13 +474,13 @@ export function Enhanced3DViewer({
               </svg>
             </button>
             
-            <div className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
+            <div className="text-sm text-muted-foreground min-w-[60px] text-center">
               {Math.round(controls.zoom * 100)}%
             </div>
             
             <button
               onClick={() => zoomView('in')}
-              className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 bg-muted text-foreground hover:bg-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               aria-label={ARIA_LABELS.zoomIn}
               title="+ - Zoom in"
             >
@@ -493,10 +493,10 @@ export function Enhanced3DViewer({
           <div className="flex items-center gap-2">
             <button
               onClick={toggleAutoRotate}
-              className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                 controls.autoRotate
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-muted text-foreground'
               }`}
               aria-pressed={controls.autoRotate}
               aria-label={ARIA_LABELS.autoRotate}
@@ -509,10 +509,10 @@ export function Enhanced3DViewer({
             
             <button
               onClick={toggleWireframe}
-              className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                 controls.wireframe
-                  ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-secondary-100 text-secondary-700'
+                  : 'bg-muted text-foreground'
               }`}
               aria-pressed={controls.wireframe}
               aria-label="Toggle wireframe mode"
@@ -526,23 +526,23 @@ export function Enhanced3DViewer({
       </div>
       
       {/* Status Information */}
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-4 pt-4 border-t border-border">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
           <div>
-            <div className="text-gray-600 dark:text-gray-400">Rotation X</div>
-            <div className="font-mono text-gray-900 dark:text-white">{controls.rotateX}°</div>
+            <div className="text-muted-foreground">Rotation X</div>
+            <div className="font-mono text-foreground">{controls.rotateX}°</div>
           </div>
           <div>
-            <div className="text-gray-600 dark:text-gray-400">Rotation Y</div>
-            <div className="font-mono text-gray-900 dark:text-white">{controls.rotateY}°</div>
+            <div className="text-muted-foreground">Rotation Y</div>
+            <div className="font-mono text-foreground">{controls.rotateY}°</div>
           </div>
           <div>
-            <div className="text-gray-600 dark:text-gray-400">Zoom</div>
-            <div className="font-mono text-gray-900 dark:text-white">{Math.round(controls.zoom * 100)}%</div>
+            <div className="text-muted-foreground">Zoom</div>
+            <div className="font-mono text-foreground">{Math.round(controls.zoom * 100)}%</div>
           </div>
           <div>
-            <div className="text-gray-600 dark:text-gray-400">Auto-rotate</div>
-            <div className="text-gray-900 dark:text-white">{controls.autoRotate ? 'On' : 'Off'}</div>
+            <div className="text-muted-foreground">Auto-rotate</div>
+            <div className="text-foreground">{controls.autoRotate ? 'On' : 'Off'}</div>
           </div>
         </div>
       </div>

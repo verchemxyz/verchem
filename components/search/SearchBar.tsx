@@ -119,9 +119,9 @@ export function SearchBar({
       {/* Main search bar */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+          <MagnifyingGlassIcon className="h-5 w-5 text-muted-foreground" />
         </div>
-        
+
         <input
           ref={inputRef}
           type="text"
@@ -130,7 +130,7 @@ export function SearchBar({
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}
-          className={`block w-full pl-10 pr-20 py-2 border border-gray-300 dark:border-gray-700 rounded-lg leading-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200 ${
+          className={`block w-full pl-10 pr-20 py-2 border border-border rounded-lg leading-5 bg-card text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm transition-all duration-200 ${
             compact ? 'text-sm' : 'text-base'
           } ${
             isSearching ? 'opacity-75' : ''
@@ -144,24 +144,24 @@ export function SearchBar({
             <button
               onClick={handleVoiceSearch}
               className={`p-2 rounded-md transition-colors ${
-                isListening 
-                  ? 'text-red-500 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/30 dark:hover:bg-red-900/50' 
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800'
+                isListening
+                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               title={isListening ? 'Stop voice search' : 'Start voice search'}
             >
               <MicrophoneIcon className={`h-5 w-5 ${isListening ? 'animate-pulse' : ''}`} />
             </button>
           )}
-          
+
           {/* Filters button */}
           {showFilters && (
             <button
               onClick={toggleFilters}
               className={`p-2 rounded-md transition-colors ${
                 Object.keys(activeFilters).length > 0
-                  ? 'text-blue-500 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50'
-                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800'
+                  ? 'text-primary-600 bg-primary-50 hover:bg-primary-100'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               title="Advanced filters"
             >
@@ -170,23 +170,23 @@ export function SearchBar({
               </svg>
             </button>
           )}
-          
+
           {/* Clear button */}
           {query && (
             <button
               onClick={clearQuery}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800 rounded-md transition-colors"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               title="Clear search"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
           )}
-          
+
           {/* Search button */}
           <button
             onClick={() => handleSearch()}
             disabled={isSearching || !query.trim()}
-            className="p-2 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed rounded-md transition-colors"
+            className="p-2 text-primary-foreground bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed rounded-md transition-colors"
             title="Search"
           >
             <MagnifyingGlassIcon className="h-5 w-5" />
@@ -209,10 +209,10 @@ export function SearchBar({
       {/* Advanced filters panel */}
       {showAdvancedFilters && (
         <div className="absolute top-full left-0 right-0 mt-2 z-40">
-          <SearchFilters 
+          <SearchFilters
             filters={activeFilters}
             onFiltersChange={setActiveFilters}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4"
+            className="bg-popover border border-border rounded-lg shadow-lg p-4"
           />
         </div>
       )}
@@ -220,12 +220,12 @@ export function SearchBar({
       {/* Voice search indicator */}
       {isListening && (
         <div className="absolute top-full left-0 right-0 mt-2 z-30">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+          <div className="bg-destructive/10 border border-destructive/40 rounded-lg p-3 text-center">
             <div className="flex items-center justify-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-700 font-medium">Listening...</span>
+              <div className="w-3 h-3 bg-destructive rounded-full animate-pulse"></div>
+              <span className="text-destructive font-medium">Listening...</span>
             </div>
-            <p className="text-red-600 text-sm mt-1">Speak your search query</p>
+            <p className="text-destructive text-sm mt-1">Speak your search query</p>
           </div>
         </div>
       )}

@@ -108,7 +108,7 @@ export default function MoleculeInputModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
       <div
@@ -116,18 +116,18 @@ export default function MoleculeInputModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="draw-modal-title"
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col animate-in fade-in zoom-in duration-200 h-[80vh] max-h-[calc(100vh-2rem)] min-h-[400px]"
+        className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-4xl w-full flex flex-col animate-in fade-in zoom-in duration-200 h-[80vh] max-h-[calc(100vh-2rem)] min-h-[400px]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 id="draw-modal-title" className="text-lg font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2 id="draw-modal-title" className="text-lg font-bold text-foreground">
             Draw Structure
           </h2>
           <button
             ref={closeButtonRef}
             onClick={onClose}
             aria-label="Close dialog"
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -146,12 +146,12 @@ export default function MoleculeInputModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-border text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
           >
             Cancel
           </button>
@@ -159,7 +159,7 @@ export default function MoleculeInputModal({
             type="button"
             onClick={handleApply}
             disabled={isLoading || !ketcher || !isReady}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary-600 text-primary-foreground hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading ? 'Applying...' : !isReady ? 'Loading...' : 'Apply'}
           </button>

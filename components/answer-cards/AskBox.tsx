@@ -24,7 +24,7 @@ export default function AskBox({ onSubmit, isLoading, error }: AskBoxProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="verified-question" className="block text-sm font-medium text-slate-300 mb-2">
+        <label htmlFor="verified-question" className="block text-sm font-medium text-foreground mb-2">
           Ask a chemistry question
         </label>
         <textarea
@@ -39,10 +39,10 @@ export default function AskBox({ onSubmit, isLoading, error }: AskBoxProps) {
           placeholder="e.g., What is the pH of 0.1 M acetic acid (Ka = 1.8e-5)?"
           rows={3}
           disabled={isLoading}
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none disabled:opacity-50"
+          className="w-full rounded-xl border border-border bg-input px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 resize-none disabled:opacity-50"
           aria-busy={isLoading}
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Press Ctrl+Enter or Cmd+Enter to submit
         </p>
       </div>
@@ -50,11 +50,11 @@ export default function AskBox({ onSubmit, isLoading, error }: AskBoxProps) {
       <button
         type="submit"
         disabled={isLoading || question.trim().length === 0}
-        className="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-6 py-3 font-semibold text-white transition-all hover:from-blue-500 hover:to-cyan-500 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="rounded-xl bg-primary-500 px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
             Verifying...
           </span>
         ) : (
@@ -65,7 +65,7 @@ export default function AskBox({ onSubmit, isLoading, error }: AskBoxProps) {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-destructive"
         >
           {error}
         </div>

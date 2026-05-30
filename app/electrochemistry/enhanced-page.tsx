@@ -3,7 +3,14 @@
 // VerChem - Enhanced Electrochemistry Page (Uncertainty)
 
 import { useState } from 'react'
-import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  ErrorBanner,
+} from '@/components/lab'
 import {
   calculateCellPotential,
   calculateNernstEquation,
@@ -117,182 +124,144 @@ export default function EnhancedElectrochemistryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-sky-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <h1 className="text-2xl font-bold">
-              <span className="text-blue-600">Ver</span>
-              <span className="text-gray-900">Chem</span>
-            </h1>
-          </Link>
-          <Link
-            href="/electrochemistry"
-            className="text-gray-600 hover:text-blue-600 transition-colors text-sm"
-          >
-            ← Back to Electrochemistry
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <section className="text-center space-y-2">
-          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-            Enhanced Electrochemistry
-          </h2>
-          <p className="text-gray-600">
-            Cell potential, ΔG°, and Nernst equation with propagated uncertainties.
+    <CalcShell
+      eyebrow="Physical chemistry · uncertainty"
+      title="Enhanced Electrochemistry"
+      subtitle="Cell potential, ΔG°, and Nernst equation with propagated uncertainties."
+      backHref="/electrochemistry"
+      backLabel="Electrochemistry"
+      maxWidth="7xl"
+    >
+      <Card className="p-6 space-y-6">
+        <div className="space-y-1">
+          <SectionTitle>Standard Cell Potential (E°cell)</SectionTitle>
+          <p className="text-sm text-muted-foreground">
+            Enter standard electrode potentials and their uncertainties.
           </p>
-        </section>
+        </div>
 
-        <section className="bg-white rounded-xl shadow-md p-6 space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-xl font-semibold text-gray-900">Standard Cell Potential (E°cell)</h3>
-            <p className="text-sm text-gray-500">
-              Enter standard electrode potentials and their uncertainties.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cathode E° (V)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={cathodeE0}
-                  onChange={(e) => setCathodeE0(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={cathodeUnc}
-                  onChange={(e) => setCathodeUnc(e.target.value)}
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="σE°"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Anode E° (V)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={anodeE0}
-                  onChange={(e) => setAnodeE0(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={anodeUnc}
-                  onChange={(e) => setAnodeUnc(e.target.value)}
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="σE°"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Electrons transferred (n)
-              </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Cathode E° (V)">
+            <div className="flex gap-2">
               <input
                 type="number"
-                min={1}
-                value={electrons}
-                onChange={(e) => setElectrons(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                value={cathodeE0}
+                onChange={(e) => setCathodeE0(e.target.value)}
+                className="input-premium flex-1"
+              />
+              <input
+                type="number"
+                value={cathodeUnc}
+                onChange={(e) => setCathodeUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σE°"
+                aria-label="Cathode E° uncertainty"
               />
             </div>
+          </Field>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reaction quotient Q
-              </label>
+          <Field label="Anode E° (V)">
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={anodeE0}
+                onChange={(e) => setAnodeE0(e.target.value)}
+                className="input-premium flex-1"
+              />
+              <input
+                type="number"
+                value={anodeUnc}
+                onChange={(e) => setAnodeUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σE°"
+                aria-label="Anode E° uncertainty"
+              />
+            </div>
+          </Field>
+
+          <Field label="Electrons transferred (n)">
+            <input
+              type="number"
+              min={1}
+              value={electrons}
+              onChange={(e) => setElectrons(e.target.value)}
+              className="input-premium w-full"
+            />
+          </Field>
+
+          <div>
+            <Field label="Reaction quotient Q">
               <input
                 type="number"
                 value={nernstQ}
                 onChange={(e) => setNernstQ(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="input-premium w-full"
               />
-              <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">
-                Temperature (K) and σT
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={nernstTemp}
-                  onChange={(e) => setNernstTemp(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={nernstTempUnc}
-                  onChange={(e) => setNernstTempUnc(e.target.value)}
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  placeholder="σT"
-                />
-              </div>
+            </Field>
+            <label className="block text-sm font-medium text-foreground mt-3 mb-1.5">
+              Temperature (K) and σT
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={nernstTemp}
+                onChange={(e) => setNernstTemp(e.target.value)}
+                className="input-premium flex-1"
+              />
+              <input
+                type="number"
+                value={nernstTempUnc}
+                onChange={(e) => setNernstTempUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σT"
+                aria-label="Temperature uncertainty"
+              />
             </div>
           </div>
+        </div>
 
-          <button
-            onClick={handleCalculate}
-            className="mt-4 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Calculate with Uncertainty
-          </button>
+        <Button onClick={handleCalculate}>
+          Calculate with Uncertainty
+        </Button>
 
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 text-sm text-red-700 rounded-lg">
-              {error}
-            </div>
+        {error && <ErrorBanner>{error}</ErrorBanner>}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          {cellResult && (
+            <ScientificResult
+              label="E°cell"
+              value={cellResult.value}
+              uncertainty={cellResult.uncertainty}
+              unit={cellResult.unit}
+            />
           )}
+          {deltaGResult && (
+            <ScientificResult
+              label="ΔG°"
+              value={deltaGResult.value}
+              uncertainty={deltaGResult.uncertainty}
+              unit={deltaGResult.unit}
+            />
+          )}
+          {nernstResult && (
+            <ScientificResult
+              label="E (Nernst)"
+              value={nernstResult.value}
+              uncertainty={nernstResult.uncertainty}
+              unit={nernstResult.unit}
+            />
+          )}
+        </div>
+      </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            {cellResult && (
-              <ScientificResult
-                label="E°cell"
-                value={cellResult.value}
-                uncertainty={cellResult.uncertainty}
-                unit={cellResult.unit}
-              />
-            )}
-            {deltaGResult && (
-              <ScientificResult
-                label="ΔG°"
-                value={deltaGResult.value}
-                uncertainty={deltaGResult.uncertainty}
-                unit={deltaGResult.unit}
-              />
-            )}
-            {nernstResult && (
-              <ScientificResult
-                label="E (Nernst)"
-                value={nernstResult.value}
-                uncertainty={nernstResult.uncertainty}
-                unit={nernstResult.unit}
-              />
-            )}
-          </div>
-        </section>
-
-        {steps.length > 0 && (
-          <section className="bg-white rounded-xl shadow-md p-6 space-y-3">
-            <h3 className="text-lg font-semibold text-gray-900">Calculation Details</h3>
-            <pre className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap">
-              {steps.join('\n')}
-            </pre>
-          </section>
-        )}
-      </main>
-    </div>
+      {steps.length > 0 && (
+        <Card className="p-6 space-y-3">
+          <SectionTitle>Calculation Details</SectionTitle>
+          <pre className="bg-muted border border-border rounded-md p-4 text-sm text-foreground whitespace-pre-wrap font-mono overflow-x-auto">
+            {steps.join('\n')}
+          </pre>
+        </Card>
+      )}
+    </CalcShell>
   )
 }

@@ -109,29 +109,29 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-2xl mx-auto"
+        className="bg-card border border-border rounded-lg p-6 max-w-2xl mx-auto"
       >
         <div className="text-center">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center ${
-              passed ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
+            className={`w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center border ${
+              passed ? 'bg-muted border-success' : 'bg-muted border-destructive'
             }`}
           >
             {passed ? (
-              <Award className="w-10 h-10 text-green-600 dark:text-green-400" />
+              <Award className="w-10 h-10 text-success" />
             ) : (
-              <RotateCcw className="w-10 h-10 text-red-600 dark:text-red-400" />
+              <RotateCcw className="w-10 h-10 text-destructive" />
             )}
           </motion.div>
 
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {passed ? 'Congratulations!' : 'Keep Learning!'}
           </h2>
-          
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
+
+          <p className="text-lg text-muted-foreground mb-4">
             You scored {score}% ({Math.round(score * questions.length / 100)}/{questions.length} correct)
           </p>
 
@@ -140,12 +140,12 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg p-4 mb-4"
+              className="bg-muted border border-success rounded-lg p-4 mb-4"
             >
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                🏆 Achievement Unlocked!
+              <p className="text-sm font-medium text-success">
+                Achievement Unlocked
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Tutorial Master - Completed assessment with {score}% score
               </p>
             </motion.div>
@@ -158,24 +158,24 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
               return (
                 <div
                   key={q.id}
-                  className={`flex items-center space-x-3 p-2 rounded-lg ${
+                  className={`flex items-center space-x-3 p-2 rounded-lg border ${
                     status === 'correct'
-                      ? 'bg-green-50 dark:bg-green-900/20'
+                      ? 'bg-muted border-success'
                       : status === 'incorrect'
-                      ? 'bg-red-50 dark:bg-red-900/20'
-                      : 'bg-gray-50 dark:bg-gray-700'
+                      ? 'bg-muted border-destructive'
+                      : 'bg-muted border-border'
                   }`}
                 >
                   {status === 'correct' ? (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-success" />
                   ) : (
-                    <XCircle className="w-4 h-4 text-red-500" />
+                    <XCircle className="w-4 h-4 text-destructive" />
                   )}
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-foreground">
                     Question {index + 1}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 flex-1">
-                    {status === 'unanswered' ? 'Not answered' : 
+                  <span className="text-xs text-muted-foreground flex-1">
+                    {status === 'unanswered' ? 'Not answered' :
                      status === 'correct' ? 'Correct' : 'Incorrect'}
                   </span>
                 </div>
@@ -187,14 +187,14 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
             {!passed && (
               <button
                 onClick={handleRestart}
-                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-primary-foreground rounded-lg transition-colors"
               >
                 Try Again
               </button>
             )}
             <button
               onClick={() => onComplete(score, answers)}
-              className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-muted hover:bg-accent text-foreground border border-border rounded-lg transition-colors"
             >
               Continue
             </button>
@@ -208,23 +208,23 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-2xl mx-auto"
+      className="bg-card border border-border rounded-lg p-6 max-w-2xl mx-auto"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-foreground">
             Tutorial Assessment
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Test your knowledge from this tutorial
           </p>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-muted-foreground">
             Question {currentQuestion + 1} of {questions.length}
           </div>
-          <div className="text-xs text-gray-400 dark:text-gray-500">
+          <div className="text-xs text-muted-foreground">
             {currentQ.points} points
           </div>
         </div>
@@ -232,13 +232,13 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
 
       {/* Progress Bar */}
       <div className="mb-6">
-        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+        <div className="flex justify-between text-xs text-muted-foreground mb-1">
           <span>Progress</span>
           <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-2">
           <div
-            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+            className="bg-primary-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
           />
         </div>
@@ -246,7 +246,7 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
 
       {/* Question */}
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <h3 className="text-lg font-medium text-foreground mb-4">
           {currentQ.question}
         </h3>
 
@@ -265,23 +265,23 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
                   onClick={() => handleAnswerSelect(index)}
                   className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                     selectedAnswer === index
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      ? 'border-primary-500 bg-accent text-primary-700 dark:text-primary-300'
+                      : 'border-border hover:border-ring'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <div
                       className={`w-4 h-4 rounded-full border-2 ${
                         selectedAnswer === index
-                          ? 'border-blue-500 bg-blue-500'
-                          : 'border-gray-300 dark:border-gray-600'
+                          ? 'border-primary-500 bg-primary-500'
+                          : 'border-border'
                       }`}
                     >
                       {selectedAnswer === index && (
-                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                        <div className="w-full h-full rounded-full bg-primary-foreground scale-50" />
                       )}
                     </div>
-                    <span className="text-gray-900 dark:text-white">{option}</span>
+                    <span className="text-foreground">{option}</span>
                   </div>
                 </button>
               ))}
@@ -302,11 +302,11 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
                   onClick={() => handleAnswerSelect(value)}
                   className={`flex-1 p-4 rounded-lg border-2 transition-all ${
                     selectedAnswer === value
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      ? 'border-primary-500 bg-accent'
+                      : 'border-border hover:border-ring'
                   }`}
                 >
-                  <span className="text-lg font-medium text-gray-900 dark:text-white">
+                  <span className="text-lg font-medium text-foreground">
                     {value ? 'True' : 'False'}
                   </span>
                 </button>
@@ -326,7 +326,7 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
                 value={typeof selectedAnswer === 'boolean' ? String(selectedAnswer) : (selectedAnswer || '')}
                 onChange={(e) => handleAnswerSelect(e.target.value)}
                 placeholder="Type your answer here..."
-                className="w-full p-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full p-3 border-2 border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-input text-foreground"
               />
             </motion.div>
           )}
@@ -338,7 +338,7 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
         <button
           onClick={handlePrevious}
           disabled={currentQuestion === 0}
-          className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Previous
         </button>
@@ -346,14 +346,14 @@ export function TutorialAssessment({ questions, onComplete, onSkip }: Assessment
         <div className="flex space-x-3">
           <button
             onClick={onSkip}
-            className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 transition-colors"
+            className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             Skip Assessment
           </button>
           <button
             onClick={handleNext}
             disabled={selectedAnswer === null}
-            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center space-x-2"
+            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-primary-foreground rounded-lg transition-colors flex items-center space-x-2"
           >
             <span>{isLastQuestion ? 'Submit' : 'Next'}</span>
             <ChevronRight className="w-4 h-4" />

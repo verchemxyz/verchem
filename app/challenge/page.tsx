@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { CalcShell, Card, Button } from '@/components/lab'
 import {
   Trophy,
   Timer,
@@ -13,7 +13,6 @@ import {
   ArrowRight,
   Share2,
   RotateCcw,
-  Sparkles,
   Target,
   Medal,
   TrendingUp
@@ -274,15 +273,15 @@ export default function ChemistryChallengePage() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'text-green-400 bg-green-500/20'
-      case 'medium': return 'text-yellow-400 bg-yellow-500/20'
-      case 'hard': return 'text-red-400 bg-red-500/20'
-      default: return 'text-gray-400'
+      case 'easy': return 'text-success bg-success/10'
+      case 'medium': return 'text-warning bg-warning/10'
+      case 'hard': return 'text-destructive bg-destructive/10'
+      default: return 'text-muted-foreground bg-muted'
     }
   }
 
   const shareScore = () => {
-    const text = `I scored ${score} points on VerChem Chemistry Challenge! Can you beat my score? 🧪⚗️\n\nhttps://verchem.xyz/challenge`
+    const text = `I scored ${score} points on VerChem Chemistry Challenge! Can you beat my score?\n\nhttps://verchem.xyz/challenge`
     if (navigator.share) {
       navigator.share({ text })
     } else {
@@ -292,153 +291,130 @@ export default function ChemistryChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950/20 to-slate-950">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-slate-950/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-white font-bold text-xl">
-            <Sparkles className="h-6 w-6 text-violet-400" />
-            VerChem Challenge
-          </Link>
-
-          {gameState === 'playing' && (
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-white">
-                <Timer className="h-5 w-5 text-violet-400" />
-                <span className={`font-mono text-lg ${timeLeft < 60 ? 'text-red-400 animate-pulse' : ''}`}>
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-white">
-                <Star className="h-5 w-5 text-yellow-400" />
-                <span className="font-bold">{score}</span>
-              </div>
-              <div className="flex items-center gap-2 text-white">
-                <Flame className={`h-5 w-5 ${streak > 0 ? 'text-orange-400' : 'text-gray-500'}`} />
-                <span className={streak > 0 ? 'text-orange-400 font-bold' : 'text-gray-500'}>{streak}x</span>
-              </div>
+    <CalcShell
+      eyebrow="Chemistry challenge · 10 questions · 5 min"
+      title="Chemistry Challenge"
+      subtitle="Test your chemistry knowledge with 10 random questions. Build streaks and earn bonus points."
+      backHref="/"
+      backLabel="Home"
+      maxWidth="4xl"
+      action={
+        gameState === 'playing' ? (
+          <div className="flex items-center gap-6 text-foreground">
+            <div className="flex items-center gap-2">
+              <Timer className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <span className={`font-mono text-lg ${timeLeft < 60 ? 'text-destructive' : ''}`}>
+                {formatTime(timeLeft)}
+              </span>
             </div>
-          )}
-        </div>
-      </header>
-
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <span className="font-bold font-mono">{score}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Flame className={`h-5 w-5 ${streak > 0 ? 'text-primary-600' : 'text-muted-foreground'}`} aria-hidden="true" />
+              <span className={streak > 0 ? 'text-primary-600 font-bold font-mono' : 'text-muted-foreground font-mono'}>{streak}x</span>
+            </div>
+          </div>
+        ) : undefined
+      }
+    >
       {/* Ready State */}
       {gameState === 'ready' && (
-        <div className="max-w-4xl mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-300 mb-6">
-              <Trophy className="h-4 w-4" />
-              Daily Chemistry Challenge
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Chemistry
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                Challenge
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Test your chemistry knowledge with 10 random questions.
-              Build streaks, earn bonus points, and climb the leaderboard!
-            </p>
-
-            <button
-              onClick={startGame}
-              className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-10 py-5 text-xl font-bold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-lg hover:shadow-violet-500/25 hover:scale-105"
-            >
-              <Zap className="h-6 w-6" />
+        <>
+          <div className="text-center py-4">
+            <Button onClick={startGame} className="text-lg px-10 py-5">
+              <Zap className="h-5 w-5 mr-2" aria-hidden="true" />
               Start Challenge
-            </button>
+            </Button>
           </div>
 
           {/* How it works */}
-          <div className="grid gap-6 md:grid-cols-3 mb-12">
+          <div className="grid gap-6 md:grid-cols-3">
             {[
               { icon: Target, title: '10 Questions', desc: 'Random mix of chemistry topics' },
               { icon: Timer, title: '5 Minutes', desc: 'Race against the clock' },
               { icon: Flame, title: 'Build Streaks', desc: 'Consecutive answers = bonus points' },
             ].map((item) => (
-              <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
-                <item.icon className="h-10 w-10 text-violet-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-slate-400 text-sm">{item.desc}</p>
-              </div>
+              <Card key={item.title} className="p-6 text-center">
+                <item.icon className="h-9 w-9 text-primary-600 mx-auto mb-4" aria-hidden="true" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm">{item.desc}</p>
+              </Card>
             ))}
           </div>
 
           {/* Leaderboard Preview */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-400" />
+          <Card className="p-6">
+            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               Today&apos;s Top Scores
             </h2>
             <div className="space-y-3">
               {MOCK_LEADERBOARD.slice(0, 5).map((entry, i) => (
                 <div
                   key={entry.name}
-                  className="flex items-center justify-between p-3 rounded-xl bg-white/5"
+                  className="flex items-center justify-between p-3 rounded-md bg-muted border border-border"
                 >
                   <div className="flex items-center gap-4">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                      i === 0 ? 'bg-yellow-500 text-black' :
-                      i === 1 ? 'bg-gray-400 text-black' :
-                      i === 2 ? 'bg-amber-600 text-white' :
-                      'bg-white/10 text-white'
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono text-sm ${
+                      i === 0 ? 'bg-primary-500 text-primary-foreground' :
+                      i < 3 ? 'bg-primary-500/20 text-primary-700' :
+                      'bg-card border border-border text-muted-foreground'
                     }`}>
                       {i + 1}
                     </span>
-                    <span className="text-white font-medium">{entry.name}</span>
+                    <span className="text-foreground font-medium">{entry.name}</span>
                   </div>
                   <div className="flex items-center gap-6">
-                    <span className="text-slate-400 text-sm">{entry.time}</span>
-                    <span className="flex items-center gap-1 text-orange-400">
-                      <Flame className="h-4 w-4" />
+                    <span className="text-muted-foreground text-sm font-mono">{entry.time}</span>
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Flame className="h-4 w-4" aria-hidden="true" />
                       {entry.streak}
                     </span>
-                    <span className="text-yellow-400 font-bold">{entry.score}</span>
+                    <span className="text-foreground font-bold font-mono">{entry.score}</span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </Card>
+        </>
       )}
 
       {/* Playing State */}
       {gameState === 'playing' && shuffledQuestions.length > 0 && (
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <>
           {/* Progress */}
-          <div className="mb-8">
-            <div className="flex justify-between text-sm text-slate-400 mb-2">
+          <div>
+            <div className="flex justify-between text-sm text-muted-foreground mb-2">
               <span>Question {currentQuestion + 1} of {shuffledQuestions.length}</span>
-              <span className={getDifficultyColor(shuffledQuestions[currentQuestion].difficulty)}>
+              <span className={`rounded-full px-2 py-0.5 font-medium ${getDifficultyColor(shuffledQuestions[currentQuestion].difficulty)}`}>
                 {shuffledQuestions[currentQuestion].difficulty.toUpperCase()} (+{shuffledQuestions[currentQuestion].points})
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-2 rounded-full bg-muted border border-border overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300"
+                className="h-full rounded-full bg-primary-500 transition-all duration-300"
                 style={{ width: `${((currentQuestion + 1) / shuffledQuestions.length) * 100}%` }}
               />
             </div>
           </div>
 
           {/* Question Card */}
-          <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-slate-900/90 to-violet-900/20 p-8 shadow-2xl shadow-violet-500/10 backdrop-blur-sm">
+          <Card className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${getDifficultyColor(shuffledQuestions[currentQuestion].difficulty)}`}>
                 {shuffledQuestions[currentQuestion].type.replace('-', ' ').toUpperCase()}
               </span>
               {streak > 0 && (
-                <span className="rounded-full bg-orange-500/20 px-3 py-1 text-xs font-medium text-orange-400 flex items-center gap-1">
-                  <Flame className="h-3 w-3" />
+                <span className="rounded-full bg-primary-500/10 px-3 py-1 text-xs font-medium text-primary-600 flex items-center gap-1">
+                  <Flame className="h-3 w-3" aria-hidden="true" />
                   {streak}x Streak!
                 </span>
               )}
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-8">
               {shuffledQuestions[currentQuestion].question}
             </h2>
 
@@ -453,33 +429,33 @@ export default function ChemistryChallengePage() {
                     key={i}
                     onClick={() => handleAnswer(i)}
                     disabled={showExplanation}
-                    className={`w-full rounded-xl p-4 text-left font-medium transition-all ${
+                    className={`w-full rounded-md p-4 text-left font-medium transition-colors ${
                       showResult
                         ? isCorrect
-                          ? 'bg-green-500/20 border-2 border-green-500 text-green-400'
+                          ? 'bg-success/10 border-2 border-success text-success'
                           : isSelected
-                          ? 'bg-red-500/20 border-2 border-red-500 text-red-400'
-                          : 'bg-white/5 border border-white/10 text-slate-400'
+                          ? 'bg-destructive/10 border-2 border-destructive text-destructive'
+                          : 'bg-muted border border-border text-muted-foreground'
                         : isSelected
-                        ? 'bg-violet-500/20 border-2 border-violet-500 text-white'
-                        : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20'
+                        ? 'bg-primary-500/10 border-2 border-primary-500 text-foreground'
+                        : 'bg-card border border-border text-foreground hover:bg-muted hover:border-primary-500/40'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                         showResult
                           ? isCorrect
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-success text-success-foreground'
                             : isSelected
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white/10'
-                          : 'bg-white/10'
+                            ? 'bg-destructive text-destructive-foreground'
+                            : 'bg-card border border-border'
+                          : 'bg-muted border border-border'
                       }`}>
                         {String.fromCharCode(65 + i)}
                       </span>
                       <span className="flex-1">{option}</span>
-                      {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-green-400" />}
-                      {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-red-400" />}
+                      {showResult && isCorrect && <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />}
+                      {showResult && isSelected && !isCorrect && <XCircle className="h-5 w-5 text-destructive" aria-hidden="true" />}
                     </div>
                   </button>
                 )
@@ -488,131 +464,117 @@ export default function ChemistryChallengePage() {
 
             {/* Explanation */}
             {showExplanation && (
-              <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <p className="text-slate-300">
-                  <span className="text-violet-400 font-semibold">Explanation:</span> {shuffledQuestions[currentQuestion].explanation}
+              <div className="mt-6 p-4 rounded-md bg-muted border border-border">
+                <p className="text-foreground">
+                  <span className="text-primary-600 font-semibold">Explanation:</span> {shuffledQuestions[currentQuestion].explanation}
                 </p>
               </div>
             )}
 
             {/* Next Button */}
             {showExplanation && (
-              <button
-                onClick={nextQuestion}
-                className="mt-6 w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 font-bold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500"
-              >
+              <Button onClick={nextQuestion} className="mt-6 w-full">
                 {currentQuestion >= shuffledQuestions.length - 1 ? 'See Results' : 'Next Question'}
-                <ArrowRight className="inline-block ml-2 h-5 w-5" />
-              </button>
+                <ArrowRight className="inline-block ml-2 h-5 w-5" aria-hidden="true" />
+              </Button>
             )}
-          </div>
-        </div>
+          </Card>
+        </>
       )}
 
       {/* Finished State */}
       {gameState === 'finished' && (
-        <div className="max-w-2xl mx-auto px-4 py-12">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 mb-6">
-              <Trophy className="h-12 w-12 text-white" />
+        <>
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-500/10 border border-primary-500/30 mb-6">
+              <Trophy className="h-10 w-10 text-primary-600" aria-hidden="true" />
             </div>
 
-            <h1 className="text-4xl font-bold text-white mb-4">Challenge Complete!</h1>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Challenge Complete</h2>
 
-            <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400 mb-8">
-              {score} Points
+            <div className="font-mono text-5xl md:text-6xl font-bold text-foreground mb-8">
+              {score} <span className="text-2xl text-muted-foreground">points</span>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-              <CheckCircle className="h-6 w-6 text-green-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{answeredQuestions.filter(q => q.correct).length}/{answeredQuestions.length}</p>
-              <p className="text-xs text-slate-400">Correct</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-              <Target className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{getAccuracy()}%</p>
-              <p className="text-xs text-slate-400">Accuracy</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-              <Flame className="h-6 w-6 text-orange-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{maxStreak}x</p>
-              <p className="text-xs text-slate-400">Best Streak</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-              <Timer className="h-6 w-6 text-violet-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{formatTime(300 - timeLeft)}</p>
-              <p className="text-xs text-slate-400">Time Used</p>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="p-4 text-center">
+              <CheckCircle className="h-6 w-6 text-success mx-auto mb-2" aria-hidden="true" />
+              <p className="text-2xl font-bold font-mono text-foreground">{answeredQuestions.filter(q => q.correct).length}/{answeredQuestions.length}</p>
+              <p className="text-xs text-muted-foreground">Correct</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Target className="h-6 w-6 text-primary-600 mx-auto mb-2" aria-hidden="true" />
+              <p className="text-2xl font-bold font-mono text-foreground">{getAccuracy()}%</p>
+              <p className="text-xs text-muted-foreground">Accuracy</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Flame className="h-6 w-6 text-primary-600 mx-auto mb-2" aria-hidden="true" />
+              <p className="text-2xl font-bold font-mono text-foreground">{maxStreak}x</p>
+              <p className="text-xs text-muted-foreground">Best Streak</p>
+            </Card>
+            <Card className="p-4 text-center">
+              <Timer className="h-6 w-6 text-muted-foreground mx-auto mb-2" aria-hidden="true" />
+              <p className="text-2xl font-bold font-mono text-foreground">{formatTime(300 - timeLeft)}</p>
+              <p className="text-xs text-muted-foreground">Time Used</p>
+            </Card>
           </div>
 
           {/* Performance Badge */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center mb-8">
-            <Medal className={`h-16 w-16 mx-auto mb-4 ${
-              score >= 1500 ? 'text-yellow-400' :
-              score >= 1000 ? 'text-gray-300' :
-              score >= 500 ? 'text-amber-600' :
-              'text-gray-500'
-            }`} />
-            <h2 className="text-xl font-bold text-white mb-2">
+          <Card className="p-6 text-center">
+            <Medal className="h-14 w-14 mx-auto mb-4 text-primary-600" aria-hidden="true" />
+            <h2 className="text-xl font-bold text-foreground mb-2">
               {score >= 1500 ? 'Chemistry Master!' :
                score >= 1000 ? 'Chemistry Expert!' :
                score >= 500 ? 'Chemistry Student!' :
                'Keep Practicing!'}
             </h2>
-            <p className="text-slate-400">
+            <p className="text-muted-foreground">
               {score >= 1500 ? 'Outstanding performance! You really know your chemistry!' :
                score >= 1000 ? 'Great job! You have solid chemistry knowledge!' :
                score >= 500 ? 'Good effort! Keep studying to improve!' :
                'Don\'t give up! Practice makes perfect!'}
             </p>
-          </div>
+          </Card>
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={startGame}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-8 py-4 font-bold text-white transition-all hover:from-violet-500 hover:to-fuchsia-500"
-            >
-              <RotateCcw className="h-5 w-5" />
+            <Button onClick={startGame} className="px-8">
+              <RotateCcw className="h-5 w-5 mr-2" aria-hidden="true" />
               Play Again
-            </button>
-            <button
-              onClick={shareScore}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-8 py-4 font-bold text-white transition-all hover:bg-white/20"
-            >
-              <Share2 className="h-5 w-5" />
+            </Button>
+            <Button variant="secondary" onClick={shareScore} className="px-8">
+              <Share2 className="h-5 w-5 mr-2" aria-hidden="true" />
               Share Score
-            </button>
+            </Button>
           </div>
 
           {/* Question Review */}
-          <div className="mt-12">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-violet-400" />
+          <div className="pt-6">
+            <h3 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               Question Review
             </h3>
             <div className="space-y-3">
               {answeredQuestions.map((item, i) => (
                 <div
                   key={i}
-                  className={`rounded-xl p-4 border ${
+                  className={`rounded-md p-4 border ${
                     item.correct
-                      ? 'bg-green-500/10 border-green-500/30'
-                      : 'bg-red-500/10 border-red-500/30'
+                      ? 'bg-success/10 border-success/30'
+                      : 'bg-destructive/10 border-destructive/30'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     {item.correct ? (
-                      <CheckCircle className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0 mt-0.5" aria-hidden="true" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                      <XCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
                     )}
                     <div>
-                      <p className="text-white font-medium">{item.question.question}</p>
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-foreground font-medium">{item.question.question}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
                         Correct: {item.question.options[item.question.correctAnswer]}
                       </p>
                     </div>
@@ -621,8 +583,8 @@ export default function ChemistryChallengePage() {
               ))}
             </div>
           </div>
-        </div>
+        </>
       )}
-    </div>
+    </CalcShell>
   )
 }

@@ -116,7 +116,7 @@ function LoginRequiredModalInner() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={handleClose}
       />
 
@@ -126,14 +126,14 @@ function LoginRequiredModalInner() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="login-modal-title"
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in duration-300"
+        className="relative bg-popover text-popover-foreground border border-border rounded-lg shadow-lg max-w-md w-full p-8 animate-in fade-in zoom-in duration-300"
       >
         {/* Close button */}
         <button
           ref={closeButtonRef}
           onClick={handleClose}
           aria-label="Close dialog"
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -142,15 +142,15 @@ function LoginRequiredModalInner() {
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 mx-auto mb-4 bg-primary-500 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 id="login-modal-title" className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 id="login-modal-title" className="text-2xl font-bold text-foreground mb-2">
             Sign in to Continue
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             {redirectPath && (
               <span className="block text-sm text-primary-600 font-medium mb-2">
                 Accessing: {redirectPath}
@@ -161,12 +161,14 @@ function LoginRequiredModalInner() {
         </div>
 
         {/* Benefits */}
-        <div className="bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-xl p-4 mb-6">
+        <div className="bg-muted border border-border rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">🎁</span>
-            <span className="font-bold text-gray-900 dark:text-white">Early Bird Benefits</span>
+            <svg className="w-5 h-5 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8M12 4v16" />
+            </svg>
+            <span className="font-bold text-foreground">Early Bird Benefits</span>
           </div>
-          <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+          <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <svg className="w-5 h-5 text-success flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -198,7 +200,7 @@ function LoginRequiredModalInner() {
         <OAuthLoginButton />
 
         {/* Footer note */}
-        <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+        <p className="text-xs text-center text-muted-foreground mt-4">
           By signing in, you agree to our{' '}
           <a href="/terms" className="text-primary-600 hover:underline">Terms</a>
           {' '}and{' '}

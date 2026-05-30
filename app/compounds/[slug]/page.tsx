@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { CalcShell, Card, SectionTitle } from '@/components/lab'
 import { COMPREHENSIVE_COMPOUNDS } from '@/lib/data/compounds'
 import { Compound, CompoundCategory } from '@/lib/data/compounds/types'
 
@@ -94,34 +95,6 @@ function formatCategory(category: CompoundCategory): string {
     'other': 'Chemical',
   }
   return categoryNames[category] || category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
-
-function getCategoryColor(category: CompoundCategory): string {
-  const colors: Record<string, string> = {
-    'acid': 'bg-red-500',
-    'base': 'bg-blue-500',
-    'salt': 'bg-purple-500',
-    'oxide': 'bg-orange-500',
-    'hydrocarbon': 'bg-gray-600',
-    'alcohol': 'bg-green-500',
-    'pharmaceutical': 'bg-pink-500',
-    'industrial': 'bg-yellow-600',
-    'polymer': 'bg-indigo-500',
-    'solvent': 'bg-cyan-500',
-    'metal': 'bg-slate-500',
-    'ceramic': 'bg-amber-600',
-    'amino-acid': 'bg-emerald-500',
-  }
-  return colors[category] || 'bg-teal-500'
-}
-
-function getStateIcon(state: string): string {
-  switch (state) {
-    case 'solid': return '�ite'
-    case 'liquid': return '💧'
-    case 'gas': return '💨'
-    default: return '🧪'
-  }
 }
 
 function formatSolubility(solubility: Compound['solubility']): string {
@@ -255,262 +228,245 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
     <>
       <CompoundSchema compound={compound} />
 
-      <main className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <nav className="mb-6 text-sm">
-            <ol className="flex items-center space-x-2">
-              <li><Link href="/" className="text-blue-600 hover:underline">Home</Link></li>
-              <li className="text-gray-400">/</li>
-              <li><Link href="/compounds" className="text-blue-600 hover:underline">Compounds</Link></li>
-              <li className="text-gray-400">/</li>
-              <li className="text-gray-600 dark:text-gray-300">{compound.name}</li>
-            </ol>
-          </nav>
+      <CalcShell
+        eyebrow={`Compound · ${formatCategory(compound.category)}`}
+        title={compound.name}
+        subtitle={compound.nameThai || undefined}
+        backHref="/compounds"
+        backLabel="Compounds"
+        maxWidth="4xl"
+      >
+        {/* Hero Section */}
+        <Card className="p-8">
+          <div className="flex flex-col md:flex-row items-start gap-6">
+            {/* Compound Card */}
+            <div className="w-32 h-32 bg-muted border border-border rounded-lg flex flex-col items-center justify-center shrink-0">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{compound.physicalState}</span>
+              <span className="text-lg font-mono font-bold text-center px-2 text-foreground">{compound.formula}</span>
+            </div>
 
-          {/* Hero Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
-            <div className="flex flex-col md:flex-row items-start gap-6">
-              {/* Compound Card */}
-              <div className={`w-32 h-32 ${getCategoryColor(compound.category)} rounded-2xl flex flex-col items-center justify-center text-white shadow-lg shrink-0`}>
-                <span className="text-3xl mb-1">{getStateIcon(compound.physicalState)}</span>
-                <span className="text-lg font-mono font-bold text-center px-2">{compound.formula}</span>
-              </div>
-
-              {/* Compound Info */}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  {compound.name}
-                </h1>
-                {compound.nameThai && (
-                  <p className="text-xl text-gray-600 dark:text-gray-300 mb-1">
-                    {compound.nameThai}
-                  </p>
-                )}
-                {compound.iupacName && compound.iupacName !== compound.name && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 italic">
-                    IUPAC: {compound.iupacName}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className={`px-3 py-1 ${getCategoryColor(compound.category)} text-white rounded-full text-sm`}>
-                    {formatCategory(compound.category)}
-                  </span>
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm capitalize">
-                    {compound.physicalState}
-                  </span>
-                  {compound.casNumber && (
-                    <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm font-mono">
-                      CAS: {compound.casNumber}
-                    </span>
-                  )}
-                </div>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {compound.molarMass.toFixed(4)} <span className="text-base font-normal text-gray-500">g/mol</span>
+            {/* Compound Info */}
+            <div className="flex-1">
+              {compound.iupacName && compound.iupacName !== compound.name && (
+                <p className="text-sm text-muted-foreground mb-3 italic">
+                  IUPAC: {compound.iupacName}
                 </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Properties Grid */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Chemical Properties */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                Chemical Properties
-              </h2>
-              <dl className="space-y-3">
-                <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Formula</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white font-mono">{compound.formula}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Molar Mass</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white">{compound.molarMass.toFixed(4)} g/mol</dd>
-                </div>
+              )}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className="px-3 py-1 bg-primary-500/10 text-primary-700 border border-primary-500/30 rounded-full text-sm">
+                  {formatCategory(compound.category)}
+                </span>
+                <span className="px-3 py-1 bg-muted border border-border rounded-full text-sm capitalize text-muted-foreground">
+                  {compound.physicalState}
+                </span>
                 {compound.casNumber && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">CAS Number</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white font-mono">{compound.casNumber}</dd>
-                  </div>
+                  <span className="px-3 py-1 bg-muted border border-border rounded-full text-sm font-mono text-muted-foreground">
+                    CAS: {compound.casNumber}
+                  </span>
                 )}
-                {compound.pKa !== undefined && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">pKa</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.pKa}</dd>
-                  </div>
-                )}
-                {compound.pKb !== undefined && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">pKb</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.pKb}</dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-
-            {/* Physical Properties */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                Physical Properties
-              </h2>
-              <dl className="space-y-3">
-                <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Physical State</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white capitalize">{compound.physicalState}</dd>
-                </div>
-                {compound.appearance && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Appearance</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white text-right max-w-[200px]">{compound.appearance}</dd>
-                  </div>
-                )}
-                {compound.odor && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Odor</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.odor}</dd>
-                  </div>
-                )}
-                {compound.meltingPoint !== undefined && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Melting Point</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.meltingPoint} °C</dd>
-                  </div>
-                )}
-                {compound.boilingPoint !== undefined && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Boiling Point</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.boilingPoint} °C</dd>
-                  </div>
-                )}
-                {compound.density !== undefined && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600 dark:text-gray-400">Density</dt>
-                    <dd className="font-medium text-gray-900 dark:text-white">{compound.density} g/cm³</dd>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <dt className="text-gray-600 dark:text-gray-400">Solubility</dt>
-                  <dd className="font-medium text-gray-900 dark:text-white text-right max-w-[200px]">{formatSolubility(compound.solubility)}</dd>
-                </div>
-              </dl>
+              </div>
+              <p className="text-2xl font-semibold font-mono text-foreground">
+                {compound.molarMass.toFixed(4)} <span className="text-base font-normal text-muted-foreground">g/mol</span>
+              </p>
             </div>
           </div>
+        </Card>
 
-          {/* Safety Section */}
-          {(hazardCodes.length > 0 || (compound.ghs && compound.ghs.length > 0)) && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8 border-l-4 border-red-500">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                <span className="text-red-500">⚠️</span> Safety Information
-              </h2>
-              {compound.ghs && compound.ghs.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">GHS Pictograms</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {compound.ghs.map((code) => (
-                      <span key={code} className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-sm font-mono">
+        {/* Properties Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Chemical Properties */}
+          <Card className="p-6">
+            <SectionTitle className="mb-4 text-xl">Chemical Properties</SectionTitle>
+            <dl className="space-y-3">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Formula</dt>
+                <dd className="font-medium text-foreground font-mono">{compound.formula}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Molar Mass</dt>
+                <dd className="font-medium text-foreground font-mono">{compound.molarMass.toFixed(4)} g/mol</dd>
+              </div>
+              {compound.casNumber && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">CAS Number</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.casNumber}</dd>
+                </div>
+              )}
+              {compound.pKa !== undefined && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">pKa</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.pKa}</dd>
+                </div>
+              )}
+              {compound.pKb !== undefined && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">pKb</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.pKb}</dd>
+                </div>
+              )}
+            </dl>
+          </Card>
+
+          {/* Physical Properties */}
+          <Card className="p-6">
+            <SectionTitle className="mb-4 text-xl">Physical Properties</SectionTitle>
+            <dl className="space-y-3">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Physical State</dt>
+                <dd className="font-medium text-foreground capitalize">{compound.physicalState}</dd>
+              </div>
+              {compound.appearance && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Appearance</dt>
+                  <dd className="font-medium text-foreground text-right max-w-[200px]">{compound.appearance}</dd>
+                </div>
+              )}
+              {compound.odor && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Odor</dt>
+                  <dd className="font-medium text-foreground">{compound.odor}</dd>
+                </div>
+              )}
+              {compound.meltingPoint !== undefined && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Melting Point</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.meltingPoint} °C</dd>
+                </div>
+              )}
+              {compound.boilingPoint !== undefined && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Boiling Point</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.boilingPoint} °C</dd>
+                </div>
+              )}
+              {compound.density !== undefined && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Density</dt>
+                  <dd className="font-medium text-foreground font-mono">{compound.density} g/cm³</dd>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Solubility</dt>
+                <dd className="font-medium text-foreground text-right max-w-[200px]">{formatSolubility(compound.solubility)}</dd>
+              </div>
+            </dl>
+          </Card>
+        </div>
+
+        {/* Safety Section — GHS/hazard colors are semantic, kept via destructive/warning tokens */}
+        {(hazardCodes.length > 0 || (compound.ghs && compound.ghs.length > 0)) && (
+          <Card className="p-6 border-l-2 border-l-destructive">
+            <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+              <svg className="w-5 h-5 text-destructive shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+              </svg>
+              Safety Information
+            </h2>
+            {compound.ghs && compound.ghs.length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">GHS Pictograms</h3>
+                <div className="flex flex-wrap gap-2">
+                  {compound.ghs.map((code) => (
+                    <span key={code} className="px-3 py-1 bg-destructive/10 text-destructive border border-destructive/30 rounded-full text-sm font-mono">
+                      {code}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {hazardCodes.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Hazard Statements</h3>
+                <ul className="space-y-2">
+                  {hazardCodes.map((code) => (
+                    <li key={code} className="flex items-start gap-2">
+                      <span className="font-mono text-sm bg-warning/10 text-warning border border-warning/30 px-2 py-0.5 rounded shrink-0">
                         {code}
                       </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {hazardCodes.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Hazard Statements</h3>
-                  <ul className="space-y-2">
-                    {hazardCodes.map((code) => (
-                      <li key={code} className="flex items-start gap-2">
-                        <span className="font-mono text-sm bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded shrink-0">
-                          {code}
-                        </span>
-                        <span className="text-gray-700 dark:text-gray-300 text-sm">
-                          {GHS_DESCRIPTIONS[code] || 'Hazardous material'}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Uses Section */}
-          {compound.uses && compound.uses.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                Uses & Applications
-              </h2>
-              <ul className="grid md:grid-cols-2 gap-2">
-                {compound.uses.map((use, index) => (
-                  <li key={index} className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                    <span className="text-green-500">✓</span>
-                    {use}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Related Compounds */}
-          {relatedCompounds.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-                Related Compounds
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {relatedCompounds.map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/compounds/${c.id}`}
-                    className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <div className="font-mono text-sm text-gray-500 dark:text-gray-400">{c.formula}</div>
-                    <div className="font-medium text-gray-900 dark:text-white truncate">{c.name}</div>
-                    {c.nameThai && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{c.nameThai}</div>
-                    )}
-                  </Link>
-                ))}
+                      <span className="text-foreground text-sm">
+                        {GHS_DESCRIPTIONS[code] || 'Hazardous material'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          )}
+            )}
+          </Card>
+        )}
 
-          {/* Tools CTA */}
-          <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl shadow-lg p-6 text-white">
-            <h2 className="text-xl font-semibold mb-2">Calculate with {compound.name}</h2>
-            <p className="opacity-90 mb-4">
-              Use our chemistry calculators to work with {compound.formula} in reactions and solutions.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/tools/molar-mass"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                Molar Mass Calculator
-              </Link>
-              <Link
-                href="/tools/stoichiometry"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                Stoichiometry Calculator
-              </Link>
-              <Link
-                href="/tools/ph-calculator"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                pH Calculator
-              </Link>
-              <Link
-                href="/compounds"
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                Browse All Compounds
-              </Link>
+        {/* Uses Section */}
+        {compound.uses && compound.uses.length > 0 && (
+          <Card className="p-6">
+            <SectionTitle className="mb-4 text-xl">Uses & Applications</SectionTitle>
+            <ul className="grid md:grid-cols-2 gap-2">
+              {compound.uses.map((use, index) => (
+                <li key={index} className="flex items-center gap-2 text-foreground">
+                  <svg className="w-4 h-4 text-primary-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {use}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+
+        {/* Related Compounds */}
+        {relatedCompounds.length > 0 && (
+          <Card className="p-6">
+            <SectionTitle className="mb-4 text-xl">Related Compounds</SectionTitle>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {relatedCompounds.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/compounds/${c.id}`}
+                  className="p-3 bg-muted border border-border rounded-md hover:border-primary-500 transition-colors"
+                >
+                  <div className="font-mono text-sm text-muted-foreground">{c.formula}</div>
+                  <div className="font-medium text-foreground truncate">{c.name}</div>
+                  {c.nameThai && (
+                    <div className="text-xs text-muted-foreground truncate">{c.nameThai}</div>
+                  )}
+                </Link>
+              ))}
             </div>
+          </Card>
+        )}
+
+        {/* Tools CTA */}
+        <Card className="p-6">
+          <SectionTitle className="mb-2 text-xl">Calculate with {compound.name}</SectionTitle>
+          <p className="text-muted-foreground mb-4">
+            Use our chemistry calculators to work with {compound.formula} in reactions and solutions.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/tools/molar-mass"
+              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+            >
+              Molar Mass Calculator
+            </Link>
+            <Link
+              href="/tools/stoichiometry"
+              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+            >
+              Stoichiometry Calculator
+            </Link>
+            <Link
+              href="/tools/ph-calculator"
+              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+            >
+              pH Calculator
+            </Link>
+            <Link
+              href="/compounds"
+              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+            >
+              Browse All Compounds
+            </Link>
           </div>
-        </div>
-      </main>
+        </Card>
+      </CalcShell>
     </>
   )
 }

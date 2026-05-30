@@ -57,12 +57,11 @@ export function UpgradePrompt({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <span className="text-2xl">🔒</span>
+      <div className="flex items-center gap-3 p-3 bg-muted border border-border rounded-lg">
         <div className="flex-1">
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm text-foreground">
             <strong>{feature}</strong> requires{' '}
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+            <span className="text-primary-600 font-semibold">
               {requiredTier === 'professional' ? 'Professional' : 'Student'}
             </span>{' '}
             tier
@@ -70,7 +69,7 @@ export function UpgradePrompt({
         </div>
         <Link
           href={upgradeUrl}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-primary-foreground rounded-lg text-sm font-medium transition-colors"
         >
           Upgrade - ${price}/year
         </Link>
@@ -79,41 +78,34 @@ export function UpgradePrompt({
   }
 
   return (
-    <div className="max-w-2xl mx-auto my-8 p-8 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-lg">
-      {/* Icon */}
-      <div className="flex justify-center mb-4">
-        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-          <span className="text-3xl">🔒</span>
-        </div>
-      </div>
-
+    <div className="max-w-2xl mx-auto my-8 p-8 bg-card border border-border rounded-2xl shadow-sm">
       {/* Title */}
-      <h3 className="text-2xl font-bold text-center mb-3 text-gray-900 dark:text-gray-100">
+      <h3 className="text-2xl font-bold text-center mb-3 text-foreground">
         Unlock {feature}
       </h3>
 
       {/* Message */}
-      <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
+      <p className="text-center text-muted-foreground mb-6">
         {message ||
           `This feature requires a ${requiredTier === 'professional' ? 'Professional' : 'Student'} subscription. Upgrade now to access ALL calculators in ALL VerCal products!`}
       </p>
 
       {/* Benefits */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6">
-        <p className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          ✨ Your subscription unlocks:
+      <div className="bg-muted border border-border rounded-lg p-4 mb-6">
+        <p className="font-semibold text-foreground mb-3">
+          Your subscription unlocks:
         </p>
         <ul className="space-y-2">
           {VERCAL_PRODUCTS.filter((p) => !('coming' in p) || !p.coming).map((product) => (
-            <li key={product.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-              <span className="text-green-500">✓</span>
+            <li key={product.id} className="flex items-center gap-2 text-sm text-foreground">
+              <span className="text-success font-semibold">+</span>
               <span>
                 <strong>{product.name}</strong> - {product.displayName}
               </span>
             </li>
           ))}
-          <li className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <span>🚀</span>
+          <li className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="text-primary-600 font-semibold">+</span>
             <span>Plus all future Ver* products automatically!</span>
           </li>
         </ul>
@@ -122,9 +114,9 @@ export function UpgradePrompt({
       {/* Pricing */}
       <div className="flex items-center justify-center gap-4 mb-6">
         <div className="text-center">
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">${price}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">per year</div>
-          <div className="text-xs text-gray-500">Just ${(price / 12).toFixed(2)}/month!</div>
+          <div className="text-3xl font-bold text-primary-600">${price}</div>
+          <div className="text-sm text-muted-foreground">per year</div>
+          <div className="text-xs text-muted-foreground">Just ${(price / 12).toFixed(2)}/month!</div>
         </div>
       </div>
 
@@ -132,31 +124,31 @@ export function UpgradePrompt({
       <div className="flex flex-col sm:flex-row gap-3">
         <Link
           href={upgradeUrl}
-          className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-center transition-colors"
+          className="flex-1 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-primary-foreground rounded-lg font-semibold text-center transition-colors"
         >
           Upgrade to {requiredTier === 'professional' ? 'Professional' : 'Student'}
         </Link>
         <Link
           href="/pricing"
-          className="flex-1 px-6 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-center transition-colors"
+          className="flex-1 px-6 py-3 bg-card hover:bg-muted text-foreground border border-border rounded-lg font-semibold text-center transition-colors"
         >
           Compare Plans
         </Link>
       </div>
 
       {/* Trust Signals */}
-      <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-800">
-        <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-6 pt-6 border-t border-border">
+        <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <span>✓</span>
+            <span className="text-success font-semibold">+</span>
             <span>7-day money back</span>
           </span>
           <span className="flex items-center gap-1">
-            <span>✓</span>
+            <span className="text-success font-semibold">+</span>
             <span>Cancel anytime</span>
           </span>
           <span className="flex items-center gap-1">
-            <span>✓</span>
+            <span className="text-success font-semibold">+</span>
             <span>Lifetime student price</span>
           </span>
         </div>
@@ -174,7 +166,7 @@ export function UpgradeLink({ className = '' }: { className?: string }) {
   return (
     <Link
       href={upgradeUrl}
-      className={`text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline ${className}`}
+      className={`text-primary-600 hover:text-primary-700 underline ${className}`}
     >
       Upgrade to unlock
     </Link>
@@ -186,8 +178,7 @@ export function UpgradeLink({ className = '' }: { className?: string }) {
  */
 export function LockedBadge() {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium rounded">
-      <span>🔒</span>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-muted text-muted-foreground text-xs font-medium rounded">
       <span>Locked</span>
     </span>
   )

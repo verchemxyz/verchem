@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  ErrorBanner,
+} from '@/components/lab'
+import {
   calculateDeltaG,
   calculateEquilibriumConstant,
   STANDARD_TEMPERATURE,
@@ -136,163 +143,137 @@ export default function EnhancedThermodynamicsPage() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
+    <CalcShell
+      eyebrow="Physical chemistry · uncertainty analysis"
+      title="Enhanced Gibbs Energy & Equilibrium"
+      subtitle="Analyse ΔG° and K with propagated uncertainties for thermodynamic reactions."
+      backHref="/thermodynamics"
+      backLabel="Basic calculator"
+      maxWidth="6xl"
+      action={
+        <Link
+          href="/thermodynamics"
+          className="inline-flex items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium px-4 py-2 min-h-[44px]"
+        >
+          Basic calculator
+        </Link>
+      }
+    >
+      <Card className="p-6 space-y-6">
+        <div className="space-y-1">
+          <SectionTitle>Inputs</SectionTitle>
+          <p className="text-sm text-muted-foreground">
+            Enter standard enthalpy, entropy, and temperature with their uncertainties.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              ΔH° (kJ/mol)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={deltaH}
+                onChange={(e) => setDeltaH(e.target.value)}
+                className="input-premium flex-1"
+                aria-label="ΔH° value (kJ/mol)"
+              />
+              <input
+                type="number"
+                value={deltaHUnc}
+                onChange={(e) => setDeltaHUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σΔH"
+                aria-label="ΔH° uncertainty"
+              />
             </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                <span className="text-premium">VerChem</span>
-              </h1>
-              <p className="text-xs text-muted-foreground">Enhanced Thermodynamics</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              ΔS° (J/(mol·K))
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={deltaS}
+                onChange={(e) => setDeltaS(e.target.value)}
+                className="input-premium flex-1"
+                aria-label="ΔS° value (J/(mol·K))"
+              />
+              <input
+                type="number"
+                value={deltaSUnc}
+                onChange={(e) => setDeltaSUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σΔS"
+                aria-label="ΔS° uncertainty"
+              />
             </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/thermodynamics"
-              className="badge-premium"
-            >
-              ← Basic Calculator
-            </Link>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Temperature (K)
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={temperature}
+                onChange={(e) => setTemperature(e.target.value)}
+                className="input-premium flex-1"
+                aria-label="Temperature value (K)"
+              />
+              <input
+                type="number"
+                value={temperatureUnc}
+                onChange={(e) => setTemperatureUnc(e.target.value)}
+                className="input-premium w-24"
+                placeholder="σT"
+                aria-label="Temperature uncertainty"
+              />
+            </div>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        <section className="text-center mb-12">
-          <div className="badge-premium mb-4">⚡ Uncertainty Analysis • Scientific Citations</div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="text-premium">Enhanced Gibbs Energy</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-              & Equilibrium
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Analyse ΔG° and K with propagated uncertainties for thermodynamic reactions
-          </p>
-        </section>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <Button onClick={handleCalculate}>
+            Calculate ΔG° and K with Uncertainty
+          </Button>
 
-        <section className="premium-card p-6 space-y-6">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-primary-600">Inputs</h2>
-            <p className="text-sm text-muted-foreground">
-              Enter standard enthalpy, entropy, and temperature with their uncertainties.
-            </p>
-          </div>
+          {error && <ErrorBanner>{error}</ErrorBanner>}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ΔH° (kJ/mol)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={deltaH}
-                  onChange={(e) => setDeltaH(e.target.value)}
-                  className="input-premium flex-1"
-                />
-                <input
-                  type="number"
-                  value={deltaHUnc}
-                  onChange={(e) => setDeltaHUnc(e.target.value)}
-                  className="input-premium w-24"
-                  placeholder="σΔH"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                ΔS° (J/(mol·K))
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={deltaS}
-                  onChange={(e) => setDeltaS(e.target.value)}
-                  className="input-premium flex-1"
-                />
-                <input
-                  type="number"
-                  value={deltaSUnc}
-                  onChange={(e) => setDeltaSUnc(e.target.value)}
-                  className="input-premium w-24"
-                  placeholder="σΔS"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Temperature (K)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  className="input-premium flex-1"
-                />
-                <input
-                  type="number"
-                  value={temperatureUnc}
-                  onChange={(e) => setTemperatureUnc(e.target.value)}
-                  className="input-premium w-24"
-                  placeholder="σT"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <button
-              onClick={handleCalculate}
-              className="btn-premium glow-premium py-3 text-lg"
-            >
-              ⚡ Calculate ΔG° and K with Uncertainty
-            </button>
-
-            {error && (
-              <div className="p-3 bg-red-50 border-2 border-red-300 text-red-700 text-sm rounded-lg font-medium">
-                {error}
-              </div>
+          <div className="flex-1 flex flex-col gap-3">
+            {deltaGResult && (
+              <ScientificResult
+                label="ΔG°"
+                value={deltaGResult.value}
+                uncertainty={deltaGResult.uncertainty}
+                unit={deltaGResult.unit}
+              />
             )}
-
-            <div className="flex-1 flex flex-col gap-3">
-              {deltaGResult && (
-                <ScientificResult
-                  label="ΔG°"
-                  value={deltaGResult.value}
-                  uncertainty={deltaGResult.uncertainty}
-                  unit={deltaGResult.unit}
-                />
-              )}
-              {KResult && (
-                <ScientificResult
-                  label="Equilibrium Constant K"
-                  value={KResult.value}
-                  uncertainty={KResult.uncertainty}
-                />
-              )}
-            </div>
+            {KResult && (
+              <ScientificResult
+                label="Equilibrium Constant K"
+                value={KResult.value}
+                uncertainty={KResult.uncertainty}
+              />
+            )}
           </div>
-        </section>
+        </div>
+      </Card>
 
-        {steps.length > 0 && (
-          <section className="premium-card p-6 space-y-3">
-            <h2 className="text-lg font-semibold text-primary-600">Calculation Details</h2>
-            <pre className="bg-surface rounded-lg p-4 text-sm text-foreground whitespace-pre-wrap font-mono">
-              {steps.join('\n')}
-            </pre>
-          </section>
-        )}
-      </main>
-    </div>
+      {steps.length > 0 && (
+        <Card className="p-6 space-y-3">
+          <SectionTitle>Calculation details</SectionTitle>
+          <pre className="bg-muted border border-border rounded-md p-4 text-sm text-foreground whitespace-pre-wrap font-mono overflow-x-auto">
+            {steps.join('\n')}
+          </pre>
+        </Card>
+      )}
+    </CalcShell>
   )
 }
 

@@ -4,6 +4,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  ErrorBanner,
+} from '@/components/lab'
 import { analyzeReaction, EXAMPLE_REACTIONS, THERMODYNAMIC_DATA } from '@/lib/calculations/thermodynamics'
 import type { ThermodynamicResult } from '@/lib/calculations/thermodynamics'
 
@@ -114,372 +122,317 @@ export default function ThermodynamicsPage() {
   const availableFormulas = THERMODYNAMIC_DATA.map(d => d.formula)
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                <span className="text-premium">VerChem</span>
-              </h1>
-              <p className="text-xs text-muted-foreground">Thermodynamics</p>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/thermodynamics/enhanced-page"
-              className="badge-premium"
-            >
-              ⚡ Enhanced (uncertainty)
-            </Link>
-            <Link
-              href="/"
-              className="px-4 py-2 text-muted-foreground hover:text-primary-600 transition-colors font-medium"
-            >
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-12">
-          <div className="badge-premium mb-4">🔥 ΔH, ΔS, ΔG, K • Step-by-Step</div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="text-premium">Thermodynamics</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-              Calculator
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Calculate ΔH°, ΔS°, ΔG°, and K for chemical reactions with detailed explanations
-          </p>
-        </div>
-
-        {/* Example Reactions */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 text-primary-600">Example Reactions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {EXAMPLE_REACTIONS.map((example, index) => (
-              <button
-                key={index}
-                onClick={() => loadExample(index)}
-                className={`p-4 rounded-lg border-2 transition-all hover:shadow-lg ${
-                  selectedExample === index
-                    ? 'border-primary-500 bg-primary-50 scale-105'
-                    : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-                }`}
-              >
-                <div className="text-sm font-medium text-foreground mb-2">
-                  {example.name}
-                </div>
-                <div className="text-xs text-muted-foreground font-mono">
-                  {example.equation}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Input Section */}
-        <div className="premium-card p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-primary-600">Reaction Input</h2>
+    <CalcShell
+      eyebrow="Physical chemistry · ΔH, ΔS, ΔG, K"
+      title="Thermodynamics"
+      subtitle="Calculate ΔH°, ΔS°, ΔG°, and K for chemical reactions with step-by-step explanations."
+      backHref="/"
+      backLabel="Home"
+      maxWidth="6xl"
+      action={
+        <Link
+          href="/thermodynamics/enhanced-page"
+          className="inline-flex items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium px-4 py-2 min-h-[44px]"
+        >
+          Enhanced (uncertainty)
+        </Link>
+      }
+    >
+      {/* Example Reactions */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Example reactions</SectionTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {EXAMPLE_REACTIONS.map((example, index) => (
             <button
-              onClick={() => {
-                setSelectedExample(null)
-                setReactants([{ formula: '', coefficient: 1 }])
-                setProducts([{ formula: '', coefficient: 1 }])
-                setError(null)
-                setResult(null)
-              }}
-              className="px-4 py-2 bg-surface hover:bg-surface-hover rounded-lg text-sm font-medium transition-colors"
+              key={index}
+              onClick={() => loadExample(index)}
+              className={`text-left p-4 rounded-md border transition-colors ${
+                selectedExample === index
+                  ? 'border-primary-500 bg-muted ring-1 ring-primary-500/40'
+                  : 'border-border bg-card hover:border-primary-500/40 hover:bg-muted'
+              }`}
             >
-              Clear & Start Custom
+              <div className="text-sm font-medium text-foreground mb-2">
+                {example.name}
+              </div>
+              <div className="text-xs text-muted-foreground font-mono">
+                {example.equation}
+              </div>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Input Section */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <SectionTitle>Reaction input</SectionTitle>
+          <button
+            onClick={() => {
+              setSelectedExample(null)
+              setReactants([{ formula: '', coefficient: 1 }])
+              setProducts([{ formula: '', coefficient: 1 }])
+              setError(null)
+              setResult(null)
+            }}
+            className="px-4 py-2 border border-border bg-card hover:bg-muted rounded-md text-sm font-medium transition-colors"
+          >
+            Clear & Start Custom
+          </button>
+        </div>
+
+        {/* Reactants */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">Reactants</h3>
+            <button
+              onClick={addReactant}
+              className="text-primary-600 hover:text-primary-500 text-sm font-medium"
+            >
+              + Add Reactant
             </button>
           </div>
-
-          {/* Reactants */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-700">Reactants</h3>
-              <button
-                onClick={addReactant}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                + Add Reactant
-              </button>
-            </div>
-            {reactants.map((reactant, index) => (
-              <div key={index} className="flex items-center gap-3 mb-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={reactant.coefficient}
-                  onChange={(e) => updateReactant(index, 'coefficient', e.target.value)}
-                  className="input-premium w-20"
-                  placeholder="Coef"
-                />
-                <input
-                  type="text"
-                  value={reactant.formula}
-                  onChange={(e) => updateReactant(index, 'formula', e.target.value)}
-                  className="input-premium flex-1 font-mono"
-                  placeholder="Formula (e.g., H2, O2, CH4)"
-                  list={`reactant-formulas-${index}`}
-                />
-                <datalist id={`reactant-formulas-${index}`}>
-                  {availableFormulas.map((formula) => (
-                    <option key={formula} value={formula} />
-                  ))}
-                </datalist>
-                {reactants.length > 1 && (
-                  <button
-                    onClick={() => removeReactant(index)}
-                    className="text-red-600 hover:text-red-700 p-2"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Arrow */}
-          <div className="text-center text-2xl text-gray-400 mb-6">→</div>
-
-          {/* Products */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-gray-700">Products</h3>
-              <button
-                onClick={addProduct}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                + Add Product
-              </button>
-            </div>
-            {products.map((product, index) => (
-              <div key={index} className="flex items-center gap-3 mb-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={product.coefficient}
-                  onChange={(e) => updateProduct(index, 'coefficient', e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Coef"
-                />
-                <input
-                  type="text"
-                  value={product.formula}
-                  onChange={(e) => updateProduct(index, 'formula', e.target.value)}
-                  className="input-premium flex-1 font-mono"
-                  placeholder="Formula (e.g., H2O, CO2)"
-                  list={`product-formulas-${index}`}
-                />
-                <datalist id={`product-formulas-${index}`}>
-                  {availableFormulas.map((formula) => (
-                    <option key={formula} value={formula} />
-                  ))}
-                </datalist>
-                {products.length > 1 && (
-                  <button
-                    onClick={() => removeProduct(index)}
-                    className="text-red-600 hover:text-red-700 p-2"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Temperature */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Temperature (K)
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={temperature}
-              onChange={(e) => setTemperature(parseFloat(e.target.value) || 298.15)}
-              className="input-premium w-full"
-              placeholder="298.15"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Standard temperature = 298.15 K (25°C)
-            </p>
-          </div>
-
-          {/* Calculate Button */}
-          <button
-            onClick={calculate}
-            className="btn-premium glow-premium w-full py-4 text-lg"
-          >
-            🔥 Calculate Thermodynamics
-          </button>
-
-          {/* Error */}
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg text-red-700 font-medium">
-              {error}
-            </div>
-          )}
-        </div>
-
-        {/* Results */}
-        {result && (
-          <div className="space-y-6">
-            {/* Summary Card */}
-            <div className="premium-card p-8 bg-gradient-to-br from-primary-600 to-secondary-600 text-white shadow-2xl">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <span>✨</span> Results Summary
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border border-white/30 hover:bg-white/30 transition-all">
-                  <div className="text-sm font-medium mb-1 opacity-90">Enthalpy Change</div>
-                  <div className="text-2xl font-bold animate-pulse-premium">
-                    {result.deltaH.toFixed(2)} kJ
-                  </div>
-                  <div className="text-xs mt-1 opacity-80">
-                    {result.deltaH < 0 ? 'Exothermic' : result.deltaH > 0 ? 'Endothermic' : 'Thermoneutral'}
-                  </div>
-                </div>
-
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border border-white/30 hover:bg-white/30 transition-all">
-                  <div className="text-sm font-medium mb-1 opacity-90">Entropy Change</div>
-                  <div className="text-2xl font-bold animate-pulse-premium">
-                    {result.deltaS.toFixed(2)} J/K
-                  </div>
-                  <div className="text-xs mt-1 opacity-80">
-                    {result.deltaS > 0 ? 'Increasing disorder' : result.deltaS < 0 ? 'Decreasing disorder' : 'No change'}
-                  </div>
-                </div>
-
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border border-white/30 hover:bg-white/30 transition-all">
-                  <div className="text-sm font-medium mb-1 opacity-90">Gibbs Free Energy</div>
-                  <div className="text-2xl font-bold animate-pulse-premium">
-                    {result.deltaG.toFixed(2)} kJ
-                  </div>
-                  <div className="text-xs mt-1 opacity-80">
-                    {result.spontaneous ? 'Spontaneous ✓' : 'Non-spontaneous ✗'}
-                  </div>
-                </div>
-
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 border border-white/30 hover:bg-white/30 transition-all">
-                  <div className="text-sm font-medium mb-1 opacity-90">Equilibrium Constant</div>
-                  <div className="text-xl font-bold animate-pulse-premium">
-                    {result.K !== undefined ? result.K.toExponential(4) : 'N/A'}
-                  </div>
-                  <div className="text-xs mt-1 opacity-80">
-                    {result.K !== undefined && result.K > 1 ? 'Products favored' : 'Reactants favored'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Temperature */}
-              <div className="mt-4 text-sm opacity-90">
-                Calculated at {result.temperature} K ({(result.temperature - 273.15).toFixed(2)}°C)
-              </div>
-            </div>
-
-            {/* Step-by-Step Solution */}
-            <div className="premium-card p-6">
-              <h2 className="text-2xl font-bold mb-4 text-primary-600">Step-by-Step Solution</h2>
-              <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm space-y-2">
-                {result.steps.map((step, index) => (
-                  <div key={index} className={step.startsWith('===') ? 'font-bold text-lg mt-4' : step.startsWith('✓') || step.startsWith('✗') ? 'text-green-700 font-medium' : step.startsWith('❌') ? 'text-red-700 font-medium' : ''}>
-                    {step}
-                  </div>
+          {reactants.map((reactant, index) => (
+            <div key={index} className="flex items-center gap-3 mb-3">
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={reactant.coefficient}
+                onChange={(e) => updateReactant(index, 'coefficient', e.target.value)}
+                className="input-premium w-20"
+                placeholder="Coef"
+                aria-label="Reactant coefficient"
+              />
+              <input
+                type="text"
+                value={reactant.formula}
+                onChange={(e) => updateReactant(index, 'formula', e.target.value)}
+                className="input-premium flex-1 font-mono"
+                placeholder="Formula (e.g., H2, O2, CH4)"
+                aria-label="Reactant formula"
+                list={`reactant-formulas-${index}`}
+              />
+              <datalist id={`reactant-formulas-${index}`}>
+                {availableFormulas.map((formula) => (
+                  <option key={formula} value={formula} />
                 ))}
+              </datalist>
+              {reactants.length > 1 && (
+                <button
+                  onClick={() => removeReactant(index)}
+                  aria-label="Remove reactant"
+                  className="text-destructive hover:bg-destructive/10 rounded-md p-2"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Arrow */}
+        <div className="text-center text-2xl text-muted-foreground mb-6">→</div>
+
+        {/* Products */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-foreground">Products</h3>
+            <button
+              onClick={addProduct}
+              className="text-primary-600 hover:text-primary-500 text-sm font-medium"
+            >
+              + Add Product
+            </button>
+          </div>
+          {products.map((product, index) => (
+            <div key={index} className="flex items-center gap-3 mb-3">
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={product.coefficient}
+                onChange={(e) => updateProduct(index, 'coefficient', e.target.value)}
+                className="input-premium w-20"
+                placeholder="Coef"
+                aria-label="Product coefficient"
+              />
+              <input
+                type="text"
+                value={product.formula}
+                onChange={(e) => updateProduct(index, 'formula', e.target.value)}
+                className="input-premium flex-1 font-mono"
+                placeholder="Formula (e.g., H2O, CO2)"
+                aria-label="Product formula"
+                list={`product-formulas-${index}`}
+              />
+              <datalist id={`product-formulas-${index}`}>
+                {availableFormulas.map((formula) => (
+                  <option key={formula} value={formula} />
+                ))}
+              </datalist>
+              {products.length > 1 && (
+                <button
+                  onClick={() => removeProduct(index)}
+                  aria-label="Remove product"
+                  className="text-destructive hover:bg-destructive/10 rounded-md p-2"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Temperature */}
+        <Field label="Temperature (K)" hint="Standard temperature = 298.15 K (25°C)" className="mb-6">
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            value={temperature}
+            onChange={(e) => setTemperature(parseFloat(e.target.value) || 298.15)}
+            className="input-premium w-full"
+            placeholder="298.15"
+          />
+        </Field>
+
+        {/* Calculate Button */}
+        <Button onClick={calculate} className="w-full">
+          Calculate Thermodynamics
+        </Button>
+
+        {/* Error */}
+        {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
+      </Card>
+
+      {/* Results */}
+      {result && (
+        <div className="space-y-6">
+          {/* Summary Card */}
+          <Card className="p-6 border-l-2 border-l-primary-500">
+            <div className="text-xs uppercase tracking-wider text-primary-600 mb-4 font-medium">Results summary</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-muted rounded-md p-4 border border-border">
+                <div className="text-sm font-medium mb-1 text-muted-foreground">Enthalpy Change</div>
+                <div className="text-2xl font-bold font-mono text-foreground">
+                  {result.deltaH.toFixed(2)} kJ
+                </div>
+                <div className="text-xs mt-1 text-muted-foreground">
+                  {result.deltaH < 0 ? 'Exothermic' : result.deltaH > 0 ? 'Endothermic' : 'Thermoneutral'}
+                </div>
+              </div>
+
+              <div className="bg-muted rounded-md p-4 border border-border">
+                <div className="text-sm font-medium mb-1 text-muted-foreground">Entropy Change</div>
+                <div className="text-2xl font-bold font-mono text-foreground">
+                  {result.deltaS.toFixed(2)} J/K
+                </div>
+                <div className="text-xs mt-1 text-muted-foreground">
+                  {result.deltaS > 0 ? 'Increasing disorder' : result.deltaS < 0 ? 'Decreasing disorder' : 'No change'}
+                </div>
+              </div>
+
+              <div className="bg-muted rounded-md p-4 border border-border">
+                <div className="text-sm font-medium mb-1 text-muted-foreground">Gibbs Free Energy</div>
+                <div className="text-2xl font-bold font-mono text-foreground">
+                  {result.deltaG.toFixed(2)} kJ
+                </div>
+                <div className={`text-xs mt-1 font-medium ${result.spontaneous ? 'text-success' : 'text-muted-foreground'}`}>
+                  {result.spontaneous ? 'Spontaneous' : 'Non-spontaneous'}
+                </div>
+              </div>
+
+              <div className="bg-muted rounded-md p-4 border border-border">
+                <div className="text-sm font-medium mb-1 text-muted-foreground">Equilibrium Constant</div>
+                <div className="text-xl font-bold font-mono text-foreground">
+                  {result.K !== undefined ? result.K.toExponential(4) : 'N/A'}
+                </div>
+                <div className="text-xs mt-1 text-muted-foreground">
+                  {result.K !== undefined && result.K > 1 ? 'Products favored' : 'Reactants favored'}
+                </div>
               </div>
             </div>
 
-            {/* Interpretation */}
-            <div className="premium-card p-6 bg-primary-50/50 border-2 border-primary-200">
-              <h2 className="text-2xl font-bold mb-4 text-primary-600">Interpretation</h2>
-              <div className="space-y-3 text-foreground">
-                <div>
-                  <strong>Energy:</strong> This reaction {result.deltaH < 0 ? 'releases' : 'absorbs'} {Math.abs(result.deltaH).toFixed(2)} kJ of heat {result.deltaH < 0 ? '(exothermic)' : '(endothermic)'}.
+            {/* Temperature */}
+            <div className="mt-4 text-sm text-muted-foreground">
+              Calculated at {result.temperature} K ({(result.temperature - 273.15).toFixed(2)}°C)
+            </div>
+          </Card>
+
+          {/* Step-by-Step Solution */}
+          <Card className="p-6">
+            <SectionTitle className="mb-4">Step-by-step solution</SectionTitle>
+            <div className="bg-muted border border-border rounded-md p-4 font-mono text-sm space-y-2 overflow-x-auto">
+              {result.steps.map((step, index) => (
+                <div key={index} className={step.startsWith('===') ? 'font-bold text-base mt-4 text-foreground' : step.startsWith('✓') || step.startsWith('✗') ? 'text-success font-medium' : step.startsWith('❌') ? 'text-destructive font-medium' : 'text-foreground'}>
+                  {step}
                 </div>
-                <div>
-                  <strong>Disorder:</strong> The system&apos;s entropy {result.deltaS > 0 ? 'increases' : 'decreases'} by {Math.abs(result.deltaS).toFixed(2)} J/K, meaning the products are {result.deltaS > 0 ? 'more disordered' : 'more ordered'} than the reactants.
-                </div>
-                <div>
-                  <strong>Spontaneity:</strong> At {result.temperature} K, this reaction is {result.spontaneous ? 'spontaneous (ΔG < 0)' : 'non-spontaneous (ΔG > 0)'}. {result.spontaneous ? 'It can proceed on its own without external energy input.' : 'It requires energy input to proceed.'}
-                </div>
-                {result.K !== undefined && (
-                  <div>
-                    <strong>Equilibrium:</strong> K = {result.K.toExponential(4)}. {result.K > 1 ? 'At equilibrium, products are heavily favored (K >> 1).' : result.K < 1e-3 ? 'At equilibrium, reactants are heavily favored (K << 1).' : 'At equilibrium, reactants and products are present in comparable amounts.'}
-                  </div>
-                )}
+              ))}
+            </div>
+          </Card>
+
+          {/* Interpretation */}
+          <Card className="p-6">
+            <SectionTitle className="mb-4">Interpretation</SectionTitle>
+            <div className="space-y-3 text-foreground">
+              <div>
+                <strong>Energy:</strong> This reaction {result.deltaH < 0 ? 'releases' : 'absorbs'} {Math.abs(result.deltaH).toFixed(2)} kJ of heat {result.deltaH < 0 ? '(exothermic)' : '(endothermic)'}.
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Available Compounds */}
-        <div className="mt-8 premium-card p-6">
-          <h2 className="text-xl font-bold mb-4 text-primary-600">Available Compounds Database</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            {THERMODYNAMIC_DATA.length} compounds available. Use exact formulas from this list:
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-            {THERMODYNAMIC_DATA.map((compound) => (
-              <div
-                key={compound.formula}
-                className="px-3 py-2 bg-surface hover:bg-surface-hover rounded border border-gray-200 text-center transition-all"
-                title={compound.compound}
-              >
-                <div className="font-mono text-sm font-bold text-foreground">{compound.formula}</div>
-                <div className="text-xs text-muted-foreground truncate">{compound.compound}</div>
+              <div>
+                <strong>Disorder:</strong> The system&apos;s entropy {result.deltaS > 0 ? 'increases' : 'decreases'} by {Math.abs(result.deltaS).toFixed(2)} J/K, meaning the products are {result.deltaS > 0 ? 'more disordered' : 'more ordered'} than the reactants.
               </div>
-            ))}
+              <div>
+                <strong>Spontaneity:</strong> At {result.temperature} K, this reaction is {result.spontaneous ? 'spontaneous (ΔG < 0)' : 'non-spontaneous (ΔG > 0)'}. {result.spontaneous ? 'It can proceed on its own without external energy input.' : 'It requires energy input to proceed.'}
+              </div>
+              {result.K !== undefined && (
+                <div>
+                  <strong>Equilibrium:</strong> K = {result.K.toExponential(4)}. {result.K > 1 ? 'At equilibrium, products are heavily favored (K >> 1).' : result.K < 1e-3 ? 'At equilibrium, reactants are heavily favored (K << 1).' : 'At equilibrium, reactants and products are present in comparable amounts.'}
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Available Compounds */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Available compounds database</SectionTitle>
+        <p className="text-sm text-muted-foreground mb-4">
+          {THERMODYNAMIC_DATA.length} compounds available. Use exact formulas from this list:
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {THERMODYNAMIC_DATA.map((compound) => (
+            <div
+              key={compound.formula}
+              className="px-3 py-2 bg-muted hover:bg-card rounded-md border border-border text-center transition-colors"
+              title={compound.compound}
+            >
+              <div className="font-mono text-sm font-bold text-foreground">{compound.formula}</div>
+              <div className="text-xs text-muted-foreground truncate">{compound.compound}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Theory Section */}
+      <Card className="p-6">
+        <SectionTitle className="mb-3">Thermodynamics theory</SectionTitle>
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <div>
+            <strong className="text-foreground">Enthalpy (ΔH°):</strong> Energy absorbed or released during a reaction. Calculated using Hess&apos;s Law: ΔH°rxn = Σ(ΔH°f products) - Σ(ΔH°f reactants)
+          </div>
+          <div>
+            <strong className="text-foreground">Entropy (ΔS°):</strong> Measure of disorder or randomness. ΔS°rxn = Σ(S° products) - Σ(S° reactants)
+          </div>
+          <div>
+            <strong className="text-foreground">Gibbs Free Energy (ΔG°):</strong> Determines spontaneity. ΔG° = ΔH° - TΔS°. If ΔG° &lt; 0, reaction is spontaneous.
+          </div>
+          <div>
+            <strong className="text-foreground">Equilibrium Constant (K):</strong> Ratio of products to reactants at equilibrium. ΔG° = -RT ln(K), so K = e^(-ΔG°/RT)
           </div>
         </div>
-
-        {/* Theory Section */}
-        <div className="mt-8 premium-card p-6 bg-primary-50/50 border-2 border-primary-200">
-          <h3 className="text-lg font-bold mb-3 text-primary-600 flex items-center gap-2">
-            <span>💡</span> Thermodynamics Theory
-          </h3>
-          <div className="space-y-3 text-sm text-foreground">
-            <div>
-              <strong>Enthalpy (ΔH°):</strong> Energy absorbed or released during a reaction. Calculated using Hess&apos;s Law: ΔH°rxn = Σ(ΔH°f products) - Σ(ΔH°f reactants)
-            </div>
-            <div>
-              <strong>Entropy (ΔS°):</strong> Measure of disorder or randomness. ΔS°rxn = Σ(S° products) - Σ(S° reactants)
-            </div>
-            <div>
-              <strong>Gibbs Free Energy (ΔG°):</strong> Determines spontaneity. ΔG° = ΔH° - TΔS°. If ΔG° &lt; 0, reaction is spontaneous.
-            </div>
-            <div>
-              <strong>Equilibrium Constant (K):</strong> Ratio of products to reactants at equilibrium. ΔG° = -RT ln(K), so K = e^(-ΔG°/RT)
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white/90 backdrop-blur-md mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>VerChem Thermodynamics • Built with ❤️ for chemistry students worldwide</p>
-          <p className="mt-2 text-xs">
-            Data from NIST and standard thermodynamic tables
-          </p>
-        </div>
-      </footer>
-    </div>
+      </Card>
+    </CalcShell>
   )
 }

@@ -73,21 +73,21 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-[400px] flex items-center justify-center p-8">
           <div className="max-w-md w-full">
-            <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-6 text-center">
-              <AlertCircle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+            <div className="rounded-2xl border border-destructive/40 bg-card p-6 text-center">
+              <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">
                 Something went wrong
               </h2>
-              <p className="text-sm text-rose-100 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {this.state.error?.message || 'An unexpected error occurred'}
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
                 <details className="mt-4 text-left">
-                  <summary className="cursor-pointer text-xs text-rose-200 hover:text-rose-100">
+                  <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                     View error details
                   </summary>
-                  <pre className="mt-2 text-xs text-rose-100 bg-black/20 p-3 rounded-lg overflow-auto max-h-48">
+                  <pre className="mt-2 text-xs text-muted-foreground bg-muted p-3 rounded-lg overflow-auto max-h-48">
                     {this.state.error?.stack}
                     {'\n\nComponent Stack:'}
                     {this.state.errorInfo.componentStack}
@@ -97,7 +97,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={this.handleReset}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg border border-rose-400/50 bg-rose-500/20 px-4 py-2 text-sm font-semibold text-rose-100 hover:bg-rose-500/30 transition-colors"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-600 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 Try Again
@@ -135,24 +135,24 @@ export function MoleculeBuilderErrorBoundary({ children }: { children: ReactNode
       fallback={
         <div className="min-h-[600px] flex items-center justify-center p-8">
           <div className="max-w-md w-full text-center">
-            <div className="rounded-3xl border border-amber-400/30 bg-amber-500/10 p-8">
-              <AlertCircle className="w-16 h-16 text-amber-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-2">
+            <div className="rounded-3xl border border-warning/40 bg-card p-8">
+              <AlertCircle className="w-16 h-16 text-warning mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-2">
                 Molecule Builder Error
               </h2>
-              <p className="text-amber-100 mb-6">
+              <p className="text-muted-foreground mb-6">
                 The molecule builder encountered an issue. This might be due to an invalid molecule structure or a temporary problem.
               </p>
               <div className="space-y-3">
                 <button
                   onClick={() => window.location.reload()}
-                  className="w-full rounded-xl border border-amber-400/50 bg-amber-500/20 px-4 py-3 text-sm font-semibold text-amber-100 hover:bg-amber-500/30 transition-colors"
+                  className="w-full rounded-xl bg-primary-500 px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-600 transition-colors"
                 >
                   Reload Page
                 </button>
                 <button
                   onClick={() => window.location.href = '/'}
-                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-colors"
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
                 >
                   Back to Home
                 </button>

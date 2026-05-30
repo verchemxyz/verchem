@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Atom, Calculator, CheckCircle, Zap, BookOpen, FlaskConical, Scale } from 'lucide-react'
 import { MolarMassSchema } from '@/components/seo/JsonLd'
+import { CalcShell, Card, SectionTitle, Button, ResultPanel, ErrorBanner } from '@/components/lab'
 import MoleculeInput from '@/components/molecule-editor/MoleculeInput'
 import { useRDKit } from '@/lib/rdkit/hook'
 import { getMolWeight, smilesToFormula } from '@/lib/rdkit/operations'
@@ -168,229 +169,184 @@ export default function MolarMassCalculatorPage() {
   return (
     <>
       <MolarMassSchema />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm text-purple-300 mb-6">
-              <Scale className="h-4 w-4" />
-              NIST-Validated Atomic Masses
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Molar Mass
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                Calculator
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              Calculate molecular weight instantly with element-by-element breakdown.
-              Perfect for stoichiometry, lab work, and chemistry homework.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                100% Free
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                NIST Data
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                Element Breakdown
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                No Sign-up
-              </span>
-            </div>
-          </div>
+      <CalcShell
+        eyebrow="NIST-validated atomic masses"
+        title="Molar Mass Calculator"
+        subtitle="Calculate molecular weight instantly with element-by-element breakdown. Perfect for stoichiometry, lab work, and chemistry homework."
+        backHref="/tools"
+        backLabel="All tools"
+        maxWidth="6xl"
+      >
+        {/* Capability strip */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> 100% Free
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> NIST Data
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> Element Breakdown
+          </span>
+          <span className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" /> No Sign-up
+          </span>
         </div>
-      </section>
 
-      {/* Calculator Section */}
-      <section className="py-12 px-4">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-slate-900/90 to-purple-900/20 p-8 shadow-2xl shadow-purple-500/10 backdrop-blur-sm">
-            <div className="space-y-6">
-              {/* Mode Toggle */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setInputMode('formula')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    inputMode === 'formula'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
-                  }`}
-                >
-                  Formula
-                </button>
-                <button
-                  onClick={() => setInputMode('smiles')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    inputMode === 'smiles'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-white/10 text-slate-300 hover:bg-white/20'
-                  }`}
-                >
-                  SMILES
-                </button>
-                {rdkitHookError && (
-                  <span className="text-xs text-amber-400 self-center ml-2">
-                    Advanced features unavailable
-                  </span>
-                )}
-              </div>
-
-              {/* Formula Mode */}
-              {inputMode === 'formula' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Enter Chemical Formula
-                  </label>
-                  <div className="flex gap-4">
-                    <input
-                      type="text"
-                      value={formula}
-                      onChange={(e) => setFormula(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
-                      placeholder="e.g., H2O, NaCl, C6H12O6"
-                      className="flex-1 rounded-xl border border-white/10 bg-white/5 px-6 py-4 text-xl text-white placeholder:text-slate-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-mono"
-                    />
-                    <button
-                      onClick={handleCalculate}
-                      disabled={isCalculating}
-                      className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-4 font-semibold text-white transition-all hover:from-purple-500 hover:to-pink-500 hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50"
-                    >
-                      {isCalculating ? (
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : (
-                        'Calculate'
-                      )}
-                    </button>
-                  </div>
-                </div>
+        {/* Calculator */}
+        <Card className="p-6 sm:p-8">
+          <div className="space-y-6">
+            {/* Mode Toggle */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setInputMode('formula')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  inputMode === 'formula'
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-foreground hover:bg-muted'
+                }`}
+              >
+                Formula
+              </button>
+              <button
+                onClick={() => setInputMode('smiles')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  inputMode === 'smiles'
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-foreground hover:bg-muted'
+                }`}
+              >
+                SMILES
+              </button>
+              {rdkitHookError && (
+                <span className="text-xs text-warning self-center ml-2">
+                  Advanced features unavailable
+                </span>
               )}
+            </div>
 
-              {/* SMILES Mode */}
-              {inputMode === 'smiles' && (
-                <div className="space-y-4">
-                  <MoleculeInput
-                    value={smiles}
-                    onChange={setSmiles}
-                    label="Enter or Draw SMILES"
-                    placeholder="e.g., CCO, c1ccccc1"
+            {/* Formula Mode */}
+            {inputMode === 'formula' && (
+              <div>
+                <label htmlFor="mm-formula" className="block text-sm font-medium text-foreground mb-2">
+                  Enter Chemical Formula
+                </label>
+                <div className="flex gap-4">
+                  <input
+                    id="mm-formula"
+                    type="text"
+                    value={formula}
+                    onChange={(e) => setFormula(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCalculate()}
+                    placeholder="e.g., H2O, NaCl, C6H12O6"
+                    className="input-premium flex-1 text-xl font-mono"
                   />
-
-                  {rdkitLoading && (
-                    <div className="text-sm text-slate-400">Loading chemistry engine...</div>
-                  )}
-
-                  {isRdkitComputing && (
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
-                      Computing...
-                    </div>
-                  )}
-
-                  {rdkitError && (
-                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                      {rdkitError}
-                    </div>
-                  )}
-
-                  {rdkitFormula && (
-                    <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
-                      <p className="text-sm text-purple-300 mb-1">Formula</p>
-                      <p className="text-2xl font-bold text-white font-mono">{rdkitFormula}</p>
-                    </div>
-                  )}
-
-                  {rdkitMw && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
-                        <p className="text-sm text-purple-300 mb-1">Average Mass</p>
-                        <p className="text-2xl font-bold text-white font-mono">
-                          {rdkitMw.average.toFixed(3)}
-                          <span className="text-sm text-purple-300 ml-1">g/mol</span>
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-purple-500/30 bg-purple-500/10 p-4">
-                        <p className="text-sm text-purple-300 mb-1">Exact Mass</p>
-                        <p className="text-2xl font-bold text-white font-mono">
-                          {rdkitMw.exact.toFixed(4)}
-                          <span className="text-sm text-purple-300 ml-1">g/mol</span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <Button onClick={handleCalculate} disabled={isCalculating}>
+                    {isCalculating ? (
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      'Calculate'
+                    )}
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {error && (
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300">
-                  {error}
-                </div>
-              )}
+            {/* SMILES Mode */}
+            {inputMode === 'smiles' && (
+              <div className="space-y-4">
+                <MoleculeInput
+                  value={smiles}
+                  onChange={setSmiles}
+                  label="Enter or Draw SMILES"
+                  placeholder="e.g., CCO, c1ccccc1"
+                />
 
-              {result && inputMode === 'formula' && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="rounded-2xl border border-purple-500/30 bg-purple-500/10 p-6">
-                    <div className="text-center">
-                      <p className="text-sm text-purple-300 mb-2">Molar Mass</p>
-                      <p className="text-5xl font-bold text-white font-mono">
-                        {result.mass.toFixed(3)}
-                        <span className="text-2xl text-purple-300 ml-2">g/mol</span>
+                {rdkitLoading && (
+                  <div className="text-sm text-muted-foreground">Loading chemistry engine...</div>
+                )}
+
+                {isRdkitComputing && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+                    Computing...
+                  </div>
+                )}
+
+                {rdkitError && <ErrorBanner>{rdkitError}</ErrorBanner>}
+
+                {rdkitFormula && (
+                  <div className="rounded-md border border-border bg-muted p-4">
+                    <p className="text-sm text-muted-foreground mb-1">Formula</p>
+                    <p className="text-2xl font-bold text-foreground font-mono">{rdkitFormula}</p>
+                  </div>
+                )}
+
+                {rdkitMw && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-md border border-border bg-muted p-4">
+                      <p className="text-sm text-muted-foreground mb-1">Average Mass</p>
+                      <p className="text-2xl font-bold text-foreground font-mono">
+                        {rdkitMw.average.toFixed(3)}
+                        <span className="text-sm text-muted-foreground ml-1">g/mol</span>
+                      </p>
+                    </div>
+                    <div className="rounded-md border border-border bg-muted p-4">
+                      <p className="text-sm text-muted-foreground mb-1">Exact Mass</p>
+                      <p className="text-2xl font-bold text-foreground font-mono">
+                        {rdkitMw.exact.toFixed(4)}
+                        <span className="text-sm text-muted-foreground ml-1">g/mol</span>
                       </p>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">Element Breakdown</h3>
-                    <div className="space-y-3">
-                      {result.elements.map((el) => (
-                        <div key={el.element} className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center font-bold text-white">
-                            {el.element}
+            {error && <ErrorBanner>{error}</ErrorBanner>}
+
+            {result && inputMode === 'formula' && (
+              <div className="space-y-6">
+                <ResultPanel label="Molar Mass">
+                  {result.mass.toFixed(3)}
+                  <span className="text-xl text-muted-foreground ml-2">g/mol</span>
+                </ResultPanel>
+
+                <div className="rounded-lg border border-border bg-muted p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Element Breakdown</h3>
+                  <div className="space-y-3">
+                    {result.elements.map((el) => (
+                      <div key={el.element} className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-md bg-primary-500 flex items-center justify-center font-bold text-primary-foreground">
+                          {el.element}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-foreground">
+                              {el.element} × {el.count} = {(el.mass * el.count).toFixed(3)} g/mol
+                            </span>
+                            <span className="text-primary-600 font-mono">{el.contribution.toFixed(1)}%</span>
                           </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-slate-300">
-                                {el.element} × {el.count} = {(el.mass * el.count).toFixed(3)} g/mol
-                              </span>
-                              <span className="text-purple-400">{el.contribution.toFixed(1)}%</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-                                style={{ width: `${el.contribution}%` }}
-                              />
-                            </div>
+                          <div className="h-2 rounded-full bg-border overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary-500 transition-all duration-500"
+                              style={{ width: `${el.contribution}%` }}
+                            />
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Quick Reference */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">
-            Common Compounds
-          </h2>
-          <p className="text-slate-400 text-center mb-12 max-w-2xl mx-auto">
+        {/* Quick Reference */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-2">Common Compounds</SectionTitle>
+          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
             Click any compound below to instantly calculate its molar mass
           </p>
 
@@ -399,28 +355,26 @@ export default function MolarMassCalculatorPage() {
               <button
                 key={compound.formula}
                 onClick={() => handleQuickSelect(compound)}
-                className="group rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition-all hover:border-purple-500/50 hover:bg-purple-500/10"
+                className="group rounded-lg border border-border bg-card p-6 text-left transition-colors hover:border-primary-500 hover:bg-muted"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-lg font-semibold text-white">{compound.name}</span>
-                  <ArrowRight className="h-5 w-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-lg font-semibold text-foreground">{compound.name}</span>
+                  <ArrowRight className="h-5 w-5 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-purple-400">{compound.formula}</span>
-                  <span className="text-slate-400">{compound.mass.toFixed(2)} g/mol</span>
+                  <span className="font-mono text-primary-600">{compound.formula}</span>
+                  <span className="text-muted-foreground">{compound.mass.toFixed(2)} g/mol</span>
                 </div>
               </button>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* How It Works */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* How It Works */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             How to Calculate Molar Mass
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-8 md:grid-cols-4">
             {[
@@ -446,64 +400,60 @@ export default function MolarMassCalculatorPage() {
               }
             ].map((item) => (
               <div key={item.step} className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 text-2xl font-bold text-white">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-md bg-primary-500 text-2xl font-bold text-primary-foreground">
                   {item.step}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
-                <p className="text-slate-400 text-sm">{item.description}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                <p className="text-muted-foreground text-sm">{item.description}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Formula Guide */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-4">
+        {/* Formula Guide */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-2">
             Formula Writing Guide
-          </h2>
-          <p className="text-slate-400 text-center mb-12">
+          </SectionTitle>
+          <p className="text-muted-foreground text-center mb-8">
             Tips for entering chemical formulas correctly
           </p>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <FlaskConical className="h-8 w-8 text-purple-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Element Symbols</h3>
-              <p className="text-slate-400 text-sm mb-4">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <FlaskConical className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">Element Symbols</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 Use capital letters for element symbols. Two-letter symbols use lowercase for the second letter.
               </p>
-              <code className="text-purple-400 text-sm">Ca, Na, Fe, Cl, Mg</code>
+              <code className="text-primary-600 text-sm font-mono">Ca, Na, Fe, Cl, Mg</code>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <Calculator className="h-8 w-8 text-purple-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Subscripts</h3>
-              <p className="text-slate-400 text-sm mb-4">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <Calculator className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">Subscripts</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 Write subscripts as regular numbers after the element symbol.
               </p>
-              <code className="text-purple-400 text-sm">H2O, CO2, C6H12O6</code>
+              <code className="text-primary-600 text-sm font-mono">H2O, CO2, C6H12O6</code>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <BookOpen className="h-8 w-8 text-purple-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Compounds</h3>
-              <p className="text-slate-400 text-sm mb-4">
+            <div className="rounded-lg border border-border bg-muted p-6">
+              <BookOpen className="h-8 w-8 text-primary-600 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">Compounds</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 Write all elements in sequence with their subscripts.
               </p>
-              <code className="text-purple-400 text-sm">NaCl, H2SO4, Ca(OH)2</code>
+              <code className="text-primary-600 text-sm font-mono">NaCl, H2SO4, Ca(OH)2</code>
             </div>
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* Features */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* Features */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Why Use Our Molar Mass Calculator?
-          </h2>
+          </SectionTitle>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
@@ -540,23 +490,21 @@ export default function MolarMassCalculatorPage() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 hover:border-purple-500/30 transition-colors"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <feature.icon className="h-8 w-8 text-purple-400 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm">{feature.description}</p>
+                <feature.icon className="h-8 w-8 text-primary-600 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* FAQ */}
-      <section className="py-16 px-4">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+        {/* FAQ */}
+        <Card className="p-6 sm:p-8">
+          <SectionTitle className="text-center text-2xl mb-8">
             Frequently Asked Questions
-          </h2>
+          </SectionTitle>
 
           <div className="space-y-6">
             {[
@@ -583,59 +531,53 @@ export default function MolarMassCalculatorPage() {
             ].map((faq, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                className="rounded-lg border border-border bg-muted p-6"
               >
-                <h3 className="text-lg font-semibold text-white mb-3">{faq.q}</h3>
-                <p className="text-slate-400">{faq.a}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-3">{faq.q}</h3>
+                <p className="text-muted-foreground">{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </Card>
 
-      {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
+        {/* CTA */}
+        <Card className="p-6 sm:p-8 text-center">
+          <SectionTitle className="text-2xl mb-6">
             Explore More Chemistry Tools
-          </h2>
-          <p className="text-slate-400 mb-8">
-            VerChem offers a complete suite of chemistry calculators and tools
-          </p>
+          </SectionTitle>
 
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/tools/equation-balancer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Equation Balancer
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/stoichiometry"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               Stoichiometry
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/tools/ph-calculator"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               pH Calculator
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/periodic-table"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-medium text-white hover:from-purple-500 hover:to-pink-500 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
             >
               Interactive Periodic Table
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
-    </div>
+        </Card>
+      </CalcShell>
     </>
   )
 }

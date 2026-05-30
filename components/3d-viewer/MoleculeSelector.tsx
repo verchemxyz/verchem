@@ -33,16 +33,16 @@ export default function MoleculeSelector({
   const molecules = Object.values(MOLECULES_3D)
 
   return (
-    <div className="bg-gray-900 rounded-lg p-4 space-y-4">
+    <div className="bg-card border border-border rounded-lg p-4 space-y-4">
       {/* Molecule Selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Select Molecule
         </label>
         <div className="relative">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center justify-between hover:bg-gray-700"
+            className="w-full bg-muted text-foreground px-4 py-2 rounded-lg flex items-center justify-between hover:bg-accent border border-border"
           >
             <span>
               {currentMolecule
@@ -67,7 +67,7 @@ export default function MoleculeSelector({
           </button>
 
           {isOpen && (
-            <div className="absolute z-10 mt-2 w-full bg-gray-800 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+            <div className="absolute z-10 mt-2 w-full bg-card border border-border rounded-lg shadow-lg max-h-96 overflow-y-auto">
               {molecules.map((mol) => (
                 <button
                   key={mol.formula}
@@ -75,16 +75,16 @@ export default function MoleculeSelector({
                     onSelectMolecule(mol)
                     setIsOpen(false)
                   }}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 border-b border-gray-700 last:border-0 ${
+                  className={`w-full text-left px-4 py-3 hover:bg-muted border-b border-border last:border-0 ${
                     currentMolecule?.formula === mol.formula
-                      ? 'bg-blue-900'
+                      ? 'bg-primary-500/15'
                       : ''
                   }`}
                 >
-                  <div className="font-medium text-white">{mol.name}</div>
-                  <div className="text-sm text-gray-400">{mol.formula}</div>
+                  <div className="font-medium text-foreground">{mol.name}</div>
+                  <div className="text-sm text-muted-foreground">{mol.formula}</div>
                   {mol.geometry && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {mol.geometry}
                     </div>
                   )}
@@ -97,7 +97,7 @@ export default function MoleculeSelector({
 
       {/* Display Style */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Display Style
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -105,8 +105,8 @@ export default function MoleculeSelector({
             onClick={() => onDisplayStyleChange('ball-stick')}
             className={`px-3 py-2 rounded-lg text-sm font-medium ${
               currentDisplayStyle === 'ball-stick'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-primary-600 text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-accent'
             }`}
           >
             Ball & Stick
@@ -115,8 +115,8 @@ export default function MoleculeSelector({
             onClick={() => onDisplayStyleChange('space-filling')}
             className={`px-3 py-2 rounded-lg text-sm font-medium ${
               currentDisplayStyle === 'space-filling'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-primary-600 text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-accent'
             }`}
           >
             Space Filling
@@ -125,8 +125,8 @@ export default function MoleculeSelector({
             onClick={() => onDisplayStyleChange('wireframe')}
             className={`px-3 py-2 rounded-lg text-sm font-medium ${
               currentDisplayStyle === 'wireframe'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-primary-600 text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-accent'
             }`}
           >
             Wireframe
@@ -135,8 +135,8 @@ export default function MoleculeSelector({
             onClick={() => onDisplayStyleChange('stick')}
             className={`px-3 py-2 rounded-lg text-sm font-medium ${
               currentDisplayStyle === 'stick'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-primary-600 text-primary-foreground'
+                : 'bg-muted text-foreground hover:bg-accent'
             }`}
           >
             Stick
@@ -151,9 +151,9 @@ export default function MoleculeSelector({
             type="checkbox"
             checked={showLabels}
             onChange={(e) => onToggleLabels(e.target.checked)}
-            className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+            className="w-4 h-4 text-primary-600 bg-input border-border rounded focus:ring-primary-500"
           />
-          <span className="text-sm text-gray-300">Show Atom Labels</span>
+          <span className="text-sm text-foreground">Show Atom Labels</span>
         </label>
 
         <label className="flex items-center space-x-3 cursor-pointer">
@@ -161,21 +161,21 @@ export default function MoleculeSelector({
             type="checkbox"
             checked={autoRotate}
             onChange={(e) => onToggleAutoRotate(e.target.checked)}
-            className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+            className="w-4 h-4 text-primary-600 bg-input border-border rounded focus:ring-primary-500"
           />
-          <span className="text-sm text-gray-300">Auto Rotate</span>
+          <span className="text-sm text-foreground">Auto Rotate</span>
         </label>
       </div>
 
       {/* Molecule Info */}
       {currentMolecule && (
-        <div className="bg-gray-800 rounded-lg p-3 space-y-2">
-          <h4 className="text-white font-bold text-sm">Molecule Info</h4>
+        <div className="bg-muted rounded-lg p-3 space-y-2">
+          <h4 className="text-foreground font-bold text-sm">Molecule Info</h4>
 
           {currentMolecule.geometry && (
             <div>
-              <span className="text-gray-400 text-xs">Geometry:</span>
-              <span className="text-white text-sm ml-2">
+              <span className="text-muted-foreground text-xs">Geometry:</span>
+              <span className="text-foreground text-sm ml-2">
                 {currentMolecule.geometry}
               </span>
             </div>
@@ -183,8 +183,8 @@ export default function MoleculeSelector({
 
           {currentMolecule.bondAngles && currentMolecule.bondAngles.length > 0 && (
             <div>
-              <span className="text-gray-400 text-xs">Bond Angle:</span>
-              <span className="text-white text-sm ml-2">
+              <span className="text-muted-foreground text-xs">Bond Angle:</span>
+              <span className="text-foreground text-sm ml-2">
                 {currentMolecule.bondAngles[0]}°
               </span>
             </div>
@@ -192,8 +192,8 @@ export default function MoleculeSelector({
 
           {currentMolecule.dipoleMoment !== undefined && (
             <div>
-              <span className="text-gray-400 text-xs">Dipole Moment:</span>
-              <span className="text-white text-sm ml-2">
+              <span className="text-muted-foreground text-xs">Dipole Moment:</span>
+              <span className="text-foreground text-sm ml-2">
                 {currentMolecule.dipoleMoment === 0
                   ? 'Nonpolar'
                   : `${currentMolecule.dipoleMoment} D (Polar)`}
@@ -202,22 +202,22 @@ export default function MoleculeSelector({
           )}
 
           <div>
-            <span className="text-gray-400 text-xs">Atoms:</span>
-            <span className="text-white text-sm ml-2">
+            <span className="text-muted-foreground text-xs">Atoms:</span>
+            <span className="text-foreground text-sm ml-2">
               {currentMolecule.atoms.length}
             </span>
           </div>
 
           <div>
-            <span className="text-gray-400 text-xs">Bonds:</span>
-            <span className="text-white text-sm ml-2">
+            <span className="text-muted-foreground text-xs">Bonds:</span>
+            <span className="text-foreground text-sm ml-2">
               {currentMolecule.bonds.length}
             </span>
           </div>
 
           {currentMolecule.metadata?.description && (
-            <div className="pt-2 border-t border-gray-700">
-              <p className="text-gray-300 text-xs">
+            <div className="pt-2 border-t border-border">
+              <p className="text-muted-foreground text-xs">
                 {currentMolecule.metadata.description}
               </p>
             </div>
@@ -226,12 +226,12 @@ export default function MoleculeSelector({
           {currentMolecule.metadata?.uses &&
             currentMolecule.metadata.uses.length > 0 && (
               <div>
-                <span className="text-gray-400 text-xs">Uses:</span>
+                <span className="text-muted-foreground text-xs">Uses:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {currentMolecule.metadata.uses.map((use, i) => (
                     <span
                       key={i}
-                      className="bg-blue-900/50 text-blue-200 text-xs px-2 py-0.5 rounded"
+                      className="bg-primary-500/15 text-primary-700 dark:text-primary-300 text-xs px-2 py-0.5 rounded"
                     >
                       {use}
                     </span>
@@ -243,12 +243,12 @@ export default function MoleculeSelector({
           {currentMolecule.metadata?.hazards &&
             currentMolecule.metadata.hazards.length > 0 && (
               <div>
-                <span className="text-red-400 text-xs">⚠️ Hazards:</span>
+                <span className="text-warning text-xs font-medium">Hazards:</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {currentMolecule.metadata.hazards.map((hazard, i) => (
                     <span
                       key={i}
-                      className="bg-red-900/50 text-red-200 text-xs px-2 py-0.5 rounded"
+                      className="bg-destructive/15 text-destructive text-xs px-2 py-0.5 rounded"
                     >
                       {hazard}
                     </span>

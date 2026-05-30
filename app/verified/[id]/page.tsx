@@ -13,6 +13,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getPublicAnswerCardById } from '@/lib/supabase/answer-cards'
 import AnswerCardView from '@/components/answer-cards/AnswerCardView'
+import { CalcShell } from '@/components/lab'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,50 +61,44 @@ export default async function PublicAnswerCardPage({ params }: PageProps) {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950">
-      <section className="relative overflow-hidden pt-16 pb-8">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent" />
-        <div className="relative mx-auto max-w-3xl px-4 text-center">
+    <CalcShell
+      eyebrow={`Shared verified answer · ${issued}`}
+      title={`Q: ${loaded.card.question}`}
+      backHref="/tools/verified-answer"
+      backLabel="VerChem Verified Answer"
+      maxWidth="4xl"
+    >
+      <div className="mx-auto max-w-3xl w-full space-y-8">
+        <div className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-success">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Computed by deterministic engines · cryptographically signed
+        </div>
+
+        {/* Signed card — AnswerCardView owns all verified/tampered/signature
+            presentation (now theme-adaptive via tokens). */}
+        <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+          <AnswerCardView card={loaded.card} signatureValid={loaded.signatureValid} />
+        </div>
+
+        {/* CTA: verify chemistry yourself */}
+        <div className="text-center">
+          <p className="text-muted-foreground mb-3 text-sm">
+            Numbers computed by deterministic engines, not a language model — and signed so they
+            can&apos;t be quietly altered.
+          </p>
           <Link
             href="/tools/verified-answer"
-            className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm text-green-300 mb-6 transition hover:bg-green-500/20"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:border-primary-500"
           >
+            Ask your own chemistry question
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-            VerChem Verified Answer
           </Link>
-          <p className="text-sm text-slate-400">Shared verified answer · {issued}</p>
         </div>
-      </section>
-
-      <section className="pb-20 px-4">
-        <div className="mx-auto max-w-3xl">
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-900/50 p-6 md:p-8 shadow-2xl backdrop-blur-sm">
-            <h1 className="text-xl md:text-2xl font-semibold text-white mb-6">
-              Q: {loaded.card.question}
-            </h1>
-            <AnswerCardView card={loaded.card} signatureValid={loaded.signatureValid} />
-          </div>
-
-          {/* CTA: verify chemistry yourself */}
-          <div className="mt-8 text-center">
-            <p className="text-slate-400 mb-3 text-sm">
-              Numbers computed by deterministic engines, not a language model — and signed so they
-              can&apos;t be quietly altered.
-            </p>
-            <Link
-              href="/tools/verified-answer"
-              className="inline-flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 text-sm font-medium text-blue-200 transition hover:bg-blue-500/20"
-            >
-              Ask your own chemistry question
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </CalcShell>
   )
 }

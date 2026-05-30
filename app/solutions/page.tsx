@@ -1,7 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  FormulaBlock,
+  ModeGrid,
+  ModeButton,
+  ResultPanel,
+  StepList,
+  ErrorBanner,
+} from '@/components/lab'
 import {
   calculateMolarity,
   calculateStrongAcidPH,
@@ -25,6 +37,16 @@ type CalculatorMode =
   | 'weak-base-ph'
   | 'buffer-ph'
   | 'dilution'
+
+const MODES: { id: CalculatorMode; label: string }[] = [
+  { id: 'molarity', label: 'Molarity (M)' },
+  { id: 'strong-acid-ph', label: 'Strong Acid pH' },
+  { id: 'strong-base-ph', label: 'Strong Base pH' },
+  { id: 'weak-acid-ph', label: 'Weak Acid pH' },
+  { id: 'weak-base-ph', label: 'Weak Base pH' },
+  { id: 'buffer-ph', label: 'Buffer pH' },
+  { id: 'dilution', label: 'Dilution (M₁V₁=M₂V₂)' },
+]
 
 export default function SolutionsPage() {
   const [mode, setMode] = useState<CalculatorMode>('strong-acid-ph')
@@ -302,561 +324,420 @@ export default function SolutionsPage() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <h1 className="text-2xl font-bold">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <Link href="/" className="text-muted-foreground hover:text-primary-600 transition-colors font-medium">
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
+    <CalcShell
+      eyebrow="Solutions & pH · 7 calculation modes"
+      title="Solutions & pH"
+      subtitle="Molarity, pH, buffers, and dilution calculations with a visual pH scale."
+      backHref="/"
+      backLabel="Home"
+    >
+      {/* Mode Selector */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Select calculator mode</SectionTitle>
+        <ModeGrid>
+          {MODES.map((m) => (
+            <ModeButton
+              key={m.id}
+              active={mode === m.id}
+              onClick={() => setMode(m.id)}
+              title={m.label}
+            />
+          ))}
+        </ModeGrid>
+      </Card>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-12">
-          <div className="badge-premium mb-4">🧪 Scientific Precision • 7 Calculation Modes</div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="text-premium">Solutions & pH</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-              Calculator
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Molarity, pH, buffers, and dilution calculations with visual pH scale
-          </p>
-        </div>
+      {/* Calculator Input */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Input parameters</SectionTitle>
 
-        {/* Mode Selector */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Select Calculator Mode</h2>
+        {/* Molarity */}
+        {mode === 'molarity' && (
+          <div className="space-y-4">
+            <Field label="Moles of solute (mol)">
+              <input
+                type="number"
+                value={moles}
+                onChange={(e) => setMoles(e.target.value)}
+                className="input-premium w-full"
+              />
+            </Field>
+            <Field label="Volume of solution (L)">
+              <input
+                type="number"
+                value={volumeL}
+                onChange={(e) => setVolumeL(e.target.value)}
+                className="input-premium w-full"
+              />
+            </Field>
+          </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { id: 'molarity', label: 'Molarity (M)', icon: '⚗️' },
-              { id: 'strong-acid-ph', label: 'Strong Acid pH', icon: '🔴' },
-              { id: 'strong-base-ph', label: 'Strong Base pH', icon: '🔵' },
-              { id: 'weak-acid-ph', label: 'Weak Acid pH', icon: '🟠' },
-              { id: 'weak-base-ph', label: 'Weak Base pH', icon: '🟣' },
-              { id: 'buffer-ph', label: 'Buffer pH', icon: '💚' },
-              { id: 'dilution', label: 'Dilution (M₁V₁=M₂V₂)', icon: '💧' },
-            ].map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMode(m.id as CalculatorMode)}
-                className={`p-4 rounded-xl font-semibold transition-all ${
-                  mode === m.id
-                    ? 'btn-premium glow-premium text-white shadow-xl scale-105'
-                    : 'bg-surface hover:bg-surface-hover text-foreground hover:scale-102'
-                }`}
+        {/* Strong Acid pH */}
+        {mode === 'strong-acid-ph' && (
+          <div className="space-y-4">
+            <Field label="Select strong acid">
+              <select
+                value={selectedAcid}
+                onChange={(e) => setSelectedAcid(e.target.value)}
+                className="input-premium w-full"
               >
-                <div className="text-2xl mb-1">{m.icon}</div>
-                <div className="text-sm">{m.label}</div>
-              </button>
-            ))}
+                {STRONG_ACIDS.map((formula) => (
+                  <option key={formula} value={formula}>
+                    {formula}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Concentration (M)">
+              <input
+                type="number"
+                value={concentration}
+                onChange={(e) => setConcentration(e.target.value)}
+                step="0.001"
+                className="input-premium w-full"
+              />
+            </Field>
           </div>
-        </div>
+        )}
 
-        {/* Calculator Input */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Input Parameters</h2>
+        {/* Strong Base pH */}
+        {mode === 'strong-base-ph' && (
+          <div className="space-y-4">
+            <Field label="Select strong base">
+              <select
+                value={selectedBase}
+                onChange={(e) => setSelectedBase(e.target.value)}
+                className="input-premium w-full"
+              >
+                {STRONG_BASES.map((formula) => (
+                  <option key={formula} value={formula}>
+                    {formula}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Concentration (M)">
+              <input
+                type="number"
+                value={concentration}
+                onChange={(e) => setConcentration(e.target.value)}
+                step="0.001"
+                className="input-premium w-full"
+              />
+            </Field>
+          </div>
+        )}
 
-          {/* Molarity */}
-          {mode === 'molarity' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Moles of Solute (mol)
-                </label>
+        {/* Weak Acid pH */}
+        {mode === 'weak-acid-ph' && (
+          <div className="space-y-4">
+            <Field label="Concentration (M)">
+              <input
+                type="number"
+                value={concentration}
+                onChange={(e) => setConcentration(e.target.value)}
+                step="0.001"
+                className="input-premium w-full"
+              />
+            </Field>
+            <Field
+              label="Ka (acid dissociation constant)"
+              hint="Common weak acids: CH₃COOH (Ka = 1.74×10⁻⁵), HF (Ka = 6.8×10⁻⁴)"
+            >
+              <input
+                type="text"
+                value={ka}
+                onChange={(e) => setKa(e.target.value)}
+                placeholder="e.g., 1.74e-5"
+                className="input-premium w-full"
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Weak Base pH */}
+        {mode === 'weak-base-ph' && (
+          <div className="space-y-4">
+            <Field label="Concentration (M)">
+              <input
+                type="number"
+                value={concentration}
+                onChange={(e) => setConcentration(e.target.value)}
+                step="0.001"
+                className="input-premium w-full"
+              />
+            </Field>
+            <Field
+              label="Kb (base dissociation constant)"
+              hint="Common weak base: NH₃ (Kb = 1.8×10⁻⁵)"
+            >
+              <input
+                type="text"
+                value={kb}
+                onChange={(e) => setKb(e.target.value)}
+                placeholder="e.g., 1.8e-5"
+                className="input-premium w-full"
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Buffer pH */}
+        {mode === 'buffer-ph' && (
+          <div className="space-y-4">
+            <FormulaBlock label="Henderson-Hasselbalch equation">
+              pH = pKa + log([A⁻]/[HA])
+            </FormulaBlock>
+
+            <Field label="pKa of weak acid">
+              <input
+                type="number"
+                value={pka}
+                onChange={(e) => setPka(e.target.value)}
+                step="0.01"
+                className="input-premium w-full"
+              />
+            </Field>
+            <Field label="[Weak acid] (M)">
+              <input
+                type="number"
+                value={acidConc}
+                onChange={(e) => setAcidConc(e.target.value)}
+                step="0.01"
+                className="input-premium w-full"
+              />
+            </Field>
+            <Field
+              label="[Conjugate base] (M)"
+              hint="Example: Acetate buffer (CH₃COOH/CH₃COO⁻, pKa = 4.76)"
+            >
+              <input
+                type="number"
+                value={conjugateBaseConc}
+                onChange={(e) => setConjugateBaseConc(e.target.value)}
+                step="0.01"
+                className="input-premium w-full"
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Dilution */}
+        {mode === 'dilution' && (
+          <div className="space-y-4">
+            <FormulaBlock>M₁V₁ = M₂V₂</FormulaBlock>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="M₁ (initial molarity, M)">
                 <input
                   type="number"
-                  value={moles}
-                  onChange={(e) => setMoles(e.target.value)}
+                  value={m1}
+                  onChange={(e) => setM1(e.target.value)}
                   className="input-premium w-full"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Volume of Solution (L)
-                </label>
+              </Field>
+              <Field label="V₁ (initial volume, mL)">
                 <input
                   type="number"
-                  value={volumeL}
-                  onChange={(e) => setVolumeL(e.target.value)}
+                  value={v1}
+                  onChange={(e) => setV1(e.target.value)}
                   className="input-premium w-full"
                 />
+              </Field>
+              <Field label="V₂ (final volume, mL)">
+                <input
+                  type="number"
+                  value={v2}
+                  onChange={(e) => setV2(e.target.value)}
+                  className="input-premium w-full"
+                />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">M₂ will be calculated</p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Strong Acid pH */}
-          {mode === 'strong-acid-ph' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Strong Acid
-                </label>
-                <select
-                  value={selectedAcid}
-                  onChange={(e) => setSelectedAcid(e.target.value)}
-                  className="input-premium w-full"
-                >
-                  {STRONG_ACIDS.map((formula) => (
-                    <option key={formula} value={formula}>
-                      {formula}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Concentration (M)
-                </label>
-                <input
-                  type="number"
-                  value={concentration}
-                  onChange={(e) => setConcentration(e.target.value)}
-                  step="0.001"
-                  className="input-premium w-full"
-                />
-              </div>
-            </div>
-          )}
+        {/* Calculate Button */}
+        <Button onClick={calculate} className="w-full mt-6">
+          Calculate
+        </Button>
 
-          {/* Strong Base pH */}
-          {mode === 'strong-base-ph' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Strong Base
-                </label>
-                <select
-                  value={selectedBase}
-                  onChange={(e) => setSelectedBase(e.target.value)}
-                  className="input-premium w-full"
-                >
-                  {STRONG_BASES.map((formula) => (
-                    <option key={formula} value={formula}>
-                      {formula}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Concentration (M)
-                </label>
-                <input
-                  type="number"
-                  value={concentration}
-                  onChange={(e) => setConcentration(e.target.value)}
-                  step="0.001"
-                  className="input-premium w-full"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Weak Acid pH */}
-          {mode === 'weak-acid-ph' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Concentration (M)
-                </label>
-                <input
-                  type="number"
-                  value={concentration}
-                  onChange={(e) => setConcentration(e.target.value)}
-                  step="0.001"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ka (acid dissociation constant)
-                </label>
-                <input
-                  type="text"
-                  value={ka}
-                  onChange={(e) => setKa(e.target.value)}
-                  placeholder="e.g., 1.74e-5"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                Common weak acids: CH₃COOH (Ka = 1.74×10⁻⁵), HF (Ka = 6.8×10⁻⁴)
-              </div>
-            </div>
-          )}
-
-          {/* Weak Base pH */}
-          {mode === 'weak-base-ph' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Concentration (M)
-                </label>
-                <input
-                  type="number"
-                  value={concentration}
-                  onChange={(e) => setConcentration(e.target.value)}
-                  step="0.001"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kb (base dissociation constant)
-                </label>
-                <input
-                  type="text"
-                  value={kb}
-                  onChange={(e) => setKb(e.target.value)}
-                  placeholder="e.g., 1.8e-5"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                Common weak base: NH₃ (Kb = 1.8×10⁻⁵)
-              </div>
-            </div>
-          )}
-
-          {/* Buffer pH */}
-          {mode === 'buffer-ph' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-green-50 rounded-lg mb-4">
-                <div className="text-xl font-bold text-green-700">
-                  Henderson-Hasselbalch Equation
-                </div>
-                <div className="text-2xl font-bold text-green-600 mt-2">
-                  pH = pKa + log([A⁻]/[HA])
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  pKa of Weak Acid
-                </label>
-                <input
-                  type="number"
-                  value={pka}
-                  onChange={(e) => setPka(e.target.value)}
-                  step="0.01"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  [Weak Acid] (M)
-                </label>
-                <input
-                  type="number"
-                  value={acidConc}
-                  onChange={(e) => setAcidConc(e.target.value)}
-                  step="0.01"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  [Conjugate Base] (M)
-                </label>
-                <input
-                  type="number"
-                  value={conjugateBaseConc}
-                  onChange={(e) => setConjugateBaseConc(e.target.value)}
-                  step="0.01"
-                  className="input-premium w-full"
-                />
-              </div>
-              <div className="text-sm text-gray-600">
-                Example: Acetate buffer (CH₃COOH/CH₃COO⁻, pKa = 4.76)
-              </div>
-            </div>
-          )}
-
-          {/* Dilution */}
-          {mode === 'dilution' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-blue-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-blue-600">M₁V₁ = M₂V₂</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    M₁ (Initial Molarity, M)
-                  </label>
-                  <input
-                    type="number"
-                    value={m1}
-                    onChange={(e) => setM1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₁ (Initial Volume, mL)
-                  </label>
-                  <input
-                    type="number"
-                    value={v1}
-                    onChange={(e) => setV1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₂ (Final Volume, mL)
-                  </label>
-                  <input
-                    type="number"
-                    value={v2}
-                    onChange={(e) => setV2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">
-                    M₂ will be calculated
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Calculate Button */}
+        {/* Quick Examples */}
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
-            onClick={calculate}
-            className="btn-premium glow-premium w-full mt-6 px-8 py-4 text-lg"
+            type="button"
+            onClick={() => loadExample('strong-acid-ph')}
+            className="text-sm px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
-            🚀 Calculate Results
+            Example: 0.01 M HCl
           </button>
-
-          {/* Quick Examples */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => loadExample('strong-acid-ph')}
-              className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-            >
-              Example: 0.01 M HCl
-            </button>
-            <button
-              onClick={() => loadExample('buffer-ph')}
-              className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-            >
-              Example: Acetate Buffer
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => loadExample('buffer-ph')}
+            className="text-sm px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            Example: Acetate Buffer
+          </button>
         </div>
+      </Card>
 
-        {/* Error Display */}
-        {error && (
-          <div className="premium-card border-2 border-red-300 p-6 mb-6 bg-red-50/50">
-            <div className="flex items-center gap-2 text-red-700 font-semibold mb-2">
-              <span className="text-2xl">⚠️</span>
-              Error
-            </div>
-            <p className="text-red-600">{error}</p>
-          </div>
-        )}
+      {/* Error Display */}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
-        {/* Result Display */}
-        {(phResult || molarityResult || dilutionResult) && (
-          <div className="mb-6">
-            {/* Molarity Result */}
-            {molarityResult && (
-              <div className="premium-card p-8 bg-gradient-to-br from-primary-600 to-secondary-600 text-white shadow-2xl">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <span>✨</span> Result
-                </h2>
-                <div className="text-5xl md:text-6xl font-bold mb-2 animate-pulse-premium">
-                  {molarityResult.toFixed(4)} M
-                </div>
-                <div className="text-xl opacity-90">Molarity</div>
-              </div>
-            )}
+      {/* Result Display */}
+      {(phResult || molarityResult || dilutionResult) && (
+        <>
+          {/* Molarity Result */}
+          {molarityResult && (
+            <ResultPanel label="Molarity">{molarityResult.toFixed(4)} M</ResultPanel>
+          )}
 
-            {/* pH Result with pH Scale */}
-            {phResult && (
-              <div>
-                {/* pH Scale Visualization */}
-                <div className="bg-white rounded-xl p-6 shadow-lg mb-4">
-                  <h2 className="text-2xl font-bold mb-4 text-center">pH Scale</h2>
+          {/* pH Result with pH Scale */}
+          {phResult && (
+            <div className="space-y-4">
+              {/* pH Scale Visualization (pH-scale colors encode data — preserved) */}
+              <Card className="p-6">
+                <SectionTitle className="mb-4 text-center">pH scale</SectionTitle>
 
-                  {/* pH Meter */}
-                  <div className="relative h-16 mb-8">
-                    {/* Gradient background */}
-                    <div
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background:
-                          'linear-gradient(to right, #dc2626, #f97316, #fbbf24, #10b981, #3b82f6, #8b5cf6, #6b21a8)',
-                      }}
-                    />
+                {/* pH Meter */}
+                <div className="relative h-16 mb-8">
+                  {/* Gradient background — pH-scale data encoding */}
+                  <div
+                    className="absolute inset-0 rounded-lg"
+                    style={{
+                      background:
+                        'linear-gradient(to right, #dc2626, #f97316, #fbbf24, #10b981, #3b82f6, #8b5cf6, #6b21a8)',
+                    }}
+                  />
 
-                    {/* pH labels */}
-                    <div className="absolute inset-0 flex justify-between items-center px-2 text-white font-bold text-sm">
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((ph) => (
-                        <div key={ph} className="text-center">
-                          {ph}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Current pH indicator */}
-                    <div
-                      className="absolute top-0 bottom-0 w-1 bg-black"
-                      style={{
-                        left: `${(phResult.pH / 14) * 100}%`,
-                        transform: 'translateX(-50%)',
-                      }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white px-3 py-1 rounded font-bold whitespace-nowrap">
-                        pH {phResult.pH.toFixed(2)}
+                  {/* pH labels */}
+                  <div className="absolute inset-0 flex justify-between items-center px-2 text-white font-bold text-sm">
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((ph) => (
+                      <div key={ph} className="text-center">
+                        {ph}
                       </div>
-                    </div>
+                    ))}
                   </div>
 
-                  {/* pH Category Labels */}
-                  <div className="flex justify-between text-sm font-semibold mb-6">
-                    <span className="text-red-600">ACIDIC</span>
-                    <span className="text-green-600">NEUTRAL</span>
-                    <span className="text-purple-600">BASIC</span>
+                  {/* Current pH indicator */}
+                  <div
+                    className="absolute top-0 bottom-0 w-1 bg-foreground"
+                    style={{
+                      left: `${(phResult.pH / 14) * 100}%`,
+                      transform: 'translateX(-50%)',
+                    }}
+                  >
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background px-3 py-1 rounded font-bold whitespace-nowrap">
+                      pH {phResult.pH.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
-                {/* pH Values Card */}
-                <div
-                  className="rounded-xl p-6 shadow-lg text-white"
-                  style={{
-                    background: `linear-gradient(135deg, ${getPhColor(
-                      phResult.pH
-                    )}, ${getPhColor(phResult.pH)}dd)`,
-                  }}
-                >
-                  <h2 className="text-2xl font-bold mb-4">Result</h2>
+                {/* pH Category Labels — pH semantics */}
+                <div className="flex justify-between text-sm font-semibold">
+                  <span style={{ color: '#dc2626' }}>ACIDIC</span>
+                  <span style={{ color: '#10b981' }}>NEUTRAL</span>
+                  <span style={{ color: '#8b5cf6' }}>BASIC</span>
+                </div>
+              </Card>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {/* pH Values Card — colored by pH (data encoding, preserved) */}
+              <div
+                className="rounded-lg p-6 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${getPhColor(
+                    phResult.pH
+                  )}, ${getPhColor(phResult.pH)}dd)`,
+                }}
+              >
+                <h2 className="text-lg font-semibold mb-4">Result</h2>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white/20 rounded-lg p-4">
+                    <div className="text-sm opacity-90 mb-1">pH</div>
+                    <div className="text-3xl font-bold">{phResult.pH.toFixed(2)}</div>
+                  </div>
+                  {phResult.pOH !== undefined && (
                     <div className="bg-white/20 rounded-lg p-4">
-                      <div className="text-sm opacity-90 mb-1">pH</div>
-                      <div className="text-3xl font-bold">{phResult.pH.toFixed(2)}</div>
+                      <div className="text-sm opacity-90 mb-1">pOH</div>
+                      <div className="text-3xl font-bold">{phResult.pOH.toFixed(2)}</div>
                     </div>
-                    {phResult.pOH !== undefined && (
-                      <div className="bg-white/20 rounded-lg p-4">
-                        <div className="text-sm opacity-90 mb-1">pOH</div>
-                        <div className="text-3xl font-bold">{phResult.pOH.toFixed(2)}</div>
+                  )}
+                  {phResult.H_concentration !== undefined && (
+                    <div className="bg-white/20 rounded-lg p-4">
+                      <div className="text-sm opacity-90 mb-1">[H⁺]</div>
+                      <div className="text-lg font-bold">
+                        {phResult.H_concentration.toExponential(2)} M
                       </div>
-                    )}
-                    {phResult.H_concentration !== undefined && (
-                      <div className="bg-white/20 rounded-lg p-4">
-                        <div className="text-sm opacity-90 mb-1">[H⁺]</div>
-                        <div className="text-lg font-bold">
-                          {phResult.H_concentration.toExponential(2)} M
-                        </div>
+                    </div>
+                  )}
+                  {phResult.OH_concentration !== undefined && (
+                    <div className="bg-white/20 rounded-lg p-4">
+                      <div className="text-sm opacity-90 mb-1">[OH⁻]</div>
+                      <div className="text-lg font-bold">
+                        {phResult.OH_concentration.toExponential(2)} M
                       </div>
-                    )}
-                    {phResult.OH_concentration !== undefined && (
-                      <div className="bg-white/20 rounded-lg p-4">
-                        <div className="text-sm opacity-90 mb-1">[OH⁻]</div>
-                        <div className="text-lg font-bold">
-                          {phResult.OH_concentration.toExponential(2)} M
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
 
-                  <div className="text-center text-2xl font-bold">
-                    {getPhLabel(phResult.pH).toUpperCase()} Solution
-                  </div>
+                <div className="text-center text-2xl font-bold">
+                  {getPhLabel(phResult.pH).toUpperCase()} Solution
                 </div>
               </div>
-            )}
-
-            {/* Dilution Result */}
-            {dilutionResult && (
-              <div className="premium-card p-8 bg-gradient-to-br from-primary-600 to-secondary-600 text-white shadow-2xl">
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <span>✨</span> Result
-                </h2>
-                <div className="text-5xl md:text-6xl font-bold mb-2 animate-pulse-premium">
-                  M₂ = {dilutionResult.M2.toFixed(4)} M
-                </div>
-                <div className="text-xl opacity-90">Final Concentration</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Step-by-Step Solution */}
-        {steps.length > 0 && (
-          <div className="premium-card p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
-              <span className="text-2xl">📝</span>
-              Step-by-Step Solution
-            </h2>
-            <div className="space-y-2 font-mono text-sm bg-surface/50 p-6 rounded-lg">
-              {steps.map((step, index) => (
-                <div
-                  key={index}
-                  className={step === '' ? 'h-2' : 'text-foreground'}
-                >
-                  {step}
-                </div>
-              ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Reference Info */}
-        <div className="premium-card p-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Quick Reference</h2>
+          {/* Dilution Result */}
+          {dilutionResult && (
+            <ResultPanel label="Final concentration">
+              M₂ = {dilutionResult.M2.toFixed(4)} M
+            </ResultPanel>
+          )}
+        </>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-indigo-600 mb-2">pH Scale</h3>
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>• pH &lt; 7: Acidic (more H⁺)</li>
-                <li>• pH = 7: Neutral (pure water)</li>
-                <li>• pH &gt; 7: Basic/Alkaline (more OH⁻)</li>
-                <li>• pH + pOH = 14 (at 25°C)</li>
-              </ul>
-            </div>
+      {/* Step-by-Step Solution */}
+      {steps.length > 0 && <StepList steps={steps} />}
 
-            <div>
-              <h3 className="font-semibold text-indigo-600 mb-2">Key Formulas</h3>
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>• pH = -log[H⁺]</li>
-                <li>• pOH = -log[OH⁻]</li>
-                <li>• pH = pKa + log([A⁻]/[HA]) (Henderson-Hasselbalch)</li>
-                <li>• M₁V₁ = M₂V₂ (dilution)</li>
-              </ul>
-            </div>
+      {/* Reference Info */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Quick reference</SectionTitle>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-semibold text-primary-600 mb-2">pH scale</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>• pH &lt; 7: Acidic (more H⁺)</li>
+              <li>• pH = 7: Neutral (pure water)</li>
+              <li>• pH &gt; 7: Basic/Alkaline (more OH⁻)</li>
+              <li>• pH + pOH = 14 (at 25°C)</li>
+            </ul>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-blue-700 mb-2">💡 Tips</h3>
-            <ul className="space-y-1 text-sm text-blue-600">
-              <li>• Strong acids/bases: Complete dissociation</li>
-              <li>• Weak acids/bases: Use Ka/Kb for equilibrium</li>
-              <li>• Buffers: Most effective when pH ≈ pKa</li>
-              <li>• Dilution: Never add water to acid (add acid to water!)</li>
+          <div>
+            <h3 className="font-semibold text-primary-600 mb-2">Key formulas</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>• pH = -log[H⁺]</li>
+              <li>• pOH = -log[OH⁻]</li>
+              <li>• pH = pKa + log([A⁻]/[HA]) (Henderson-Hasselbalch)</li>
+              <li>• M₁V₁ = M₂V₂ (dilution)</li>
             </ul>
           </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-6 p-4 bg-muted border border-border rounded-md">
+          <h3 className="font-semibold text-foreground mb-2">Tips</h3>
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            <li>• Strong acids/bases: Complete dissociation</li>
+            <li>• Weak acids/bases: Use Ka/Kb for equilibrium</li>
+            <li>• Buffers: Most effective when pH ≈ pKa</li>
+            <li>• Dilution: Never add water to acid (add acid to water!)</li>
+          </ul>
+        </div>
+      </Card>
+    </CalcShell>
   )
 }

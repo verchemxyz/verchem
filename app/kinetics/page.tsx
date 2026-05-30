@@ -3,7 +3,15 @@
 // VerChem - Chemical Kinetics Calculator Page
 
 import { useState } from 'react'
-import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  ModeButton,
+  ErrorBanner,
+} from '@/components/lab'
 import {
   calculateConcentration,
   calculateRateConstant,
@@ -20,7 +28,7 @@ import dynamic from 'next/dynamic'
 const KineticsGraph = dynamic(() => import('@/components/charts/KineticsGraph'), {
   ssr: false,
   loading: () => (
-    <div className="bg-gray-100 rounded-xl h-[350px] flex items-center justify-center text-gray-500">
+    <div className="bg-muted rounded-md h-[350px] flex items-center justify-center text-muted-foreground">
       Loading graph...
     </div>
   ),
@@ -200,168 +208,109 @@ export default function KineticsPage() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">
-                <span className="text-premium">VerChem</span>
-              </h1>
-              <p className="text-xs text-muted-foreground">Chemical Kinetics</p>
-            </div>
-          </Link>
-          <Link href="/" className="px-4 py-2 text-muted-foreground hover:text-primary-600 transition-colors font-medium">
-            ← Back to Home
-          </Link>
+    <CalcShell
+      eyebrow="Physical chemistry · rate laws"
+      title="Chemical Kinetics"
+      subtitle="Rate laws, Arrhenius equation, half-life, and activation energy calculations."
+      backHref="/"
+      backLabel="Home"
+      maxWidth="6xl"
+    >
+      {/* Mode Selection */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Calculator mode</SectionTitle>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <ModeButton
+            active={mode === 'concentration'}
+            onClick={() => { setMode('concentration'); setResult(null); setError(null); }}
+            title="Concentration"
+            description="Find [A] at time t"
+          />
+          <ModeButton
+            active={mode === 'rate-constant'}
+            onClick={() => { setMode('rate-constant'); setResult(null); setError(null); }}
+            title="Rate Constant"
+            description="Calculate k"
+          />
+          <ModeButton
+            active={mode === 'arrhenius'}
+            onClick={() => { setMode('arrhenius'); setResult(null); setError(null); }}
+            title="Arrhenius"
+            description="k = A×e^(-Ea/RT)"
+          />
+          <ModeButton
+            active={mode === 'activation'}
+            onClick={() => { setMode('activation'); setResult(null); setError(null); }}
+            title="Activation Energy"
+            description="Find Ea from 2 temps"
+          />
+          <ModeButton
+            active={mode === 'order'}
+            onClick={() => { setMode('order'); setResult(null); setError(null); }}
+            title="Reaction Order"
+            description="Determine order"
+          />
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-12">
-          <div className="badge-premium mb-4">⏱️ Rate Laws • Arrhenius • Half-Life</div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="text-premium">Chemical Kinetics</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-              Calculator
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Rate laws, Arrhenius equation, half-life, and activation energy calculations
-          </p>
-        </div>
-
-        {/* Mode Selection */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4 text-primary-600">Calculator Mode</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <button
-              onClick={() => { setMode('concentration'); setResult(null); setError(null); }}
-              className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${
-                mode === 'concentration'
-                  ? 'border-primary-500 bg-primary-50 text-foreground scale-105'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-              }`}
-            >
-              <div className="font-bold mb-1">Concentration</div>
-              <div className="text-xs text-gray-600">Find [A] at time t</div>
-            </button>
-
-            <button
-              onClick={() => { setMode('rate-constant'); setResult(null); setError(null); }}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                mode === 'rate-constant'
-                  ? 'border-primary-500 bg-primary-50 text-foreground scale-105'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-              }`}
-            >
-              <div className="font-bold mb-1">Rate Constant</div>
-              <div className="text-xs text-gray-600">Calculate k</div>
-            </button>
-
-            <button
-              onClick={() => { setMode('arrhenius'); setResult(null); setError(null); }}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                mode === 'arrhenius'
-                  ? 'border-primary-500 bg-primary-50 text-foreground scale-105'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-              }`}
-            >
-              <div className="font-bold mb-1">Arrhenius</div>
-              <div className="text-xs text-gray-600">k = A×e^(-Ea/RT)</div>
-            </button>
-
-            <button
-              onClick={() => { setMode('activation'); setResult(null); setError(null); }}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                mode === 'activation'
-                  ? 'border-primary-500 bg-primary-50 text-foreground scale-105'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-              }`}
-            >
-              <div className="font-bold mb-1">Activation Energy</div>
-              <div className="text-xs text-gray-600">Find Ea from 2 temps</div>
-            </button>
-
-            <button
-              onClick={() => { setMode('order'); setResult(null); setError(null); }}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                mode === 'order'
-                  ? 'border-primary-500 bg-primary-50 text-foreground scale-105'
-                  : 'border-gray-200 hover:border-primary-300 hover:bg-surface-hover'
-              }`}
-            >
-              <div className="font-bold mb-1">Reaction Order</div>
-              <div className="text-xs text-gray-600">Determine order</div>
-            </button>
-          </div>
-        </div>
+      </Card>
 
         {/* Example Problems */}
         {(mode === 'concentration' || mode === 'rate-constant') && (
-          <div className="premium-card p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">Example Problems</h2>
+          <Card className="p-6">
+            <SectionTitle className="mb-4">Example problems</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {EXAMPLE_KINETICS.map((example, index) => (
                 <button
                   key={index}
                   onClick={() => loadExample(index)}
-                  className="p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all text-left"
+                  className="p-4 rounded-md border border-border bg-card hover:border-primary-500/40 hover:bg-muted transition-colors text-left"
                 >
-                  <div className="text-sm font-medium text-gray-900 mb-2">
+                  <div className="text-sm font-medium text-foreground mb-2">
                     {example.name}
                   </div>
-                  <div className="text-xs text-gray-600">{example.description}</div>
-                  <div className="text-xs text-gray-500 mt-2">
+                  <div className="text-xs text-muted-foreground">{example.description}</div>
+                  <div className="text-xs text-muted-foreground mt-2">
                     {example.order} order • k = {example.k.toExponential(2)}
                   </div>
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {mode === 'arrhenius' && (
-          <div className="premium-card p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">Example Arrhenius Problems</h2>
+          <Card className="p-6">
+            <SectionTitle className="mb-4">Example Arrhenius problems</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {EXAMPLE_ARRHENIUS.map((example, index) => (
                 <button
                   key={index}
                   onClick={() => loadArrheniusExample(index)}
-                  className="p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-all text-left"
+                  className="p-4 rounded-md border border-border bg-card hover:border-primary-500/40 hover:bg-muted transition-colors text-left"
                 >
-                  <div className="text-sm font-medium text-gray-900 mb-2">
+                  <div className="text-sm font-medium text-foreground mb-2">
                     {example.name}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-muted-foreground">
                     Ea = {(example.Ea / 1000).toFixed(0)} kJ/mol
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     T = {example.temperature} K ({(example.temperature - 273.15).toFixed(0)}°C)
                   </div>
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Input Section */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Input Parameters</h2>
+        <Card className="p-6">
+          <SectionTitle className="mb-4">Input parameters</SectionTitle>
 
           {/* Concentration Calculator */}
           {mode === 'concentration' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Reaction Order
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -369,10 +318,10 @@ export default function KineticsPage() {
                     <button
                       key={o}
                       onClick={() => setOrder(o)}
-                      className={`p-3 rounded-lg border-2 transition-all ${
+                      className={`p-3 rounded-md border transition-colors ${
                         order === o
-                          ? 'border-blue-500 bg-blue-50 text-blue-900'
-                          : 'border-gray-200 hover:border-blue-300'
+                          ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                          : 'border-border bg-card text-foreground hover:border-primary-500/40 hover:bg-muted'
                       }`}
                     >
                       {o.charAt(0).toUpperCase() + o.slice(1)} Order
@@ -382,10 +331,7 @@ export default function KineticsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Initial Concentration [A]₀ (M)
-                  </label>
+                <Field label="Initial Concentration [A]₀ (M)">
                   <input
                     type="number"
                     step="any"
@@ -393,12 +339,9 @@ export default function KineticsPage() {
                     onChange={(e) => setInitialConc(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rate Constant k ({order === 'zero' ? 'M/s' : order === 'first' ? 's⁻¹' : 'M⁻¹s⁻¹'})
-                  </label>
+                <Field label={`Rate Constant k (${order === 'zero' ? 'M/s' : order === 'first' ? 's⁻¹' : 'M⁻¹s⁻¹'})`}>
                   <input
                     type="number"
                     step="any"
@@ -406,12 +349,9 @@ export default function KineticsPage() {
                     onChange={(e) => setK(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time (s)
-                  </label>
+                <Field label="Time (s)">
                   <input
                     type="number"
                     step="any"
@@ -419,15 +359,12 @@ export default function KineticsPage() {
                     onChange={(e) => setTime(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
               </div>
 
-              <button
-                onClick={calculateConc}
-                className="btn-premium glow-premium w-full py-3"
-              >
+              <Button onClick={calculateConc} className="w-full">
                 Calculate Concentration
-              </button>
+              </Button>
             </div>
           )}
 
@@ -435,7 +372,7 @@ export default function KineticsPage() {
           {mode === 'rate-constant' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Reaction Order
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -443,10 +380,10 @@ export default function KineticsPage() {
                     <button
                       key={o}
                       onClick={() => setOrder(o)}
-                      className={`p-3 rounded-lg border-2 transition-all ${
+                      className={`p-3 rounded-md border transition-colors ${
                         order === o
-                          ? 'border-blue-500 bg-blue-50 text-blue-900'
-                          : 'border-gray-200 hover:border-blue-300'
+                          ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                          : 'border-border bg-card text-foreground hover:border-primary-500/40 hover:bg-muted'
                       }`}
                     >
                       {o.charAt(0).toUpperCase() + o.slice(1)} Order
@@ -456,10 +393,7 @@ export default function KineticsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Initial [A]₀ (M)
-                  </label>
+                <Field label="Initial [A]₀ (M)">
                   <input
                     type="number"
                     step="any"
@@ -467,12 +401,9 @@ export default function KineticsPage() {
                     onChange={(e) => setInitialConc(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Final [A] (M)
-                  </label>
+                <Field label="Final [A] (M)">
                   <input
                     type="number"
                     step="any"
@@ -480,12 +411,9 @@ export default function KineticsPage() {
                     onChange={(e) => setFinalConc(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time (s)
-                  </label>
+                <Field label="Time (s)">
                   <input
                     type="number"
                     step="any"
@@ -493,15 +421,12 @@ export default function KineticsPage() {
                     onChange={(e) => setTime(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                </div>
+                </Field>
               </div>
 
-              <button
-                onClick={calculateK}
-                className="btn-premium glow-premium w-full py-3"
-              >
+              <Button onClick={calculateK} className="w-full">
                 Calculate Rate Constant
-              </button>
+              </Button>
             </div>
           )}
 
@@ -509,10 +434,7 @@ export default function KineticsPage() {
           {mode === 'arrhenius' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pre-exponential Factor A
-                  </label>
+                <Field label="Pre-exponential Factor A" hint="Scientific notation: 1e13 = 1×10¹³">
                   <input
                     type="number"
                     step="any"
@@ -520,13 +442,9 @@ export default function KineticsPage() {
                     onChange={(e) => setA(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Scientific notation: 1e13 = 1×10¹³</p>
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Activation Energy Ea (J/mol)
-                  </label>
+                <Field label="Activation Energy Ea (J/mol)" hint={`${(Ea / 1000).toFixed(2)} kJ/mol`}>
                   <input
                     type="number"
                     step="any"
@@ -534,13 +452,9 @@ export default function KineticsPage() {
                     onChange={(e) => setEa(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                  <p className="text-xs text-gray-500 mt-1">{(Ea / 1000).toFixed(2)} kJ/mol</p>
-                </div>
+                </Field>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Temperature (K)
-                  </label>
+                <Field label="Temperature (K)" hint={`${(temperature - 273.15).toFixed(2)}°C`}>
                   <input
                     type="number"
                     step="any"
@@ -548,16 +462,12 @@ export default function KineticsPage() {
                     onChange={(e) => setTemperature(parseFloat(e.target.value) || 0)}
                     className="input-premium w-full"
                   />
-                  <p className="text-xs text-gray-500 mt-1">{(temperature - 273.15).toFixed(2)}°C</p>
-                </div>
+                </Field>
               </div>
 
-              <button
-                onClick={calculateArrhenius}
-                className="btn-premium glow-premium w-full py-3"
-              >
+              <Button onClick={calculateArrhenius} className="w-full">
                 Calculate Rate Constant (k)
-              </button>
+              </Button>
             </div>
           )}
 
@@ -566,11 +476,8 @@ export default function KineticsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
-                  <h3 className="font-medium text-gray-700">Condition 1</h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rate Constant k₁
-                    </label>
+                  <h3 className="font-medium text-foreground">Condition 1</h3>
+                  <Field label="Rate Constant k₁">
                     <input
                       type="number"
                       step="any"
@@ -578,11 +485,8 @@ export default function KineticsPage() {
                       onChange={(e) => setK1(parseFloat(e.target.value) || 0)}
                       className="input-premium w-full"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Temperature T₁ (K)
-                    </label>
+                  </Field>
+                  <Field label="Temperature T₁ (K)" hint={`${(T1 - 273.15).toFixed(2)}°C`}>
                     <input
                       type="number"
                       step="any"
@@ -590,16 +494,12 @@ export default function KineticsPage() {
                       onChange={(e) => setT1(parseFloat(e.target.value) || 0)}
                       className="input-premium w-full"
                     />
-                    <p className="text-xs text-gray-500 mt-1">{(T1 - 273.15).toFixed(2)}°C</p>
-                  </div>
+                  </Field>
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="font-medium text-gray-700">Condition 2</h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rate Constant k₂
-                    </label>
+                  <h3 className="font-medium text-foreground">Condition 2</h3>
+                  <Field label="Rate Constant k₂">
                     <input
                       type="number"
                       step="any"
@@ -607,11 +507,8 @@ export default function KineticsPage() {
                       onChange={(e) => setK2(parseFloat(e.target.value) || 0)}
                       className="input-premium w-full"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Temperature T₂ (K)
-                    </label>
+                  </Field>
+                  <Field label="Temperature T₂ (K)" hint={`${(T2 - 273.15).toFixed(2)}°C`}>
                     <input
                       type="number"
                       step="any"
@@ -619,17 +516,13 @@ export default function KineticsPage() {
                       onChange={(e) => setT2(parseFloat(e.target.value) || 0)}
                       className="input-premium w-full"
                     />
-                    <p className="text-xs text-gray-500 mt-1">{(T2 - 273.15).toFixed(2)}°C</p>
-                  </div>
+                  </Field>
                 </div>
               </div>
 
-              <button
-                onClick={calculateEa}
-                className="btn-premium glow-premium w-full py-3"
-              >
+              <Button onClick={calculateEa} className="w-full">
                 Calculate Activation Energy
-              </button>
+              </Button>
             </div>
           )}
 
@@ -637,10 +530,10 @@ export default function KineticsPage() {
           {mode === 'order' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-700">Concentration vs Time Data</h3>
+                <h3 className="font-medium text-foreground">Concentration vs Time Data</h3>
                 <button
                   onClick={addDataPoint}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-primary-600 hover:text-primary-500 text-sm font-medium"
                 >
                   + Add Data Point
                 </button>
@@ -672,7 +565,8 @@ export default function KineticsPage() {
                     {dataPoints.length > 2 && (
                       <button
                         onClick={() => removeDataPoint(index)}
-                        className="text-red-600 hover:text-red-700 p-2"
+                        aria-label="Remove data point"
+                        className="text-destructive hover:bg-destructive/10 rounded-md p-2"
                       >
                         ×
                       </button>
@@ -681,30 +575,23 @@ export default function KineticsPage() {
                 ))}
               </div>
 
-              <button
-                onClick={determineOrder}
-                className="btn-premium glow-premium w-full py-3"
-              >
+              <Button onClick={determineOrder} className="w-full">
                 Determine Reaction Order
-              </button>
+              </Button>
             </div>
           )}
 
           {/* Error */}
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
-              <p className="text-red-700 font-medium">{error}</p>
-            </div>
-          )}
-        </div>
+          {error && <ErrorBanner className="mt-4">{error}</ErrorBanner>}
+        </Card>
 
         {/* Results */}
         {result && (
           <div className="space-y-6">
             {/* Graph Visualization - Show for concentration and rate-constant modes */}
             {(mode === 'concentration' || mode === 'rate-constant') && (
-              <div className="premium-card p-6">
-                <h2 className="text-xl font-bold mb-4">Concentration vs Time Graph</h2>
+              <Card className="p-6">
+                <SectionTitle className="mb-4">Concentration vs time graph</SectionTitle>
                 <KineticsGraph
                   order={order}
                   initialConc={initialConc}
@@ -714,31 +601,31 @@ export default function KineticsPage() {
                   width={600}
                   height={350}
                 />
-              </div>
+              </Card>
             )}
 
             {/* Results Card */}
-            <div className="premium-card p-6">
-              <h2 className="text-2xl font-bold mb-6">Results</h2>
+            <Card className="p-6">
+              <SectionTitle className="mb-6">Results</SectionTitle>
 
               {(mode === 'concentration' || mode === 'rate-constant') && 'halfLife' in result && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {'concentration' in result && (
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-200">
-                      <div className="text-sm text-blue-700 font-medium mb-1">Concentration</div>
-                      <div className="text-3xl font-bold text-blue-900">
+                    <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                      <div className="text-sm text-primary-600 font-medium mb-1">Concentration</div>
+                      <div className="text-3xl font-bold font-mono text-foreground">
                         {result.concentration.toFixed(6)} M
                       </div>
-                      <div className="text-xs text-blue-600 mt-1">at time = {result.time.toFixed(2)} s</div>
+                      <div className="text-xs text-muted-foreground mt-1">at time = {result.time.toFixed(2)} s</div>
                     </div>
                   )}
 
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-200">
-                    <div className="text-sm text-purple-700 font-medium mb-1">Half-Life</div>
-                    <div className="text-3xl font-bold text-purple-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Half-Life</div>
+                    <div className="text-3xl font-bold font-mono text-foreground">
                       {result.halfLife.toFixed(2)} s
                     </div>
-                    <div className="text-xs text-purple-600 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {result.order === 'first' ? 'Constant' : result.order === 'zero' ? 'Decreases linearly' : 'Decreases with [A]'}
                     </div>
                   </div>
@@ -747,37 +634,37 @@ export default function KineticsPage() {
 
               {mode === 'arrhenius' && 'k' in result && 'A' in result && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border-2 border-green-200">
-                    <div className="text-sm text-green-700 font-medium mb-1">Rate Constant</div>
-                    <div className="text-2xl font-bold text-green-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Rate Constant</div>
+                    <div className="text-2xl font-bold font-mono text-foreground">
                       {result.k.toExponential(4)}
                     </div>
-                    <div className="text-xs text-green-600 mt-1">at {result.temperature} K</div>
+                    <div className="text-xs text-muted-foreground mt-1">at {result.temperature} K</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
-                    <div className="text-sm text-orange-700 font-medium mb-1">Activation Energy</div>
-                    <div className="text-2xl font-bold text-orange-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Activation Energy</div>
+                    <div className="text-2xl font-bold font-mono text-foreground">
                       {(result.Ea / 1000).toFixed(2)} kJ/mol
                     </div>
-                    <div className="text-xs text-orange-600 mt-1">{result.Ea.toFixed(0)} J/mol</div>
+                    <div className="text-xs text-muted-foreground mt-1">{result.Ea.toFixed(0)} J/mol</div>
                   </div>
                 </div>
               )}
 
               {mode === 'activation' && 'Ea' in result && 'EaKJ' in result && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border-2 border-red-200">
-                    <div className="text-sm text-red-700 font-medium mb-1">Activation Energy</div>
-                    <div className="text-3xl font-bold text-red-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Activation Energy</div>
+                    <div className="text-3xl font-bold font-mono text-foreground">
                       {result.EaKJ.toFixed(2)} kJ/mol
                     </div>
-                    <div className="text-xs text-red-600 mt-1">{result.Ea.toFixed(0)} J/mol</div>
+                    <div className="text-xs text-muted-foreground mt-1">{result.Ea.toFixed(0)} J/mol</div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border-2 border-yellow-200">
-                    <div className="text-sm text-yellow-700 font-medium mb-1">Pre-exponential Factor</div>
-                    <div className="text-2xl font-bold text-yellow-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Pre-exponential Factor</div>
+                    <div className="text-2xl font-bold font-mono text-foreground">
                       {result.A.toExponential(4)}
                     </div>
                   </div>
@@ -786,26 +673,26 @@ export default function KineticsPage() {
 
               {mode === 'order' && 'order' in result && 'r2' in result && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border-2 border-indigo-200">
-                    <div className="text-sm text-indigo-700 font-medium mb-1">Reaction Order</div>
-                    <div className="text-3xl font-bold text-indigo-900 uppercase">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Reaction Order</div>
+                    <div className="text-3xl font-bold font-mono text-foreground uppercase">
                       {result.order}
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border-2 border-pink-200">
-                    <div className="text-sm text-pink-700 font-medium mb-1">Rate Constant</div>
-                    <div className="text-2xl font-bold text-pink-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">Rate Constant</div>
+                    <div className="text-2xl font-bold font-mono text-foreground">
                       {result.k.toExponential(4)}
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg p-4 border-2 border-teal-200">
-                    <div className="text-sm text-teal-700 font-medium mb-1">R² (Fit Quality)</div>
-                    <div className="text-3xl font-bold text-teal-900">
+                  <div className="bg-muted rounded-md p-4 border-l-2 border-l-primary-500">
+                    <div className="text-sm text-primary-600 font-medium mb-1">R² (Fit Quality)</div>
+                    <div className="text-3xl font-bold font-mono text-foreground">
                       {result.r2.toFixed(4)}
                     </div>
-                    <div className="text-xs text-teal-600 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {result.r2 > 0.99 ? 'Excellent!' : result.r2 > 0.95 ? 'Good' : 'Moderate'}
                     </div>
                   </div>
@@ -813,60 +700,49 @@ export default function KineticsPage() {
               )}
 
               {/* Step-by-Step Solution */}
-              <h3 className="text-xl font-bold mb-3">Step-by-Step Solution</h3>
-              <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm space-y-1 max-h-96 overflow-y-auto">
+              <h3 className="text-lg font-semibold text-foreground tracking-tight mb-3">Step-by-step solution</h3>
+              <div className="bg-muted border border-border rounded-md p-4 font-mono text-sm space-y-1 max-h-96 overflow-y-auto">
                 {result.steps.map((step, index) => (
                   <div
                     key={index}
                     className={
                       step.startsWith('===')
-                        ? 'font-bold text-base mt-3'
+                        ? 'font-bold text-base mt-3 text-foreground'
                         : step.startsWith('✓')
-                        ? 'text-green-700 font-medium'
+                        ? 'text-success font-medium'
                         : step.startsWith('⚠️')
-                        ? 'text-orange-700 font-medium'
+                        ? 'text-warning font-medium'
                         : step.startsWith('❌')
-                        ? 'text-red-700 font-medium'
-                        : ''
+                        ? 'text-destructive font-medium'
+                        : 'text-foreground'
                     }
                   >
                     {step}
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* Theory Section */}
-        <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-          <h3 className="text-lg font-bold mb-3 text-blue-900">
-            Chemical Kinetics Theory
-          </h3>
-          <div className="space-y-3 text-sm text-blue-800">
+        <Card className="p-6">
+          <SectionTitle className="mb-3">Chemical kinetics theory</SectionTitle>
+          <div className="space-y-3 text-sm text-muted-foreground">
             <div>
-              <strong>Rate Laws:</strong> Describe how concentration affects reaction rate. Zero order: rate = k. First order: rate = k[A]. Second order: rate = k[A]².
+              <strong className="text-foreground">Rate Laws:</strong> Describe how concentration affects reaction rate. Zero order: rate = k. First order: rate = k[A]. Second order: rate = k[A]².
             </div>
             <div>
-              <strong>Half-Life:</strong> Time for [A] to decrease to half its value. Only constant for first-order reactions (t₁/₂ = 0.693/k).
+              <strong className="text-foreground">Half-Life:</strong> Time for [A] to decrease to half its value. Only constant for first-order reactions (t₁/₂ = 0.693/k).
             </div>
             <div>
-              <strong>Arrhenius Equation:</strong> k = A×e^(-Ea/RT). Shows that rate constant increases exponentially with temperature.
+              <strong className="text-foreground">Arrhenius Equation:</strong> k = A×e^(-Ea/RT). Shows that rate constant increases exponentially with temperature.
             </div>
             <div>
-              <strong>Activation Energy (Ea):</strong> Minimum energy needed for reaction. Higher Ea = slower reaction, more temperature sensitive.
+              <strong className="text-foreground">Activation Energy (Ea):</strong> Minimum energy needed for reaction. Higher Ea = slower reaction, more temperature sensitive.
             </div>
           </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-gray-50 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-gray-600">
-          <p>© 2025 VerChem. Chemical kinetics calculator with professional-grade accuracy.</p>
-          <p className="mt-2">Educational tool for students and researchers</p>
-        </div>
-      </footer>
-    </div>
+        </Card>
+    </CalcShell>
   )
 }

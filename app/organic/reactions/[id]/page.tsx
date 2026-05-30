@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   NAMED_REACTIONS,
   REACTION_CATEGORIES,
@@ -49,32 +49,15 @@ export default async function ReactionDetailPage({ params }: PageProps) {
   const related = getRelatedReactions(reaction.id)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/organic/reactions"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              ← All Reactions
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8">
+    <CalcShell
+      eyebrow="Organic chemistry · named reaction"
+      title={reaction.name}
+      backHref="/organic/reactions"
+      backLabel="All Reactions"
+      maxWidth="4xl"
+    >
         {/* Breadcrumb */}
-        <nav className="text-sm text-muted-foreground mb-6">
+        <nav className="text-sm text-muted-foreground">
           <Link href="/organic" className="hover:text-primary-600">
             Organic
           </Link>{' '}
@@ -85,8 +68,8 @@ export default async function ReactionDetailPage({ params }: PageProps) {
           / <span className="text-foreground">{reaction.name}</span>
         </nav>
 
-        {/* Title Section */}
-        <section className="mb-8">
+        {/* Meta Section */}
+        <section>
           <div className="flex flex-wrap gap-2 mb-3">
             <span
               className="text-xs px-2 py-0.5 rounded-full text-white"
@@ -101,19 +84,18 @@ export default async function ReactionDetailPage({ params }: PageProps) {
               {diffMeta.label}
             </span>
             {reaction.tags.includes('Nobel') && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning">
                 Nobel Prize {reaction.year}
               </span>
             )}
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground">{reaction.name}</h2>
           {reaction.altNames && reaction.altNames.length > 0 && (
             <p className="text-sm text-muted-foreground mt-1">
               Also known as: {reaction.altNames.join(', ')}
             </p>
           )}
           {reaction.discoverer && (
-            <p className="text-sm text-secondary-600 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Discovered by {reaction.discoverer}
               {reaction.year && ` (${reaction.year})`}
             </p>
@@ -121,17 +103,17 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Equation */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             General Equation
           </h3>
-          <div className="font-mono text-lg text-primary-700 bg-primary-50 rounded-lg p-4 text-center">
+          <div className="font-mono text-lg text-primary-700 bg-muted border border-border rounded-md p-4 text-center">
             {reaction.equation}
           </div>
         </section>
 
         {/* Description */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             Description
           </h3>
@@ -139,7 +121,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Reaction Scheme */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Reaction Scheme
           </h3>
@@ -180,7 +162,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Mechanism */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
             Mechanism ({reaction.mechanism.length} steps)
           </h3>
@@ -188,21 +170,21 @@ export default async function ReactionDetailPage({ params }: PageProps) {
             {reaction.mechanism.map((step, idx) => (
               <div key={idx} className="relative pl-10">
                 {/* Step number */}
-                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">
+                <div className="absolute left-0 top-0 w-7 h-7 rounded-full bg-primary-500 text-primary-foreground flex items-center justify-center text-sm font-bold">
                   {step.step}
                 </div>
                 {/* Connector line */}
                 {idx < reaction.mechanism.length - 1 && (
                   <div className="absolute left-3.5 top-7 w-px h-[calc(100%+0.5rem)] bg-primary-200" />
                 )}
-                <div className="bg-background rounded-lg p-4">
+                <div className="bg-muted border border-border rounded-md p-4">
                   <p className="text-foreground text-sm leading-relaxed">{step.description}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-secondary-100 text-secondary-700">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground">
                       Arrow: {step.arrowType}
                     </span>
                     {step.intermediateFormula && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-mono">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-warning/15 text-warning font-mono">
                         {step.intermediateFormula}
                       </span>
                     )}
@@ -217,7 +199,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Key Points */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Key Points to Remember
           </h3>
@@ -232,13 +214,13 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Examples */}
-        <section className="bg-card border border-border rounded-xl p-5 mb-6">
+        <section className="bg-card border border-border rounded-lg p-5">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Examples
           </h3>
           <div className="space-y-3">
             {reaction.examples.map((ex, i) => (
-              <div key={i} className="bg-background rounded-lg p-4 text-sm">
+              <div key={i} className="bg-muted border border-border rounded-md p-4 text-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <span className="text-muted-foreground">Reactant:</span>
@@ -254,7 +236,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
                   </div>
                 </div>
                 {ex.yield && (
-                  <div className="mt-2 text-xs text-green-700 bg-green-50 inline-block px-2 py-0.5 rounded">
+                  <div className="mt-2 text-xs text-success bg-success/10 inline-block px-2 py-0.5 rounded">
                     Yield: {ex.yield}
                   </div>
                 )}
@@ -264,21 +246,23 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </section>
 
         {/* Synthetic Utility + Limitations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <section className="bg-card border border-border rounded-xl p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="bg-card border border-border rounded-lg p-5">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
               Synthetic Utility
             </h3>
             <p className="text-sm text-foreground leading-relaxed">{reaction.syntheticUtility}</p>
           </section>
-          <section className="bg-card border border-border rounded-xl p-5">
+          <section className="bg-card border border-border rounded-lg p-5">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
               Limitations
             </h3>
             <ul className="space-y-1">
               {reaction.limitations.map((lim, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-red-400 shrink-0">⚠</span>
+                  <svg className="w-4 h-4 text-destructive shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+                  </svg>
                   <span className="text-foreground">{lim}</span>
                 </li>
               ))}
@@ -287,12 +271,12 @@ export default async function ReactionDetailPage({ params }: PageProps) {
         </div>
 
         {/* Tags */}
-        <section className="mb-6">
+        <section>
           <div className="flex flex-wrap gap-2">
             {reaction.tags.map(tag => (
               <span
                 key={tag}
-                className="text-xs px-2 py-1 bg-card border border-border rounded-full text-secondary-600"
+                className="text-xs px-2 py-1 bg-card border border-border rounded-full text-muted-foreground"
               >
                 #{tag}
               </span>
@@ -302,7 +286,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
 
         {/* Related Reactions */}
         {related.length > 0 && (
-          <section className="bg-card border border-border rounded-xl p-5 mb-6">
+          <section className="bg-card border border-border rounded-lg p-5">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
               Related Reactions
             </h3>
@@ -313,7 +297,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
                   <Link
                     key={rel.id}
                     href={`/organic/reactions/${rel.id}`}
-                    className="group rounded-lg border border-border p-3 hover:border-primary-400 hover:shadow-md transition-all"
+                    className="group rounded-lg border border-border p-3 hover:border-primary-400 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span
@@ -349,7 +333,6 @@ export default async function ReactionDetailPage({ params }: PageProps) {
             Reaction Predictor →
           </Link>
         </div>
-      </main>
-    </div>
+    </CalcShell>
   )
 }

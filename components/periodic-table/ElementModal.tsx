@@ -11,18 +11,20 @@ interface ElementModalProps {
   onClose: () => void
 }
 
+// Element-category codings (SEMANTIC) — neutral surface + per-category element
+// token so categories stay visually distinct AND theme-safe (light/dark).
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  'alkali-metal': { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-900' },
-  'alkaline-earth-metal': { bg: 'bg-orange-100', border: 'border-orange-400', text: 'text-orange-900' },
-  'transition-metal': { bg: 'bg-yellow-100', border: 'border-yellow-400', text: 'text-yellow-900' },
-  'post-transition-metal': { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-900' },
-  'metalloid': { bg: 'bg-teal-100', border: 'border-teal-400', text: 'text-teal-900' },
-  'nonmetal': { bg: 'bg-blue-100', border: 'border-blue-400', text: 'text-blue-900' },
-  'halogen': { bg: 'bg-indigo-100', border: 'border-indigo-400', text: 'text-indigo-900' },
-  'noble-gas': { bg: 'bg-purple-100', border: 'border-purple-400', text: 'text-purple-900' },
-  'lanthanide': { bg: 'bg-pink-100', border: 'border-pink-400', text: 'text-pink-900' },
-  'actinide': { bg: 'bg-rose-100', border: 'border-rose-400', text: 'text-rose-900' },
-  'unknown': { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-900' },
+  'alkali-metal': { bg: 'bg-muted', border: 'border-element-alkali', text: 'text-element-alkali' },
+  'alkaline-earth-metal': { bg: 'bg-muted', border: 'border-element-alkaline', text: 'text-element-alkaline' },
+  'transition-metal': { bg: 'bg-muted', border: 'border-element-transition', text: 'text-element-transition' },
+  'post-transition-metal': { bg: 'bg-muted', border: 'border-element-metals', text: 'text-element-metals' },
+  'metalloid': { bg: 'bg-muted', border: 'border-element-metalloids', text: 'text-element-metalloids' },
+  'nonmetal': { bg: 'bg-muted', border: 'border-element-nonmetals', text: 'text-element-nonmetals' },
+  'halogen': { bg: 'bg-muted', border: 'border-element-halogens', text: 'text-element-halogens' },
+  'noble-gas': { bg: 'bg-muted', border: 'border-element-noble-gases', text: 'text-element-noble-gases' },
+  'lanthanide': { bg: 'bg-muted', border: 'border-element-lanthanides', text: 'text-element-lanthanides' },
+  'actinide': { bg: 'bg-muted', border: 'border-element-actinides', text: 'text-element-actinides' },
+  'unknown': { bg: 'bg-muted', border: 'border-border', text: 'text-foreground' },
 }
 
 export default function ElementModal({ element, onClose }: ElementModalProps) {
@@ -30,11 +32,11 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-card border border-border rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -51,14 +53,14 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
                 <h2 className={`text-3xl font-bold ${colors.text}`}>
                   {element.name}
                 </h2>
-                <p className="text-gray-600 capitalize">
+                <p className="text-muted-foreground capitalize">
                   {element.category.replace(/-/g, ' ')}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg
                 className="w-6 h-6"
@@ -85,7 +87,7 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
               <ElementVisual element={element} />
               <ElementStructurePreview element={element} />
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               ภาพด้านซ้ายคือการกระจายตัวของอิเล็กตรอน ส่วนด้านขวาเป็นตัวอย่างรูปพันธะ/โมเลกุลที่พบบ่อยของ{' '}
               {element.name} เพื่อช่วยจับคู่โครงสร้างกับสมบัติได้เร็วขึ้น
             </p>
@@ -93,27 +95,27 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
 
           {/* Basic Properties */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Basic Properties</h3>
+            <h3 className="text-lg font-bold text-foreground mb-3">Basic Properties</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm font-medium text-gray-600">Atomic Mass</div>
-                <div className="text-xl font-bold text-gray-900">
+              <div className="bg-muted border border-border rounded-lg p-3">
+                <div className="text-sm font-medium text-muted-foreground">Atomic Mass</div>
+                <div className="text-xl font-bold text-foreground">
                   {element.atomicMass.toFixed(3)} u
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm font-medium text-gray-600">Group / Period</div>
-                <div className="text-xl font-bold text-gray-900">
+              <div className="bg-muted border border-border rounded-lg p-3">
+                <div className="text-sm font-medium text-muted-foreground">Group / Period</div>
+                <div className="text-xl font-bold text-foreground">
                   {element.group || '—'} / {element.period}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm font-medium text-gray-600">Block</div>
-                <div className="text-xl font-bold text-gray-900 uppercase">{element.block}</div>
+              <div className="bg-muted border border-border rounded-lg p-3">
+                <div className="text-sm font-medium text-muted-foreground">Block</div>
+                <div className="text-xl font-bold text-foreground uppercase">{element.block}</div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm font-medium text-gray-600">Standard State</div>
-                <div className="text-xl font-bold text-gray-900 capitalize">
+              <div className="bg-muted border border-border rounded-lg p-3">
+                <div className="text-sm font-medium text-muted-foreground">Standard State</div>
+                <div className="text-xl font-bold text-foreground capitalize">
                   {element.standardState}
                 </div>
               </div>
@@ -122,9 +124,9 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
 
           {/* Electron Configuration */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Electron Configuration</h3>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <code className="text-base font-mono font-semibold text-blue-900">
+            <h3 className="text-lg font-bold text-foreground mb-3">Electron Configuration</h3>
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <code className="text-base font-mono font-semibold text-primary-700">
                 {element.electronConfiguration}
               </code>
             </div>
@@ -132,34 +134,34 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
 
           {/* Physical Properties */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Physical Properties</h3>
+            <h3 className="text-lg font-bold text-foreground mb-3">Physical Properties</h3>
             <div className="grid grid-cols-2 gap-4">
               {element.meltingPoint && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Melting Point</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Melting Point</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.meltingPoint.toFixed(2)} K
                   </div>
-                  <div className="text-xs font-medium text-gray-500">
+                  <div className="text-xs font-medium text-muted-foreground">
                     {(element.meltingPoint - 273.15).toFixed(2)} °C
                   </div>
                 </div>
               )}
               {element.boilingPoint && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Boiling Point</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Boiling Point</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.boilingPoint.toFixed(2)} K
                   </div>
-                  <div className="text-xs font-medium text-gray-500">
+                  <div className="text-xs font-medium text-muted-foreground">
                     {(element.boilingPoint - 273.15).toFixed(2)} °C
                   </div>
                 </div>
               )}
               {element.density && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Density</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Density</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.density.toFixed(3)} g/cm³
                   </div>
                 </div>
@@ -169,36 +171,36 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
 
           {/* Atomic Properties */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Atomic Properties</h3>
+            <h3 className="text-lg font-bold text-foreground mb-3">Atomic Properties</h3>
             <div className="grid grid-cols-2 gap-4">
               {element.electronegativity && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Electronegativity</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Electronegativity</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.electronegativity.toFixed(2)}
                   </div>
-                  <div className="text-xs font-medium text-gray-500">Pauling scale</div>
+                  <div className="text-xs font-medium text-muted-foreground">Pauling scale</div>
                 </div>
               )}
               {element.ionizationEnergy && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Ionization Energy</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Ionization Energy</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.ionizationEnergy.toFixed(2)} kJ/mol
                   </div>
                 </div>
               )}
               {element.electronAffinity && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-sm font-medium text-gray-600">Electron Affinity</div>
-                  <div className="text-lg font-bold text-gray-900">
+                <div className="bg-muted border border-border rounded-lg p-3">
+                  <div className="text-sm font-medium text-muted-foreground">Electron Affinity</div>
+                  <div className="text-lg font-bold text-foreground">
                     {element.electronAffinity.toFixed(2)} kJ/mol
                   </div>
                 </div>
               )}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm font-medium text-gray-600">Oxidation States</div>
-                <div className="text-lg font-bold text-gray-900">
+              <div className="bg-muted border border-border rounded-lg p-3">
+                <div className="text-sm font-medium text-muted-foreground">Oxidation States</div>
+                <div className="text-lg font-bold text-foreground">
                   {element.oxidationStates.join(', ')}
                 </div>
               </div>
@@ -210,28 +212,28 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
             element.covalentRadius ||
             element.vanDerWaalsRadius) && (
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Atomic Radii</h3>
+              <h3 className="text-lg font-bold text-foreground mb-3">Atomic Radii</h3>
               <div className="grid grid-cols-3 gap-4">
                 {element.atomicRadius && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-sm font-medium text-gray-600">Atomic</div>
-                    <div className="text-lg font-bold text-gray-900">
+                  <div className="bg-muted border border-border rounded-lg p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Atomic</div>
+                    <div className="text-lg font-bold text-foreground">
                       {element.atomicRadius} pm
                     </div>
                   </div>
                 )}
                 {element.covalentRadius && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-sm font-medium text-gray-600">Covalent</div>
-                    <div className="text-lg font-bold text-gray-900">
+                  <div className="bg-muted border border-border rounded-lg p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Covalent</div>
+                    <div className="text-lg font-bold text-foreground">
                       {element.covalentRadius} pm
                     </div>
                   </div>
                 )}
                 {element.vanDerWaalsRadius && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-sm font-medium text-gray-600">Van der Waals</div>
-                    <div className="text-lg font-bold text-gray-900">
+                  <div className="bg-muted border border-border rounded-lg p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Van der Waals</div>
+                    <div className="text-lg font-bold text-foreground">
                       {element.vanDerWaalsRadius} pm
                     </div>
                   </div>
@@ -243,28 +245,28 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
           {/* Discovery */}
           {(element.discoveryYear || element.discoverer) && (
             <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Discovery</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-foreground mb-3">Discovery</h3>
+              <div className="bg-muted border border-border rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-4">
                   {element.discoveryYear && (
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Year</div>
-                      <div className="text-lg font-bold text-gray-900">
+                      <div className="text-sm font-medium text-muted-foreground">Year</div>
+                      <div className="text-lg font-bold text-foreground">
                         {element.discoveryYear}
                       </div>
                     </div>
                   )}
                   {element.discoverer && (
                     <div>
-                      <div className="text-sm font-medium text-gray-600">Discoverer</div>
-                      <div className="text-lg font-bold text-gray-900">{element.discoverer}</div>
+                      <div className="text-sm font-medium text-muted-foreground">Discoverer</div>
+                      <div className="text-lg font-bold text-foreground">{element.discoverer}</div>
                     </div>
                   )}
                 </div>
                 {element.nameMeaning && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="text-sm font-medium text-gray-600">Name Meaning</div>
-                    <div className="text-sm font-semibold text-gray-900 mt-1">
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <div className="text-sm font-medium text-muted-foreground">Name Meaning</div>
+                    <div className="text-sm font-semibold text-foreground mt-1">
                       {element.nameMeaning}
                     </div>
                   </div>
@@ -275,10 +277,10 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-xl">
+        <div className="border-t border-border p-4 bg-muted rounded-b-xl">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="w-full px-4 py-2 bg-primary-500 hover:bg-primary-600 text-primary-foreground rounded-lg font-medium transition-colors"
           >
             Close
           </button>

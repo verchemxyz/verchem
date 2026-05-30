@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { CalcShell, Card } from '@/components/lab'
 
 // ============================================
 // Types
@@ -317,63 +318,45 @@ export default function PracticePage() {
     }
   }
 
-  // Difficulty badge color
+  // Difficulty badge color (semantic: easy/medium/hard → success/warning/destructive)
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-700 border-green-300'
-      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-300'
-      case 'hard': return 'bg-red-100 text-red-700 border-red-300'
-      default: return 'bg-gray-100 text-gray-700'
+      case 'easy': return 'bg-success/10 text-success border-success/30'
+      case 'medium': return 'bg-warning/10 text-warning border-warning/40'
+      case 'hard': return 'bg-destructive/10 text-destructive border-destructive/30'
+      default: return 'bg-muted text-muted-foreground border-border'
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
-      {/* Header */}
-      <header className="border-b border-indigo-500/20 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">VerChem</h1>
-              <p className="text-xs text-indigo-300">Practice Problems</p>
-            </div>
-          </Link>
-          <Link href="/" className="text-indigo-300 hover:text-white transition-colors">
-            ← Back to Home
-          </Link>
+    <CalcShell
+      eyebrow={`Practice · ${PROBLEMS.length} worked problems`}
+      title="Practice Problems"
+      subtitle="Test your chemistry skills with worked, step-by-step problems across core topics."
+      backHref="/"
+      backLabel="Home"
+      maxWidth="5xl"
+      action={
+        <div className="text-sm text-muted-foreground">
+          <span className="text-success font-semibold">{completedProblems.size} completed</span>
+          {' · '}
+          {PROBLEMS.length} total
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Practice Problems
-          </h1>
-          <p className="text-indigo-300">
-            Test your chemistry skills with these practice problems
-          </p>
-          <div className="mt-4 flex justify-center gap-4 text-sm">
-            <span className="text-green-400">{completedProblems.size} completed</span>
-            <span className="text-indigo-300">{PROBLEMS.length} total problems</span>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-8 justify-center">
+      }
+    >
+      {/* Filters */}
+      <Card className="p-6">
+        <div className="flex flex-wrap gap-4">
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[44px] ${
                   selectedCategory === cat
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {cat === 'all' ? 'All Topics' : cat}
@@ -382,15 +365,15 @@ export default function PracticePage() {
           </div>
 
           {/* Difficulty Filter */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {['all', 'easy', 'medium', 'hard'].map(diff => (
               <button
                 key={diff}
                 onClick={() => setSelectedDifficulty(diff)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors min-h-[44px] ${
                   selectedDifficulty === diff
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                    ? 'bg-primary-500 text-primary-foreground'
+                    : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {diff === 'all' ? 'All Levels' : diff.charAt(0).toUpperCase() + diff.slice(1)}
@@ -398,116 +381,111 @@ export default function PracticePage() {
             ))}
           </div>
         </div>
+      </Card>
 
-        {/* Problems List */}
-        <div className="space-y-4">
-          {filteredProblems.map((problem) => (
-            <div
-              key={problem.id}
-              className={`bg-slate-800/50 backdrop-blur rounded-xl border transition-all ${
-                completedProblems.has(problem.id)
-                  ? 'border-green-500/30'
-                  : 'border-indigo-500/20'
-              }`}
+      {/* Problems List */}
+      <div className="space-y-4">
+        {filteredProblems.map((problem) => (
+          <Card
+            key={problem.id}
+            className={`transition-colors ${
+              completedProblems.has(problem.id) ? 'border-l-2 border-l-success' : ''
+            }`}
+          >
+            {/* Problem Header */}
+            <button
+              onClick={() => setExpandedProblem(expandedProblem === problem.id ? null : problem.id)}
+              className="w-full p-6 text-left"
             >
-              {/* Problem Header */}
-              <button
-                onClick={() => setExpandedProblem(expandedProblem === problem.id ? null : problem.id)}
-                className="w-full p-6 text-left"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-indigo-600/30 text-indigo-300">
-                        {problem.category}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <span className="px-2 py-1 rounded-md text-xs font-medium bg-muted text-muted-foreground border border-border">
+                      {problem.category}
+                    </span>
+                    <span className={`px-2 py-1 rounded-md text-xs font-medium border ${getDifficultyColor(problem.difficulty)}`}>
+                      {problem.difficulty}
+                    </span>
+                    {completedProblems.has(problem.id) && (
+                      <span className="px-2 py-1 rounded-md text-xs font-medium bg-success/10 text-success border border-success/30">
+                        Completed
                       </span>
-                      <span className={`px-2 py-1 rounded-md text-xs font-medium border ${getDifficultyColor(problem.difficulty)}`}>
-                        {problem.difficulty}
-                      </span>
-                      {completedProblems.has(problem.id) && (
-                        <span className="px-2 py-1 rounded-md text-xs font-medium bg-green-600/30 text-green-300">
-                          ✓ Completed
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-white font-medium whitespace-pre-line">
-                      {problem.question}
-                    </p>
-                  </div>
-                  <span className="text-2xl text-indigo-400">
-                    {expandedProblem === problem.id ? '−' : '+'}
-                  </span>
-                </div>
-              </button>
-
-              {/* Expanded Content */}
-              {expandedProblem === problem.id && (
-                <div className="px-6 pb-6 space-y-4">
-                  {/* Hints */}
-                  <div>
-                    <button
-                      onClick={() => toggleHint(problem.id)}
-                      className="text-yellow-400 hover:text-yellow-300 font-medium"
-                    >
-                      {showHints[problem.id] ? '🙈 Hide Hints' : '💡 Show Hints'}
-                    </button>
-                    {showHints[problem.id] && (
-                      <ul className="mt-2 space-y-1 text-yellow-200/80 text-sm pl-4">
-                        {problem.hints.map((hint, i) => (
-                          <li key={i}>• {hint}</li>
-                        ))}
-                      </ul>
                     )}
                   </div>
+                  <p className="text-foreground font-medium whitespace-pre-line">
+                    {problem.question}
+                  </p>
+                </div>
+                <span className="text-2xl text-muted-foreground" aria-hidden="true">
+                  {expandedProblem === problem.id ? '−' : '+'}
+                </span>
+              </div>
+            </button>
 
-                  {/* Solution */}
-                  <div>
-                    <button
-                      onClick={() => toggleSolution(problem.id)}
-                      className="text-green-400 hover:text-green-300 font-medium"
-                    >
-                      {showSolutions[problem.id] ? '📕 Hide Solution' : '📗 Show Solution'}
-                    </button>
-                    {showSolutions[problem.id] && (
-                      <div className="mt-3 p-4 bg-slate-900/50 rounded-lg">
-                        <div className="text-green-400 font-bold mb-3 text-lg">
-                          Answer: {problem.answer}
-                        </div>
-                        <div className="space-y-1 text-slate-300 text-sm font-mono">
-                          {problem.solution.map((step, i) => (
-                            <div key={i}>{step}</div>
-                          ))}
-                        </div>
-                        <Link
-                          href={problem.relatedCalculator}
-                          className="inline-block mt-4 text-indigo-400 hover:text-indigo-300 text-sm"
-                        >
-                          🔗 Try this in calculator →
-                        </Link>
+            {/* Expanded Content */}
+            {expandedProblem === problem.id && (
+              <div className="px-6 pb-6 space-y-4">
+                {/* Hints */}
+                <div>
+                  <button
+                    onClick={() => toggleHint(problem.id)}
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    {showHints[problem.id] ? 'Hide hints' : 'Show hints'}
+                  </button>
+                  {showHints[problem.id] && (
+                    <ul className="mt-2 space-y-1 text-muted-foreground text-sm pl-4">
+                      {problem.hints.map((hint, i) => (
+                        <li key={i}>• {hint}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Solution */}
+                <div>
+                  <button
+                    onClick={() => toggleSolution(problem.id)}
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    {showSolutions[problem.id] ? 'Hide solution' : 'Show solution'}
+                  </button>
+                  {showSolutions[problem.id] && (
+                    <div className="mt-3 p-4 bg-muted border border-border rounded-md">
+                      <div className="text-success font-bold mb-3 text-lg">
+                        Answer: {problem.answer}
                       </div>
-                    )}
-                  </div>
+                      <div className="space-y-1 text-foreground text-sm font-mono">
+                        {problem.solution.map((step, i) => (
+                          <div key={i}>{step}</div>
+                        ))}
+                      </div>
+                      <Link
+                        href={problem.relatedCalculator}
+                        className="inline-block mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium transition-colors"
+                      >
+                        Try this in calculator →
+                      </Link>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
 
-        {/* Empty State */}
-        {filteredProblems.length === 0 && (
-          <div className="text-center py-12 text-slate-400">
-            <p className="text-xl mb-2">No problems found</p>
-            <p>Try changing the filters</p>
-          </div>
-        )}
-      </main>
+      {/* Empty State */}
+      {filteredProblems.length === 0 && (
+        <Card className="p-12 text-center text-muted-foreground">
+          <p className="text-xl mb-2 text-foreground">No problems found</p>
+          <p>Try changing the filters.</p>
+        </Card>
+      )}
 
-      {/* Footer */}
-      <footer className="border-t border-indigo-500/20 bg-slate-900/80 mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-indigo-300">
-          <p>VerChem Practice Problems - {PROBLEMS.length} problems across {categories.length - 1} topics</p>
-        </div>
-      </footer>
-    </div>
+      <p className="text-center text-sm text-muted-foreground">
+        {PROBLEMS.length} problems across {categories.length - 1} topics.
+      </p>
+    </CalcShell>
   )
 }

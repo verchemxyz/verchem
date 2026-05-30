@@ -263,13 +263,13 @@ export default function VSEPRViewer({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-300 p-4">
+    <div className="bg-card rounded-lg border border-border p-4">
       <svg width={width} height={height} className="mx-auto">
         {renderGeometry()}
       </svg>
 
-      {/* Legend */}
-      <div className="mt-4 flex justify-center gap-4 text-sm">
+      {/* Legend — swatch colors mirror the SVG's chemistry-encoding fills (central/bonding/lone-pair), kept literal */}
+      <div className="mt-4 flex justify-center gap-4 text-sm text-foreground">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-blue-800"></div>
           <span>Central Atom</span>

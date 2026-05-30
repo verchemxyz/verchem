@@ -1,8 +1,13 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import {
+  CalcShell,
+  Card,
+  Button,
+  ModeGrid,
+  ModeButton,
+} from '@/components/lab'
 import {
   solveDilution,
   calculateStockPrep,
@@ -29,7 +34,6 @@ type CalculatorMode = 'dilution' | 'stock' | 'serial' | 'convert' | 'mixing'
 interface ModeInfo {
   id: CalculatorMode
   label: string
-  icon: string
   description: string
 }
 
@@ -38,11 +42,11 @@ interface ModeInfo {
 // ============================================
 
 const MODES: ModeInfo[] = [
-  { id: 'dilution', label: 'Dilution', icon: '\uD83E\uDDEA', description: 'C\u2081V\u2081 = C\u2082V\u2082' },
-  { id: 'stock', label: 'Stock Prep', icon: '\u2697\uFE0F', description: 'Mass of solute needed' },
-  { id: 'serial', label: 'Serial Dilution', icon: '\uD83D\uDD2C', description: 'Dilution series table' },
-  { id: 'convert', label: 'Unit Converter', icon: '\uD83D\uDD04', description: 'Between concentration units' },
-  { id: 'mixing', label: 'Mixing', icon: '\uD83E\uDDEB', description: 'Mix two solutions' },
+  { id: 'dilution', label: 'Dilution', description: 'C\u2081V\u2081 = C\u2082V\u2082' },
+  { id: 'stock', label: 'Stock Prep', description: 'Mass of solute needed' },
+  { id: 'serial', label: 'Serial Dilution', description: 'Dilution series table' },
+  { id: 'convert', label: 'Unit Converter', description: 'Between concentration units' },
+  { id: 'mixing', label: 'Mixing', description: 'Mix two solutions' },
 ]
 
 const ALL_UNITS: ConcentrationUnit[] = [
@@ -107,98 +111,37 @@ export default function SolutionPrepPage() {
   const [mode, setMode] = useState<CalculatorMode>('dilution')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <Link href="/tools" className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm">
-            &larr; All Tools
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* Page Title */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            Solution Preparation Calculator
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Dilutions, stock solutions, serial dilutions, unit conversions, and mixing calculations
-            &mdash; all in one place.
-          </p>
-        </div>
-
-        {/* Mode Selector */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-8">
+    <CalcShell
+      eyebrow="Lab & practical · 5 calculators"
+      title="Solution Preparation Calculator"
+      subtitle="Dilutions, stock solutions, serial dilutions, unit conversions, and mixing calculations — all in one place."
+      backHref="/tools"
+      backLabel="All tools"
+    >
+      {/* Mode Selector */}
+      <Card className="p-6">
+        <ModeGrid>
           {MODES.map((m) => (
-            <button
+            <ModeButton
               key={m.id}
+              active={mode === m.id}
               onClick={() => setMode(m.id)}
-              className={`rounded-xl px-3 py-3 text-center transition-all border-2 ${
-                mode === m.id
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md shadow-indigo-100'
-                  : 'border-border bg-card text-card-foreground hover:border-indigo-300 hover:bg-indigo-50/50'
-              }`}
-            >
-              <span className="text-xl block mb-1">{m.icon}</span>
-              <span className="text-sm font-semibold block">{m.label}</span>
-              <span className="text-xs text-muted-foreground block">{m.description}</span>
-            </button>
+              title={m.label}
+              description={m.description}
+            />
           ))}
-        </div>
+        </ModeGrid>
+      </Card>
 
-        {/* Calculator Panel */}
-        <div className="rounded-2xl border-2 border-border bg-card p-6 sm:p-8 shadow-sm">
-          {mode === 'dilution' && <DilutionCalculator />}
-          {mode === 'stock' && <StockPrepCalculator />}
-          {mode === 'serial' && <SerialDilutionCalculator />}
-          {mode === 'convert' && <UnitConverterCalculator />}
-          {mode === 'mixing' && <MixingCalculator />}
-        </div>
-
-        {/* Footer CTA */}
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground mb-4">
-            Explore more chemistry tools on VerChem
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              href="/tools/ph-calculator"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-100 text-indigo-700 px-5 py-2.5 font-medium hover:bg-indigo-200 transition-colors text-sm"
-            >
-              pH Calculator &rarr;
-            </Link>
-            <Link
-              href="/tools/stoichiometry"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-100 text-indigo-700 px-5 py-2.5 font-medium hover:bg-indigo-200 transition-colors text-sm"
-            >
-              Stoichiometry &rarr;
-            </Link>
-            <Link
-              href="/tools/molar-mass"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-100 text-indigo-700 px-5 py-2.5 font-medium hover:bg-indigo-200 transition-colors text-sm"
-            >
-              Molar Mass &rarr;
-            </Link>
-            <Link
-              href="/tools"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-5 py-2.5 font-medium hover:bg-indigo-700 transition-colors text-sm"
-            >
-              All Tools &rarr;
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+      {/* Calculator Panel */}
+      <Card className="p-6 sm:p-8">
+        {mode === 'dilution' && <DilutionCalculator />}
+        {mode === 'stock' && <StockPrepCalculator />}
+        {mode === 'serial' && <SerialDilutionCalculator />}
+        {mode === 'convert' && <UnitConverterCalculator />}
+        {mode === 'mixing' && <MixingCalculator />}
+      </Card>
+    </CalcShell>
   )
 }
 
@@ -265,7 +208,7 @@ function DilutionCalculator() {
             <button
               key={ex.label}
               onClick={() => loadExample(ex)}
-              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
             >
               {ex.label}
             </button>
@@ -281,16 +224,16 @@ function DilutionCalculator() {
         <InputField label="V\u2082 (vol.)" value={v2} onChange={setV2} placeholder="e.g. 100" highlight={result?.solvedFor === 'v2'} />
       </div>
 
-      <button onClick={handleCalculate} className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 transition-colors">
+      <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Calculate
-      </button>
+      </Button>
 
       {error && <ErrorBox message={error} />}
 
       {result && (
         <ResultCard>
           <p className="text-sm text-muted-foreground mb-3">
-            Solved for <span className="font-bold text-indigo-600">{formatSolvedLabel(result.solvedFor)}</span>
+            Solved for <span className="font-bold text-primary-600">{formatSolvedLabel(result.solvedFor)}</span>
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <ResultValue label="C\u2081" value={formatSci(result.c1)} highlight={result.solvedFor === 'c1'} />
@@ -381,7 +324,7 @@ function StockPrepCalculator() {
             <button
               key={ex.label}
               onClick={() => loadExample(ex)}
-              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
             >
               {ex.label}
             </button>
@@ -401,12 +344,12 @@ function StockPrepCalculator() {
               value={conc}
               onChange={(e) => setConc(e.target.value)}
               placeholder="e.g. 1"
-              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 font-mono text-sm"
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 font-mono text-sm"
             />
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value as ConcentrationUnit)}
-              className="rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
               {ALL_UNITS.map((u) => (
                 <option key={u} value={u}>{UNIT_LABELS[u]}</option>
@@ -418,9 +361,9 @@ function StockPrepCalculator() {
         <InputField label="Molar Mass (g/mol)" value={mm} onChange={setMm} placeholder="e.g. 58.44" />
       </div>
 
-      <button onClick={handleCalculate} className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 transition-colors">
+      <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Calculate
-      </button>
+      </Button>
 
       {error && <ErrorBox message={error} />}
 
@@ -428,7 +371,7 @@ function StockPrepCalculator() {
         <ResultCard>
           <div className="text-center mb-4">
             <p className="text-sm text-muted-foreground">Mass of solute needed</p>
-            <p className="text-4xl font-bold text-indigo-600 font-mono">
+            <p className="text-4xl font-bold text-primary-600 font-mono">
               {formatSci(result.massNeeded)}
               <span className="text-lg text-muted-foreground ml-2">
                 {unit === 'pct_vv' ? 'mL' : 'g'}
@@ -439,7 +382,7 @@ function StockPrepCalculator() {
             <p className="text-sm font-semibold text-foreground mb-2">Step-by-step</p>
             <div className="space-y-1">
               {result.steps.map((step, i) => (
-                <p key={i} className={`text-sm ${step === '' ? 'h-2' : step.startsWith('Preparation') || step.startsWith('Note:') ? 'text-indigo-600 font-medium' : 'text-muted-foreground'}`}>
+                <p key={i} className={`text-sm ${step === '' ? 'h-2' : step.startsWith('Preparation') || step.startsWith('Note:') ? 'text-primary-600 font-medium' : 'text-muted-foreground'}`}>
                   {step}
                 </p>
               ))}
@@ -519,7 +462,7 @@ function SerialDilutionCalculator() {
             <button
               key={ex.label}
               onClick={() => loadExample(ex)}
-              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
             >
               {ex.label}
             </button>
@@ -535,9 +478,9 @@ function SerialDilutionCalculator() {
         <InputField label="Transfer Vol. (mL)" value={transfer} onChange={setTransfer} placeholder="e.g. 1" />
       </div>
 
-      <button onClick={handleCalculate} className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 transition-colors">
+      <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Calculate
-      </button>
+      </Button>
 
       {error && <ErrorBox message={error} />}
 
@@ -552,7 +495,7 @@ function SerialDilutionCalculator() {
                 return (
                   <div key={s.step} className="flex-1 flex flex-col items-center gap-1">
                     <div
-                      className="w-full rounded-t bg-gradient-to-t from-indigo-600 to-indigo-400 transition-all"
+                      className="w-full rounded-t bg-primary-500 transition-all"
                       style={{ height: `${Math.max(pct, 2)}%` }}
                     />
                     <span className="text-[10px] text-muted-foreground">{s.step === 0 ? 'Stock' : `D${s.step}`}</span>
@@ -576,11 +519,11 @@ function SerialDilutionCalculator() {
               </thead>
               <tbody>
                 {result.steps.map((s) => (
-                  <tr key={s.step} className="border-b border-border/50 hover:bg-indigo-50/50 transition-colors">
+                  <tr key={s.step} className="border-b border-border/50 hover:bg-muted transition-colors">
                     <td className="py-2 px-2 font-medium text-foreground">
                       {s.step === 0 ? 'Stock' : `Dilution ${s.step}`}
                     </td>
-                    <td className="py-2 px-2 text-right font-mono text-indigo-600">
+                    <td className="py-2 px-2 text-right font-mono text-primary-600">
                       {formatSci(s.concentration)}
                     </td>
                     <td className="py-2 px-2 text-right font-mono text-muted-foreground">
@@ -685,12 +628,12 @@ function UnitConverterCalculator() {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="e.g. 1"
-              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 font-mono text-sm"
+              className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 font-mono text-sm"
             />
             <select
               value={fromUnit}
               onChange={(e) => { setFromUnit(e.target.value as ConcentrationUnit); setResult(null) }}
-              className="rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              className="rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
               {ALL_UNITS.map((u) => (
                 <option key={u} value={u}>{UNIT_LABELS[u]}</option>
@@ -701,7 +644,7 @@ function UnitConverterCalculator() {
 
         <button
           onClick={handleSwap}
-          className="self-end mb-1 rounded-lg border border-border bg-background p-2.5 text-muted-foreground hover:text-indigo-600 hover:border-indigo-300 transition-colors"
+          className="self-end mb-1 rounded-lg border border-border bg-background p-2.5 text-muted-foreground hover:text-primary-600 hover:border-primary-500/40 transition-colors"
           title="Swap units"
         >
           &#x21C4;
@@ -712,7 +655,7 @@ function UnitConverterCalculator() {
           <select
             value={toUnit}
             onChange={(e) => { setToUnit(e.target.value as ConcentrationUnit); setResult(null) }}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
           >
             {ALL_UNITS.map((u) => (
               <option key={u} value={u}>{UNIT_LABELS[u]}</option>
@@ -734,9 +677,9 @@ function UnitConverterCalculator() {
         )}
       </div>
 
-      <button onClick={handleCalculate} className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 transition-colors">
+      <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Convert
-      </button>
+      </Button>
 
       {error && <ErrorBox message={error} />}
 
@@ -746,13 +689,13 @@ function UnitConverterCalculator() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">From</p>
               <p className="text-2xl font-bold text-foreground font-mono">{formatSci(result.value)}</p>
-              <p className="text-sm font-medium text-indigo-600">{UNIT_SHORT_LABELS[result.fromUnit]}</p>
+              <p className="text-sm font-medium text-primary-600">{UNIT_SHORT_LABELS[result.fromUnit]}</p>
             </div>
             <div className="text-2xl text-muted-foreground">=</div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">To</p>
-              <p className="text-2xl font-bold text-indigo-600 font-mono">{formatSci(result.convertedValue)}</p>
-              <p className="text-sm font-medium text-indigo-600">{UNIT_SHORT_LABELS[result.toUnit]}</p>
+              <p className="text-2xl font-bold text-primary-600 font-mono">{formatSci(result.convertedValue)}</p>
+              <p className="text-sm font-medium text-primary-600">{UNIT_SHORT_LABELS[result.toUnit]}</p>
             </div>
           </div>
         </ResultCard>
@@ -827,7 +770,7 @@ function MixingCalculator() {
             <button
               key={ex.label}
               onClick={() => loadExample(ex)}
-              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+              className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary-500/40 transition-colors"
             >
               {ex.label}
             </button>
@@ -837,21 +780,21 @@ function MixingCalculator() {
 
       {/* Inputs in two groups */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="space-y-3 p-4 rounded-xl border border-indigo-200 bg-indigo-50/50">
-          <p className="text-sm font-semibold text-indigo-700">Solution 1</p>
+        <div className="space-y-3 p-4 rounded-lg border border-primary-500/30 bg-muted">
+          <p className="text-sm font-semibold text-primary-600">Solution 1</p>
           <InputField label="Concentration (C\u2081)" value={c1} onChange={setC1} placeholder="e.g. 1" />
           <InputField label="Volume (V\u2081)" value={v1} onChange={setV1} placeholder="e.g. 50" />
         </div>
-        <div className="space-y-3 p-4 rounded-xl border border-violet-200 bg-violet-50/50">
-          <p className="text-sm font-semibold text-violet-700">Solution 2</p>
+        <div className="space-y-3 p-4 rounded-lg border border-secondary-500/40 bg-muted">
+          <p className="text-sm font-semibold text-secondary-600">Solution 2</p>
           <InputField label="Concentration (C\u2082)" value={c2} onChange={setC2} placeholder="e.g. 0.5" />
           <InputField label="Volume (V\u2082)" value={v2} onChange={setV2} placeholder="e.g. 50" />
         </div>
       </div>
 
-      <button onClick={handleCalculate} className="w-full sm:w-auto rounded-xl bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 transition-colors">
+      <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Calculate
-      </button>
+      </Button>
 
       {error && <ErrorBox message={error} />}
 
@@ -861,16 +804,16 @@ function MixingCalculator() {
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-4 items-center mb-4">
             {/* Before */}
             <div className="flex gap-3 justify-center">
-              <BeakerVis label="Sol. 1" conc={c1Val} vol={v1Val} color="bg-indigo-400" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
+              <BeakerVis label="Sol. 1" conc={c1Val} vol={v1Val} color="bg-primary-500" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
               <div className="self-center text-muted-foreground text-xl">+</div>
-              <BeakerVis label="Sol. 2" conc={c2Val} vol={v2Val} color="bg-violet-400" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
+              <BeakerVis label="Sol. 2" conc={c2Val} vol={v2Val} color="bg-secondary-500" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
             </div>
 
             <div className="text-2xl text-muted-foreground text-center">&rarr;</div>
 
             {/* After */}
             <div className="flex justify-center">
-              <BeakerVis label="Mixed" conc={result.finalConc} vol={result.finalVolume} color="bg-emerald-400" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
+              <BeakerVis label="Mixed" conc={result.finalConc} vol={result.finalVolume} color="bg-success" maxConc={Math.max(c1Val, c2Val, result.finalConc)} maxVol={result.finalVolume} />
             </div>
           </div>
 
@@ -878,7 +821,7 @@ function MixingCalculator() {
           <div className="grid grid-cols-2 gap-4 border-t border-border pt-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Final Concentration</p>
-              <p className="text-3xl font-bold text-indigo-600 font-mono">{formatSci(result.finalConc)}</p>
+              <p className="text-3xl font-bold text-primary-600 font-mono">{formatSci(result.finalConc)}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Final Volume</p>
@@ -924,8 +867,8 @@ function InputField({
         placeholder={placeholder}
         className={`w-full rounded-lg border px-4 py-2.5 text-sm font-mono placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${
           highlight
-            ? 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200'
-            : 'border-border bg-background text-foreground focus:border-indigo-500 focus:ring-indigo-200'
+            ? 'border-primary-500 bg-muted text-primary-600 ring-2 ring-primary-500/30'
+            : 'border-border bg-background text-foreground focus:border-primary-500 focus:ring-primary-500/30'
         }`}
       />
     </div>
@@ -934,7 +877,7 @@ function InputField({
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
       {message}
     </div>
   )
@@ -942,17 +885,17 @@ function ErrorBox({ message }: { message: string }) {
 
 function ResultCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/30 p-5">
+    <Card className="p-5 border-l-2 border-l-primary-500">
       {children}
-    </div>
+    </Card>
   )
 }
 
 function ResultValue({ label, value, highlight }: { label: string; value: string; highlight: boolean }) {
   return (
-    <div className={`text-center rounded-lg p-3 ${highlight ? 'bg-indigo-100 border border-indigo-300' : 'bg-background border border-border'}`}>
+    <div className={`text-center rounded-lg p-3 ${highlight ? 'bg-muted border border-primary-500' : 'bg-background border border-border'}`}>
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className={`text-lg font-bold font-mono ${highlight ? 'text-indigo-600' : 'text-foreground'}`}>{value}</p>
+      <p className={`text-lg font-bold font-mono ${highlight ? 'text-primary-600' : 'text-foreground'}`}>{value}</p>
     </div>
   )
 }
@@ -978,7 +921,7 @@ function BeakerVis({
   return (
     <div className="flex flex-col items-center gap-1">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <div className="relative w-14 h-20 border-2 border-slate-300 rounded-b-lg overflow-hidden bg-white">
+      <div className="relative w-14 h-20 border-2 border-border rounded-b-lg overflow-hidden bg-card">
         <div
           className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${color}`}
           style={{ height: `${fillHeight}%`, opacity }}

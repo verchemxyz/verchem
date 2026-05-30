@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { CalcShell } from '@/components/lab'
 
 export const metadata: Metadata = {
   title: 'Terms of Service — VerChem',
@@ -18,7 +19,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mb-10">
       <h2 className="text-2xl font-bold text-foreground mb-3">{title}</h2>
-      <div className="space-y-3 text-secondary-700 dark:text-secondary-300 leading-relaxed">
+      <div className="space-y-3 text-muted-foreground leading-relaxed">
         {children}
       </div>
     </section>
@@ -27,27 +28,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function TermsOfServicePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-      <header className="border-b border-header-border bg-header-bg backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              VerChem
-            </span>
-          </Link>
-          <Link
-            href="/"
-            className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-          >
-            ← Back to VerChem
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-foreground mb-2">Terms of Service</h1>
-        <p className="text-sm text-muted-foreground mb-10">Effective {EFFECTIVE_DATE}</p>
-
+    <CalcShell
+      title="Terms of Service"
+      subtitle={`Effective ${EFFECTIVE_DATE}`}
+      backHref="/"
+      backLabel="Back to VerChem"
+      maxWidth="4xl"
+    >
+      <div className="max-w-3xl">
         <Section title="Acceptance of terms">
           <p>
             By accessing or using VerChem (“the service”), you agree to these Terms of
@@ -179,7 +167,7 @@ export default function TermsOfServicePage() {
           </Link>
           .
         </p>
-      </main>
-    </div>
+      </div>
+    </CalcShell>
   )
 }

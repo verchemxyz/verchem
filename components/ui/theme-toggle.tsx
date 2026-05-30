@@ -138,20 +138,20 @@ export function ThemeToggle() {
   // Don't render until mounted (prevents SSR/hydration issues)
   if (!mounted) {
     return (
-      <div className="h-10 w-10 rounded-lg border border-white/10 bg-white/5" />
+      <div className="h-10 w-10 rounded-lg border border-border bg-muted" />
     )
   }
 
   return (
     <button
       onClick={toggleTheme}
-      className="group relative flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-all hover:border-cyan-400/50 hover:bg-cyan-500/10"
+      className="group relative flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted transition-colors hover:border-ring hover:bg-accent"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
       {/* Dark mode icon (sun) */}
       <Sun
-        className={`absolute h-5 w-5 text-amber-400 transition-all duration-300 ${
+        className={`absolute h-5 w-5 text-warning transition-all duration-300 ${
           theme === 'dark'
             ? 'rotate-0 scale-100 opacity-100'
             : 'rotate-90 scale-0 opacity-0'
@@ -160,7 +160,7 @@ export function ThemeToggle() {
 
       {/* Light mode icon (moon) */}
       <Moon
-        className={`absolute h-5 w-5 text-slate-300 transition-all duration-300 ${
+        className={`absolute h-5 w-5 text-muted-foreground transition-all duration-300 ${
           theme === 'light'
             ? 'rotate-0 scale-100 opacity-100'
             : '-rotate-90 scale-0 opacity-0'
@@ -168,7 +168,7 @@ export function ThemeToggle() {
       />
 
       {/* Tooltip */}
-      <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+      <span className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 transition-opacity group-hover:opacity-100">
         {theme === 'dark' ? 'Light mode' : 'Dark mode'}
       </span>
     </button>

@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  ErrorBanner,
+} from '@/components/lab'
 import {
   idealGasLaw,
   celsiusToKelvin,
@@ -140,195 +147,166 @@ export default function EnhancedGasLawsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-sm text-blue-600 hover:text-blue-700">
-              ← Back to Home
-            </Link>
+    <CalcShell
+      eyebrow="Physical chemistry · uncertainty & citations"
+      title="Enhanced Ideal Gas Calculator"
+      subtitle="Compute P, V, n, or T with propagated measurement uncertainty."
+      backHref="/gas-laws"
+      backLabel="Gas Laws"
+      maxWidth="6xl"
+    >
+      <Card className="p-6">
+        <div className="flex flex-wrap gap-3 items-start justify-between mb-6">
+          <div className="space-y-1">
+            <SectionTitle>Inputs</SectionTitle>
+            <p className="text-sm text-muted-foreground">
+              Enter measured values and their standard uncertainties.
+            </p>
           </div>
-          <div className="text-sm text-gray-500">
-            Enhanced Gas Laws • Uncertainty & Citations
+          <div className="flex flex-wrap gap-2 text-sm">
+            <span className="px-3 py-1 bg-muted text-foreground border border-border rounded-full font-mono">
+              R = {GAS_CONSTANT.atm} L·atm·mol⁻¹·K⁻¹
+            </span>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        <section className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-emerald-500 to-purple-600 bg-clip-text text-transparent">
-            Enhanced Ideal Gas Calculator
-          </h1>
-          <p className="text-gray-600">
-            Compute P, V, n, or T with propagated measurement uncertainty.
-          </p>
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <Field label="Solve for">
+              <div className="flex flex-wrap gap-2">
+                {(['P', 'V', 'n', 'T'] as SolveFor[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSolveFor(key)}
+                    aria-pressed={solveFor === key}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium border min-h-[44px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                      solveFor === key
+                        ? 'bg-primary-500 text-primary-foreground border-primary-500'
+                        : 'bg-card text-foreground border-border hover:bg-muted'
+                    }`}
+                  >
+                    {key}
+                  </button>
+                ))}
+              </div>
+            </Field>
 
-        <section className="bg-white rounded-xl shadow-md p-6 space-y-6">
-          <div className="flex flex-wrap gap-3 items-center justify-between">
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold text-gray-900">Inputs</h2>
-              <p className="text-sm text-gray-500">
-                Enter measured values and their standard uncertainties.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2 text-sm">
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full">
-                R = {GAS_CONSTANT.atm} L·atm·mol⁻¹·K⁻¹
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Pressure P (atm)">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={pressure}
+                    onChange={(e) => setPressure(e.target.value)}
+                    disabled={solveFor === 'P'}
+                    aria-label="Pressure value (atm)"
+                    className="input-premium flex-1 disabled:opacity-60"
+                  />
+                  <input
+                    type="number"
+                    value={pressureUnc}
+                    onChange={(e) => setPressureUnc(e.target.value)}
+                    aria-label="Pressure uncertainty"
+                    className="input-premium w-24"
+                    placeholder="σP"
+                  />
+                </div>
+              </Field>
+
+              <Field label="Volume V (L)">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={volume}
+                    onChange={(e) => setVolume(e.target.value)}
+                    disabled={solveFor === 'V'}
+                    aria-label="Volume value (L)"
+                    className="input-premium flex-1 disabled:opacity-60"
+                  />
+                  <input
+                    type="number"
+                    value={volumeUnc}
+                    onChange={(e) => setVolumeUnc(e.target.value)}
+                    aria-label="Volume uncertainty"
+                    className="input-premium w-24"
+                    placeholder="σV"
+                  />
+                </div>
+              </Field>
+
+              <Field label="Moles n (mol)">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={moles}
+                    onChange={(e) => setMoles(e.target.value)}
+                    disabled={solveFor === 'n'}
+                    aria-label="Moles value (mol)"
+                    className="input-premium flex-1 disabled:opacity-60"
+                  />
+                  <input
+                    type="number"
+                    value={molesUnc}
+                    onChange={(e) => setMolesUnc(e.target.value)}
+                    aria-label="Moles uncertainty"
+                    className="input-premium w-24"
+                    placeholder="σn"
+                  />
+                </div>
+              </Field>
+
+              <Field label="Temperature (°C)">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={temperatureC}
+                    onChange={(e) => setTemperatureC(e.target.value)}
+                    disabled={solveFor === 'T'}
+                    aria-label="Temperature value (°C)"
+                    className="input-premium flex-1 disabled:opacity-60"
+                  />
+                  <input
+                    type="number"
+                    value={temperatureUncC}
+                    onChange={(e) => setTemperatureUncC(e.target.value)}
+                    aria-label="Temperature uncertainty (°C)"
+                    className="input-premium w-24"
+                    placeholder="σT (°C)"
+                  />
+                </div>
+              </Field>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Solve for
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(['P', 'V', 'n', 'T'] as SolveFor[]).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => setSolveFor(key)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${
-                        solveFor === key
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {key}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div className="space-y-4">
+            <Button onClick={handleCalculate} className="w-full">
+              Calculate with uncertainty
+            </Button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Pressure P (atm)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={pressure}
-                      onChange={(e) => setPressure(e.target.value)}
-                      disabled={solveFor === 'P'}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                    <input
-                      type="number"
-                      value={pressureUnc}
-                      onChange={(e) => setPressureUnc(e.target.value)}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="σP"
-                    />
-                  </div>
-                </div>
+            {error && <ErrorBanner>{error}</ErrorBanner>}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Volume V (L)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={volume}
-                      onChange={(e) => setVolume(e.target.value)}
-                      disabled={solveFor === 'V'}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                    <input
-                      type="number"
-                      value={volumeUnc}
-                      onChange={(e) => setVolumeUnc(e.target.value)}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="σV"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Moles n (mol)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={moles}
-                      onChange={(e) => setMoles(e.target.value)}
-                      disabled={solveFor === 'n'}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                    <input
-                      type="number"
-                      value={molesUnc}
-                      onChange={(e) => setMolesUnc(e.target.value)}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="σn"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Temperature (°C)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={temperatureC}
-                      onChange={(e) => setTemperatureC(e.target.value)}
-                      disabled={solveFor === 'T'}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                    />
-                    <input
-                      type="number"
-                      value={temperatureUncC}
-                      onChange={(e) => setTemperatureUncC(e.target.value)}
-                      className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="σT (°C)"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <button
-                onClick={handleCalculate}
-                className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Calculate with Uncertainty
-              </button>
-
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              {result && (
-                <ScientificResult
-                  label="Result"
-                  value={result.value}
-                  uncertainty={result.uncertainty}
-                  unit={result.unit}
-                />
-              )}
-            </div>
+            {result && (
+              <ScientificResult
+                label="Result"
+                value={result.value}
+                uncertainty={result.uncertainty}
+                unit={result.unit}
+              />
+            )}
           </div>
-        </section>
+        </div>
+      </Card>
 
-        {steps.length > 0 && (
-          <section className="bg-white rounded-xl shadow-md p-6 space-y-3">
-            <h2 className="text-lg font-semibold text-gray-900">Calculation Details</h2>
-            <pre className="bg-gray-50 rounded-lg p-4 text-sm text-gray-800 whitespace-pre-wrap">
-              {steps.join('\n')}
-            </pre>
-          </section>
-        )}
-      </main>
-    </div>
+      {steps.length > 0 && (
+        <Card className="p-6">
+          <SectionTitle className="mb-4">Calculation details</SectionTitle>
+          <pre className="bg-muted border border-border rounded-md p-4 text-sm text-foreground whitespace-pre-wrap font-mono overflow-x-auto">
+            {steps.join('\n')}
+          </pre>
+        </Card>
+      )}
+    </CalcShell>
   )
 }
 

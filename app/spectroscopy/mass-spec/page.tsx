@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { CalcShell } from '@/components/lab'
 import {
   FRAGMENT_LOSSES,
   ISOTOPE_PATTERNS,
@@ -79,7 +79,7 @@ function FragmentLossSection() {
               if (e.key === 'Enter') handleIdentify()
             }}
             placeholder="e.g. 100"
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
         <div>
@@ -94,14 +94,14 @@ function FragmentLossSection() {
               if (e.key === 'Enter') handleIdentify()
             }}
             placeholder="e.g. 72"
-            className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
       </div>
 
       <button
         onClick={handleIdentify}
-        className="w-full px-5 py-2.5 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors mb-3"
+        className="w-full px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors mb-3 min-h-[44px]"
       >
         Identify Loss
       </button>
@@ -117,7 +117,7 @@ function FragmentLossSection() {
           <button
             key={ex.label}
             onClick={() => handleQuick(ex.p, ex.f)}
-            className="text-xs px-3 py-1 rounded-full border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
+            className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
           >
             {ex.label}
           </button>
@@ -132,7 +132,7 @@ function FragmentLossSection() {
             {results.length === 0 ? (
               'No matching losses found'
             ) : (
-              <span className="text-amber-600">
+              <span className="text-primary-600">
                 {results.length} possible loss{results.length !== 1 ? 'es' : ''}
               </span>
             )}
@@ -142,13 +142,13 @@ function FragmentLossSection() {
               {results.map((r, i) => (
                 <div
                   key={i}
-                  className="bg-white/50 dark:bg-white/5 border border-border rounded-lg p-3"
+                  className="bg-muted border border-border rounded-md p-3"
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-bold text-sm text-card-foreground">
                       &minus;{r.massLost} ({r.fragment})
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground font-medium">
                       {r.category}
                     </span>
                   </div>
@@ -215,11 +215,11 @@ function IonIdentifierSection() {
             if (e.key === 'Enter') handleIdentify()
           }}
           placeholder="e.g. 91, 77, 43"
-          className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+          className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
         <button
           onClick={handleIdentify}
-          className="px-5 py-2.5 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors flex-shrink-0"
+          className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
         >
           Identify
         </button>
@@ -231,7 +231,7 @@ function IonIdentifierSection() {
           <button
             key={val}
             onClick={() => handleQuick(val)}
-            className="text-xs px-3 py-1 rounded-full border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
+            className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
           >
             m/z {val}
           </button>
@@ -244,7 +244,7 @@ function IonIdentifierSection() {
             {results.length === 0 ? (
               'No matching common ions found at this m/z.'
             ) : (
-              <span className="text-amber-600">
+              <span className="text-primary-600">
                 {results.length} match{results.length !== 1 ? 'es' : ''} found
               </span>
             )}
@@ -254,16 +254,16 @@ function IonIdentifierSection() {
               {results.map((r, i) => (
                 <div
                   key={i}
-                  className="bg-white/50 dark:bg-white/5 border border-border rounded-lg p-3"
+                  className="bg-muted border border-border rounded-md p-3"
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-bold text-sm font-mono text-card-foreground">
                       m/z {r.mz}
                     </span>
-                    <span className="font-semibold text-sm text-amber-600">
+                    <span className="font-semibold text-sm text-primary-600">
                       {r.formula}
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-card border border-border text-muted-foreground font-medium">
                       {r.category}
                     </span>
                   </div>
@@ -375,7 +375,7 @@ function IsotopePatternSection() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handlePredict()
               }}
-              className="w-full px-2 py-2 rounded-lg border border-border bg-background text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-2 py-2 rounded-md border border-border bg-background text-foreground text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
         ))}
@@ -383,7 +383,7 @@ function IsotopePatternSection() {
 
       <button
         onClick={handlePredict}
-        className="w-full px-5 py-2.5 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors mb-3"
+        className="w-full px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors mb-3 min-h-[44px]"
       >
         Predict Pattern
       </button>
@@ -399,7 +399,7 @@ function IsotopePatternSection() {
           <button
             key={p.label}
             onClick={() => handlePreset(p.preset)}
-            className="text-xs px-3 py-1 rounded-full border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
+            className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
           >
             {p.label}
           </button>
@@ -421,7 +421,7 @@ function IsotopePatternSection() {
                   {bar.relativeIntensity.toFixed(1)}%
                 </span>
                 <div
-                  className="w-full max-w-[40px] bg-amber-500 rounded-t transition-all"
+                  className="w-full max-w-[40px] bg-primary-500 rounded-t transition-all"
                   style={{
                     height: `${(bar.relativeIntensity / maxIntensity) * 120}px`,
                     minHeight: bar.relativeIntensity > 0 ? '4px' : '0px',
@@ -494,11 +494,11 @@ function NitrogenRuleSection() {
             if (e.key === 'Enter') handleCheck()
           }}
           placeholder="e.g. 93, 78, 122"
-          className="flex-grow px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+          className="flex-grow px-4 py-2.5 rounded-md border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
         <button
           onClick={handleCheck}
-          className="px-5 py-2.5 bg-amber-600 text-white rounded-lg font-medium text-sm hover:bg-amber-700 transition-colors flex-shrink-0"
+          className="px-5 py-2.5 bg-primary-500 text-primary-foreground rounded-md font-medium text-sm hover:bg-primary-600 transition-colors flex-shrink-0 min-h-[44px]"
         >
           Check
         </button>
@@ -515,7 +515,7 @@ function NitrogenRuleSection() {
           <button
             key={ex.val}
             onClick={() => handleQuick(ex.val)}
-            className="text-xs px-3 py-1 rounded-full border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
+            className="text-xs px-3 py-1 rounded-full border border-border text-primary-700 hover:bg-muted transition-colors"
           >
             {ex.label}
           </button>
@@ -523,7 +523,7 @@ function NitrogenRuleSection() {
       </div>
 
       {hasChecked && result && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <div className="bg-muted border-l-2 border-l-primary-500 border-y border-r border-border rounded-md p-4">
           <p className="text-sm text-card-foreground leading-relaxed">
             {result}
           </p>
@@ -539,53 +539,16 @@ function NitrogenRuleSection() {
 
 export default function MassSpecPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      {/* Header */}
-      <header className="border-b border-header-border bg-header-bg/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image
-                src="/logo.png"
-                alt="VerChem Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/spectroscopy"
-              className="text-secondary-600 hover:text-primary-600 transition-colors font-medium text-sm"
-            >
-              &larr; Spectroscopy Hub
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-10">
-        {/* Title */}
-        <section className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium mb-4">
-            Mass Spectrometry
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 text-foreground">
-            Mass Spec Analyzer
-          </h2>
-          <p className="text-secondary-600 max-w-2xl mx-auto">
-            Identify fragment losses, common ions, and isotope patterns. Predict
-            M/M+1/M+2 ratios and check the nitrogen rule for unknown
-            identification.
-          </p>
-        </section>
-
+    <CalcShell
+      eyebrow="Mass spectrometry · m/z analysis"
+      title="Mass Spec Analyzer"
+      subtitle="Identify fragment losses, common ions, and isotope patterns. Predict M/M+1/M+2 ratios and check the nitrogen rule for unknown identification."
+      backHref="/spectroscopy"
+      backLabel="Spectroscopy Hub"
+      maxWidth="7xl"
+    >
         {/* 2x2 grid of tools */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <FragmentLossSection />
           <IonIdentifierSection />
           <IsotopePatternSection />
@@ -609,7 +572,7 @@ export default function MassSpecPage() {
               <ul className="space-y-1">
                 {MCLAFFERTY_INFO.requirements.map((r, i) => (
                   <li key={i} className="text-muted-foreground flex items-start gap-2">
-                    <span className="text-amber-600 mt-0.5">&#10003;</span>
+                    <span className="text-primary-600 mt-0.5">&#10003;</span>
                     {r}
                   </li>
                 ))}
@@ -621,7 +584,7 @@ export default function MassSpecPage() {
               <ul className="space-y-1">
                 {MCLAFFERTY_INFO.applicableTo.map((a, i) => (
                   <li key={i} className="text-muted-foreground flex items-start gap-2">
-                    <span className="text-amber-600 mt-0.5">&bull;</span>
+                    <span className="text-primary-600 mt-0.5">&bull;</span>
                     {a}
                   </li>
                 ))}
@@ -640,7 +603,7 @@ export default function MassSpecPage() {
                 ))}
               </ol>
 
-              <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <div className="mt-4 bg-muted border-l-2 border-l-primary-500 border-y border-r border-border rounded-md p-4">
                 <h4 className="font-semibold text-card-foreground mb-1 text-sm">
                   Worked Example: {MCLAFFERTY_INFO.example.compound}
                 </h4>
@@ -674,7 +637,7 @@ export default function MassSpecPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-white/5 text-left">
+                <tr className="bg-muted text-left">
                   <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
                     Mass Lost
                   </th>
@@ -694,8 +657,8 @@ export default function MassSpecPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {FRAGMENT_LOSSES.map((fl) => (
-                  <tr key={fl.id} className="hover:bg-gray-50 dark:hover:bg-white/5">
-                    <td className="px-4 py-2 font-mono font-semibold text-amber-600">
+                  <tr key={fl.id} className="hover:bg-muted">
+                    <td className="px-4 py-2 font-mono font-semibold text-primary-600">
                       {fl.massLost}
                     </td>
                     <td className="px-4 py-2 font-mono text-card-foreground">
@@ -706,12 +669,12 @@ export default function MassSpecPage() {
                     </td>
                     <td className="px-4 py-2">
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium border ${
                           fl.category === 'radical'
-                            ? 'bg-red-100 text-red-700'
+                            ? 'bg-destructive/10 text-destructive border-destructive/30'
                             : fl.category === 'neutral'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-amber-100 text-amber-700'
+                              ? 'bg-secondary-100 text-secondary-700 border-secondary-300'
+                              : 'bg-primary-100 text-primary-700 border-primary-300'
                         }`}
                       >
                         {fl.category}
@@ -738,7 +701,7 @@ export default function MassSpecPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-white/5 text-left">
+                <tr className="bg-muted text-left">
                   <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
                     Element
                   </th>
@@ -758,11 +721,11 @@ export default function MassSpecPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {ISOTOPE_PATTERNS.map((ip) => (
-                  <tr key={ip.symbol} className="hover:bg-gray-50 dark:hover:bg-white/5">
+                  <tr key={ip.symbol} className="hover:bg-muted">
                     <td className="px-4 py-2 text-card-foreground font-medium">
                       {ip.element}
                     </td>
-                    <td className="px-4 py-2 font-mono font-semibold text-amber-600">
+                    <td className="px-4 py-2 font-mono font-semibold text-primary-600">
                       {ip.symbol}
                     </td>
                     <td className="px-4 py-2 font-mono text-muted-foreground">
@@ -793,7 +756,7 @@ export default function MassSpecPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-white/5 text-left">
+                <tr className="bg-muted text-left">
                   <th className="px-4 py-2 font-semibold text-xs text-muted-foreground">
                     m/z
                   </th>
@@ -813,8 +776,8 @@ export default function MassSpecPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {COMMON_IONS.map((ion) => (
-                  <tr key={ion.id} className="hover:bg-gray-50 dark:hover:bg-white/5">
-                    <td className="px-4 py-2 font-mono font-semibold text-amber-600">
+                  <tr key={ion.id} className="hover:bg-muted">
+                    <td className="px-4 py-2 font-mono font-semibold text-primary-600">
                       {ion.mz}
                     </td>
                     <td className="px-4 py-2 font-mono text-card-foreground">
@@ -825,16 +788,16 @@ export default function MassSpecPage() {
                     </td>
                     <td className="px-4 py-2">
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium border ${
                           ion.category === 'aromatic'
-                            ? 'bg-purple-100 text-purple-700'
+                            ? 'bg-secondary-100 text-secondary-700 border-secondary-300'
                             : ion.category === 'alkyl'
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-success/10 text-success border-success/30'
                               : ion.category === 'carbonyl'
-                                ? 'bg-amber-100 text-amber-700'
+                                ? 'bg-warning/10 text-warning border-warning/40'
                                 : ion.category === 'nitrogen'
-                                  ? 'bg-blue-100 text-blue-700'
-                                  : 'bg-gray-100 text-gray-600'
+                                  ? 'bg-info/10 text-info border-info/30'
+                                  : 'bg-muted text-muted-foreground border-border'
                         }`}
                       >
                         {ion.category}
@@ -855,20 +818,19 @@ export default function MassSpecPage() {
           <p className="text-sm text-muted-foreground">
             <Link
               href="/spectroscopy/nmr"
-              className="text-amber-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               &larr; NMR Analyzer
             </Link>
             {' '}&middot;{' '}
             <Link
               href="/spectroscopy"
-              className="text-amber-600 hover:underline font-medium"
+              className="text-primary-600 hover:underline font-medium"
             >
               Spectroscopy Hub
             </Link>
           </p>
         </section>
-      </main>
-    </div>
+    </CalcShell>
   )
 }

@@ -5,6 +5,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Card, Button } from '@/components/lab'
 import {
   calculateMolarity,
   calculateDilution,
@@ -406,12 +407,12 @@ export default function EnhancedSolutionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-6xl mx-auto px-4">
         {/* Navigation */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary-500 transition-colors mb-8"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -442,23 +443,25 @@ export default function EnhancedSolutionsPage() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Section */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Input Parameters</h3>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Input parameters</h3>
 
               {/* Mode selector */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Calculation Type:
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Calculation type
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['pH', 'buffer', 'molarity', 'dilution', 'colligative'] as const).map((calcMode) => (
                     <button
                       key={calcMode}
+                      type="button"
                       onClick={() => setMode(calcMode)}
-                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                      aria-pressed={mode === calcMode}
+                      className={`px-3 py-2 rounded-md font-medium border transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                         mode === calcMode
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'border-primary-500 bg-muted text-primary-600 ring-1 ring-primary-500/40'
+                          : 'border-border bg-card text-foreground hover:bg-muted hover:border-primary-500/40'
                       }`}
                     >
                       {calcMode === 'pH' ? 'pH Calculator' :
@@ -477,8 +480,8 @@ export default function EnhancedSolutionsPage() {
                   <>
                     {/* pH Type selector */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Acid/Base Type:
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Acid/base type
                       </label>
                       <select
                         value={phType}
@@ -487,7 +490,7 @@ export default function EnhancedSolutionsPage() {
                             e.target.value as 'strong-acid' | 'strong-base' | 'weak-acid' | 'weak-base'
                           )
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-premium w-full"
                       >
                         <option value="strong-acid">Strong Acid</option>
                         <option value="strong-base">Strong Base</option>
@@ -497,7 +500,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Concentration (M)
                       </label>
                       <div className="flex gap-2">
@@ -505,7 +508,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={concentration}
                           onChange={(e) => setConcentration(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="0.01"
                         />
                         {showUncertainty && (
@@ -513,7 +516,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={concentrationUnc}
                             onChange={(e) => setConcentrationUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.0001"
                             title="Uncertainty"
                           />
@@ -523,7 +526,7 @@ export default function EnhancedSolutionsPage() {
 
                     {phType === 'weak-acid' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Ka (acid dissociation constant)
                         </label>
                         <div className="flex gap-2">
@@ -531,7 +534,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={ka}
                             onChange={(e) => setKa(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium flex-1"
                             placeholder="1.8e-5"
                           />
                           {showUncertainty && (
@@ -539,7 +542,7 @@ export default function EnhancedSolutionsPage() {
                               type="text"
                               value={kaUnc}
                               onChange={(e) => setKaUnc(e.target.value)}
-                              className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="input-premium w-24"
                               placeholder="±0.1e-5"
                               title="Uncertainty"
                             />
@@ -550,7 +553,7 @@ export default function EnhancedSolutionsPage() {
 
                     {phType === 'weak-base' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-foreground mb-1">
                           Kb (base dissociation constant)
                         </label>
                         <div className="flex gap-2">
@@ -558,7 +561,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={kb}
                             onChange={(e) => setKb(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium flex-1"
                             placeholder="1.8e-5"
                           />
                           {showUncertainty && (
@@ -566,7 +569,7 @@ export default function EnhancedSolutionsPage() {
                               type="text"
                               value={kbUnc}
                               onChange={(e) => setKbUnc(e.target.value)}
-                              className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="input-premium w-24"
                               placeholder="±0.1e-5"
                               title="Uncertainty"
                             />
@@ -580,7 +583,7 @@ export default function EnhancedSolutionsPage() {
                 {mode === 'buffer' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Acid Concentration (M)
                       </label>
                       <div className="flex gap-2">
@@ -588,7 +591,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={acidConc}
                           onChange={(e) => setAcidConc(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="0.1"
                         />
                         {showUncertainty && (
@@ -596,7 +599,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={acidConcUnc}
                             onChange={(e) => setAcidConcUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.001"
                             title="Uncertainty"
                           />
@@ -605,7 +608,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Conjugate Base Concentration (M)
                       </label>
                       <div className="flex gap-2">
@@ -613,7 +616,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={saltConc}
                           onChange={(e) => setSaltConc(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="0.1"
                         />
                         {showUncertainty && (
@@ -621,7 +624,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={saltConcUnc}
                             onChange={(e) => setSaltConcUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.001"
                             title="Uncertainty"
                           />
@@ -630,7 +633,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         pKa
                       </label>
                       <div className="flex gap-2">
@@ -638,7 +641,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={pKa}
                           onChange={(e) => setPKa(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="4.76"
                         />
                         {showUncertainty && (
@@ -646,7 +649,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={pKaUnc}
                             onChange={(e) => setPKaUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -659,7 +662,7 @@ export default function EnhancedSolutionsPage() {
                 {mode === 'molarity' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Mass (g)
                       </label>
                       <div className="flex gap-2">
@@ -667,7 +670,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={mass}
                           onChange={(e) => setMass(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="58.44"
                         />
                         {showUncertainty && (
@@ -675,7 +678,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={massUnc}
                             onChange={(e) => setMassUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -684,7 +687,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Molar Mass (g/mol)
                       </label>
                       <div className="flex gap-2">
@@ -692,7 +695,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={molarMass}
                           onChange={(e) => setMolarMass(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="58.44"
                         />
                         {showUncertainty && (
@@ -700,7 +703,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={molarMassUnc}
                             onChange={(e) => setMolarMassUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -709,7 +712,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Volume (L)
                       </label>
                       <div className="flex gap-2">
@@ -717,7 +720,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={volume}
                           onChange={(e) => setVolume(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="1.0"
                         />
                         {showUncertainty && (
@@ -725,7 +728,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={volumeUnc}
                             onChange={(e) => setVolumeUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.001"
                             title="Uncertainty"
                           />
@@ -738,7 +741,7 @@ export default function EnhancedSolutionsPage() {
                 {mode === 'dilution' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Initial Concentration M₁ (M)
                       </label>
                       <div className="flex gap-2">
@@ -746,7 +749,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={m1}
                           onChange={(e) => setM1(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="2.0"
                         />
                         {showUncertainty && (
@@ -754,7 +757,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={m1Unc}
                             onChange={(e) => setM1Unc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -763,7 +766,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Initial Volume V₁ (mL)
                       </label>
                       <div className="flex gap-2">
@@ -771,7 +774,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={v1}
                           onChange={(e) => setV1(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="50"
                         />
                         {showUncertainty && (
@@ -779,7 +782,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={v1Unc}
                             onChange={(e) => setV1Unc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.5"
                             title="Uncertainty"
                           />
@@ -788,7 +791,7 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Final Concentration M₂ (M)
                       </label>
                       <div className="flex gap-2">
@@ -796,7 +799,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={m2}
                           onChange={(e) => setM2(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="0.1"
                         />
                         {showUncertainty && (
@@ -804,7 +807,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={m2Unc}
                             onChange={(e) => setM2Unc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.001"
                             title="Uncertainty"
                           />
@@ -817,7 +820,7 @@ export default function EnhancedSolutionsPage() {
                 {mode === 'colligative' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Molality (mol/kg)
                       </label>
                       <div className="flex gap-2">
@@ -825,7 +828,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={molality}
                           onChange={(e) => setMolality(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="0.5"
                         />
                         {showUncertainty && (
@@ -833,7 +836,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={molalityUnc}
                             onChange={(e) => setMolalityUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.01"
                             title="Uncertainty"
                           />
@@ -842,23 +845,23 @@ export default function EnhancedSolutionsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Van&apos;t Hoff Factor (i)
                       </label>
                       <input
                         type="text"
                         value={vanHoffFactor}
                         onChange={(e) => setVanHoffFactor(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="input-premium w-full"
                         placeholder="2"
                       />
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-muted-foreground mt-1">
                         NaCl: 2, CaCl₂: 3, Glucose: 1, AlCl₃: 4
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-foreground mb-1">
                         Temperature (K)
                       </label>
                       <div className="flex gap-2">
@@ -866,7 +869,7 @@ export default function EnhancedSolutionsPage() {
                           type="text"
                           value={temperature}
                           onChange={(e) => setTemperature(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="input-premium flex-1"
                           placeholder="298.15"
                         />
                         {showUncertainty && (
@@ -874,7 +877,7 @@ export default function EnhancedSolutionsPage() {
                             type="text"
                             value={temperatureUnc}
                             onChange={(e) => setTemperatureUnc(e.target.value)}
-                            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="input-premium w-24"
                             placeholder="±0.05"
                             title="Uncertainty"
                           />
@@ -892,9 +895,9 @@ export default function EnhancedSolutionsPage() {
                     type="checkbox"
                     checked={showUncertainty}
                     onChange={(e) => setShowUncertainty(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-border text-primary-500 focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-foreground">
                     Include uncertainty analysis
                   </span>
                 </label>
@@ -904,26 +907,23 @@ export default function EnhancedSolutionsPage() {
                     type="checkbox"
                     checked={showDetails}
                     onChange={(e) => setShowDetails(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-border text-primary-500 focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-foreground">
                     Show detailed scientific information
                   </span>
                 </label>
               </div>
 
               {/* Calculate Button */}
-              <button
-                onClick={handleCalculate}
-                className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
-              >
+              <Button onClick={handleCalculate} className="w-full mt-6">
                 Calculate
-              </button>
-            </div>
+              </Button>
+            </Card>
 
             {/* Result Section */}
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Result</h3>
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Result</h3>
 
               {result ? (
                 <>
@@ -942,25 +942,26 @@ export default function EnhancedSolutionsPage() {
                   {/* Additional Information */}
                   {result.additionalInfo && (
                     <div className="mt-6 space-y-4">
-                      {/* pH Scale Visualization for pH calculations */}
+                      {/* pH Scale Visualization for pH calculations
+                          (pH-scale gradient encodes data — preserved) */}
                       {mode === 'pH' && result.value !== undefined && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-gray-700 mb-2">
-                            pH Scale
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            pH scale
                           </div>
                           <div className="relative h-8 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 to-blue-700 rounded">
                             <div
-                              className="absolute top-0 bottom-0 w-0.5 bg-black"
+                              className="absolute top-0 bottom-0 w-0.5 bg-foreground"
                               style={{ left: `${(result.value / 14) * 100}%` }}
                             />
                             <div
-                              className="absolute -top-6 text-xs font-bold"
+                              className="absolute -top-6 text-xs font-bold text-foreground"
                               style={{ left: `${(result.value / 14) * 100}%`, transform: 'translateX(-50%)' }}
                             >
                               {result.value.toFixed(2)}
                             </div>
                           </div>
-                          <div className="flex justify-between text-xs text-gray-600 mt-1">
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
                             <span>0 (Acidic)</span>
                             <span>7 (Neutral)</span>
                             <span>14 (Basic)</span>
@@ -970,11 +971,11 @@ export default function EnhancedSolutionsPage() {
 
                       {/* Detailed pH Information */}
                       {mode === 'pH' && result.additionalInfo.H_concentration !== undefined && (
-                        <div className="bg-blue-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-blue-700 mb-2">
-                            Ion Concentrations
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Ion concentrations
                           </div>
-                          <div className="text-xs space-y-1">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>
                               [H⁺] = {typeof result.additionalInfo.H_concentration === 'number'
                                 ? result.additionalInfo.H_concentration.toExponential(3)
@@ -1001,11 +1002,11 @@ export default function EnhancedSolutionsPage() {
 
                       {/* Buffer Information */}
                       {mode === 'buffer' && result.additionalInfo.ratio !== undefined && (
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-green-700 mb-2">
-                            Buffer Details
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Buffer details
                           </div>
-                          <div className="text-xs space-y-1">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>
                               Ratio [A⁻]/[HA] = {typeof result.additionalInfo.ratio === 'number'
                                 ? result.additionalInfo.ratio.toFixed(3)
@@ -1020,11 +1021,11 @@ export default function EnhancedSolutionsPage() {
 
                       {/* Instructions */}
                       {result.additionalInfo.instructions && (
-                        <div className="bg-yellow-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-yellow-700 mb-2">
-                            Preparation Instructions
+                        <div className="bg-warning/10 border border-warning/40 rounded-md p-4">
+                          <div className="text-sm font-medium text-warning mb-2">
+                            Preparation instructions
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-muted-foreground">
                             {result.additionalInfo.instructions}
                           </div>
                         </div>
@@ -1032,11 +1033,11 @@ export default function EnhancedSolutionsPage() {
 
                       {/* Colligative Properties */}
                       {mode === 'colligative' && result.additionalInfo.osmoticPressure && (
-                        <div className="bg-purple-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-purple-700 mb-2">
-                            All Colligative Properties
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            All colligative properties
                           </div>
-                          <div className="text-xs space-y-1">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>Osmotic Pressure: {result.additionalInfo.osmoticPressure}</div>
                             <div>{result.additionalInfo.boilingPointElevation}</div>
                             <div>{result.additionalInfo.freezingPointDepression}</div>
@@ -1047,11 +1048,11 @@ export default function EnhancedSolutionsPage() {
 
                       {/* Common Buffer Systems Reference */}
                       {showDetails && mode === 'buffer' && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <div className="text-sm font-medium text-gray-700 mb-2">
-                            Common Buffer Systems
+                        <div className="bg-muted border border-border rounded-md p-4">
+                          <div className="text-sm font-medium text-foreground mb-2">
+                            Common buffer systems
                           </div>
-                          <div className="text-xs space-y-1">
+                          <div className="text-xs space-y-1 text-muted-foreground">
                             <div>Acetate: pKa = 4.76 (pH 3.8-5.8)</div>
                             <div>Phosphate: pKa₂ = 7.21 (pH 6.2-8.2)</div>
                             <div>Tris: pKa = 8.06 (pH 7.1-9.1)</div>
@@ -1063,11 +1064,11 @@ export default function EnhancedSolutionsPage() {
                   )}
                 </>
               ) : (
-                <div className="text-gray-500 text-center py-12">
+                <div className="text-muted-foreground text-center py-12">
                   Enter values and click Calculate to see results
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </EnhancedCalculator>
       </div>

@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import {
   ArrowRight,
   Search,
@@ -22,6 +21,7 @@ import {
   Thermometer,
   BookOpen,
 } from 'lucide-react'
+import { CalcShell, Card } from '@/components/lab'
 import {
   GHS_PICTOGRAMS,
   COMPATIBILITY_GROUPS,
@@ -190,9 +190,9 @@ function GHSPictogramsSection() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">GHS Hazard Pictograms</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">GHS Hazard Pictograms</h2>
+        <p className="text-muted-foreground max-w-2xl">
           The Globally Harmonized System (GHS) uses 9 standardized pictograms to communicate chemical hazards worldwide.
           Click any pictogram to learn more about the hazards it represents.
         </p>
@@ -202,7 +202,7 @@ function GHSPictogramsSection() {
         {GHS_PICTOGRAMS.map((pictogram) => {
           const isExpanded = expandedId === pictogram.id
           return (
-            <div key={pictogram.id} className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition-all hover:border-red-500/30">
+            <div key={pictogram.id} className="rounded-lg border border-border bg-card overflow-hidden transition-colors hover:border-primary-500/40">
               <button
                 onClick={() => toggle(pictogram.id)}
                 className="w-full p-5 text-left flex items-center gap-4"
@@ -214,22 +214,22 @@ function GHSPictogramsSection() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300">{pictogram.code}</span>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">{pictogram.code}</span>
                   </div>
-                  <h3 className="text-white font-semibold truncate">{pictogram.name}</h3>
-                  <p className="text-sm text-slate-400 truncate">{pictogram.hazards[0]}</p>
+                  <h3 className="text-foreground font-semibold truncate">{pictogram.name}</h3>
+                  <p className="text-sm text-muted-foreground truncate">{pictogram.hazards[0]}</p>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
               </button>
 
               {isExpanded && (
-                <div id={`ghs-detail-${pictogram.id}`} className="px-5 pb-5 space-y-4 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div id={`ghs-detail-${pictogram.id}`} className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wider">Hazards</h4>
+                    <h4 className="text-sm font-semibold text-destructive mb-2 uppercase tracking-wider">Hazards</h4>
                     <ul className="space-y-1">
                       {pictogram.hazards.map((h, i) => (
-                        <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 flex-shrink-0" />
                           {h}
                         </li>
                       ))}
@@ -237,10 +237,10 @@ function GHSPictogramsSection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-amber-400 mb-2 uppercase tracking-wider">Examples</h4>
+                    <h4 className="text-sm font-semibold text-warning mb-2 uppercase tracking-wider">Examples</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {pictogram.examples.map((ex, i) => (
-                        <span key={i} className="text-xs px-2 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                        <span key={i} className="text-xs px-2 py-1 rounded-md bg-muted text-foreground border border-border">
                           {ex}
                         </span>
                       ))}
@@ -248,11 +248,11 @@ function GHSPictogramsSection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-green-400 mb-2 uppercase tracking-wider">Precautions</h4>
+                    <h4 className="text-sm font-semibold text-success mb-2 uppercase tracking-wider">Precautions</h4>
                     <ul className="space-y-1">
                       {pictogram.precautions.map((p, i) => (
-                        <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                          <CheckCircle className="h-3.5 w-3.5 text-green-400 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                          <CheckCircle className="h-3.5 w-3.5 text-success mt-0.5 flex-shrink-0" />
                           {p}
                         </li>
                       ))}
@@ -284,77 +284,77 @@ function CompatibilitySection() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">Chemical Compatibility</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Chemical Compatibility</h2>
+        <p className="text-muted-foreground max-w-2xl">
           Incompatible chemicals must never be stored together. Use this interactive chart to check which chemical groups are safe to co-locate.
         </p>
       </div>
 
       {/* Pair checker */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Quick Compatibility Check</h3>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Compatibility Check</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Chemical Group 1</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Chemical Group 1</label>
             <select
               value={selectedGroup1}
               onChange={(e) => setSelectedGroup1(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white appearance-none cursor-pointer focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground appearance-none cursor-pointer focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
-              <option value="" className="bg-slate-900">Select a group...</option>
+              <option value="">Select a group...</option>
               {COMPATIBILITY_GROUPS.map((g) => (
-                <option key={g.id} value={g.id} className="bg-slate-900">{g.name}</option>
+                <option key={g.id} value={g.id}>{g.name}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Chemical Group 2</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Chemical Group 2</label>
             <select
               value={selectedGroup2}
               onChange={(e) => setSelectedGroup2(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white appearance-none cursor-pointer focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="w-full rounded-md border border-border bg-background px-4 py-3 text-foreground appearance-none cursor-pointer focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
             >
-              <option value="" className="bg-slate-900">Select a group...</option>
+              <option value="">Select a group...</option>
               {COMPATIBILITY_GROUPS.map((g) => (
-                <option key={g.id} value={g.id} className="bg-slate-900">{g.name}</option>
+                <option key={g.id} value={g.id}>{g.name}</option>
               ))}
             </select>
           </div>
         </div>
 
         {pairResult && (
-          <div className={`mt-4 rounded-xl p-4 border ${
+          <div className={`mt-4 rounded-md p-4 border ${
             pairResult.severity === 'safe'
-              ? 'border-green-500/30 bg-green-500/10'
+              ? 'border-success/40 bg-success/10'
               : pairResult.severity === 'caution'
-                ? 'border-amber-500/30 bg-amber-500/10'
-                : 'border-red-500/30 bg-red-500/10'
-          } animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                ? 'border-warning/40 bg-warning/10'
+                : 'border-destructive/40 bg-destructive/10'
+          }`}>
             <div className="flex items-center gap-3 mb-2">
               {pairResult.severity === 'safe' ? (
-                <CheckCircle className="h-5 w-5 text-green-400" />
+                <CheckCircle className="h-5 w-5 text-success" />
               ) : pairResult.severity === 'caution' ? (
-                <AlertTriangle className="h-5 w-5 text-amber-400" />
+                <AlertTriangle className="h-5 w-5 text-warning" />
               ) : (
-                <XCircle className="h-5 w-5 text-red-400" />
+                <XCircle className="h-5 w-5 text-destructive" />
               )}
               <span className={`font-semibold ${
-                pairResult.severity === 'safe' ? 'text-green-300' : pairResult.severity === 'caution' ? 'text-amber-300' : 'text-red-300'
+                pairResult.severity === 'safe' ? 'text-success' : pairResult.severity === 'caution' ? 'text-warning' : 'text-destructive'
               }`}>
                 {pairResult.severity === 'safe' ? 'Compatible' : pairResult.severity === 'caution' ? 'Use Caution' : 'INCOMPATIBLE - Do Not Store Together'}
               </span>
             </div>
-            <p className="text-sm text-slate-300">{pairResult.reason}</p>
+            <p className="text-sm text-foreground">{pairResult.reason}</p>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Toggle */}
       <div className="flex justify-center">
         <button
           onClick={() => setShowMatrix((prev) => !prev)}
-          className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           {showMatrix ? 'Hide' : 'Show'} Full Compatibility Matrix
           <ChevronDown className={`h-4 w-4 transition-transform ${showMatrix ? 'rotate-180' : ''}`} />
@@ -363,15 +363,15 @@ function CompatibilitySection() {
 
       {/* Matrix */}
       {showMatrix && (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 overflow-x-auto">
+        <Card className="p-4 overflow-x-auto">
           <table className="w-full min-w-[700px] text-xs">
             <thead>
               <tr>
-                <th className="p-2 text-left text-slate-400 font-medium sticky left-0 bg-slate-900/90 z-10 min-w-[130px]">Group</th>
+                <th className="p-2 text-left text-muted-foreground font-medium sticky left-0 bg-card z-10 min-w-[130px]">Group</th>
                 {COMPATIBILITY_GROUPS.map((g) => (
                   <th key={g.id} className="p-1 text-center">
                     <div
-                      className="writing-mode-vertical text-slate-400 font-medium transform -rotate-45 origin-bottom-left whitespace-nowrap translate-x-2"
+                      className="writing-mode-vertical text-muted-foreground font-medium transform -rotate-45 origin-bottom-left whitespace-nowrap translate-x-2"
                       style={{ writingMode: 'initial' }}
                       title={g.name}
                     >
@@ -383,18 +383,18 @@ function CompatibilitySection() {
             </thead>
             <tbody>
               {COMPATIBILITY_GROUPS.map((row) => (
-                <tr key={row.id} className="border-t border-white/5">
-                  <td className="p-2 text-slate-300 font-medium sticky left-0 bg-slate-900/90 z-10 whitespace-nowrap">{row.name}</td>
+                <tr key={row.id} className="border-t border-border">
+                  <td className="p-2 text-foreground font-medium sticky left-0 bg-card z-10 whitespace-nowrap">{row.name}</td>
                   {COMPATIBILITY_GROUPS.map((col) => {
                     const result = checkCompatibility(row.id, col.id)
                     const bgColor =
                       row.id === col.id
-                        ? 'bg-slate-700/50'
+                        ? 'bg-muted'
                         : result.severity === 'safe'
-                          ? 'bg-green-500/20'
+                          ? 'bg-success/15'
                           : result.severity === 'caution'
-                            ? 'bg-amber-500/20'
-                            : 'bg-red-500/30'
+                            ? 'bg-warning/15'
+                            : 'bg-destructive/20'
                     const label =
                       row.id === col.id
                         ? '-'
@@ -405,12 +405,12 @@ function CompatibilitySection() {
                             : 'X'
                     const textColor =
                       row.id === col.id
-                        ? 'text-slate-500'
+                        ? 'text-muted-foreground'
                         : result.severity === 'safe'
-                          ? 'text-green-400'
+                          ? 'text-success'
                           : result.severity === 'caution'
-                            ? 'text-amber-400'
-                            : 'text-red-400'
+                            ? 'text-warning'
+                            : 'text-destructive'
                     return (
                       <td
                         key={col.id}
@@ -426,41 +426,41 @@ function CompatibilitySection() {
             </tbody>
           </table>
 
-          <div className="flex items-center gap-6 mt-4 text-xs text-slate-400">
+          <div className="flex items-center gap-6 mt-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30" />
+              <span className="w-4 h-4 rounded bg-success/15 border border-success/40" />
               OK = Compatible
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-amber-500/20 border border-amber-500/30" />
+              <span className="w-4 h-4 rounded bg-warning/15 border border-warning/40" />
               ? = Use Caution
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-red-500/30 border border-red-500/30" />
+              <span className="w-4 h-4 rounded bg-destructive/20 border border-destructive/40" />
               X = Incompatible
             </span>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Group details */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {COMPATIBILITY_GROUPS.map((group) => (
-          <div key={group.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <Card key={group.id} className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }} />
-              <h4 className="text-sm font-semibold text-white">{group.name}</h4>
+              <h4 className="text-sm font-semibold text-foreground">{group.name}</h4>
             </div>
             <div className="flex flex-wrap gap-1 mb-2">
               {group.examples.slice(0, 3).map((ex, i) => (
-                <span key={i} className="text-xs px-1.5 py-0.5 rounded bg-white/5 text-slate-400">{ex}</span>
+                <span key={i} className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{ex}</span>
               ))}
               {group.examples.length > 3 && (
-                <span className="text-xs px-1.5 py-0.5 text-slate-500">+{group.examples.length - 3} more</span>
+                <span className="text-xs px-1.5 py-0.5 text-muted-foreground">+{group.examples.length - 3} more</span>
               )}
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{group.reason}</p>
-          </div>
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{group.reason}</p>
+          </Card>
         ))}
       </div>
     </div>
@@ -489,24 +489,24 @@ function EmergencySection() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">Emergency Procedures</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Emergency Procedures</h2>
+        <p className="text-muted-foreground max-w-2xl">
           Know these procedures before you need them. In an emergency, seconds count. Review these steps regularly.
         </p>
       </div>
 
       {/* Emergency banner */}
-      <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 flex items-center gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center">
-          <AlertTriangle className="h-6 w-6 text-red-400" />
+      <div className="rounded-md border border-destructive/40 bg-destructive/10 p-5 flex items-center gap-4">
+        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-destructive/15 flex items-center justify-center">
+          <AlertTriangle className="h-6 w-6 text-destructive" />
         </div>
         <div>
-          <h3 className="text-red-300 font-semibold">Emergency Numbers</h3>
-          <p className="text-sm text-slate-300">
-            <span className="font-mono text-red-300">911</span> (US Emergency) &bull;{' '}
-            <span className="font-mono text-red-300">1-800-222-1222</span> (US Poison Control) &bull;{' '}
-            <span className="font-mono text-red-300">1669</span> (Thailand Emergency)
+          <h3 className="text-destructive font-semibold">Emergency Numbers</h3>
+          <p className="text-sm text-foreground">
+            <span className="font-mono text-destructive">911</span> (US Emergency) &bull;{' '}
+            <span className="font-mono text-destructive">1-800-222-1222</span> (US Poison Control) &bull;{' '}
+            <span className="font-mono text-destructive">1669</span> (Thailand Emergency)
           </p>
         </div>
       </div>
@@ -515,7 +515,7 @@ function EmergencySection() {
         {EMERGENCY_PROCEDURES.map((procedure) => {
           const isExpanded = expandedId === procedure.id
           return (
-            <div key={procedure.id} className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition-all hover:border-orange-500/30">
+            <div key={procedure.id} className="rounded-lg border border-border bg-card overflow-hidden transition-colors hover:border-primary-500/40">
               <button
                 onClick={() => toggle(procedure.id)}
                 className="w-full p-5 text-left flex items-center gap-4"
@@ -523,37 +523,37 @@ function EmergencySection() {
                 aria-controls={`emergency-detail-${procedure.id}`}
               >
                 <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  procedure.callEmergency ? 'bg-red-500/20 text-red-400' : 'bg-orange-500/20 text-orange-400'
+                  procedure.callEmergency ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning'
                 }`}>
                   {getEmergencyIcon(procedure)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <h3 className="text-white font-semibold">{procedure.title}</h3>
+                    <h3 className="text-foreground font-semibold">{procedure.title}</h3>
                     {procedure.callEmergency && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 whitespace-nowrap">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-destructive/15 text-destructive border border-destructive/40 whitespace-nowrap">
                         Call 911
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-muted-foreground">
                     {procedure.steps.length} steps &bull; {procedure.doNot.length} warnings
                   </p>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
               </button>
 
               {isExpanded && (
-                <div id={`emergency-detail-${procedure.id}`} className="px-5 pb-5 space-y-4 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div id={`emergency-detail-${procedure.id}`} className="px-5 pb-5 space-y-4 border-t border-border pt-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-green-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-success mb-3 uppercase tracking-wider flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Steps to Follow
                     </h4>
                     <ol className="space-y-2">
                       {procedure.steps.map((step, i) => (
-                        <li key={i} className="text-sm text-slate-300 flex items-start gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xs font-bold">
+                        <li key={i} className="text-sm text-foreground flex items-start gap-3">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-success/15 text-success flex items-center justify-center text-xs font-bold">
                             {i + 1}
                           </span>
                           <span className="pt-0.5">{step}</span>
@@ -563,14 +563,14 @@ function EmergencySection() {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-semibold text-red-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-destructive mb-3 uppercase tracking-wider flex items-center gap-2">
                       <XCircle className="h-4 w-4" />
                       Do NOT
                     </h4>
                     <ul className="space-y-2">
                       {procedure.doNot.map((item, i) => (
-                        <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                          <XCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                        <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                          <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -607,23 +607,23 @@ function SafetyRulesSection() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">Lab Safety Rules</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Lab Safety Rules</h2>
+        <p className="text-muted-foreground max-w-2xl">
           Essential rules every laboratory worker must know and follow. These rules save lives and prevent injuries.
         </p>
       </div>
 
       {/* Category filter */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-2">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
+            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors border ${
               selectedCategory === cat.id
-                ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white'
-                : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                ? 'border-primary-500 bg-muted text-primary-600'
+                : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
             {cat.label}
@@ -635,26 +635,25 @@ function SafetyRulesSection() {
         {filteredRules.map((rule) => {
           const isExpanded = expandedRule === rule.id
           return (
-            <div key={rule.id} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+            <div key={rule.id} className="rounded-lg border border-border bg-card overflow-hidden">
               <button
                 onClick={() => setExpandedRule(isExpanded ? null : rule.id)}
                 className="w-full p-4 text-left flex items-start gap-3"
                 aria-expanded={isExpanded}
               >
-                <span className="text-2xl flex-shrink-0 mt-0.5">{rule.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-300 capitalize">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border capitalize">
                       {getSafetyCategoryLabel(rule.category)}
                     </span>
                   </div>
-                  <p className="text-white font-medium text-sm leading-relaxed">{rule.rule}</p>
+                  <p className="text-foreground font-medium text-sm leading-relaxed">{rule.rule}</p>
                 </div>
-                <ChevronRight className={`h-4 w-4 text-slate-500 mt-1 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`h-4 w-4 text-muted-foreground mt-1 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
               </button>
               {isExpanded && (
-                <div className="px-4 pb-4 pl-14 animate-in fade-in duration-200">
-                  <p className="text-sm text-slate-400 leading-relaxed">{rule.explanation}</p>
+                <div className="px-4 pb-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{rule.explanation}</p>
                 </div>
               )}
             </div>
@@ -713,53 +712,53 @@ function StatementsSection() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">Hazard & Precautionary Statements</h2>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Hazard &amp; Precautionary Statements</h2>
+        <p className="text-muted-foreground max-w-2xl">
           H-statements describe the nature and severity of a hazard. P-statements recommend measures to minimize exposure and risk.
         </p>
       </div>
 
       {/* Signal Words */}
       <div className="grid gap-4 md:grid-cols-2 mb-6">
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5">
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black text-red-400 uppercase tracking-widest">DANGER</span>
+            <span className="text-2xl font-black text-destructive uppercase tracking-widest">DANGER</span>
           </div>
-          <p className="text-sm text-slate-300 mb-3">{SIGNAL_WORDS.Danger.description}</p>
+          <p className="text-sm text-foreground mb-3">{SIGNAL_WORDS.Danger.description}</p>
           <div className="flex flex-wrap gap-1.5">
             {SIGNAL_WORDS.Danger.examples.map((ex, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-200">{ex}</span>
+              <span key={i} className="text-xs px-2 py-0.5 rounded bg-destructive/15 text-destructive">{ex}</span>
             ))}
           </div>
         </div>
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+        <div className="rounded-md border border-warning/40 bg-warning/10 p-5">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black text-amber-400 uppercase tracking-widest">WARNING</span>
+            <span className="text-2xl font-black text-warning uppercase tracking-widest">WARNING</span>
           </div>
-          <p className="text-sm text-slate-300 mb-3">{SIGNAL_WORDS.Warning.description}</p>
+          <p className="text-sm text-foreground mb-3">{SIGNAL_WORDS.Warning.description}</p>
           <div className="flex flex-wrap gap-1.5">
             {SIGNAL_WORDS.Warning.examples.map((ex, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-200">{ex}</span>
+              <span key={i} className="text-xs px-2 py-0.5 rounded bg-warning/15 text-warning">{ex}</span>
             ))}
           </div>
         </div>
       </div>
 
       {/* H / P tab toggle */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2">
         <button
           onClick={() => { setStmtTab('h'); setSearchQuery('') }}
-          className={`rounded-xl px-6 py-2.5 font-medium transition-all ${
-            stmtTab === 'h' ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-6 py-2.5 font-medium transition-colors border ${
+            stmtTab === 'h' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           H-Statements ({H_STATEMENTS.length})
         </button>
         <button
           onClick={() => { setStmtTab('p'); setSearchQuery('') }}
-          className={`rounded-xl px-6 py-2.5 font-medium transition-all ${
-            stmtTab === 'p' ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          className={`rounded-md px-6 py-2.5 font-medium transition-colors border ${
+            stmtTab === 'p' ? 'border-primary-500 bg-muted text-primary-600' : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
           P-Statements ({P_STATEMENTS.length})
@@ -767,29 +766,29 @@ function StatementsSection() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md mx-auto">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+      <div className="relative max-w-md">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search ${stmtTab === 'h' ? 'H' : 'P'}-statements (e.g., "${stmtTab === 'h' ? 'H225' : 'P210'}" or "flammable")`}
-          className="w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+          className="w-full rounded-md border border-border bg-card pl-10 pr-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         />
       </div>
 
       {/* H-Statements */}
       {stmtTab === 'h' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2">
             {hCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setHCategoryFilter(cat.id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors border ${
                   hCategoryFilter === cat.id
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent'
+                    ? 'border-primary-500 bg-muted text-primary-600'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {cat.label}
@@ -797,34 +796,34 @@ function StatementsSection() {
             ))}
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <Card className="overflow-hidden p-0">
             <div className="max-h-[500px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-slate-900/95 backdrop-blur z-10">
-                  <tr className="border-b border-white/10">
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium w-20">Code</th>
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Statement</th>
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium w-24">Signal</th>
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium w-28 hidden sm:table-cell">Category</th>
+                <thead className="sticky top-0 bg-card z-10">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium w-20">Code</th>
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">Statement</th>
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium w-24">Signal</th>
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium w-28 hidden sm:table-cell">Category</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredH.map((h) => (
-                    <tr key={h.code} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 font-mono text-amber-300 font-semibold">{h.code}</td>
-                      <td className="px-4 py-3 text-slate-300">{h.text}</td>
+                    <tr key={h.code} className="border-b border-border hover:bg-muted transition-colors">
+                      <td className="px-4 py-3 font-mono text-foreground font-semibold">{h.code}</td>
+                      <td className="px-4 py-3 text-foreground">{h.text}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                          h.signalWord === 'Danger' ? 'bg-red-500/20 text-red-300' : 'bg-amber-500/20 text-amber-300'
+                          h.signalWord === 'Danger' ? 'bg-destructive/15 text-destructive' : 'bg-warning/15 text-warning'
                         }`}>
                           {h.signalWord}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className={`text-xs capitalize px-2 py-0.5 rounded ${
-                          h.category === 'physical' ? 'bg-orange-500/10 text-orange-300' :
-                          h.category === 'health' ? 'bg-purple-500/10 text-purple-300' :
-                          'bg-green-500/10 text-green-300'
+                        <span className={`text-xs capitalize px-2 py-0.5 rounded border ${
+                          h.category === 'physical' ? 'border-warning/40 text-warning' :
+                          h.category === 'health' ? 'border-secondary-500/40 text-secondary-600' :
+                          'border-success/40 text-success'
                         }`}>
                           {h.category}
                         </span>
@@ -834,26 +833,26 @@ function StatementsSection() {
                 </tbody>
               </table>
               {filteredH.length === 0 && (
-                <div className="p-8 text-center text-slate-500">No matching H-statements found.</div>
+                <div className="p-8 text-center text-muted-foreground">No matching H-statements found.</div>
               )}
             </div>
-          </div>
-          <p className="text-xs text-slate-500 text-center">Showing {filteredH.length} of {H_STATEMENTS.length} H-statements</p>
+          </Card>
+          <p className="text-xs text-muted-foreground text-center">Showing {filteredH.length} of {H_STATEMENTS.length} H-statements</p>
         </div>
       )}
 
       {/* P-Statements */}
       {stmtTab === 'p' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2">
             {pCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setPCategoryFilter(cat.id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors border ${
                   pCategoryFilter === cat.id
-                    ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                    : 'bg-white/5 text-slate-400 hover:bg-white/10 border border-transparent'
+                    ? 'border-primary-500 bg-muted text-primary-600'
+                    : 'border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 {cat.label}
@@ -861,29 +860,23 @@ function StatementsSection() {
             ))}
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <Card className="overflow-hidden p-0">
             <div className="max-h-[500px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-slate-900/95 backdrop-blur z-10">
-                  <tr className="border-b border-white/10">
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium w-20">Code</th>
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium">Statement</th>
-                    <th className="px-4 py-3 text-left text-slate-400 font-medium w-28 hidden sm:table-cell">Category</th>
+                <thead className="sticky top-0 bg-card z-10">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium w-20">Code</th>
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium">Statement</th>
+                    <th className="px-4 py-3 text-left text-muted-foreground font-medium w-28 hidden sm:table-cell">Category</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredP.map((p) => (
-                    <tr key={p.code} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 font-mono text-blue-300 font-semibold">{p.code}</td>
-                      <td className="px-4 py-3 text-slate-300">{p.text}</td>
+                    <tr key={p.code} className="border-b border-border hover:bg-muted transition-colors">
+                      <td className="px-4 py-3 font-mono text-foreground font-semibold">{p.code}</td>
+                      <td className="px-4 py-3 text-foreground">{p.text}</td>
                       <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className={`text-xs capitalize px-2 py-0.5 rounded ${
-                          p.category === 'general' ? 'bg-slate-500/10 text-slate-300' :
-                          p.category === 'prevention' ? 'bg-blue-500/10 text-blue-300' :
-                          p.category === 'response' ? 'bg-orange-500/10 text-orange-300' :
-                          p.category === 'storage' ? 'bg-purple-500/10 text-purple-300' :
-                          'bg-green-500/10 text-green-300'
-                        }`}>
+                        <span className="text-xs capitalize px-2 py-0.5 rounded border border-border text-muted-foreground">
                           {getPStatementCategoryLabel(p.category)}
                         </span>
                       </td>
@@ -892,11 +885,11 @@ function StatementsSection() {
                 </tbody>
               </table>
               {filteredP.length === 0 && (
-                <div className="p-8 text-center text-slate-500">No matching P-statements found.</div>
+                <div className="p-8 text-center text-muted-foreground">No matching P-statements found.</div>
               )}
             </div>
-          </div>
-          <p className="text-xs text-slate-500 text-center">Showing {filteredP.length} of {P_STATEMENTS.length} P-statements</p>
+          </Card>
+          <p className="text-xs text-muted-foreground text-center">Showing {filteredP.length} of {P_STATEMENTS.length} P-statements</p>
         </div>
       )}
     </div>
@@ -930,318 +923,267 @@ export default function LabSafetyPage() {
   }, [searchResults])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-red-950/10 to-slate-950">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
-              <Image src="/logo.png" alt="VerChem Logo" fill className="object-contain" priority />
-            </div>
-            <h1 className="text-2xl font-bold hidden sm:block">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">VerChem</span>
-            </h1>
-          </Link>
-          <Link href="/tools" className="text-slate-400 hover:text-red-400 transition-colors font-medium text-sm">
-            &larr; All Tools
-          </Link>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-500/10 via-transparent to-transparent" />
-
-        <div className="relative mx-auto max-w-6xl px-4">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300 mb-6">
-              <Shield className="h-4 w-4" />
-              Comprehensive Lab Safety Reference
-            </div>
-
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">
-              Lab Safety
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-orange-400 to-amber-400">
-                & SDS Reference
-              </span>
-            </h1>
-
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              GHS pictograms, chemical compatibility, emergency procedures, safety rules, and H/P statement lookup &mdash; everything you need in one place.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-400">
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                9 GHS Pictograms
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                11 Compatibility Groups
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                8 Emergency Procedures
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                {H_STATEMENTS.length + P_STATEMENTS.length}+ H/P Statements
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+    <CalcShell
+      eyebrow="Lab & practical · GHS / SDS reference"
+      title="Lab Safety & SDS Reference"
+      subtitle="GHS pictograms, chemical compatibility, emergency procedures, safety rules, and H/P statement lookup — everything you need in one place."
+      backHref="/tools"
+      backLabel="All tools"
+      maxWidth="6xl"
+    >
+      {/* Reference scope summary */}
+      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-success" />
+          9 GHS Pictograms
+        </span>
+        <span className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-success" />
+          11 Compatibility Groups
+        </span>
+        <span className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-success" />
+          8 Emergency Procedures
+        </span>
+        <span className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-success" />
+          {H_STATEMENTS.length + P_STATEMENTS.length}+ H/P Statements
+        </span>
+      </div>
 
       {/* Global Search */}
-      <section className="px-4 pb-6">
-        <div className="max-w-2xl mx-auto relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <input
-            type="text"
-            value={globalSearch}
-            onChange={(e) => {
-              setGlobalSearch(e.target.value)
-              setShowSearchResults(e.target.value.trim().length > 0)
-            }}
-            placeholder="Search all safety data (e.g., &quot;flammable&quot;, &quot;H225&quot;, &quot;eye contact&quot;, &quot;NaOH&quot;)..."
-            className="w-full rounded-2xl border border-white/10 bg-white/5 pl-12 pr-4 py-4 text-white placeholder:text-slate-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 text-lg"
-          />
-          {globalSearch && (
-            <button
-              onClick={() => { setGlobalSearch(''); setShowSearchResults(false) }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            >
-              <XCircle className="h-5 w-5" />
-            </button>
-          )}
-        </div>
-      </section>
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <input
+          type="text"
+          value={globalSearch}
+          onChange={(e) => {
+            setGlobalSearch(e.target.value)
+            setShowSearchResults(e.target.value.trim().length > 0)
+          }}
+          placeholder="Search all safety data (e.g., &quot;flammable&quot;, &quot;H225&quot;, &quot;eye contact&quot;, &quot;NaOH&quot;)..."
+          className="w-full rounded-md border border-border bg-card pl-12 pr-4 py-4 text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30 text-lg"
+        />
+        {globalSearch && (
+          <button
+            onClick={() => { setGlobalSearch(''); setShowSearchResults(false) }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            aria-label="Clear search"
+          >
+            <XCircle className="h-5 w-5" />
+          </button>
+        )}
+      </div>
 
       {/* Search Results */}
       {showSearchResults && searchResults && (
-        <section className="px-4 pb-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                {totalResults} result{totalResults !== 1 ? 's' : ''} for &ldquo;{globalSearch}&rdquo;
-              </h3>
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            {totalResults} result{totalResults !== 1 ? 's' : ''} for &ldquo;{globalSearch}&rdquo;
+          </h3>
 
-              {totalResults === 0 && (
-                <p className="text-slate-400">No results found. Try a different search term.</p>
-              )}
+          {totalResults === 0 && (
+            <p className="text-muted-foreground">No results found. Try a different search term.</p>
+          )}
 
-              {searchResults.pictograms.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-red-400 mb-2 uppercase tracking-wider">GHS Pictograms ({searchResults.pictograms.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {searchResults.pictograms.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => { setActiveTab('pictograms'); setShowSearchResults(false); setGlobalSearch('') }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-300 text-sm hover:bg-red-500/20 transition-colors"
-                      >
-                        <span className="font-mono text-xs">{p.code}</span>
-                        {p.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {searchResults.emergencyProcedures.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-orange-400 mb-2 uppercase tracking-wider">Emergency Procedures ({searchResults.emergencyProcedures.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {searchResults.emergencyProcedures.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => { setActiveTab('emergency'); setShowSearchResults(false); setGlobalSearch('') }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 text-orange-300 text-sm hover:bg-orange-500/20 transition-colors"
-                      >
-                        {p.title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {searchResults.safetyRules.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-blue-400 mb-2 uppercase tracking-wider">Safety Rules ({searchResults.safetyRules.length})</h4>
-                  <ul className="space-y-1">
-                    {searchResults.safetyRules.slice(0, 5).map((r) => (
-                      <li key={r.id}>
-                        <button
-                          onClick={() => { setActiveTab('rules'); setShowSearchResults(false); setGlobalSearch('') }}
-                          className="text-sm text-slate-300 hover:text-white text-left transition-colors"
-                        >
-                          <span className="mr-2">{r.icon}</span>
-                          {r.rule}
-                        </button>
-                      </li>
-                    ))}
-                    {searchResults.safetyRules.length > 5 && (
-                      <li className="text-sm text-slate-500">+{searchResults.safetyRules.length - 5} more...</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-
-              {searchResults.hStatements.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-amber-400 mb-2 uppercase tracking-wider">H-Statements ({searchResults.hStatements.length})</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {searchResults.hStatements.slice(0, 10).map((h) => (
-                      <button
-                        key={h.code}
-                        onClick={() => { setActiveTab('statements'); setShowSearchResults(false); setGlobalSearch('') }}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 text-amber-300 text-xs hover:bg-amber-500/20 transition-colors"
-                      >
-                        <span className="font-mono font-semibold">{h.code}</span>
-                        <span className="text-slate-400">{h.text.length > 40 ? h.text.substring(0, 37) + '...' : h.text}</span>
-                      </button>
-                    ))}
-                    {searchResults.hStatements.length > 10 && (
-                      <span className="text-xs text-slate-500 self-center">+{searchResults.hStatements.length - 10} more</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {searchResults.pStatements.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-blue-400 mb-2 uppercase tracking-wider">P-Statements ({searchResults.pStatements.length})</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {searchResults.pStatements.slice(0, 10).map((p) => (
-                      <button
-                        key={p.code}
-                        onClick={() => { setActiveTab('statements'); setShowSearchResults(false); setGlobalSearch('') }}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-500/10 text-blue-300 text-xs hover:bg-blue-500/20 transition-colors"
-                      >
-                        <span className="font-mono font-semibold">{p.code}</span>
-                        <span className="text-slate-400">{p.text.length > 40 ? p.text.substring(0, 37) + '...' : p.text}</span>
-                      </button>
-                    ))}
-                    {searchResults.pStatements.length > 10 && (
-                      <span className="text-xs text-slate-500 self-center">+{searchResults.pStatements.length - 10} more</span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {searchResults.compatibilityGroups.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold text-green-400 mb-2 uppercase tracking-wider">Compatibility Groups ({searchResults.compatibilityGroups.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {searchResults.compatibilityGroups.map((g) => (
-                      <button
-                        key={g.id}
-                        onClick={() => { setActiveTab('compatibility'); setShowSearchResults(false); setGlobalSearch('') }}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-300 text-sm hover:bg-green-500/20 transition-colors"
-                      >
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }} />
-                        {g.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {searchResults.pictograms.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">GHS Pictograms ({searchResults.pictograms.length})</h4>
+              <div className="flex flex-wrap gap-2">
+                {searchResults.pictograms.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setActiveTab('pictograms'); setShowSearchResults(false); setGlobalSearch('') }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted text-foreground text-sm hover:border-primary-500/40 hover:bg-card transition-colors"
+                  >
+                    <span className="font-mono text-xs text-muted-foreground">{p.code}</span>
+                    {p.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          )}
+
+          {searchResults.emergencyProcedures.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">Emergency Procedures ({searchResults.emergencyProcedures.length})</h4>
+              <div className="flex flex-wrap gap-2">
+                {searchResults.emergencyProcedures.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setActiveTab('emergency'); setShowSearchResults(false); setGlobalSearch('') }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted text-foreground text-sm hover:border-primary-500/40 hover:bg-card transition-colors"
+                  >
+                    {p.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {searchResults.safetyRules.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">Safety Rules ({searchResults.safetyRules.length})</h4>
+              <ul className="space-y-1">
+                {searchResults.safetyRules.slice(0, 5).map((r) => (
+                  <li key={r.id}>
+                    <button
+                      onClick={() => { setActiveTab('rules'); setShowSearchResults(false); setGlobalSearch('') }}
+                      className="text-sm text-muted-foreground hover:text-foreground text-left transition-colors"
+                    >
+                      {r.rule}
+                    </button>
+                  </li>
+                ))}
+                {searchResults.safetyRules.length > 5 && (
+                  <li className="text-sm text-muted-foreground">+{searchResults.safetyRules.length - 5} more...</li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          {searchResults.hStatements.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">H-Statements ({searchResults.hStatements.length})</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {searchResults.hStatements.slice(0, 10).map((h) => (
+                  <button
+                    key={h.code}
+                    onClick={() => { setActiveTab('statements'); setShowSearchResults(false); setGlobalSearch('') }}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-muted text-xs hover:border-primary-500/40 hover:bg-card transition-colors"
+                  >
+                    <span className="font-mono font-semibold text-foreground">{h.code}</span>
+                    <span className="text-muted-foreground">{h.text.length > 40 ? h.text.substring(0, 37) + '...' : h.text}</span>
+                  </button>
+                ))}
+                {searchResults.hStatements.length > 10 && (
+                  <span className="text-xs text-muted-foreground self-center">+{searchResults.hStatements.length - 10} more</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {searchResults.pStatements.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">P-Statements ({searchResults.pStatements.length})</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {searchResults.pStatements.slice(0, 10).map((p) => (
+                  <button
+                    key={p.code}
+                    onClick={() => { setActiveTab('statements'); setShowSearchResults(false); setGlobalSearch('') }}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-muted text-xs hover:border-primary-500/40 hover:bg-card transition-colors"
+                  >
+                    <span className="font-mono font-semibold text-foreground">{p.code}</span>
+                    <span className="text-muted-foreground">{p.text.length > 40 ? p.text.substring(0, 37) + '...' : p.text}</span>
+                  </button>
+                ))}
+                {searchResults.pStatements.length > 10 && (
+                  <span className="text-xs text-muted-foreground self-center">+{searchResults.pStatements.length - 10} more</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {searchResults.compatibilityGroups.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">Compatibility Groups ({searchResults.compatibilityGroups.length})</h4>
+              <div className="flex flex-wrap gap-2">
+                {searchResults.compatibilityGroups.map((g) => (
+                  <button
+                    key={g.id}
+                    onClick={() => { setActiveTab('compatibility'); setShowSearchResults(false); setGlobalSearch('') }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted text-foreground text-sm hover:border-primary-500/40 hover:bg-card transition-colors"
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: g.color }} />
+                    {g.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Tabs */}
       {!showSearchResults && (
         <>
-          <section className="px-4 pb-4 sticky top-[73px] z-30 bg-gradient-to-b from-slate-950 to-transparent pt-2">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg shadow-red-500/20'
-                        : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {tab.icon}
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.shortLabel}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
+          <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-hide border-b border-border">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                aria-pressed={activeTab === tab.id}
+                className={`flex items-center gap-2 rounded-t-md px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-px ${
+                  activeTab === tab.id
+                    ? 'border-primary-500 text-primary-600 bg-muted'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
+              </button>
+            ))}
+          </div>
 
           {/* Tab Content */}
-          <section className="px-4 pb-16">
-            <div className="max-w-6xl mx-auto">
-              {activeTab === 'pictograms' && <GHSPictogramsSection />}
-              {activeTab === 'compatibility' && <CompatibilitySection />}
-              {activeTab === 'emergency' && <EmergencySection />}
-              {activeTab === 'rules' && <SafetyRulesSection />}
-              {activeTab === 'statements' && <StatementsSection />}
-            </div>
-          </section>
+          <div>
+            {activeTab === 'pictograms' && <GHSPictogramsSection />}
+            {activeTab === 'compatibility' && <CompatibilitySection />}
+            {activeTab === 'emergency' && <EmergencySection />}
+            {activeTab === 'rules' && <SafetyRulesSection />}
+            {activeTab === 'statements' && <StatementsSection />}
+          </div>
         </>
       )}
 
       {/* CTA */}
-      <section className="py-16 px-4 border-t border-white/5">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Explore More Chemistry Tools
-          </h2>
-          <p className="text-slate-400 mb-8">
-            VerChem offers a complete suite of chemistry calculators, environmental tools, and educational resources.
-          </p>
+      <Card className="p-8 text-center">
+        <h2 className="text-2xl font-bold text-foreground mb-3">
+          Explore more chemistry tools
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          VerChem offers a complete suite of chemistry calculators and educational references.
+        </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/tools/equation-balancer"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
-            >
-              Equation Balancer
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/tools/ph-calculator"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
-            >
-              pH Calculator
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/tools/stoichiometry"
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-medium text-white hover:bg-white/20 transition-colors"
-            >
-              Stoichiometry
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/periodic-table"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 px-6 py-3 font-medium text-white hover:from-red-500 hover:to-orange-500 transition-colors"
-            >
-              Interactive Periodic Table
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href="/tools/equation-balancer"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
+          >
+            Equation Balancer
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/tools/ph-calculator"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
+          >
+            pH Calculator
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/tools/stoichiometry"
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
+          >
+            Stoichiometry
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/periodic-table"
+            className="inline-flex items-center gap-2 rounded-md bg-primary-500 text-primary-foreground px-5 py-2.5 font-medium hover:bg-primary-600 transition-colors min-h-[44px]"
+          >
+            Interactive Periodic Table
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-      </section>
+      </Card>
 
       {/* Footer note */}
-      <footer className="py-8 px-4 border-t border-white/5">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-xs text-slate-500 max-w-2xl mx-auto">
-            This safety reference is for educational purposes. Always consult official Safety Data Sheets (SDS) and your institution&apos;s
-            safety protocols before handling chemicals. GHS classifications follow the United Nations&apos; Globally Harmonized System of
-            Classification and Labelling of Chemicals (Rev. 10, 2023).
-          </p>
-        </div>
-      </footer>
-    </div>
+      <p className="text-xs text-muted-foreground max-w-2xl mx-auto text-center">
+        This safety reference is for educational purposes. Always consult official Safety Data Sheets (SDS) and your institution&apos;s
+        safety protocols before handling chemicals. GHS classifications follow the United Nations&apos; Globally Harmonized System of
+        Classification and Labelling of Chemicals (Rev. 10, 2023).
+      </p>
+    </CalcShell>
   )
 }

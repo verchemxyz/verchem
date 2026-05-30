@@ -93,14 +93,14 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
   }, [shareUrl])
 
   return (
-    <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+    <div className="mt-6 rounded-xl border border-border bg-card p-4">
       {!savedId ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm text-slate-400">Save this verified card to your library.</span>
+          <span className="text-sm text-muted-foreground">Save this verified card to your library.</span>
           <button
             onClick={save}
             disabled={busy}
-            className="inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/15 px-4 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/25 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-600 disabled:opacity-50"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h8.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5z" />
@@ -112,36 +112,36 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
       ) : (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-1.5 text-sm text-green-300">
+            <span className="inline-flex items-center gap-1.5 text-sm text-success">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Saved
             </span>
-            <Link href="/account/cards" className="text-sm text-blue-300 underline-offset-2 hover:underline">
+            <Link href="/account/cards" className="text-sm text-primary-600 underline-offset-2 hover:underline">
               View my cards
             </Link>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
               checked={isPublic}
               disabled={busy}
               onChange={(e) => toggleVisibility(e.target.checked)}
-              className="h-4 w-4 rounded border-white/20 bg-white/10"
+              className="h-4 w-4 rounded border-border bg-input"
             />
             Make this card public (anyone with the link can view it)
           </label>
 
           {isPublic && shareUrl && (
             <div className="flex flex-wrap items-center gap-2">
-              <code className="flex-1 min-w-0 truncate rounded-lg bg-black/30 px-3 py-2 text-xs text-slate-300">
+              <code className="flex-1 min-w-0 truncate rounded-lg bg-muted px-3 py-2 text-xs text-foreground">
                 {shareUrl}
               </code>
               <button
                 onClick={copyLink}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
               >
                 {copied ? 'Copied!' : 'Copy link'}
               </button>
@@ -151,7 +151,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
       )}
 
       {needLogin && (
-        <p className="mt-3 text-sm text-yellow-200">
+        <p className="mt-3 text-sm text-warning">
           Please{' '}
           <Link href="/" className="underline">
             log in
@@ -159,7 +159,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
           to save and share verified cards.
         </p>
       )}
-      {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
     </div>
   )
 }
