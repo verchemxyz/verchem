@@ -160,7 +160,7 @@ export default function AccessibleCalculator({
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
           <button
             onClick={() => setShowShortcuts(!showShortcuts)}
-            className="text-sm text-secondary-600 hover:text-primary-600 transition-colors flex items-center gap-2"
+            className="text-sm text-secondary-strong hover:text-primary-600 transition-colors flex items-center gap-2"
             aria-label="Show keyboard shortcuts"
             aria-expanded={showShortcuts}
           >
@@ -221,7 +221,7 @@ export default function AccessibleCalculator({
               </h2>
               <button
                 onClick={() => setShowShortcuts(false)}
-                className="text-secondary-600 hover:text-primary-600 transition-colors"
+                className="text-secondary-strong hover:text-primary-600 transition-colors"
                 aria-label="Close shortcuts"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

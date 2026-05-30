@@ -822,7 +822,7 @@ function StatementsSection() {
                       <td className="px-4 py-3 hidden sm:table-cell">
                         <span className={`text-xs capitalize px-2 py-0.5 rounded border ${
                           h.category === 'physical' ? 'border-warning/40 text-warning-strong' :
-                          h.category === 'health' ? 'border-secondary-500/40 text-secondary-600' :
+                          h.category === 'health' ? 'border-secondary-500/40 text-secondary-strong' :
                           'border-success/40 text-success-strong'
                         }`}>
                           {h.category}

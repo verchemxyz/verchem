@@ -319,7 +319,7 @@ export default function KineticsGraph({
         </div>
         <div>
           <span className="font-medium">k:</span>{' '}
-          <span className="text-secondary-600">{k.toExponential(3)}</span>
+          <span className="text-secondary-strong">{k.toExponential(3)}</span>
         </div>
         <div>
           <span className="font-medium">t½:</span>{' '}

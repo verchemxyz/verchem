@@ -72,6 +72,7 @@
   --info-strong: #0E6E6A;
   --success-strong: #176844;
   --destructive-strong: #A63A32;
+  --secondary-strong: #0E5B57;
 
   /* Gradients — neutralized, single-tone only */
   --gradient-primary: linear-gradient(180deg, #FAFAF6 0%, #F5F5F0 100%);
@@ -115,7 +116,7 @@
   --primary-200: #0c4744;
   --primary-300: #10635f;
   --primary-400: #157f7a;
-  --primary-500: #199B95;
+  --primary-500: #23ABA1;
   --primary-600: #33afa7;
   --primary-700: #66c3bd;
   --primary-800: #99d7d3;
@@ -177,6 +178,7 @@
   --info-strong: #33afa7;
   --success-strong: #3FBE82;
   --destructive-strong: #E88277;
+  --secondary-strong: #4FB8AE;
 
   /* Gradients */
   --gradient-primary: linear-gradient(180deg, #171B20 0%, #1E2329 100%);
@@ -246,6 +248,7 @@
   --color-info-strong: var(--info-strong);
   --color-success-strong: var(--success-strong);
   --color-destructive-strong: var(--destructive-strong);
+  --color-secondary-strong: var(--secondary-strong);
 
   /* Primary color scale */
   --color-primary-50: var(--primary-50);

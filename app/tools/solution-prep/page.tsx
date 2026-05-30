@@ -786,7 +786,7 @@ function MixingCalculator() {
           <InputField label="Volume (V\u2081)" value={v1} onChange={setV1} placeholder="e.g. 50" />
         </div>
         <div className="space-y-3 p-4 rounded-lg border border-secondary-500/40 bg-muted">
-          <p className="text-sm font-semibold text-secondary-600">Solution 2</p>
+          <p className="text-sm font-semibold text-secondary-strong">Solution 2</p>
           <InputField label="Concentration (C\u2082)" value={c2} onChange={setC2} placeholder="e.g. 0.5" />
           <InputField label="Volume (V\u2082)" value={v2} onChange={setV2} placeholder="e.g. 50" />
         </div>

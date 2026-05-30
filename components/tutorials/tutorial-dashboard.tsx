@@ -194,7 +194,7 @@ export function TutorialDashboard() {
                   {Math.round((userData?.totalTimeSpent || 0) / 60)}m
                 </p>
               </div>
-              <Clock className="w-8 h-8 text-secondary-600" />
+              <Clock className="w-8 h-8 text-secondary-strong" />
             </div>
           </motion.div>
         </div>

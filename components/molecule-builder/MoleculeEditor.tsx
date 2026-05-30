@@ -697,7 +697,7 @@ export default function MoleculeEditor({
             <span className="text-primary-600">
               <span className="text-muted-foreground">ATOMS:</span> {atoms.length}
             </span>
-            <span className="text-secondary-600">
+            <span className="text-secondary-strong">
               <span className="text-muted-foreground">BONDS:</span> {bonds.length}
             </span>
           </div>

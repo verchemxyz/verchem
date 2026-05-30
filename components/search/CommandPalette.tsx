@@ -230,9 +230,9 @@ function CommandItem({
       case 'popular':
         return 'text-warning-strong'
       case 'bookmark':
-        return 'text-secondary-600'
+        return 'text-secondary-strong'
       case 'command':
-        return 'text-secondary-600'
+        return 'text-secondary-strong'
       default:
         return 'text-muted-foreground'
     }

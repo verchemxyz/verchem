@@ -506,7 +506,7 @@ function OrbitalsTab() {
                   <div key={mlVal} className="rounded-md border border-border bg-muted p-1.5 text-center min-w-[40px]">
                     <div className="flex justify-center gap-0.5 text-xs mb-0.5">
                       <span className="text-primary-600">{'\u2191'}</span>
-                      <span className="text-secondary-600">{'\u2193'}</span>
+                      <span className="text-secondary-strong">{'\u2193'}</span>
                     </div>
                     <p className="text-[10px] text-muted-foreground">{mlVal >= 0 ? '+' : ''}{mlVal}</p>
                   </div>

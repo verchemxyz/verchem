@@ -91,7 +91,7 @@ export default function Toolbar({
       {/* Info / Helper */}
       <div className="mt-2 p-3 rounded-lg bg-muted border border-border text-[10px] text-muted-foreground leading-relaxed space-y-1">
         <p><span className="text-primary-600 font-bold">Tip:</span> Drag between atoms to create bonds.</p>
-        <p><span className="text-secondary-600 font-bold">Pro:</span> Click existing bond to cycle order (1-2-3).</p>
+        <p><span className="text-secondary-strong font-bold">Pro:</span> Click existing bond to cycle order (1-2-3).</p>
       </div>
 
       {/* Common Molecules Quick-Add */}

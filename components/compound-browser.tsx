@@ -404,7 +404,7 @@ export default function CompoundBrowser({
               <div className="text-sm text-muted-foreground">Organic Compounds</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-secondary-600">
+              <div className="text-2xl font-bold text-secondary-strong">
                 {statistics.categories.inorganic || 0}
               </div>
               <div className="text-sm text-muted-foreground">Inorganic Compounds</div>

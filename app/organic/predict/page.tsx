@@ -134,7 +134,7 @@ export default function ReactionPredictorPage() {
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 text-center">
             {/* From */}
             <div className="bg-muted border border-secondary-500/40 rounded-md p-4 flex-1 w-full">
-              <div className="text-xs text-secondary-600 font-medium uppercase mb-1">Starting Material</div>
+              <div className="text-xs text-secondary-strong font-medium uppercase mb-1">Starting Material</div>
               <div className="text-lg font-bold text-foreground">{fromGroup?.name}</div>
               <div className="text-sm text-muted-foreground font-mono">{fromGroup?.structure}</div>
             </div>

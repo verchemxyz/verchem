@@ -41,7 +41,7 @@ export function UnitSystemToggle({ className = '', compact = false }: UnitSystem
           SI
         </span>
         <span className="text-muted-foreground">/</span>
-        <span className={system === 'Imperial' ? 'text-secondary-600' : 'text-muted-foreground'}>
+        <span className={system === 'Imperial' ? 'text-secondary-strong' : 'text-muted-foreground'}>
           US
         </span>
       </button>
@@ -64,7 +64,7 @@ export function UnitSystemToggle({ className = '', compact = false }: UnitSystem
         onClick={() => setSystem('Imperial')}
         className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
           system === 'Imperial'
-            ? 'bg-card text-secondary-600 shadow-sm'
+            ? 'bg-card text-secondary-strong shadow-sm'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

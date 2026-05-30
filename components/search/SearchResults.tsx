@@ -228,7 +228,7 @@ function SearchResultCard({ result }: { result: SearchResult }) {
       case 'element':
         return 'text-success-strong bg-success/10'
       case 'calculator':
-        return 'text-secondary-600 bg-secondary-50'
+        return 'text-secondary-strong bg-secondary-50'
       case 'help':
         return 'text-warning-strong bg-warning/10'
       default:
@@ -310,7 +310,7 @@ function SearchResultItem({ result }: { result: SearchResult }) {
       case 'element':
         return 'text-success-strong bg-success/10'
       case 'calculator':
-        return 'text-secondary-600 bg-secondary-50'
+        return 'text-secondary-strong bg-secondary-50'
       case 'help':
         return 'text-warning-strong bg-warning/10'
       default:
@@ -376,7 +376,7 @@ function CompactSearchResult({ result }: { result: SearchResult }) {
       case 'element':
         return 'text-success-strong'
       case 'calculator':
-        return 'text-secondary-600'
+        return 'text-secondary-strong'
       case 'help':
         return 'text-warning-strong'
       default:
