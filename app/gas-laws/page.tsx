@@ -3,6 +3,19 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
+  CalcShell,
+  Card,
+  SectionTitle,
+  Button,
+  Field,
+  FormulaBlock,
+  ModeGrid,
+  ModeButton,
+  ResultPanel,
+  StepList,
+  ErrorBanner,
+} from '@/components/lab'
+import {
   idealGasLaw,
   combinedGasLaw,
   boylesLaw,
@@ -29,6 +42,18 @@ type CalculatorMode =
   | 'daltons-law'
   | 'grahams-law'
   | 'van-der-waals'
+
+const MODES: { id: CalculatorMode; label: string }[] = [
+  { id: 'ideal-gas', label: 'Ideal Gas Law (PV=nRT)' },
+  { id: 'combined-gas', label: 'Combined Gas Law' },
+  { id: 'boyles-law', label: "Boyle's Law (P↔V)" },
+  { id: 'charles-law', label: "Charles's Law (V↔T)" },
+  { id: 'gay-lussacs-law', label: "Gay-Lussac's (P↔T)" },
+  { id: 'avogadros-law', label: "Avogadro's (V↔n)" },
+  { id: 'daltons-law', label: "Dalton's (Partial P)" },
+  { id: 'grahams-law', label: "Graham's (Effusion)" },
+  { id: 'van-der-waals', label: 'Van der Waals (Real)' },
+]
 
 export default function GasLawsPage() {
   const [mode, setMode] = useState<CalculatorMode>('ideal-gas')
@@ -398,770 +423,415 @@ export default function GasLawsPage() {
   }
 
   return (
-    <div className="min-h-screen hero-gradient-premium">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center animate-float-premium shadow-lg">
-              <span className="text-white font-bold text-xl">V</span>
-            </div>
-            <h1 className="text-2xl font-bold">
-              <span className="text-premium">VerChem</span>
-            </h1>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/gas-laws/enhanced-page"
-              className="badge-premium"
-            >
-              ⚡ Enhanced (uncertainty)
-            </Link>
-            <Link href="/" className="text-muted-foreground hover:text-primary-600 transition-colors font-medium">
-              ← Back to Home
-            </Link>
-          </div>
-        </div>
-      </header>
+    <CalcShell
+      eyebrow="Physical chemistry · 9 gas laws"
+      title="Gas Laws"
+      subtitle="Ideal gas, combined gas law, and real-gas calculations with step-by-step solutions."
+      backHref="/"
+      backLabel="Home"
+      action={
+        <Link
+          href="/gas-laws/enhanced-page"
+          className="inline-flex items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium px-4 py-2 min-h-[44px]"
+        >
+          Enhanced (uncertainty)
+        </Link>
+      }
+    >
+      {/* Mode Selector */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Select gas law</SectionTitle>
+        <ModeGrid>
+          {MODES.map((m) => (
+            <ModeButton
+              key={m.id}
+              active={mode === m.id}
+              onClick={() => setMode(m.id)}
+              title={m.label}
+            />
+          ))}
+        </ModeGrid>
+      </Card>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Title */}
-        <div className="text-center mb-12">
-          <div className="badge-premium mb-4">💨 Physical Chemistry • 9 Gas Laws</div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="text-premium">Gas Laws</span>
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 via-secondary-600 to-pink-600 bg-clip-text text-transparent">
-              Calculator
-            </span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Ideal gas, combined gas law, and gas property calculations with step-by-step solutions
-          </p>
-        </div>
+      {/* Calculator Input */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Input parameters</SectionTitle>
 
-        {/* Mode Selector */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Select Gas Law</h2>
+        {/* Ideal Gas Law */}
+        {mode === 'ideal-gas' && (
+          <div className="space-y-4">
+            <FormulaBlock>PV = nRT</FormulaBlock>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { id: 'ideal-gas', label: 'Ideal Gas Law (PV=nRT)', icon: '⚛️' },
-              { id: 'combined-gas', label: 'Combined Gas Law', icon: '🔄' },
-              { id: 'boyles-law', label: "Boyle's Law (P↔V)", icon: '📉' },
-              { id: 'charles-law', label: "Charles's Law (V↔T)", icon: '🌡️' },
-              { id: 'gay-lussacs-law', label: "Gay-Lussac's (P↔T)", icon: '🔥' },
-              { id: 'avogadros-law', label: "Avogadro's (V↔n)", icon: '🔢' },
-              { id: 'daltons-law', label: "Dalton's (Partial P)", icon: '➕' },
-              { id: 'grahams-law', label: "Graham's (Effusion)", icon: '💨' },
-              { id: 'van-der-waals', label: 'Van der Waals (Real)', icon: '⚙️' },
-            ].map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMode(m.id as CalculatorMode)}
-                className={`p-4 rounded-xl font-semibold transition-all ${
-                  mode === m.id
-                    ? 'btn-premium glow-premium text-white shadow-xl scale-105'
-                    : 'bg-surface hover:bg-surface-hover text-foreground hover:scale-102'
-                }`}
+            <Field label="Solve for" htmlFor="solveFor">
+              <select
+                id="solveFor"
+                value={solveFor}
+                onChange={(e) => setSolveFor(e.target.value as 'P' | 'V' | 'n' | 'T')}
+                className="input-premium w-full"
               >
-                <div className="text-2xl mb-1">{m.icon}</div>
-                <div className="text-sm">{m.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+                <option value="P">Pressure (P)</option>
+                <option value="V">Volume (V)</option>
+                <option value="n">Moles (n)</option>
+                <option value="T">Temperature (T)</option>
+              </select>
+            </Field>
 
-        {/* Calculator Input */}
-        <div className="premium-card p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Input Parameters</h2>
-
-          {/* Ideal Gas Law */}
-          {mode === 'ideal-gas' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-3xl font-bold text-pink-600">PV = nRT</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Solve For:
-                </label>
-                <select
-                  value={solveFor}
-                  onChange={(e) => setSolveFor(e.target.value as 'P' | 'V' | 'n' | 'T')}
-                  className="input-premium w-full"
-                >
-                  <option value="P">Pressure (P)</option>
-                  <option value="V">Volume (V)</option>
-                  <option value="n">Moles (n)</option>
-                  <option value="T">Temperature (T)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {solveFor !== 'P' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Pressure (atm)
-                    </label>
-                    <input
-                      type="number"
-                      value={P}
-                      onChange={(e) => setP(e.target.value)}
-                      className="input-premium w-full"
-                    />
-                  </div>
-                )}
-                {solveFor !== 'V' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Volume (L)
-                    </label>
-                    <input
-                      type="number"
-                      value={V}
-                      onChange={(e) => setV(e.target.value)}
-                      className="input-premium w-full"
-                    />
-                  </div>
-                )}
-                {solveFor !== 'n' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Moles (mol)
-                    </label>
-                    <input
-                      type="number"
-                      value={n}
-                      onChange={(e) => setN(e.target.value)}
-                      className="input-premium w-full"
-                    />
-                  </div>
-                )}
-                {solveFor !== 'T' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Temperature (K)
-                    </label>
-                    <input
-                      type="number"
-                      value={T}
-                      onChange={(e) => setT(e.target.value)}
-                      className="input-premium w-full"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="text-sm text-gray-600">
-                R = 0.08206 L·atm/(mol·K) | STP: 273.15 K, 1 atm, 22.4 L/mol
-              </div>
-            </div>
-          )}
-
-          {/* Combined Gas Law */}
-          {mode === 'combined-gas' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">
-                  (P₁V₁)/T₁ = (P₂V₂)/T₂
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="border-2 border-pink-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-3">Initial State</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        P₁ (atm)
-                      </label>
-                      <input
-                        type="number"
-                        value={P1}
-                        onChange={(e) => setP1(e.target.value)}
-                        className="input-premium w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        V₁ (L)
-                      </label>
-                      <input
-                        type="number"
-                        value={V1}
-                        onChange={(e) => setV1(e.target.value)}
-                        className="input-premium w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        T₁ (K)
-                      </label>
-                      <input
-                        type="number"
-                        value={T1}
-                        onChange={(e) => setT1(e.target.value)}
-                        className="input-premium w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-2 border-purple-200 rounded-lg p-4">
-                  <h3 className="font-semibold mb-3">Final State (leave one blank)</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        P₂ (atm)
-                      </label>
-                      <input
-                        type="number"
-                        value={P2}
-                        onChange={(e) => setP2(e.target.value)}
-                        placeholder="Leave blank to solve"
-                        className="input-premium w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        V₂ (L)
-                      </label>
-                      <input
-                        type="number"
-                        value={V2}
-                        onChange={(e) => setV2(e.target.value)}
-                        placeholder="Leave blank to solve"
-                        className="input-premium w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1">
-                        T₂ (K)
-                      </label>
-                      <input
-                        type="number"
-                        value={T2}
-                        onChange={(e) => setT2(e.target.value)}
-                        placeholder="Leave blank to solve"
-                        className="input-premium w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Boyle's Law */}
-          {mode === 'boyles-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">P₁V₁ = P₂V₂</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  (constant T, n) - Pressure ∝ 1/Volume
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    P₁ (atm)
-                  </label>
-                  <input
-                    type="number"
-                    value={P1}
-                    onChange={(e) => setP1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₁ (L)
-                  </label>
-                  <input
-                    type="number"
-                    value={V1}
-                    onChange={(e) => setV1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₂ (L)
-                  </label>
-                  <input
-                    type="number"
-                    value={V2}
-                    onChange={(e) => setV2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">P₂ will be calculated</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Charles's Law */}
-          {mode === 'charles-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">V₁/T₁ = V₂/T₂</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  (constant P, n) - Volume ∝ Temperature
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₁ (L)
-                  </label>
-                  <input
-                    type="number"
-                    value={V1}
-                    onChange={(e) => setV1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    T₁ (K)
-                  </label>
-                  <input
-                    type="number"
-                    value={T1}
-                    onChange={(e) => setT1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    T₂ (K)
-                  </label>
-                  <input
-                    type="number"
-                    value={T2}
-                    onChange={(e) => setT2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">V₂ will be calculated</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Gay-Lussac's Law */}
-          {mode === 'gay-lussacs-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">P₁/T₁ = P₂/T₂</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  (constant V, n) - Pressure ∝ Temperature
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    P₁ (atm)
-                  </label>
-                  <input
-                    type="number"
-                    value={P1}
-                    onChange={(e) => setP1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    T₁ (K)
-                  </label>
-                  <input
-                    type="number"
-                    value={T1}
-                    onChange={(e) => setT1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    T₂ (K)
-                  </label>
-                  <input
-                    type="number"
-                    value={T2}
-                    onChange={(e) => setT2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">P₂ will be calculated</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Avogadro's Law */}
-          {mode === 'avogadros-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">V₁/n₁ = V₂/n₂</div>
-                <div className="text-sm text-gray-600 mt-1">
-                  (constant P, T) - Volume ∝ Moles
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    V₁ (L)
-                  </label>
-                  <input
-                    type="number"
-                    value={V1}
-                    onChange={(e) => setV1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    n₁ (mol)
-                  </label>
-                  <input
-                    type="number"
-                    value={n}
-                    onChange={(e) => setN(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    n₂ (mol)
-                  </label>
-                  <input
-                    type="number"
-                    value={T2}
-                    onChange={(e) => setT2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">V₂ will be calculated</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dalton's Law */}
-          {mode === 'daltons-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">
-                  P_total = P₁ + P₂ + P₃ + ...
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Law of Partial Pressures
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {partialPressures.map((pp, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      value={pp.gas}
-                      onChange={(e) => {
-                        const newPP = [...partialPressures]
-                        newPP[index].gas = e.target.value
-                        setPartialPressures(newPP)
-                      }}
-                      placeholder="Gas name"
-                      className="w-24 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none text-gray-900"
-                    />
-                    <input
-                      type="number"
-                      value={pp.pressure}
-                      onChange={(e) => {
-                        const newPP = [...partialPressures]
-                        newPP[index].pressure = parseFloat(e.target.value)
-                        setPartialPressures(newPP)
-                      }}
-                      className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-pink-500 focus:outline-none"
-                    />
-                    <span className="w-12">atm</span>
-                    <button
-                      onClick={() => {
-                        setPartialPressures(partialPressures.filter((_, i) => i !== index))
-                      }}
-                      className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={() => {
-                  setPartialPressures([
-                    ...partialPressures,
-                    { gas: 'Gas', pressure: 0.1, unit: 'atm' },
-                  ])
-                }}
-                className="w-full px-4 py-2 bg-pink-100 text-pink-700 rounded-lg font-semibold hover:bg-pink-200 transition-colors"
-              >
-                + Add Gas
-              </button>
-            </div>
-          )}
-
-          {/* Graham's Law */}
-          {mode === 'grahams-law' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-2xl font-bold text-pink-600">
-                  rate₁/rate₂ = √(M₂/M₁)
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Lighter gases effuse/diffuse faster
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Molar Mass 1 (g/mol)
-                  </label>
-                  <input
-                    type="number"
-                    value={M1}
-                    onChange={(e) => setM1(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Molar Mass 2 (g/mol)
-                  </label>
-                  <input
-                    type="number"
-                    value={M2}
-                    onChange={(e) => setM2(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rate 1 (optional, default=1)
-                  </label>
-                  <input
-                    type="number"
-                    value={rate1}
-                    onChange={(e) => setRate1(e.target.value)}
-                    placeholder="1.0"
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">rate₂ will be calculated</div>
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-600">
-                Example: H₂ (M=2) vs O₂ (M=32) → H₂ effuses 4x faster!
-              </div>
-            </div>
-          )}
-
-          {/* Van der Waals */}
-          {mode === 'van-der-waals' && (
-            <div className="space-y-4">
-              <div className="text-center py-4 bg-pink-50 rounded-lg mb-4">
-                <div className="text-xl font-bold text-pink-600">
-                  [P + a(n/V)²](V - nb) = nRT
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  Real Gas Equation (accounts for molecular size & interactions)
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Gas
-                </label>
-                <select
-                  value={selectedGas}
-                  onChange={(e) => setSelectedGas(e.target.value)}
-                  className="input-premium w-full"
-                >
-                  {Object.keys(VAN_DER_WAALS_CONSTANTS).map((gas) => (
-                    <option key={gas} value={gas}>
-                      {gas}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Moles (mol)
-                  </label>
-                  <input
-                    type="number"
-                    value={vdwN}
-                    onChange={(e) => setVdwN(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Volume (L)
-                  </label>
-                  <input
-                    type="number"
-                    value={vdwV}
-                    onChange={(e) => setVdwV(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Temperature (K)
-                  </label>
-                  <input
-                    type="number"
-                    value={vdwT}
-                    onChange={(e) => setVdwT(e.target.value)}
-                    className="input-premium w-full"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <div className="text-sm text-gray-600">Pressure will be calculated</div>
-                </div>
-              </div>
-
-              {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS] && (
-                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                  Constants: a = {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS].a}{' '}
-                  L²·atm/mol², b = {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS].b}{' '}
-                  L/mol
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              {solveFor !== 'P' && (
+                <Field label="Pressure (atm)">
+                  <input type="number" value={P} onChange={(e) => setP(e.target.value)} className="input-premium w-full" />
+                </Field>
+              )}
+              {solveFor !== 'V' && (
+                <Field label="Volume (L)">
+                  <input type="number" value={V} onChange={(e) => setV(e.target.value)} className="input-premium w-full" />
+                </Field>
+              )}
+              {solveFor !== 'n' && (
+                <Field label="Moles (mol)">
+                  <input type="number" value={n} onChange={(e) => setN(e.target.value)} className="input-premium w-full" />
+                </Field>
+              )}
+              {solveFor !== 'T' && (
+                <Field label="Temperature (K)">
+                  <input type="number" value={T} onChange={(e) => setT(e.target.value)} className="input-premium w-full" />
+                </Field>
               )}
             </div>
-          )}
 
-          {/* Calculate Button */}
-          <button
-            onClick={calculate}
-            className="btn-premium glow-premium w-full mt-6 px-8 py-4 text-lg"
-          >
-            🚀 Calculate Results
-          </button>
-
-          {/* Quick Examples */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={() => loadExample('ideal-gas')}
-              className="px-3 py-1 text-sm bg-surface hover:bg-surface-hover text-foreground rounded transition-colors"
-            >
-              Example: STP Conditions
-            </button>
-            <button
-              onClick={() => loadExample('daltons-law')}
-              className="px-3 py-1 text-sm bg-surface hover:bg-surface-hover text-foreground rounded transition-colors"
-            >
-              Example: Air Composition
-            </button>
+            <p className="text-sm text-muted-foreground">
+              R = 0.08206 L·atm/(mol·K) | STP: 273.15 K, 1 atm, 22.4 L/mol
+            </p>
           </div>
-        </div>
+        )}
 
-        {/* Error Display */}
-        {error && (
-          <div className="premium-card border-2 border-red-300 p-6 mb-6 bg-red-50/50">
-            <div className="flex items-center gap-2 text-red-700 font-semibold mb-2">
-              <span className="text-2xl">⚠️</span>
-              Error
+        {/* Combined Gas Law */}
+        {mode === 'combined-gas' && (
+          <div className="space-y-4">
+            <FormulaBlock>(P₁V₁)/T₁ = (P₂V₂)/T₂</FormulaBlock>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-4">
+                <h3 className="font-semibold text-foreground mb-3">Initial state</h3>
+                <div className="space-y-3">
+                  <Field label="P₁ (atm)">
+                    <input type="number" value={P1} onChange={(e) => setP1(e.target.value)} className="input-premium w-full" />
+                  </Field>
+                  <Field label="V₁ (L)">
+                    <input type="number" value={V1} onChange={(e) => setV1(e.target.value)} className="input-premium w-full" />
+                  </Field>
+                  <Field label="T₁ (K)">
+                    <input type="number" value={T1} onChange={(e) => setT1(e.target.value)} className="input-premium w-full" />
+                  </Field>
+                </div>
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="font-semibold text-foreground mb-3">Final state (leave one blank)</h3>
+                <div className="space-y-3">
+                  <Field label="P₂ (atm)">
+                    <input type="number" value={P2} onChange={(e) => setP2(e.target.value)} placeholder="Leave blank to solve" className="input-premium w-full" />
+                  </Field>
+                  <Field label="V₂ (L)">
+                    <input type="number" value={V2} onChange={(e) => setV2(e.target.value)} placeholder="Leave blank to solve" className="input-premium w-full" />
+                  </Field>
+                  <Field label="T₂ (K)">
+                    <input type="number" value={T2} onChange={(e) => setT2(e.target.value)} placeholder="Leave blank to solve" className="input-premium w-full" />
+                  </Field>
+                </div>
+              </Card>
             </div>
-            <p className="text-red-600">{error}</p>
           </div>
         )}
 
-        {/* Result Display */}
-        {result && (
-          <div className="premium-card p-8 mb-6 bg-gradient-to-br from-primary-600 to-secondary-600 text-white shadow-2xl">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <span>✨</span> Result
-            </h2>
-            <div className="text-5xl md:text-6xl font-bold mb-2 animate-pulse-premium">{result}</div>
+        {/* Boyle's Law */}
+        {mode === 'boyles-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="constant T, n — Pressure ∝ 1/Volume">P₁V₁ = P₂V₂</FormulaBlock>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="P₁ (atm)">
+                <input type="number" value={P1} onChange={(e) => setP1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="V₁ (L)">
+                <input type="number" value={V1} onChange={(e) => setV1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="V₂ (L)">
+                <input type="number" value={V2} onChange={(e) => setV2(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">P₂ will be calculated</p>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Step-by-Step Solution */}
-        {steps.length > 0 && (
-          <div className="premium-card p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-foreground">
-              <span className="text-2xl">📝</span>
-              Step-by-Step Solution
-            </h2>
-            <div className="space-y-2 font-mono text-sm bg-surface/50 p-6 rounded-lg">
-              {steps.map((step, index) => (
-                <div
-                  key={index}
-                  className={step === '' ? 'h-2' : 'text-foreground'}
-                >
-                  {step}
+        {/* Charles's Law */}
+        {mode === 'charles-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="constant P, n — Volume ∝ Temperature">V₁/T₁ = V₂/T₂</FormulaBlock>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="V₁ (L)">
+                <input type="number" value={V1} onChange={(e) => setV1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="T₁ (K)">
+                <input type="number" value={T1} onChange={(e) => setT1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="T₂ (K)">
+                <input type="number" value={T2} onChange={(e) => setT2(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">V₂ will be calculated</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Gay-Lussac's Law */}
+        {mode === 'gay-lussacs-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="constant V, n — Pressure ∝ Temperature">P₁/T₁ = P₂/T₂</FormulaBlock>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="P₁ (atm)">
+                <input type="number" value={P1} onChange={(e) => setP1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="T₁ (K)">
+                <input type="number" value={T1} onChange={(e) => setT1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="T₂ (K)">
+                <input type="number" value={T2} onChange={(e) => setT2(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">P₂ will be calculated</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Avogadro's Law */}
+        {mode === 'avogadros-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="constant P, T — Volume ∝ Moles">V₁/n₁ = V₂/n₂</FormulaBlock>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="V₁ (L)">
+                <input type="number" value={V1} onChange={(e) => setV1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="n₁ (mol)">
+                <input type="number" value={n} onChange={(e) => setN(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="n₂ (mol)">
+                <input type="number" value={T2} onChange={(e) => setT2(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">V₂ will be calculated</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dalton's Law */}
+        {mode === 'daltons-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="Law of Partial Pressures">P_total = P₁ + P₂ + P₃ + ...</FormulaBlock>
+
+            <div className="space-y-3">
+              {partialPressures.map((pp, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={pp.gas}
+                    onChange={(e) => {
+                      const newPP = [...partialPressures]
+                      newPP[index].gas = e.target.value
+                      setPartialPressures(newPP)
+                    }}
+                    placeholder="Gas name"
+                    aria-label="Gas name"
+                    className="input-premium w-28"
+                  />
+                  <input
+                    type="number"
+                    value={pp.pressure}
+                    onChange={(e) => {
+                      const newPP = [...partialPressures]
+                      newPP[index].pressure = parseFloat(e.target.value)
+                      setPartialPressures(newPP)
+                    }}
+                    aria-label="Partial pressure (atm)"
+                    className="input-premium flex-1"
+                  />
+                  <span className="w-12 text-muted-foreground text-sm">atm</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPartialPressures(partialPressures.filter((_, i) => i !== index))
+                    }}
+                    aria-label="Remove gas"
+                    className="p-2 rounded-md text-destructive hover:bg-destructive/10 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
+
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                setPartialPressures([
+                  ...partialPressures,
+                  { gas: 'Gas', pressure: 0.1, unit: 'atm' },
+                ])
+              }}
+            >
+              Add gas
+            </Button>
           </div>
         )}
 
-        {/* Reference Info */}
-        <div className="premium-card p-6">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Quick Reference</h2>
+        {/* Graham's Law */}
+        {mode === 'grahams-law' && (
+          <div className="space-y-4">
+            <FormulaBlock label="Lighter gases effuse/diffuse faster">rate₁/rate₂ = √(M₂/M₁)</FormulaBlock>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Molar mass 1 (g/mol)">
+                <input type="number" value={M1} onChange={(e) => setM1(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="Molar mass 2 (g/mol)">
+                <input type="number" value={M2} onChange={(e) => setM2(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="Rate 1 (optional, default = 1)">
+                <input type="number" value={rate1} onChange={(e) => setRate1(e.target.value)} placeholder="1.0" className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">rate₂ will be calculated</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Example: H₂ (M=2) vs O₂ (M=32) → H₂ effuses 4× faster.
+            </p>
+          </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-pink-600 mb-2">Gas Constants</h3>
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>• R = 0.08206 L·atm/(mol·K)</li>
-                <li>• R = 8.314 J/(mol·K)</li>
-                <li>• R = 62.36 L·mmHg/(mol·K)</li>
-                <li>• STP: 273.15 K, 1 atm, 22.4 L/mol</li>
-              </ul>
+        {/* Van der Waals */}
+        {mode === 'van-der-waals' && (
+          <div className="space-y-4">
+            <FormulaBlock label="Real gas — accounts for molecular size & interactions">
+              [P + a(n/V)²](V - nb) = nRT
+            </FormulaBlock>
+
+            <Field label="Select gas" htmlFor="vdwGas">
+              <select
+                id="vdwGas"
+                value={selectedGas}
+                onChange={(e) => setSelectedGas(e.target.value)}
+                className="input-premium w-full"
+              >
+                {Object.keys(VAN_DER_WAALS_CONSTANTS).map((gas) => (
+                  <option key={gas} value={gas}>
+                    {gas}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Moles (mol)">
+                <input type="number" value={vdwN} onChange={(e) => setVdwN(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="Volume (L)">
+                <input type="number" value={vdwV} onChange={(e) => setVdwV(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <Field label="Temperature (K)">
+                <input type="number" value={vdwT} onChange={(e) => setVdwT(e.target.value)} className="input-premium w-full" />
+              </Field>
+              <div className="flex items-end">
+                <p className="text-sm text-muted-foreground">Pressure will be calculated</p>
+              </div>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-pink-600 mb-2">Temperature Conversions</h3>
-              <ul className="space-y-1 text-sm text-gray-700">
-                <li>• K = °C + 273.15</li>
-                <li>• °C = K - 273.15</li>
-                <li>• °F = (9/5)°C + 32</li>
-                <li>• Always use Kelvin in gas law calculations!</li>
-              </ul>
-            </div>
+            {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS] && (
+              <p className="text-sm text-muted-foreground font-mono bg-muted border border-border p-3 rounded-md">
+                Constants: a = {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS].a}{' '}
+                L²·atm/mol², b = {VAN_DER_WAALS_CONSTANTS[selectedGas as keyof typeof VAN_DER_WAALS_CONSTANTS].b}{' '}
+                L/mol
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Calculate Button */}
+        <Button onClick={calculate} className="w-full mt-6">
+          Calculate
+        </Button>
+
+        {/* Quick Examples */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => loadExample('ideal-gas')}
+            className="text-sm px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            Example: STP conditions
+          </button>
+          <button
+            type="button"
+            onClick={() => loadExample('daltons-law')}
+            className="text-sm px-3 py-1.5 rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            Example: Air composition
+          </button>
+        </div>
+      </Card>
+
+      {/* Error Display */}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
+
+      {/* Result Display */}
+      {result && <ResultPanel>{result}</ResultPanel>}
+
+      {/* Step-by-Step Solution */}
+      {steps.length > 0 && <StepList steps={steps} />}
+
+      {/* Reference Info */}
+      <Card className="p-6">
+        <SectionTitle className="mb-4">Quick reference</SectionTitle>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-semibold text-primary-600 mb-2">Gas constants</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>R = 0.08206 L·atm/(mol·K)</li>
+              <li>R = 8.314 J/(mol·K)</li>
+              <li>R = 62.36 L·mmHg/(mol·K)</li>
+              <li>STP: 273.15 K, 1 atm, 22.4 L/mol</li>
+            </ul>
           </div>
 
-          <div className="mt-6 p-4 bg-pink-50 rounded-lg">
-            <h3 className="font-semibold text-pink-700 mb-2">💡 Key Relationships</h3>
-            <ul className="space-y-1 text-sm text-pink-600">
-              <li>• Boyle: P ↑ → V ↓ (inverse)</li>
-              <li>• Charles: T ↑ → V ↑ (direct)</li>
-              <li>• Gay-Lussac: T ↑ → P ↑ (direct)</li>
-              <li>• Avogadro: n ↑ → V ↑ (direct)</li>
-              <li>• Real gases deviate from ideal at high P, low T</li>
+          <div>
+            <h3 className="font-semibold text-primary-600 mb-2">Temperature conversions</h3>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>K = °C + 273.15</li>
+              <li>°C = K - 273.15</li>
+              <li>°F = (9/5)°C + 32</li>
+              <li>Always use Kelvin in gas law calculations.</li>
             </ul>
           </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-6 p-4 bg-muted border border-border rounded-md">
+          <h3 className="font-semibold text-foreground mb-2">Key relationships</h3>
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            <li>Boyle: P ↑ → V ↓ (inverse)</li>
+            <li>Charles: T ↑ → V ↑ (direct)</li>
+            <li>Gay-Lussac: T ↑ → P ↑ (direct)</li>
+            <li>Avogadro: n ↑ → V ↑ (direct)</li>
+            <li>Real gases deviate from ideal at high P, low T</li>
+          </ul>
+        </div>
+      </Card>
+    </CalcShell>
   )
 }
