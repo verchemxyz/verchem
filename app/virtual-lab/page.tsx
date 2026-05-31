@@ -18,66 +18,6 @@ export default function VirtualLabPage() {
       status: 'available',
       link: '/virtual-lab/titration',
     },
-    {
-      id: 'reactions',
-      name: 'Chemical Reactions',
-      description: 'Mix chemicals and watch reactions happen in real-time',
-      difficulty: 'Beginner',
-      time: '5-10 min',
-      features: [
-        'Explosive reactions',
-        'Precipitate formation',
-        'Gas evolution',
-        'Color changes',
-      ],
-      status: 'coming-soon',
-      link: '#',
-    },
-    {
-      id: 'gas-laws',
-      name: 'Gas Laws Lab',
-      description: 'Visualize molecular motion and see PV=nRT in action',
-      difficulty: 'Intermediate',
-      time: '10-15 min',
-      features: [
-        'Molecular motion animation',
-        'Pressure/volume control',
-        'Temperature effects',
-        'Real-time graphing',
-      ],
-      status: 'coming-soon',
-      link: '#',
-    },
-    {
-      id: 'electrochemistry',
-      name: 'Electrochemistry Lab',
-      description: 'Build galvanic cells and see electron flow',
-      difficulty: 'Advanced',
-      time: '15-20 min',
-      features: [
-        'Cell potential calculation',
-        'Electron flow animation',
-        'Electrode reactions',
-        'Voltmeter display',
-      ],
-      status: 'coming-soon',
-      link: '#',
-    },
-    {
-      id: 'spectroscopy',
-      name: 'Spectroscopy Lab',
-      description: 'Analyze molecular structures using IR, UV-Vis, and NMR',
-      difficulty: 'Advanced',
-      time: '20-30 min',
-      features: [
-        'IR spectroscopy',
-        'UV-Vis absorption',
-        'NMR analysis',
-        'Peak annotation',
-      ],
-      status: 'coming-soon',
-      link: '#',
-    },
   ]
 
   return (
@@ -105,134 +45,75 @@ export default function VirtualLabPage() {
         ))}
       </div>
 
-      {/* Labs Grid */}
+      {/* Labs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {labs.map((lab) => (
-          <div key={lab.id} className="relative">
-            {lab.status === 'available' ? (
-              <Link href={lab.link} className="group block h-full">
-                <Card className="p-6 h-full transition-colors hover:border-primary-500">
-                  {/* Badge */}
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="text-xl font-bold text-foreground">{lab.name}</h3>
-                    <span className="px-3 py-1 bg-success/10 text-success-strong rounded-full text-xs font-medium shrink-0">
-                      Available
-                    </span>
-                  </div>
+          <Link key={lab.id} href={lab.link} className="group block h-full">
+            <Card className="p-6 h-full transition-colors hover:border-primary-500">
+              {/* Badge */}
+              <div className="flex items-start justify-between mb-4">
+                <h3 className="text-xl font-bold text-foreground">{lab.name}</h3>
+                <span className="px-3 py-1 bg-success/10 text-success-strong rounded-full text-xs font-medium shrink-0">
+                  Available
+                </span>
+              </div>
 
-                  {/* Description */}
-                  <p className="text-muted-foreground mb-4 text-sm">{lab.description}</p>
+              {/* Description */}
+              <p className="text-muted-foreground mb-4 text-sm">{lab.description}</p>
 
-                  {/* Meta */}
-                  <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      {lab.time}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
-                      </svg>
-                      {lab.difficulty}
-                    </div>
-                  </div>
-
-                  {/* Features */}
-                  <ul className="space-y-2">
-                    {lab.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <svg className="w-4 h-4 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA */}
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <span className="text-primary-600 font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
-                      Start Lab
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </div>
-                </Card>
-              </Link>
-            ) : (
-              <Card className="p-6 opacity-60 h-full">
-                {/* Badge */}
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-xl font-bold text-foreground">{lab.name}</h3>
-                  <span className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium shrink-0">
-                    Coming Soon
-                  </span>
+              {/* Meta */}
+              <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {lab.time}
                 </div>
+                <div className="flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  {lab.difficulty}
+                </div>
+              </div>
 
-                {/* Description */}
-                <p className="text-muted-foreground mb-4 text-sm">{lab.description}</p>
-
-                {/* Meta */}
-                <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Features */}
+              <ul className="space-y-2">
+                {lab.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <svg className="w-4 h-4 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
                       />
                     </svg>
-                    {lab.time}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                    {lab.difficulty}
-                  </div>
-                </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
 
-                {/* Features */}
-                <ul className="space-y-2">
-                  {lab.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <svg className="w-4 h-4 text-muted-foreground flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            )}
-          </div>
+              {/* CTA */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <span className="text-primary-600 font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
+                  Start Lab
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
+            </Card>
+          </Link>
         ))}
       </div>
 

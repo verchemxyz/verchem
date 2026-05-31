@@ -3,7 +3,13 @@
 import React, { useState, useMemo } from 'react';
 import { usePreferences } from '@/lib/preferences/context';
 import { PREFERENCE_CATEGORIES, LANGUAGES, REGIONS, THEMES } from '@/lib/preferences/defaults';
-import { PreferenceCategory } from '@/lib/preferences/types';
+import {
+  PreferenceCategory,
+  Viewer3DSettings,
+  MoleculeBuilderSettings,
+  ExportSettings,
+  UISettings,
+} from '@/lib/preferences/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -429,16 +435,580 @@ export function PreferencesPanel({ open, onClose, defaultCategory = 'general' }:
     </div>
   );
 
+  const renderViewer3DSettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Rendering</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="display-style">Display style</Label>
+          <Select
+            value={preferences.viewer3d.displayStyle}
+            onValueChange={(value) => updateCategory('viewer3d', { displayStyle: value as Viewer3DSettings['displayStyle'] })}
+          >
+            <SelectTrigger id="display-style">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ball-stick">Ball &amp; stick</SelectItem>
+              <SelectItem value="space-fill">Space-filling</SelectItem>
+              <SelectItem value="wireframe">Wireframe</SelectItem>
+              <SelectItem value="cartoon">Cartoon</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="atom-colors">Atom color scheme</Label>
+          <Select
+            value={preferences.viewer3d.atomColors}
+            onValueChange={(value) => updateCategory('viewer3d', { atomColors: value as Viewer3DSettings['atomColors'] })}
+          >
+            <SelectTrigger id="atom-colors">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cpk">CPK (standard)</SelectItem>
+              <SelectItem value="shapely">Shapely (residue)</SelectItem>
+              <SelectItem value="chain">By chain</SelectItem>
+              <SelectItem value="temperature">Temperature</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="viewer-quality">Render quality</Label>
+          <Select
+            value={preferences.viewer3d.quality}
+            onValueChange={(value) => updateCategory('viewer3d', { quality: value as Viewer3DSettings['quality'] })}
+          >
+            <SelectTrigger id="viewer-quality">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="ultra">Ultra</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <Label htmlFor="background-color">Background color</Label>
+          <Input
+            id="background-color"
+            type="color"
+            value={preferences.viewer3d.backgroundColor}
+            onChange={(e) => updateCategory('viewer3d', { backgroundColor: e.target.value })}
+            className="h-10 w-16 cursor-pointer p-1"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Motion &amp; effects</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="auto-rotate">Auto-rotate</Label>
+          <Switch
+            id="auto-rotate"
+            checked={preferences.viewer3d.autoRotate}
+            onCheckedChange={(checked) => updateCategory('viewer3d', { autoRotate: checked })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="rotate-speed">Rotation speed: {preferences.viewer3d.autoRotateSpeed.toFixed(1)}×</Label>
+          <Slider
+            id="rotate-speed"
+            min={0.5}
+            max={5}
+            step={0.5}
+            value={[preferences.viewer3d.autoRotateSpeed]}
+            onValueChange={(value) => updateCategory('viewer3d', { autoRotateSpeed: value[0] })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="anti-aliasing">Anti-aliasing</Label>
+          <Switch
+            id="anti-aliasing"
+            checked={preferences.viewer3d.antiAliasing}
+            onCheckedChange={(checked) => updateCategory('viewer3d', { antiAliasing: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="shadows">Shadows</Label>
+          <Switch
+            id="shadows"
+            checked={preferences.viewer3d.shadows}
+            onCheckedChange={(checked) => updateCategory('viewer3d', { shadows: checked })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMoleculeBuilderSettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Canvas</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="grid-size">Grid size: {preferences.moleculeBuilder.gridSize}px</Label>
+          <Slider
+            id="grid-size"
+            min={10}
+            max={40}
+            step={5}
+            value={[preferences.moleculeBuilder.gridSize]}
+            onValueChange={(value) => updateCategory('moleculeBuilder', { gridSize: value[0] })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="show-grid">Show grid</Label>
+          <Switch
+            id="show-grid"
+            checked={preferences.moleculeBuilder.showGrid}
+            onCheckedChange={(checked) => updateCategory('moleculeBuilder', { showGrid: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="snap-grid">Snap to grid</Label>
+          <Switch
+            id="snap-grid"
+            checked={preferences.moleculeBuilder.snapToGrid}
+            onCheckedChange={(checked) => updateCategory('moleculeBuilder', { snapToGrid: checked })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Defaults</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="default-atom">Default atom</Label>
+          <Select
+            value={preferences.moleculeBuilder.defaultAtom}
+            onValueChange={(value) => updateCategory('moleculeBuilder', { defaultAtom: value })}
+          >
+            <SelectTrigger id="default-atom">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {['C', 'H', 'O', 'N', 'S', 'P', 'F', 'Cl', 'Br'].map((atom) => (
+                <SelectItem key={atom} value={atom}>{atom}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="bond-type">Default bond</Label>
+          <Select
+            value={preferences.moleculeBuilder.bondType}
+            onValueChange={(value) => updateCategory('moleculeBuilder', { bondType: value as MoleculeBuilderSettings['bondType'] })}
+          >
+            <SelectTrigger id="bond-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="single">Single</SelectItem>
+              <SelectItem value="double">Double</SelectItem>
+              <SelectItem value="triple">Triple</SelectItem>
+              <SelectItem value="aromatic">Aromatic</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Behavior</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="builder-autosave">Auto-save drafts</Label>
+          <Switch
+            id="builder-autosave"
+            checked={preferences.moleculeBuilder.autoSave}
+            onCheckedChange={(checked) => updateCategory('moleculeBuilder', { autoSave: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="builder-validation">Live valence validation</Label>
+          <Switch
+            id="builder-validation"
+            checked={preferences.moleculeBuilder.validationEnabled}
+            onCheckedChange={(checked) => updateCategory('moleculeBuilder', { validationEnabled: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="builder-tooltips">Tooltips</Label>
+          <Switch
+            id="builder-tooltips"
+            checked={preferences.moleculeBuilder.tooltips}
+            onCheckedChange={(checked) => updateCategory('moleculeBuilder', { tooltips: checked })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderExportSettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Format</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="export-format">Default format</Label>
+          <Select
+            value={preferences.export.defaultFormat}
+            onValueChange={(value) => updateCategory('export', { defaultFormat: value as ExportSettings['defaultFormat'] })}
+          >
+            <SelectTrigger id="export-format">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="png">PNG (image)</SelectItem>
+              <SelectItem value="jpg">JPG (image)</SelectItem>
+              <SelectItem value="svg">SVG (vector)</SelectItem>
+              <SelectItem value="pdf">PDF (document)</SelectItem>
+              <SelectItem value="mol">MOL (structure)</SelectItem>
+              <SelectItem value="sdf">SDF (structure)</SelectItem>
+              <SelectItem value="pdb">PDB (structure)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="color-profile">Color profile</Label>
+          <Select
+            value={preferences.export.colorProfile}
+            onValueChange={(value) => updateCategory('export', { colorProfile: value as ExportSettings['colorProfile'] })}
+          >
+            <SelectTrigger id="color-profile">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sRGB">sRGB</SelectItem>
+              <SelectItem value="AdobeRGB">Adobe RGB</SelectItem>
+              <SelectItem value="ProPhotoRGB">ProPhoto RGB</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Raster quality</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="image-quality">Image quality: {Math.round(preferences.export.imageQuality * 100)}%</Label>
+          <Slider
+            id="image-quality"
+            min={0.1}
+            max={1}
+            step={0.05}
+            value={[preferences.export.imageQuality]}
+            onValueChange={(value) => updateCategory('export', { imageQuality: value[0] })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="resolution">Resolution (DPI)</Label>
+          <Select
+            value={String(preferences.export.resolution)}
+            onValueChange={(value) => updateCategory('export', { resolution: Number(value) })}
+          >
+            <SelectTrigger id="resolution">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="72">72 (screen)</SelectItem>
+              <SelectItem value="150">150 (draft print)</SelectItem>
+              <SelectItem value="300">300 (print)</SelectItem>
+              <SelectItem value="600">600 (high-res)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="transparent-bg">Transparent background</Label>
+          <Switch
+            id="transparent-bg"
+            checked={preferences.export.transparentBackground}
+            onCheckedChange={(checked) => updateCategory('export', { transparentBackground: checked })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Watermark</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="include-watermark">Include watermark</Label>
+          <Switch
+            id="include-watermark"
+            checked={preferences.export.includeWatermark}
+            onCheckedChange={(checked) => updateCategory('export', { includeWatermark: checked })}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="watermark-text">Watermark text</Label>
+          <Input
+            id="watermark-text"
+            value={preferences.export.watermarkText}
+            onChange={(e) => updateCategory('export', { watermarkText: e.target.value })}
+            disabled={!preferences.export.includeWatermark}
+            placeholder="VerChem"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderKeyboardSettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Shortcuts</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="kbd-enabled">Enable keyboard shortcuts</Label>
+          <Switch
+            id="kbd-enabled"
+            checked={preferences.keyboard.enabled}
+            onCheckedChange={(checked) => updateCategory('keyboard', { enabled: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="kbd-hints">Show shortcut hints</Label>
+          <Switch
+            id="kbd-hints"
+            checked={preferences.keyboard.showHints}
+            onCheckedChange={(checked) => updateCategory('keyboard', { showHints: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="kbd-vim">Vim mode</Label>
+          <Switch
+            id="kbd-vim"
+            checked={preferences.keyboard.vimMode}
+            onCheckedChange={(checked) => updateCategory('keyboard', { vimMode: checked })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Reference</h3>
+        <p className="text-sm text-muted-foreground">Common shortcuts available across VerChem tools.</p>
+        <dl className="space-y-2 text-sm">
+          {[
+            { keys: 'Ctrl / ⌘ + K', action: 'Open command palette' },
+            { keys: 'Ctrl / ⌘ + S', action: 'Save current work' },
+            { keys: '/', action: 'Focus search' },
+            { keys: 'Esc', action: 'Close dialog or panel' },
+          ].map((s) => (
+            <div key={s.keys} className="flex items-center justify-between gap-4">
+              <dt className="text-muted-foreground">{s.action}</dt>
+              <dd>
+                <kbd className="rounded border border-border bg-muted px-2 py-0.5 font-mono text-xs text-foreground">{s.keys}</kbd>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+
+  const renderUISettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Layout</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="sidebar-position">Sidebar position</Label>
+          <Select
+            value={preferences.ui.sidebarPosition}
+            onValueChange={(value) => updateCategory('ui', { sidebarPosition: value as UISettings['sidebarPosition'] })}
+          >
+            <SelectTrigger id="sidebar-position">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="left">Left</SelectItem>
+              <SelectItem value="right">Right</SelectItem>
+              <SelectItem value="auto">Auto</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tab-position">Tab position</Label>
+          <Select
+            value={preferences.ui.tabPosition}
+            onValueChange={(value) => updateCategory('ui', { tabPosition: value as UISettings['tabPosition'] })}
+          >
+            <SelectTrigger id="tab-position">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="top">Top</SelectItem>
+              <SelectItem value="side">Side</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="density">Density</Label>
+          <Select
+            value={preferences.ui.density}
+            onValueChange={(value) => updateCategory('ui', { density: value as UISettings['density'] })}
+          >
+            <SelectTrigger id="density">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comfortable">Comfortable</SelectItem>
+              <SelectItem value="compact">Compact</SelectItem>
+              <SelectItem value="spacious">Spacious</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Behavior</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="animation-speed">Animation speed</Label>
+          <Select
+            value={preferences.ui.animationSpeed}
+            onValueChange={(value) => updateCategory('ui', { animationSpeed: value as UISettings['animationSpeed'] })}
+          >
+            <SelectTrigger id="animation-speed">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="slow">Slow</SelectItem>
+              <SelectItem value="normal">Normal</SelectItem>
+              <SelectItem value="fast">Fast</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="compact-mode">Compact mode</Label>
+          <Switch
+            id="compact-mode"
+            checked={preferences.ui.compactMode}
+            onCheckedChange={(checked) => updateCategory('ui', { compactMode: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="ui-tooltips">Show tooltips</Label>
+          <Switch
+            id="ui-tooltips"
+            checked={preferences.ui.showTooltips}
+            onCheckedChange={(checked) => updateCategory('ui', { showTooltips: checked })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPrivacySettings = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Data</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="analytics">Usage analytics</Label>
+          <Switch
+            id="analytics"
+            checked={preferences.privacy.analyticsEnabled}
+            onCheckedChange={(checked) => updateCategory('privacy', { analyticsEnabled: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="data-sharing">Anonymous data sharing</Label>
+          <Switch
+            id="data-sharing"
+            checked={preferences.privacy.dataSharing}
+            onCheckedChange={(checked) => updateCategory('privacy', { dataSharing: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="local-only">Store data on this device only</Label>
+          <Switch
+            id="local-only"
+            checked={preferences.privacy.localStorageOnly}
+            onCheckedChange={(checked) => updateCategory('privacy', { localStorageOnly: checked, ...(checked ? { cloudSync: false } : {}) })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Sync &amp; security</h3>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="cloud-sync">Cloud sync (AIVerID)</Label>
+          <Switch
+            id="cloud-sync"
+            checked={preferences.privacy.cloudSync}
+            disabled={preferences.privacy.localStorageOnly}
+            onCheckedChange={(checked) => updateCategory('privacy', { cloudSync: checked })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="encryption">Encrypt stored preferences</Label>
+          <Switch
+            id="encryption"
+            checked={preferences.privacy.encryptionEnabled}
+            onCheckedChange={(checked) => updateCategory('privacy', { encryptionEnabled: checked })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const categoryComponents: Record<PreferenceCategory, React.ReactNode> = {
     general: renderGeneralSettings(),
     accessibility: renderAccessibilitySettings(),
     calculator: renderCalculatorSettings(),
-    viewer3d: <div>3D Viewer settings coming soon...</div>,
-    moleculeBuilder: <div>Molecule Builder settings coming soon...</div>,
-    export: <div>Export settings coming soon...</div>,
-    keyboard: <div>Keyboard shortcuts coming soon...</div>,
-    ui: <div>Interface settings coming soon...</div>,
-    privacy: <div>Privacy settings coming soon...</div>,
+    viewer3d: renderViewer3DSettings(),
+    moleculeBuilder: renderMoleculeBuilderSettings(),
+    export: renderExportSettings(),
+    keyboard: renderKeyboardSettings(),
+    ui: renderUISettings(),
+    privacy: renderPrivacySettings(),
   };
 
   return (
