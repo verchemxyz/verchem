@@ -34,6 +34,11 @@
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import {
+  SESSION_COOKIE,
+  SESSION_SIG_COOKIE,
+  clearSessionCookies,
+} from '@/lib/auth/cookie-config'
 
 // Verify session signature using HMAC-SHA256
 async function verifySessionSignature(value: string, signature: string): Promise<boolean> {
@@ -154,8 +159,8 @@ export async function proxy(request: NextRequest) {
   // Check if route is protected
   if (isProtectedRoute(pathname)) {
     // Check for session cookie and signature (set during OAuth callback)
-    const sessionCookie = request.cookies.get('verchem-session')
-    const signatureCookie = request.cookies.get('verchem-session-sig')
+    const sessionCookie = request.cookies.get(SESSION_COOKIE)
+    const signatureCookie = request.cookies.get(SESSION_SIG_COOKIE)
 
     // If no session cookie, redirect to login
     if (!sessionCookie?.value) {
@@ -168,11 +173,9 @@ export async function proxy(request: NextRequest) {
     // Verify session signature to prevent cookie forgery
     if (!signatureCookie?.value) {
       console.warn('Session cookie without signature - possible forgery attempt')
-      // Clear invalid cookies and redirect
+      // Clear invalid cookies (matching domain/path) and redirect
       const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      response.cookies.delete('verchem-session')
-      response.cookies.delete('verchem-session-sig')
-      response.cookies.delete('verchem-auth')
+      clearSessionCookies(response)
       return response
     }
 
@@ -180,11 +183,9 @@ export async function proxy(request: NextRequest) {
     const isValid = await verifySessionSignature(sessionCookie.value, signatureCookie.value)
     if (!isValid) {
       console.warn('Invalid session signature - possible forgery attempt')
-      // Clear invalid cookies and redirect
+      // Clear invalid cookies (matching domain/path) and redirect
       const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      response.cookies.delete('verchem-session')
-      response.cookies.delete('verchem-session-sig')
-      response.cookies.delete('verchem-auth')
+      clearSessionCookies(response)
       return response
     }
 
@@ -194,17 +195,13 @@ export async function proxy(request: NextRequest) {
       if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
         console.info('Session expired')
         const response = NextResponse.redirect(new URL('/?error=session_expired', request.url))
-        response.cookies.delete('verchem-session')
-        response.cookies.delete('verchem-session-sig')
-        response.cookies.delete('verchem-auth')
+        clearSessionCookies(response)
         return response
       }
     } catch {
       console.warn('Invalid session data format')
       const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      response.cookies.delete('verchem-session')
-      response.cookies.delete('verchem-session-sig')
-      response.cookies.delete('verchem-auth')
+      clearSessionCookies(response)
       return response
     }
   }

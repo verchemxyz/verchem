@@ -2,39 +2,23 @@
  * Logout API
  *
  * SECURITY (Jan 2026 - Fixed by สมหมาย audit):
- * - Clears cookies with same domain as login (.verchem.xyz)
- * - Must match domain from OAuth callback to properly delete
+ * - Clears cookies with the SAME domain/path as login, or the deletion is a
+ *   no-op for the domain-scoped production cookie.
+ * - Domain/path now come from lib/auth/cookie-config (single source of truth),
+ *   so logout can never drift from how the OAuth callback set them.
  *
- * Last Updated: 2026-01-09
+ * Last Updated: 2026-05-31
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { clearSessionCookies } from '@/lib/auth/cookie-config'
 
 export async function POST(_request: NextRequest) {
   try {
-    await cookies() // Ensure cookies are available
-
-    // Clear all session cookies
+    // Clear all session cookies (verchem-session, -sig, -auth) with the
+    // matching domain/path so they are actually removed.
     const response = NextResponse.json({ success: true })
-
-    const isProduction = process.env.NODE_ENV === 'production'
-
-    // SECURITY: Must use same domain as login to properly delete cookies
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax' as const,
-      path: '/',
-      maxAge: 0, // Delete cookie
-      // Match domain from OAuth callback (critical for proper logout!)
-      ...(isProduction && { domain: '.verchem.xyz' }),
-    }
-
-    response.cookies.set('verchem-session', '', cookieOptions)
-    response.cookies.set('verchem-session-sig', '', cookieOptions)
-    response.cookies.set('verchem-auth', '', { ...cookieOptions, httpOnly: false })
-
+    clearSessionCookies(response)
     return response
   } catch (error) {
     console.error('Logout error:', error)

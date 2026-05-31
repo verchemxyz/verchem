@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import {
+  SESSION_COOKIE,
+  SESSION_SIG_COOKIE,
+  AUTH_COOKIE,
+  SESSION_TTL_SECONDS,
+  sessionWriteOptions,
+  authIndicatorWriteOptions,
+} from '@/lib/auth/cookie-config'
 
 function sanitizeRedirectPath(value: string | null): string {
   if (!value) return '/'
@@ -228,7 +236,7 @@ export async function GET(request: NextRequest) {
     const aiveridValue = user.aiverid || user.sub || user.id
 
     // Create session data
-    const sessionTtlSeconds = 7 * 24 * 60 * 60 // 7 days
+    const sessionTtlSeconds = SESSION_TTL_SECONDS // 7 days (shared cookie maxAge)
     const sessionData = {
       user: {
         id: aiveridValue,
@@ -320,29 +328,15 @@ export async function GET(request: NextRequest) {
     const redirectPath = sanitizeRedirectPath(redirectCookie)
     const response = NextResponse.redirect(new URL(redirectPath, request.url))
 
-    // Set session cookies
-    // IMPORTANT: domain must be set to share cookies between www and non-www
-    const isProduction = process.env.NODE_ENV === 'production'
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax' as const,
-      path: '/',
-      maxAge: sessionTtlSeconds,
-      // Share cookies across www and non-www subdomains
-      ...(isProduction && { domain: '.verchem.xyz' }),
-    }
+    // Set session cookies via the SINGLE SOURCE OF TRUTH so the domain/path
+    // exactly match how proxy.ts / logout later CLEAR them. A drift here is what
+    // caused the prod login-loop (set with domain, cleared without → never removed).
+    response.cookies.set(SESSION_COOKIE, sessionString, sessionWriteOptions())
+    response.cookies.set(SESSION_SIG_COOKIE, signature, sessionWriteOptions())
 
-    response.cookies.set('verchem-session', sessionString, cookieOptions)
-    response.cookies.set('verchem-session-sig', signature, cookieOptions)
-
-    // Set client-readable auth indicator (httpOnly: false)
-    // This allows client-side JavaScript to check if user is authenticated
-    // before calling /api/session (prevents unnecessary 401 errors)
-    response.cookies.set('verchem-auth', '1', {
-      ...cookieOptions,
-      httpOnly: false  // JavaScript can read this!
-    })
+    // Client-readable auth indicator (httpOnly:false) — lets client JS know it
+    // is authenticated before calling /api/session (avoids spurious 401s).
+    response.cookies.set(AUTH_COOKIE, '1', authIndicatorWriteOptions())
 
     // Clear oauth_state cookie after successful login
     response.cookies.set('oauth_state', '', { path: '/', maxAge: 0 })
