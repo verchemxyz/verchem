@@ -1,9 +1,18 @@
+import { createHmac } from "node:crypto";
 import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 
-// Real SHA-256 hex (64 chars) — a valid-shaped demo signature for the hero.
-const DEMO_SIGNATURE = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+// The hero card claims "every result is HMAC-signed", so the demo signature must
+// itself be a REAL HMAC-SHA256 over the evidence the card displays — not a stand-in
+// hash. Signed here with a PUBLIC demo key (anyone can recompute it); the live
+// product signs answer cards with a server-only secret instead.
+const DEMO_PAYLOAD =
+  "engine=molar-mass@verchem;compound=H2SO4;result=98.072 g/mol;arithmetic=2×1.008 + 32.06 + 4×15.999;source=IUPAC 2021";
+const DEMO_PUBLIC_KEY = "verchem-public-demo-key";
+const DEMO_SIGNATURE = createHmac("sha256", DEMO_PUBLIC_KEY)
+  .update(DEMO_PAYLOAD)
+  .digest("hex");
 
 export default function Home() {
   const sigPrefix = DEMO_SIGNATURE.slice(0, 4);
