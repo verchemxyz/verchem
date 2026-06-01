@@ -162,12 +162,15 @@ export async function proxy(request: NextRequest) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE)
     const signatureCookie = request.cookies.get(SESSION_SIG_COOKIE)
 
-    // If no session cookie, redirect to login
+    // If no session cookie, redirect to login (clearing any orphan sig/auth
+    // cookies left without their session — keeps the cookie set consistent).
     if (!sessionCookie?.value) {
       const loginUrl = new URL('/', request.url)
       loginUrl.searchParams.set('login_required', '1')
       loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
+      const response = NextResponse.redirect(loginUrl)
+      clearSessionCookies(response)
+      return response
     }
 
     // Verify session signature to prevent cookie forgery

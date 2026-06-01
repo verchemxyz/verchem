@@ -129,28 +129,58 @@ test('auth indicator is readable by client JS (httpOnly false) but same scope', 
 
 // --- clearSessionCookies emits real, matching Set-Cookie deletions ---
 
-test('clearSessionCookies expires all 3 cookies with matching domain (prod)', () => {
+test('clearSessionCookies expires all 3 cookies with the configured domain (prod)', () => {
   withEnv({ NODE_ENV: 'production', SESSION_COOKIE_DOMAIN: undefined }, () => {
     const res = NextResponse.json({ ok: true })
     clearSessionCookies(res)
     const headers = res.headers.getSetCookie()
-    assert.equal(headers.length, 3, 'should clear exactly 3 cookies')
 
     for (const cookieName of [SESSION_COOKIE, SESSION_SIG_COOKIE, AUTH_COOKIE]) {
-      const h = headers.find((x) => x.startsWith(`${cookieName}=`))
-      assert.ok(h, `missing Set-Cookie for ${cookieName}`)
-      assert.equal(attr(h!, 'Domain'), '.verchem.xyz', `${cookieName} must clear with the set domain`)
-      assert.equal(attr(h!, 'Path'), '/', `${cookieName} path`)
-      assert.equal(attr(h!, 'Max-Age'), '0', `${cookieName} must be expired`)
+      const scoped = headers.filter(
+        (x) => x.startsWith(`${cookieName}=`) && attr(x, 'Domain') === '.verchem.xyz'
+      )
+      assert.equal(scoped.length, 1, `${cookieName} must clear with the configured domain`)
+      assert.equal(attr(scoped[0], 'Path'), '/', `${cookieName} path`)
+      assert.equal(attr(scoped[0], 'Max-Age'), '0', `${cookieName} must be expired`)
     }
   })
 })
 
-test('clearSessionCookies in dev has no Domain attr (host-only delete works)', () => {
+test('DEFENSE-IN-DEPTH: prod clear ALSO emits a host-only deletion per cookie', () => {
+  withEnv({ NODE_ENV: 'production', SESSION_COOKIE_DOMAIN: undefined }, () => {
+    const res = NextResponse.json({ ok: true })
+    clearSessionCookies(res)
+    const headers = res.headers.getSetCookie()
+    for (const cookieName of [SESSION_COOKIE, SESSION_SIG_COOKIE, AUTH_COOKIE]) {
+      const hostOnly = headers.filter(
+        (x) => x.startsWith(`${cookieName}=`) && attr(x, 'Domain') === null
+      )
+      assert.equal(hostOnly.length, 1, `${cookieName} must also be cleared host-only (scope drift)`)
+      assert.equal(attr(hostOnly[0], 'Max-Age'), '0')
+    }
+  })
+})
+
+test('env-override domain clear covers override + legacy .verchem.xyz + host-only', () => {
+  withEnv({ NODE_ENV: 'production', SESSION_COOKIE_DOMAIN: '.verchem.app' }, () => {
+    const res = NextResponse.json({ ok: true })
+    clearSessionCookies(res)
+    const sessionDomains = res.headers
+      .getSetCookie()
+      .filter((x) => x.startsWith(`${SESSION_COOKIE}=`))
+      .map((x) => attr(x, 'Domain'))
+    assert.ok(sessionDomains.includes('.verchem.app'), 'clears the configured override domain')
+    assert.ok(sessionDomains.includes('.verchem.xyz'), 'clears the legacy default domain')
+    assert.ok(sessionDomains.includes(null), 'clears host-only')
+  })
+})
+
+test('clearSessionCookies in dev is host-only only (no Domain, no extra scopes)', () => {
   withEnv({ NODE_ENV: 'development', SESSION_COOKIE_DOMAIN: undefined }, () => {
     const res = NextResponse.json({ ok: true })
     clearSessionCookies(res)
     const headers = res.headers.getSetCookie()
+    assert.equal(headers.length, 3, 'dev clears exactly the 3 host-only cookies')
     for (const h of headers) {
       assert.equal(attr(h, 'Domain'), null, 'dev deletions must be host-only (no Domain)')
       assert.equal(attr(h, 'Max-Age'), '0')
@@ -158,15 +188,20 @@ test('clearSessionCookies in dev has no Domain attr (host-only delete works)', (
   })
 })
 
-test('verchem-auth cleared without HttpOnly (client could have set it)', () => {
+test('verchem-auth cleared without HttpOnly on every emitted scope', () => {
   withEnv({ NODE_ENV: 'production', SESSION_COOKIE_DOMAIN: undefined }, () => {
     const res = NextResponse.json({ ok: true })
     clearSessionCookies(res)
     const headers = res.headers.getSetCookie()
-    const authHeader = headers.find((x) => x.startsWith(`${AUTH_COOKIE}=`))!
-    assert.equal(hasFlag(authHeader, 'HttpOnly'), false, 'auth indicator clear must not be HttpOnly')
-    const sessionHeader = headers.find((x) => x.startsWith(`${SESSION_COOKIE}=`))!
-    assert.equal(hasFlag(sessionHeader, 'HttpOnly'), true, 'session clear should keep HttpOnly')
+    const authHeaders = headers.filter((x) => x.startsWith(`${AUTH_COOKIE}=`))
+    assert.ok(authHeaders.length >= 1)
+    for (const h of authHeaders) {
+      assert.equal(hasFlag(h, 'HttpOnly'), false, 'auth indicator clear must not be HttpOnly')
+    }
+    const sessionHeaders = headers.filter((x) => x.startsWith(`${SESSION_COOKIE}=`))
+    for (const h of sessionHeaders) {
+      assert.equal(hasFlag(h, 'HttpOnly'), true, 'session clear should keep HttpOnly')
+    }
   })
 })
 

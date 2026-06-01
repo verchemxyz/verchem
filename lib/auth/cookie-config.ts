@@ -81,13 +81,46 @@ export function sessionClearOptions(): SessionCookieOptions {
 }
 
 /**
- * Clear ALL three session cookies on a response, using the SAME domain/path
- * they were set with. Use this instead of `response.cookies.delete(name)`,
- * which omits the domain and silently fails to remove domain-scoped cookies.
+ * Serialize a cookie DELETION (empty value, Max-Age=0) for one explicit scope.
+ * Used for the extra scopes below: the same cookie name under a different Domain
+ * is a DISTINCT cookie, and `ResponseCookies.set()` overwrites by name, so those
+ * must be emitted as appended Set-Cookie headers rather than another set().
+ */
+function clearCookieHeader(name: string, domain: string | undefined, httpOnly: boolean): string {
+  const parts = [`${name}=`, 'Path=/', 'Max-Age=0']
+  if (domain) parts.push(`Domain=${domain}`)
+  if (httpOnly) parts.push('HttpOnly')
+  if (process.env.NODE_ENV === 'production') parts.push('Secure')
+  parts.push('SameSite=Lax')
+  return parts.join('; ')
+}
+
+/**
+ * Clear ALL three session cookies on a response, using the SAME domain/path they
+ * were set with — instead of `response.cookies.delete(name)`, which omits the
+ * domain and silently fails to remove domain-scoped cookies (the prod login-loop).
+ *
+ * Defense-in-depth: also clears the cookies under OTHER scopes they may have been
+ * set under previously — host-only (before a domain was configured) and the legacy
+ * default `.verchem.xyz` (when SESSION_COOKIE_DOMAIN now overrides it). This makes
+ * the redirect loop impossible to recreate through any future cookie-scope drift.
  */
 export function clearSessionCookies(response: NextResponse): void {
+  // Primary: clear the currently-configured scope through the typed cookie API.
   const opts = sessionClearOptions()
   response.cookies.set(SESSION_COOKIE, '', opts)
   response.cookies.set(SESSION_SIG_COOKIE, '', opts)
   response.cookies.set(AUTH_COOKIE, '', { ...opts, httpOnly: false })
+
+  // Extra scopes the primary set() can't reach (distinct cookie per Domain).
+  const current = sessionCookieDomain()
+  const extraDomains = new Set<string | undefined>([undefined]) // host-only
+  if (process.env.NODE_ENV === 'production') extraDomains.add('.verchem.xyz') // legacy default
+  extraDomains.delete(current) // already handled by the primary set() above
+
+  for (const domain of extraDomains) {
+    response.headers.append('set-cookie', clearCookieHeader(SESSION_COOKIE, domain, true))
+    response.headers.append('set-cookie', clearCookieHeader(SESSION_SIG_COOKIE, domain, true))
+    response.headers.append('set-cookie', clearCookieHeader(AUTH_COOKIE, domain, false))
+  }
 }

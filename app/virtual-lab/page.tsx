@@ -15,7 +15,6 @@ export default function VirtualLabPage() {
         'Animated color changes',
         'Equivalence point detection',
       ],
-      status: 'available',
       link: '/virtual-lab/titration',
     },
   ]
