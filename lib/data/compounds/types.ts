@@ -72,8 +72,12 @@ export interface Compound {
   smiles?: string
   molarMass: number
   molecularMass?: number // legacy alias
+  /** How molarMass is defined for fixed formulae, polymers and mixtures. */
+  molarMassBasis?: 'formula' | 'repeat-unit' | 'mixture-average' | 'not-applicable'
   casNumber?: string
   cas?: string // legacy alias
+  /** Component identifiers for mixtures that do not have one CAS RN. */
+  componentCasNumbers?: string[]
   category: CompoundCategory
   subcategory?: string // finer classification
   physicalState: PhysicalState
@@ -85,7 +89,7 @@ export interface Compound {
   odor?: string
   pKa?: number
   pKb?: number
-  hazards?: string[] | Array<{ type?: string; ghsCode?: string; severity?: string }>
+  hazards?: Array<string | { type?: string; ghsCode?: string; severity?: string }>
   ghs?: string[] // GHS pictogram codes (GHS01-GHS09)
   uses?: string[]
 }

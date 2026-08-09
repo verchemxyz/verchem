@@ -14,6 +14,7 @@ import {
   calculateSerialDilution,
   convertConcentration,
   calculateMixing,
+  getConcentrationConversionRequirements,
   UNIT_LABELS,
   UNIT_SHORT_LABELS,
   type ConcentrationUnit,
@@ -23,6 +24,9 @@ import {
   type SerialDilutionResult,
   type UnitConversionResult,
   type MixingResult,
+  type MixingConcentrationUnit,
+  type MixingVolumeBasis,
+  type MixingVolumeUnit,
 } from '@/lib/calculations/solution-prep'
 
 // ============================================
@@ -43,7 +47,7 @@ interface ModeInfo {
 
 const MODES: ModeInfo[] = [
   { id: 'dilution', label: 'Dilution', description: 'C\u2081V\u2081 = C\u2082V\u2082' },
-  { id: 'stock', label: 'Stock Prep', description: 'Mass of solute needed' },
+  { id: 'stock', label: 'Stock Prep', description: 'Reagent amount needed' },
   { id: 'serial', label: 'Serial Dilution', description: 'Dilution series table' },
   { id: 'convert', label: 'Unit Converter', description: 'Between concentration units' },
   { id: 'mixing', label: 'Mixing', description: 'Mix two solutions' },
@@ -52,6 +56,10 @@ const MODES: ModeInfo[] = [
 const ALL_UNITS: ConcentrationUnit[] = [
   'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L',
   'pct_wv', 'pct_ww', 'pct_vv', 'N', 'ppm', 'ppb',
+]
+
+const MIXING_UNITS: MixingConcentrationUnit[] = [
+  'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'pct_wv', 'N',
 ]
 
 // ============================================
@@ -69,10 +77,16 @@ const DILUTION_EXAMPLES: (QuickExample & { c1: string; v1: string; c2: string; v
   { label: 'Acid dilution', description: '12 M HCl to 1 M', c1: '12', v1: '', c2: '1', v2: '250' },
 ]
 
-const STOCK_EXAMPLES: (QuickExample & { conc: string; vol: string; mm: string; unit: ConcentrationUnit })[] = [
-  { label: '1 M NaCl (1 L)', description: 'Common salt solution', conc: '1', vol: '1', mm: '58.44', unit: 'mol/L' },
-  { label: '0.1 M NaOH (500 mL)', description: 'Dilute base', conc: '0.1', vol: '0.5', mm: '40', unit: 'mol/L' },
-  { label: '10 mg/L std (1 L)', description: 'Analytical standard', conc: '10', vol: '1', mm: '100', unit: 'mg/L' },
+const STOCK_EXAMPLES: (QuickExample & {
+  conc: string
+  vol: string
+  mm: string
+  unit: ConcentrationUnit
+  reagentForm: string
+})[] = [
+  { label: '1 M NaCl (1 L)', description: 'Anhydrous reagent', conc: '1', vol: '1', mm: '58.44', unit: 'mol/L', reagentForm: 'NaCl (anhydrous)' },
+  { label: '0.1 M NaOH (500 mL)', description: 'Declared reagent form', conc: '0.1', vol: '0.5', mm: '40', unit: 'mol/L', reagentForm: 'NaOH (anhydrous)' },
+  { label: '10 mg/L std (1 L)', description: 'Mass concentration', conc: '10', vol: '1', mm: '', unit: 'mg/L', reagentForm: 'Certified analyte standard' },
 ]
 
 const SERIAL_EXAMPLES: (QuickExample & { conc: string; factor: string; num: string; transfer: string })[] = [
@@ -81,10 +95,19 @@ const SERIAL_EXAMPLES: (QuickExample & { conc: string; factor: string; num: stri
   { label: 'ELISA plate (1:3)', description: '7 three-fold', conc: '500', factor: '3', num: '7', transfer: '0.1' },
 ]
 
-const MIXING_EXAMPLES: (QuickExample & { c1: string; v1: string; c2: string; v2: string })[] = [
-  { label: 'Equal volumes', description: '1 M + 0.5 M, 50 mL each', c1: '1', v1: '50', c2: '0.5', v2: '50' },
-  { label: 'Acid + water', description: '2 M acid + pure water', c1: '2', v1: '25', c2: '0', v2: '75' },
-  { label: 'Buffer mixing', description: '0.2 M + 0.05 M', c1: '0.2', v1: '100', c2: '0.05', v2: '200' },
+const MIXING_EXAMPLES: (QuickExample & {
+  c1: string
+  v1: string
+  c2: string
+  v2: string
+  finalVolume: string
+  soluteIdentity: string
+  concentrationUnit: MixingConcentrationUnit
+  volumeUnit: MixingVolumeUnit
+})[] = [
+  { label: 'Measured equal volumes', description: 'NaCl, final volume measured', c1: '1', v1: '50', c2: '0.5', v2: '50', finalVolume: '100', soluteIdentity: 'NaCl', concentrationUnit: 'mol/L', volumeUnit: 'mL' },
+  { label: 'Measured dilution', description: 'Same NaCl analyte, 100 mL final', c1: '2', v1: '25', c2: '0', v2: '75', finalVolume: '100', soluteIdentity: 'NaCl', concentrationUnit: 'mol/L', volumeUnit: 'mL' },
+  { label: 'Observed contraction', description: 'Uses measured 299.7 mL final', c1: '0.2', v1: '100', c2: '0.05', v2: '200', finalVolume: '299.7', soluteIdentity: 'Analyte A', concentrationUnit: 'mol/L', volumeUnit: 'mL' },
 ]
 
 // ============================================
@@ -270,38 +293,54 @@ function StockPrepCalculator() {
   const [vol, setVol] = useState('')
   const [mm, setMm] = useState('')
   const [unit, setUnit] = useState<ConcentrationUnit>('mol/L')
-  const [density, setDensity] = useState('')
+  const [solutionDensityInput, setSolutionDensityInput] = useState('')
   const [eqFactor, setEqFactor] = useState('')
+  const [reagentPurity, setReagentPurity] = useState('100')
+  const [reagentForm, setReagentForm] = useState('')
+  const [solvent, setSolvent] = useState('water')
+  const [temperatureC, setTemperatureC] = useState('20')
   const [result, setResult] = useState<StockPrepResult | null>(null)
   const [error, setError] = useState('')
 
-  // These two inputs only matter for the units whose result depends on them.
-  const needsDensity = unit === 'pct_ww'
+  const needsMolarMass = unit === 'mol/L' || unit === 'mmol/L' || unit === 'N'
+  const needsDensity = unit === 'pct_ww' || unit === 'ppm' || unit === 'ppb'
   const needsEqFactor = unit === 'N'
+  const purityBasis = unit === 'pct_vv' ? 'volume' : 'mass'
+  const isNeatMaterial =
+    (unit === 'pct_vv' && Number(conc) === 100) ||
+    (unit === 'pct_ww' && Number(conc) === 100) ||
+    (unit === 'ppm' && Number(conc) === 1e6) ||
+    (unit === 'ppb' && Number(conc) === 1e9)
 
   const handleCalculate = useCallback(() => {
     setError('')
     setResult(null)
 
-    const cVal = parseFloat(conc)
-    const vVal = parseFloat(vol)
-    const mVal = parseFloat(mm)
+    const cVal = Number(conc)
+    const vVal = Number(vol)
+    const mVal = mm.trim() === '' ? undefined : Number(mm)
+    const purityVal = Number(reagentPurity)
+    const temperatureVal = Number(temperatureC)
 
-    if (isNaN(cVal)) { setError('Concentration is not a valid number.'); return }
-    if (isNaN(vVal)) { setError('Volume is not a valid number.'); return }
-    if (isNaN(mVal)) { setError('Molar mass is not a valid number.'); return }
+    if (!Number.isFinite(cVal)) { setError('Concentration is not a valid finite number.'); return }
+    if (!Number.isFinite(vVal)) { setError('Volume is not a valid finite number.'); return }
+    if (needsMolarMass && (mVal === undefined || !Number.isFinite(mVal) || mVal <= 0)) { setError('Molar mass of the exact reagent form is required and must be positive.'); return }
+    if (!Number.isFinite(purityVal) || purityVal <= 0 || purityVal > 100) { setError('Reagent assay/purity must be greater than 0% and no more than 100%.'); return }
+    if (reagentForm.trim() === '') { setError('Enter the exact reagent form, including hydrate or solvate state.'); return }
+    if (!isNeatMaterial && solvent.trim() === '') { setError('Enter the solvent identity; it is not assumed to be water.'); return }
+    if (!Number.isFinite(temperatureVal) || temperatureVal <= -273.15) { setError('Preparation temperature must be finite and above absolute zero.'); return }
 
     let solutionDensity: number | undefined
-    if (needsDensity && density.trim() !== '') {
-      const dVal = parseFloat(density)
-      if (isNaN(dVal)) { setError('Solution density is not a valid number.'); return }
+    if (needsDensity) {
+      const dVal = Number(solutionDensityInput)
+      if (!Number.isFinite(dVal) || dVal <= 0) { setError('Measured solution density is required and must be positive for this mass-fraction calculation.'); return }
       solutionDensity = dVal
     }
 
     let equivalentsFactor: number | undefined
-    if (needsEqFactor && eqFactor.trim() !== '') {
-      const eVal = parseFloat(eqFactor)
-      if (isNaN(eVal)) { setError('Equivalents factor is not a valid number.'); return }
+    if (needsEqFactor) {
+      const eVal = Number(eqFactor)
+      if (!Number.isFinite(eVal) || eVal <= 0) { setError('Equivalents factor is required and must be positive for normality.'); return }
       equivalentsFactor = eVal
     }
 
@@ -313,18 +352,33 @@ function StockPrepCalculator() {
         unit,
         solutionDensity,
         equivalentsFactor,
+        reagentPurityPercent: purityVal,
+        reagentPurityBasis: purityBasis,
+        reagentForm,
+        solvent: isNeatMaterial ? 'none' : solvent,
+        preparationTemperatureC: temperatureVal,
       })
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Calculation error')
     }
-  }, [conc, vol, mm, unit, density, eqFactor, needsDensity, needsEqFactor])
+  }, [
+    conc, vol, mm, unit, solutionDensityInput, eqFactor, reagentPurity, reagentForm,
+    solvent, temperatureC, needsMolarMass, needsDensity, needsEqFactor,
+    purityBasis, isNeatMaterial,
+  ])
 
   const loadExample = useCallback((ex: typeof STOCK_EXAMPLES[0]) => {
     setConc(ex.conc)
     setVol(ex.vol)
     setMm(ex.mm)
     setUnit(ex.unit)
+    setReagentForm(ex.reagentForm)
+    setReagentPurity('100')
+    setSolvent('water')
+    setTemperatureC('20')
+    setSolutionDensityInput('')
+    setEqFactor('')
     setResult(null)
     setError('')
   }, [])
@@ -334,7 +388,7 @@ function StockPrepCalculator() {
       <div>
         <h3 className="text-xl font-bold text-foreground mb-1">Stock Solution Preparation</h3>
         <p className="text-sm text-muted-foreground">
-          Calculate how much solute to take for a desired solution — as a mass to weigh, or a volume to measure.
+          Calculate how much declared reagent to take for a desired solution — as a mass to weigh, or a volume to measure.
         </p>
       </div>
 
@@ -380,22 +434,65 @@ function StockPrepCalculator() {
           </div>
         </div>
         <InputField label="Target Volume (L)" value={vol} onChange={setVol} placeholder="e.g. 1" />
-        <InputField label="Molar Mass (g/mol)" value={mm} onChange={setMm} placeholder="e.g. 58.44" />
-        {needsDensity && (
+        <InputField
+          label="Exact Reagent Form"
+          value={reagentForm}
+          onChange={setReagentForm}
+          placeholder="e.g. CuSO₄·5H₂O"
+        />
+        {needsMolarMass && (
           <InputField
-            label="Solution Density (g/mL) — optional"
-            value={density}
-            onChange={setDensity}
-            placeholder="leave blank to assume 1 g/mL"
+            label="Molar Mass of Exact Form (g/mol)"
+            value={mm}
+            onChange={setMm}
+            placeholder="Include hydrate/solvate mass"
           />
         )}
-        {needsEqFactor && (
+        <InputField
+          label={`Reagent Assay/Purity (% by ${purityBasis})`}
+          value={reagentPurity}
+          onChange={setReagentPurity}
+          placeholder="e.g. 99.5"
+        />
+        {!isNeatMaterial && (
           <InputField
-            label="Equivalents Factor — optional"
-            value={eqFactor}
-            onChange={setEqFactor}
-            placeholder="H₂SO₄ = 2, H₃PO₄ = 3; blank assumes 1"
+            label="Solvent Identity"
+            value={solvent}
+            onChange={setSolvent}
+            placeholder="e.g. water, ethanol"
           />
+        )}
+        <InputField
+          label="Preparation / Density Temperature (°C)"
+          value={temperatureC}
+          onChange={setTemperatureC}
+          placeholder="Use the glassware/density reference temperature"
+        />
+        {needsDensity && (
+          <div>
+            <InputField
+              label="Measured Solution Density (g/mL)"
+              value={solutionDensityInput}
+              onChange={setSolutionDensityInput}
+              placeholder="Required at the stated temperature"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Required because {UNIT_SHORT_LABELS[unit]} is a mass fraction while the target amount is entered as a volume.
+            </p>
+          </div>
+        )}
+        {needsEqFactor && (
+          <div>
+            <InputField
+              label="Equivalents Factor (eq/mol)"
+              value={eqFactor}
+              onChange={setEqFactor}
+              placeholder="Required for the stated reaction/context"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Normality depends on the reaction. The engine never defaults this factor to 1.
+            </p>
+          </div>
         )}
       </div>
 
@@ -409,7 +506,7 @@ function StockPrepCalculator() {
         <ResultCard>
           <div className="text-center mb-4">
             <p className="text-sm text-muted-foreground">
-              {result.measureBy === 'mass' ? 'Mass of solute to weigh' : 'Volume of liquid solute to measure'}
+              {result.measureBy === 'mass' ? 'Mass of reagent to weigh' : 'Volume of liquid reagent to measure'}
             </p>
             <p className="text-4xl font-bold text-primary-600 font-mono">
               {formatSci(result.amount)}
@@ -430,7 +527,7 @@ function StockPrepCalculator() {
                   className={`text-sm ${
                     step === ''
                       ? 'h-2'
-                      : step.startsWith('Assumptions') || step.startsWith('•')
+                      : step.startsWith('Model scope') || step.startsWith('•')
                         ? 'text-warning-strong font-medium'
                         : step.startsWith('Preparation') || step.startsWith('Note:')
                           ? 'text-primary-600 font-medium'
@@ -609,53 +706,55 @@ function UnitConverterCalculator() {
   const [fromUnit, setFromUnit] = useState<ConcentrationUnit>('mol/L')
   const [toUnit, setToUnit] = useState<ConcentrationUnit>('g/L')
   const [molarMass, setMolarMass] = useState('')
-  const [density, setDensity] = useState('1.0')
-  const [equivalents, setEquivalents] = useState('1')
+  const [soluteDensity, setSoluteDensity] = useState('')
+  const [solutionDensity, setSolutionDensity] = useState('')
+  const [densityTemperatureC, setDensityTemperatureC] = useState('20')
+  const [equivalents, setEquivalents] = useState('')
   const [result, setResult] = useState<UnitConversionResult | null>(null)
   const [error, setError] = useState('')
 
-  const needsMM = useMemo(() => {
-    const mmUnits: ConcentrationUnit[] = ['mol/L', 'mmol/L', 'N']
-    return mmUnits.includes(fromUnit) || mmUnits.includes(toUnit)
-  }, [fromUnit, toUnit])
-
-  const needsDensity = useMemo(() => {
-    const dUnits: ConcentrationUnit[] = ['pct_ww', 'pct_vv']
-    return dUnits.includes(fromUnit) || dUnits.includes(toUnit)
-  }, [fromUnit, toUnit])
-
-  const needsEquivalents = useMemo(() => {
-    return fromUnit === 'N' || toUnit === 'N'
+  const requirements = useMemo(() => {
+    return getConcentrationConversionRequirements(fromUnit, toUnit)
   }, [fromUnit, toUnit])
 
   const handleCalculate = useCallback(() => {
     setError('')
     setResult(null)
 
-    const vVal = parseFloat(value)
-    if (isNaN(vVal)) { setError('Value is not a valid number.'); return }
+    const vVal = Number(value)
+    if (!Number.isFinite(vVal)) { setError('Value is not a valid finite number.'); return }
 
-    const mmVal = parseFloat(molarMass)
-    const dVal = parseFloat(density)
-    const eqVal = parseFloat(equivalents)
+    const mmVal = molarMass.trim() === '' ? undefined : Number(molarMass)
+    const soluteDensityVal = soluteDensity.trim() === '' ? undefined : Number(soluteDensity)
+    const solutionDensityVal = solutionDensity.trim() === '' ? undefined : Number(solutionDensity)
+    const densityTemperatureVal = densityTemperatureC.trim() === '' ? undefined : Number(densityTemperatureC)
+    const eqVal = equivalents.trim() === '' ? undefined : Number(equivalents)
 
-    if (needsMM && (isNaN(mmVal) || mmVal <= 0)) { setError('Molar mass is required and must be positive for this conversion.'); return }
-    if (needsDensity && (isNaN(dVal) || dVal <= 0)) { setError('Density is required and must be positive for this conversion.'); return }
+    if (requirements.molarMass && (mmVal === undefined || !Number.isFinite(mmVal) || mmVal <= 0)) { setError('Molar mass is required and must be positive to bridge amount and mass bases.'); return }
+    if (requirements.soluteDensity && (soluteDensityVal === undefined || !Number.isFinite(soluteDensityVal) || soluteDensityVal <= 0)) { setError('Pure solute density is required and must be positive for % v/v.'); return }
+    if (requirements.solutionDensity && (solutionDensityVal === undefined || !Number.isFinite(solutionDensityVal) || solutionDensityVal <= 0)) { setError('Complete solution density is required and must be positive for mass fraction.'); return }
+    if (requirements.densityTemperature && (densityTemperatureVal === undefined || !Number.isFinite(densityTemperatureVal) || densityTemperatureVal <= -273.15)) { setError('Density temperature is required and must be above absolute zero.'); return }
+    if (requirements.equivalents && (eqVal === undefined || !Number.isFinite(eqVal) || eqVal <= 0)) { setError('Equivalents factor is required and must be positive for normality.'); return }
 
     try {
       const res = convertConcentration({
         value: vVal,
         fromUnit,
         toUnit,
-        molarMass: isNaN(mmVal) ? undefined : mmVal,
-        density: isNaN(dVal) ? undefined : dVal,
-        equivalents: isNaN(eqVal) ? 1 : eqVal,
+        molarMass: mmVal,
+        soluteDensity: soluteDensityVal,
+        solutionDensity: solutionDensityVal,
+        densityTemperatureC: densityTemperatureVal,
+        equivalents: eqVal,
       })
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Conversion error')
     }
-  }, [value, fromUnit, toUnit, molarMass, density, equivalents, needsMM, needsDensity])
+  }, [
+    value, fromUnit, toUnit, molarMass, soluteDensity, solutionDensity,
+    densityTemperatureC, equivalents, requirements,
+  ])
 
   const handleSwap = useCallback(() => {
     setFromUnit(toUnit)
@@ -668,7 +767,7 @@ function UnitConverterCalculator() {
       <div>
         <h3 className="text-xl font-bold text-foreground mb-1">Concentration Unit Converter</h3>
         <p className="text-sm text-muted-foreground">
-          Convert between 11 concentration units. Some conversions require molar mass or density.
+          Convert between 11 units without silently treating mass-fraction ppm/ppb as mg/L/µg/L.
         </p>
       </div>
 
@@ -720,14 +819,26 @@ function UnitConverterCalculator() {
 
       {/* Conditional extra fields */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {needsMM && (
+        {requirements.molarMass && (
           <InputField label="Molar Mass (g/mol)" value={molarMass} onChange={setMolarMass} placeholder="e.g. 58.44" />
         )}
-        {needsDensity && (
-          <InputField label="Solution Density (g/mL)" value={density} onChange={setDensity} placeholder="e.g. 1.0" />
+        {requirements.soluteDensity && (
+          <div>
+            <InputField label="Pure Solute Density (g/mL)" value={soluteDensity} onChange={setSoluteDensity} placeholder="e.g. ethanol 0.789" />
+            <p className="mt-1 text-xs text-muted-foreground">% v/v measures solute volume, so this converts that volume to solute mass.</p>
+          </div>
         )}
-        {needsEquivalents && (
-          <InputField label="Equivalents Factor" value={equivalents} onChange={setEquivalents} placeholder="e.g. 1" />
+        {requirements.solutionDensity && (
+          <div>
+            <InputField label="Complete Solution Density (g/mL)" value={solutionDensity} onChange={setSolutionDensity} placeholder="e.g. 0.984" />
+            <p className="mt-1 text-xs text-muted-foreground">% w/w and ppm/ppb are mass fractions, so this converts total solution volume to mass.</p>
+          </div>
+        )}
+        {requirements.densityTemperature && (
+          <InputField label="Density Temperature (°C)" value={densityTemperatureC} onChange={setDensityTemperatureC} placeholder="e.g. 20" />
+        )}
+        {requirements.equivalents && (
+          <InputField label="Equivalents Factor (eq/mol)" value={equivalents} onChange={setEquivalents} placeholder="Required for the reaction/context" />
         )}
       </div>
 
@@ -752,6 +863,14 @@ function UnitConverterCalculator() {
               <p className="text-sm font-medium text-primary-600">{UNIT_SHORT_LABELS[result.toUnit]}</p>
             </div>
           </div>
+          <div className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground space-y-1">
+            <p>
+              Basis: {result.model.fromBasis} → {result.model.toBasis}. ppm/ppb are exact mass fractions (mg/kg and µg/kg).
+            </p>
+            {result.assumptions.map((assumption) => (
+              <p key={assumption} className="text-warning-strong">{assumption}</p>
+            ))}
+          </div>
         </ResultCard>
       )}
     </div>
@@ -767,6 +886,13 @@ function MixingCalculator() {
   const [v1, setV1] = useState('')
   const [c2, setC2] = useState('')
   const [v2, setV2] = useState('')
+  const [soluteIdentity, setSoluteIdentity] = useState('')
+  const [concentrationUnit, setConcentrationUnit] = useState<MixingConcentrationUnit>('mol/L')
+  const [volumeUnit, setVolumeUnit] = useState<MixingVolumeUnit>('mL')
+  const [normalityContext, setNormalityContext] = useState('')
+  const [volumeBasis, setVolumeBasis] = useState<MixingVolumeBasis>('measured-final')
+  const [finalVolume, setFinalVolume] = useState('')
+  const [noReactionOrLoss, setNoReactionOrLoss] = useState(false)
   const [result, setResult] = useState<MixingResult | null>(null)
   const [error, setError] = useState('')
 
@@ -774,29 +900,59 @@ function MixingCalculator() {
     setError('')
     setResult(null)
 
-    const c1Val = parseFloat(c1)
-    const v1Val = parseFloat(v1)
-    const c2Val = parseFloat(c2)
-    const v2Val = parseFloat(v2)
+    const c1Val = Number(c1)
+    const v1Val = Number(v1)
+    const c2Val = Number(c2)
+    const v2Val = Number(v2)
+    const finalVolumeVal = finalVolume.trim() === '' ? undefined : Number(finalVolume)
 
-    if (isNaN(c1Val)) { setError('C\u2081 is not a valid number.'); return }
-    if (isNaN(v1Val)) { setError('V\u2081 is not a valid number.'); return }
-    if (isNaN(c2Val)) { setError('C\u2082 is not a valid number.'); return }
-    if (isNaN(v2Val)) { setError('V\u2082 is not a valid number.'); return }
+    if (!Number.isFinite(c1Val)) { setError('C\u2081 is not a valid finite number.'); return }
+    if (!Number.isFinite(v1Val)) { setError('V\u2081 is not a valid finite number.'); return }
+    if (!Number.isFinite(c2Val)) { setError('C\u2082 is not a valid finite number.'); return }
+    if (!Number.isFinite(v2Val)) { setError('V\u2082 is not a valid finite number.'); return }
+    if (soluteIdentity.trim() === '') { setError('Enter the one shared solute/analyte identity.'); return }
+    if (concentrationUnit === 'N' && normalityContext.trim() === '') { setError('Enter the shared reaction/equivalence context for both normality values.'); return }
+    if (!noReactionOrLoss) { setError('Confirm that the same solute is conserved with no reaction or loss.'); return }
+    if (volumeBasis === 'measured-final' &&
+        (finalVolumeVal === undefined || !Number.isFinite(finalVolumeVal) || finalVolumeVal <= 0)) {
+      setError('Enter a positive measured final volume.'); return
+    }
 
     try {
-      const res = calculateMixing({ c1: c1Val, v1: v1Val, c2: c2Val, v2: v2Val })
+      const res = calculateMixing({
+        c1: c1Val,
+        v1: v1Val,
+        c2: c2Val,
+        v2: v2Val,
+        soluteIdentity,
+        concentrationUnit,
+        volumeUnit,
+        normalityContext: concentrationUnit === 'N' ? normalityContext : undefined,
+        volumeBasis,
+        finalVolume: volumeBasis === 'measured-final' ? finalVolumeVal : undefined,
+        noReactionOrLoss,
+      })
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Calculation error')
     }
-  }, [c1, v1, c2, v2])
+  }, [
+    c1, v1, c2, v2, soluteIdentity, concentrationUnit, volumeUnit,
+    normalityContext, volumeBasis, finalVolume, noReactionOrLoss,
+  ])
 
   const loadExample = useCallback((ex: typeof MIXING_EXAMPLES[0]) => {
     setC1(ex.c1)
     setV1(ex.v1)
     setC2(ex.c2)
     setV2(ex.v2)
+    setFinalVolume(ex.finalVolume)
+    setSoluteIdentity(ex.soluteIdentity)
+    setConcentrationUnit(ex.concentrationUnit)
+    setVolumeUnit(ex.volumeUnit)
+    setNormalityContext('')
+    setVolumeBasis('measured-final')
+    setNoReactionOrLoss(true)
     setResult(null)
     setError('')
   }, [])
@@ -812,7 +968,7 @@ function MixingCalculator() {
       <div>
         <h3 className="text-xl font-bold text-foreground mb-1">Mixing Solutions</h3>
         <p className="text-sm text-muted-foreground">
-          Calculate the final concentration when two solutions of the same solute are mixed.
+          Material balance for one conserved solute in one shared volume-based concentration unit.
         </p>
       </div>
 
@@ -832,19 +988,110 @@ function MixingCalculator() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <InputField
+          label="Shared Solute / Analyte Identity"
+          value={soluteIdentity}
+          onChange={setSoluteIdentity}
+          placeholder="e.g. NaCl"
+        />
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1">Shared Concentration Unit</label>
+          <select
+            value={concentrationUnit}
+            onChange={(event) => {
+              setConcentrationUnit(event.target.value as MixingConcentrationUnit)
+              setResult(null)
+            }}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+          >
+            {MIXING_UNITS.map((mixingUnit) => (
+              <option key={mixingUnit} value={mixingUnit}>{UNIT_LABELS[mixingUnit]}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1">Shared Volume Unit</label>
+          <select
+            value={volumeUnit}
+            onChange={(event) => {
+              setVolumeUnit(event.target.value as MixingVolumeUnit)
+              setResult(null)
+            }}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+          >
+            <option value="mL">mL</option>
+            <option value="L">L</option>
+          </select>
+        </div>
+      </div>
+
+      {concentrationUnit === 'N' && (
+        <InputField
+          label="Shared Normality Reaction / Equivalence Context"
+          value={normalityContext}
+          onChange={setNormalityContext}
+          placeholder="e.g. acid-base neutralization (H⁺ equivalents)"
+        />
+      )}
+
       {/* Inputs in two groups */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-3 p-4 rounded-lg border border-primary-500/30 bg-muted">
           <p className="text-sm font-semibold text-primary-600">Solution 1</p>
           <InputField label="Concentration (C\u2081)" value={c1} onChange={setC1} placeholder="e.g. 1" />
-          <InputField label="Volume (V\u2081)" value={v1} onChange={setV1} placeholder="e.g. 50" />
+          <InputField label={`Volume (V₁, ${volumeUnit})`} value={v1} onChange={setV1} placeholder="e.g. 50" />
         </div>
         <div className="space-y-3 p-4 rounded-lg border border-secondary-500/40 bg-muted">
           <p className="text-sm font-semibold text-secondary-strong">Solution 2</p>
           <InputField label="Concentration (C\u2082)" value={c2} onChange={setC2} placeholder="e.g. 0.5" />
-          <InputField label="Volume (V\u2082)" value={v2} onChange={setV2} placeholder="e.g. 50" />
+          <InputField label={`Volume (V₂, ${volumeUnit})`} value={v2} onChange={setV2} placeholder="e.g. 50" />
         </div>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-border bg-muted p-4">
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1">Final Volume Basis</label>
+          <select
+            value={volumeBasis}
+            onChange={(event) => {
+              setVolumeBasis(event.target.value as MixingVolumeBasis)
+              setResult(null)
+            }}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-foreground text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+          >
+            <option value="measured-final">Measured final volume</option>
+            <option value="additive-approximation">Approximate Vfinal = V₁ + V₂</option>
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Measured final volume captures contraction or expansion on mixing.
+          </p>
+        </div>
+        {volumeBasis === 'measured-final' ? (
+          <InputField
+            label={`Measured Final Volume (${volumeUnit})`}
+            value={finalVolume}
+            onChange={setFinalVolume}
+            placeholder="e.g. 99.7"
+          />
+        ) : (
+          <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-xs text-warning-strong">
+            Approximation only: valid when contraction or expansion is negligible. The result will carry this assumption.
+          </div>
+        )}
+      </div>
+
+      <label className="flex items-start gap-3 rounded-lg border border-border p-4 text-sm text-foreground">
+        <input
+          type="checkbox"
+          checked={noReactionOrLoss}
+          onChange={(event) => setNoReactionOrLoss(event.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-border"
+        />
+        <span>
+          I confirm both inputs describe the same solute, concentration basis, and volume unit, with no reaction, precipitation, volatilization, or solute loss.
+        </span>
+      </label>
 
       <Button onClick={handleCalculate} className="w-full sm:w-auto">
         Calculate
@@ -876,18 +1123,31 @@ function MixingCalculator() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Final Concentration</p>
               <p className="text-3xl font-bold text-primary-600 font-mono">{formatSci(result.finalConc)}</p>
+              <p className="text-xs text-muted-foreground">{UNIT_SHORT_LABELS[result.model.concentrationUnit]}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Final Volume</p>
               <p className="text-3xl font-bold text-foreground font-mono">{formatSci(result.finalVolume, 2)}</p>
+              <p className="text-xs text-muted-foreground">{result.model.volumeUnit}</p>
             </div>
           </div>
 
           <p className="text-xs text-muted-foreground mt-4 text-center">
-            C<sub>f</sub> = (C&#x2081; &times; V&#x2081; + C&#x2082; &times; V&#x2082;) / (V&#x2081; + V&#x2082;)
+            C<sub>f</sub> = (C&#x2081; &times; V&#x2081; + C&#x2082; &times; V&#x2082;) / V<sub>final</sub>
             = ({formatSci(c1Val)} &times; {formatSci(v1Val, 2)} + {formatSci(c2Val)} &times; {formatSci(v2Val, 2)}) / {formatSci(result.finalVolume, 2)}
             = {formatSci(result.finalConc)}
           </p>
+          <div className="mt-4 space-y-1 border-t border-border pt-4 text-xs">
+            <p className="font-semibold text-foreground">
+              Volume basis: {result.model.volumeBasis === 'measured-final' ? 'measured final volume' : 'additive-volume approximation'} ({result.model.volumeUnit})
+            </p>
+            {result.model.normalityContext && (
+              <p className="font-semibold text-foreground">Normality context: {result.model.normalityContext}</p>
+            )}
+            {result.assumptions.map((assumption) => (
+              <p key={assumption} className="text-warning-strong">{assumption}</p>
+            ))}
+          </div>
         </ResultCard>
       )}
     </div>

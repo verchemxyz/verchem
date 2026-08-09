@@ -18,6 +18,7 @@ import {
   calculateWeakBasePH,
   hendersonHasselbalch,
   calculateDilution,
+  PH_MODEL_25C,
 } from '@/lib/calculations/solutions'
 import {
   idealGasLaw,
@@ -191,6 +192,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.OH_concentration).toBeCloseTo(engineResult.OH_concentration as number, 10)
     expect(result.value.Kw).toBe(1e-14)
+    expect(result.value.model).toEqual(PH_MODEL_25C)
   })
 
   test('calculate_weak_acid_ph matches engine', () => {
@@ -204,6 +206,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.percent_ionization).toBeCloseTo(engineResult.percentIonization as number, 10)
     expect(result.value.Kw).toBe(1e-14)
+    expect(result.value.model).toEqual(PH_MODEL_25C)
   })
 
   test('calculate_weak_acid_ph resolves known acid by formula', () => {
@@ -236,6 +239,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
     expect(result.value.Kw).toBe(1e-14)
+    expect(result.value.model).toEqual(PH_MODEL_25C)
   })
 
   test('calculate_weak_base_ph matches engine', () => {
@@ -248,6 +252,7 @@ describe('pH tools route to real engines', () => {
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
     expect(result.value.Kw).toBe(1e-14)
+    expect(result.value.model).toEqual(PH_MODEL_25C)
   })
 
   test('calculate_buffer_ph matches engine', () => {
@@ -258,6 +263,25 @@ describe('pH tools route to real engines', () => {
 
     const engineResult = hendersonHasselbalch(4.76, 0.1, 0.1)
     expect(result.value.pH).toBeCloseTo(engineResult, 10)
+    expect(result.value.model).toEqual(PH_MODEL_25C)
+  })
+
+  test('pH signed path rejects temperatures and activity models outside fixed scope', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    expect(tool.execute({ concentration: 0.01, temperature_C: 30 }).ok).toBe(false)
+    expect(tool.execute({ concentration: 0.01, activity_model: 'davies' }).ok).toBe(false)
+  })
+
+  test('pH signed path accepts and records explicit supported scope', () => {
+    const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const result = tool.execute({
+      concentration: 0.01,
+      temperature_C: 25,
+      activity_model: 'concentration-as-activity',
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.model).toEqual(PH_MODEL_25C)
   })
 
   test('calculate_dilution matches engine', () => {

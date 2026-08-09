@@ -28,7 +28,7 @@ Built with Next.js 16 and TypeScript, VerChem offers production-quality tools th
 - **Electrochemistry Calculator**: Redox potentials, galvanic cells, Nernst equation
 
 ### Chemical Database
-- **1,300+ Compounds**: Common chemicals with properties
+- **1,311 Compounds**: Common chemicals with properties
 - **Safety Data**: GHS hazard codes, flash points, handling precautions
 - **Physical Properties**: Boiling point, melting point, density, solubility
 
@@ -113,7 +113,7 @@ Built with Next.js 16 and TypeScript, VerChem offers production-quality tools th
 ### General Questions
 
 **What is VerChem?**
-VerChem is a free chemistry platform offering 8 deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,300+ compounds. Built for students, chemists, and educators.
+VerChem is a free chemistry platform offering 8 deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,311 compounds. Built for students, chemists, and educators.
 
 **Is VerChem free to use?**
 Yes. VerChem's tools are free to use, with no per-calculation charge and no paid tier gating the chemistry itself.

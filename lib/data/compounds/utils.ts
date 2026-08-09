@@ -1,103 +1,145 @@
-const ATOMIC_MASS: Record<string, number> = {
-  H: 1.008,
-  He: 4.0026,
-  Li: 6.94,
-  Be: 9.0122,
-  B: 10.81,
-  C: 12.011,
-  N: 14.007,
-  O: 15.999,
-  F: 18.998,
-  Ne: 20.180,
-  Na: 22.990,
-  Mg: 24.305,
-  Al: 26.982,
-  Si: 28.085,
-  P: 30.974,
-  S: 32.06,
-  Cl: 35.45,
-  K: 39.098,
-  Ca: 40.078,
-  Sc: 44.956,
-  Ti: 47.867,
-  V: 50.942,
-  Cr: 51.996,
-  Mn: 54.938,
-  Fe: 55.845,
-  Co: 58.933,
-  Ni: 58.693,
-  Cu: 63.546,
-  Zn: 65.38,
-  Ga: 69.723,
-  Ge: 72.630,
-  As: 74.922,
-  Se: 78.971,
-  Br: 79.904,
-  Rb: 85.468,
-  Sr: 87.62,
-  Cs: 132.905,
-  Ag: 107.8682,
-  Cd: 112.414,
-  Sn: 118.71,
-  Sb: 121.760,
-  I: 126.904,
-  Ba: 137.327,
-  Pt: 195.084,
-  Au: 196.967,
-  Hg: 200.592,
-  Pb: 207.2,
-  Bi: 208.980,
+import { PERIODIC_TABLE } from '../periodic-table'
+
+const ATOMIC_MASS = new Map(PERIODIC_TABLE.map(element => [element.symbol, element.atomicMass]))
+const ELEMENT_SYMBOLS = new Set(ATOMIC_MASS.keys())
+
+type Composition = Record<string, number>
+
+function addComposition(target: Composition, source: Composition, multiplier = 1): void {
+  for (const [element, count] of Object.entries(source)) {
+    target[element] = (target[element] ?? 0) + count * multiplier
+  }
 }
 
-export function parseFormula(formula: string): Record<string, number> | null {
-  const tokens = formula.match(/([A-Z][a-z]?|\d+|\(|\))/g)
-  if (!tokens) return null
-  const stack: Array<Record<string, number>> = [{}]
+function splitTopLevelHydrates(formula: string): string[] | null {
+  const segments: string[] = []
+  let start = 0
+  let depth = 0
 
-  const applyCount = (target: Record<string, number>, element: string, count: number) => {
-    target[element] = (target[element] ?? 0) + count
-  }
+  for (let index = 0; index < formula.length; index += 1) {
+    const character = formula[index]
+    if (character === '(' || character === '[') depth += 1
+    if (character === ')' || character === ']') depth -= 1
+    if (depth < 0) return null
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
-    if (!token) continue
-    if (token === '(') {
-      stack.push({})
-    } else if (token === ')') {
-      const group = stack.pop()
-      if (!group) return null
-      const multiplier = tokens[i + 1] && /^\d+$/.test(tokens[i + 1]) ? Number(tokens[i + 1]) : 1
-      if (multiplier !== 1) {
-        i += 1
-      }
-      const top = stack[stack.length - 1]
-      Object.entries(group).forEach(([el, count]) => applyCount(top, el, count * multiplier))
-    } else if (/^[A-Z]/.test(token)) {
-      const element = token
-      const next = tokens[i + 1]
-      const count = next && /^\d+$/.test(next) ? Number(next) : 1
-      if (count !== 1) {
-        i += 1
-      }
-      const top = stack[stack.length - 1]
-      applyCount(top, element, count)
-    } else if (/^\d+$/.test(token)) {
-      // standalone number should have been consumed by element or group; ignore to avoid crashes
+    if (character === '·' && depth === 0) {
+      segments.push(formula.slice(start, index))
+      start = index + 1
     }
   }
 
-  return stack.pop() ?? null
+  if (depth !== 0) return null
+  segments.push(formula.slice(start))
+  return segments.every(Boolean) ? segments : null
+}
+
+function parseStoichiometricSegment(segment: string): Composition | null {
+  let cursor = 0
+
+  function readNumber(): number | undefined {
+    const match = /^(?:\d+(?:\.\d+)?|\.\d+)/.exec(segment.slice(cursor))
+    if (!match) return undefined
+
+    const value = Number(match[0])
+    if (!Number.isFinite(value) || value <= 0) return undefined
+    cursor += match[0].length
+    return value
+  }
+
+  function parseSequence(closingCharacter?: ')' | ']'): Composition | null {
+    const composition: Composition = {}
+
+    while (cursor < segment.length) {
+      const character = segment[cursor]
+
+      if (closingCharacter && character === closingCharacter) {
+        cursor += 1
+        return composition
+      }
+
+      if (character === '(' || character === '[') {
+        cursor += 1
+        const group = parseSequence(character === '(' ? ')' : ']')
+        if (!group) return null
+        addComposition(composition, group, readNumber() ?? 1)
+        continue
+      }
+
+      if (character === ')' || character === ']') return null
+
+      const elementMatch = /^[A-Z][a-z]?/.exec(segment.slice(cursor))
+      if (!elementMatch || !ELEMENT_SYMBOLS.has(elementMatch[0])) return null
+
+      cursor += elementMatch[0].length
+      const count = readNumber() ?? 1
+      composition[elementMatch[0]] = (composition[elementMatch[0]] ?? 0) + count
+    }
+
+    return closingCharacter ? null : composition
+  }
+
+  const composition = parseSequence()
+  return composition && cursor === segment.length ? composition : null
+}
+
+/**
+ * Parse a fixed-composition chemical formula.
+ *
+ * Supported notation includes nested parentheses/brackets, decimal
+ * stoichiometry, hydrate dots and leading hydrate coefficients. A formula of
+ * the form `(C2H4)n` is interpreted on a repeat-unit basis. Mixtures, ranges
+ * and variable-composition formulae intentionally return `null`, because they
+ * do not have one defensible molar mass.
+ */
+export function parseFormula(formula: string): Composition | null {
+  let normalized = formula.replace(/\s+/g, '')
+  if (!normalized) return null
+
+  // Ionic charge does not change the elemental composition used by callers.
+  normalized = normalized.replace(/[+-]$/, '')
+
+  const repeatUnit = /^\((.*)\)n$/.exec(normalized)
+  if (repeatUnit) {
+    const unit = repeatUnit[1]
+    if (!unit || unit.includes('·')) return null
+    return parseStoichiometricSegment(unit)
+  }
+
+  // Any remaining lower-case stoichiometric variable means the composition
+  // is not fixed (for example SLES or a copolymer with n/m fractions).
+  if (/(^|[^A-Z])[nmpxyz](?=$|[^a-z])/.test(normalized)) return null
+
+  const hydrateSegments = splitTopLevelHydrates(normalized)
+  if (!hydrateSegments) return null
+
+  const total: Composition = {}
+  for (const rawSegment of hydrateSegments) {
+    let segment = rawSegment
+    let multiplier = 1
+    const coefficient = /^(\d+(?:\.\d+)?)(?=[A-Z(\[])/.exec(segment)
+    if (coefficient) {
+      multiplier = Number(coefficient[1])
+      segment = segment.slice(coefficient[1].length)
+    }
+
+    const composition = parseStoichiometricSegment(segment)
+    if (!composition) return null
+    addComposition(total, composition, multiplier)
+  }
+
+  return total
 }
 
 export function calculateMolarMass(formula: string): number | undefined {
-  const normalized = formula.replace(/[\s·]/g, '')
-  const composition = parseFormula(normalized)
+  const composition = parseFormula(formula)
   if (!composition) return undefined
+
   let mass = 0
   for (const [element, count] of Object.entries(composition)) {
-    const atomic = ATOMIC_MASS[element]
-    if (!atomic) return undefined
-    mass += atomic * count
+    const atomicMass = ATOMIC_MASS.get(element)
+    if (atomicMass === undefined) return undefined
+    mass += atomicMass * count
   }
+
   return Math.round(mass * 1000) / 1000
 }

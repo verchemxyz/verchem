@@ -35,8 +35,9 @@ import { TEXTILE_CHEMICALS } from './textile-chemicals'
 import { CONSTRUCTION_MATERIALS } from './construction'
 import { CLEANING_CHEMICALS } from './cleaning'
 import { PHOTOGRAPHY_CHEMICALS } from './photography'
+import { curateCompoundGroups } from './curation'
 
-export const COMPOUND_GROUPS = {
+const SOURCE_COMPOUND_GROUPS = {
   acids: ACIDS,
   bases: BASES,
   salts: SALTS,
@@ -73,6 +74,12 @@ export const COMPOUND_GROUPS = {
   cleaning: CLEANING_CHEMICALS,
   photography: PHOTOGRAPHY_CHEMICALS,
 }
+
+const curatedGroups = curateCompoundGroups(SOURCE_COMPOUND_GROUPS)
+
+export const COMPOUND_GROUPS = Object.fromEntries(
+  Object.keys(SOURCE_COMPOUND_GROUPS).map(group => [group, curatedGroups[group] ?? []])
+) as { [Group in keyof typeof SOURCE_COMPOUND_GROUPS]: Compound[] }
 
 const RAW_COMPOUNDS: Compound[] = [
   ...COMPOUND_GROUPS.acids,
@@ -114,9 +121,8 @@ const RAW_COMPOUNDS: Compound[] = [
 
 /**
  * Attach curated, RDKit-verified SMILES (from smiles-data.ts) to every
- * compound whose id appears in the library. Duplicate ids across category
- * files (e.g. `acetone` in both ketones and solvents) all receive the same
- * SMILES. Compounds without a verified structure keep `smiles` undefined.
+ * compound whose id appears in the library. Compounds without a verified
+ * structure keep `smiles` undefined.
  */
 export const COMPREHENSIVE_COMPOUNDS: Compound[] = RAW_COMPOUNDS.map(compound => {
   const smiles = SMILES_BY_ID[compound.id]

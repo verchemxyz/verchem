@@ -5,6 +5,8 @@
  * GET /api/chemistry/ph?oh=0.00001 - Calculate from OH- concentration
  * GET /api/chemistry/ph?poh=5 - Calculate from pOH
  * GET /api/chemistry/ph?ph=7 - Get all related values
+ * Optional: temperature_c=25&activity_model=concentration-as-activity
+ * Other temperatures/activity models are outside this engine and are rejected.
  *
  * Created: 2026-01-29
  * Author: สมนึก (Claude Opus 4.5)
@@ -12,9 +14,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
-
-// Water ion product at 25°C
-const Kw = 1e-14;
+import {
+  PH_MODEL_25C,
+  assertSupportedPHModelScope,
+} from '@/lib/calculations/solutions';
 
 /**
  * Strict numeric parse for query params. Unlike parseFloat (which accepts
@@ -40,37 +43,37 @@ interface pHResult {
 
 function calculateFromH(h: number): pHResult {
   const pH = -Math.log10(h);
-  const pOH = 14 - pH;
-  const oh = Kw / h;
+  const pOH = PH_MODEL_25C.pKw - pH;
+  const oh = PH_MODEL_25C.kw / h;
 
   return {
     pH,
     pOH,
     hConcentration: h,
     ohConcentration: oh,
-    acidity: pH < 7 ? 'acidic' : pH > 7 ? 'basic' : 'neutral',
+    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
     description: getDescription(pH),
   };
 }
 
 function calculateFromOH(oh: number): pHResult {
   const pOH = -Math.log10(oh);
-  const pH = 14 - pOH;
-  const h = Kw / oh;
+  const pH = PH_MODEL_25C.pKw - pOH;
+  const h = PH_MODEL_25C.kw / oh;
 
   return {
     pH,
     pOH,
     hConcentration: h,
     ohConcentration: oh,
-    acidity: pH < 7 ? 'acidic' : pH > 7 ? 'basic' : 'neutral',
+    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
     description: getDescription(pH),
   };
 }
 
 function calculateFrompH(pH: number): pHResult {
   const h = Math.pow(10, -pH);
-  const pOH = 14 - pH;
+  const pOH = PH_MODEL_25C.pKw - pH;
   const oh = Math.pow(10, -pOH);
 
   return {
@@ -78,13 +81,13 @@ function calculateFrompH(pH: number): pHResult {
     pOH,
     hConcentration: h,
     ohConcentration: oh,
-    acidity: pH < 7 ? 'acidic' : pH > 7 ? 'basic' : 'neutral',
+    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
     description: getDescription(pH),
   };
 }
 
 function calculateFrompOH(pOH: number): pHResult {
-  const pH = 14 - pOH;
+  const pH = PH_MODEL_25C.pKw - pOH;
   const h = Math.pow(10, -pH);
   const oh = Math.pow(10, -pOH);
 
@@ -93,7 +96,7 @@ function calculateFrompOH(pOH: number): pHResult {
     pOH,
     hConcentration: h,
     ohConcentration: oh,
-    acidity: pH < 7 ? 'acidic' : pH > 7 ? 'basic' : 'neutral',
+    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
     description: getDescription(pH),
   };
 }
@@ -104,7 +107,7 @@ function getDescription(pH: number): string {
   if (pH < 5) return 'Strongly acidic (vinegar, soda)';
   if (pH < 6) return 'Moderately acidic (black coffee, rain water)';
   if (pH < 7) return 'Slightly acidic (milk, saliva)';
-  if (pH === 7) return 'Neutral (pure water)';
+  if (pH === PH_MODEL_25C.neutralPH) return 'Neutral in this 25 °C ideal-dilute aqueous model';
   if (pH < 8) return 'Slightly basic (blood, sea water)';
   if (pH < 9) return 'Moderately basic (baking soda)';
   if (pH < 11) return 'Strongly basic (ammonia, soap)';
@@ -128,6 +131,8 @@ export async function GET(request: NextRequest) {
   const ohParam = searchParams.get('oh');
   const phParam = searchParams.get('ph');
   const pohParam = searchParams.get('poh');
+  const temperatureParam = searchParams.get('temperature_c');
+  const activityModelParam = searchParams.get('activity_model');
 
   // Check if any parameter is provided
   if (!hParam && !ohParam && !phParam && !pohParam) {
@@ -149,6 +154,28 @@ export async function GET(request: NextRequest) {
   let result: pHResult;
 
   try {
+    const temperatureC = temperatureParam === null
+      ? PH_MODEL_25C.temperatureC
+      : parseFiniteParam(temperatureParam);
+    if (temperatureC === null) {
+      return NextResponse.json(
+        { error: 'Invalid temperature_c - must be a finite number' },
+        { status: 400 }
+      );
+    }
+    const activityModel = activityModelParam ?? PH_MODEL_25C.activityModel;
+    try {
+      assertSupportedPHModelScope(temperatureC, activityModel);
+    } catch (scopeError) {
+      return NextResponse.json(
+        {
+          error: scopeError instanceof Error ? scopeError.message : 'Unsupported pH model scope',
+          supportedModel: PH_MODEL_25C,
+        },
+        { status: 422 }
+      );
+    }
+
     if (hParam) {
       const h = parseFiniteParam(hParam);
       if (h === null || h <= 0) {
@@ -234,16 +261,17 @@ export async function GET(request: NextRequest) {
         },
         constants: {
           Kw: {
-            value: Kw,
-            description: 'Water ion product at 25°C',
+            value: PH_MODEL_25C.kw,
+            description: 'Kw = 1.0×10^-14 for this aqueous 25 °C model only (Brown, LeMay & Bursten, Chemistry: The Central Science, 15th ed., Ch. 16)',
           },
         },
+        model: PH_MODEL_25C,
         timestamp: new Date().toISOString(),
       },
       {
         headers: {
           'Cache-Control': 'public, max-age=3600',
-          'X-API-Version': '1.0.0',
+          'X-API-Version': '1.1.0',
         },
       }
     );

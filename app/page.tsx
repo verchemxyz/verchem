@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
+import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
 
 // The hero card claims "every result is HMAC-signed", so the demo signature must
 // itself be a REAL HMAC-SHA256 over the evidence the card displays — not a stand-in
@@ -292,7 +293,7 @@ export default function Home() {
             {[
               { value: "118", label: "Elements (NIST)" },
               { value: "24+", label: "Deterministic tools" },
-              { value: "1,300+", label: "Compounds" },
+              { value: COMPOUND_STATISTICS.totalCompounds.toLocaleString("en-US"), label: "Compounds" },
               { value: "61", label: "Signed engines" },
             ].map((stat) => (
               <div key={stat.label} className="border border-border rounded-lg bg-card p-4 text-center">

@@ -1,13 +1,14 @@
 'use client'
 
 // VerChem - Compound Database Page
-// Comprehensive chemical compound database with 500+ compounds
+// Comprehensive chemical compound database backed by the canonical dataset
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { CalcShell, Card, SectionTitle, Button } from '@/components/lab'
 import CompoundBrowser from '@/components/compound-browser'
 import { Compound } from '@/lib/types/chemistry'
+import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
 
 export default function CompoundsPage() {
   const [selectedCompounds, setSelectedCompounds] = useState<Compound[]>([])
@@ -103,7 +104,7 @@ export default function CompoundsPage() {
     <CalcShell
       eyebrow="Reference · Compound database"
       title="Chemical Compound Database"
-      subtitle="Comprehensive database of 500+ chemical compounds with advanced search, filtering, and calculator integration."
+      subtitle={`Comprehensive database of ${COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')} chemical compounds with advanced search, filtering, and calculator integration.`}
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"
@@ -111,7 +112,7 @@ export default function CompoundsPage() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { value: '500+', label: 'Total Compounds' },
+          { value: COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US'), label: 'Total Compounds' },
           { value: '20+', label: 'Categories' },
           { value: '100%', label: 'Data Complete' },
           { value: '∞', label: 'Applications' },

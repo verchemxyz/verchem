@@ -598,7 +598,7 @@ export const GASES: Compound[] = [
     nameThai: 'อาร์-410เอ',
     formula: 'CH2F2/C2HF5',
     molarMass: 72.58,
-    casNumber: '75-10-5/354-33-6',
+    componentCasNumbers: ['75-10-5', '354-33-6'],
     category: 'other',
     subcategory: 'refrigerant',
     physicalState: 'gas',

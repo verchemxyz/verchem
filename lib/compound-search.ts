@@ -1,5 +1,5 @@
 // VerChem - Advanced Compound Search and Analysis Utilities
-// Comprehensive search, filtering, and analysis functions for 500+ compounds
+// Comprehensive search, filtering, and analysis functions for the canonical compound dataset
 
 import { Compound } from './types/chemistry'
 import { COMPREHENSIVE_COMPOUNDS, COMPOUND_STATISTICS } from './data/compounds'

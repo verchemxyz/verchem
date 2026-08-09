@@ -1,7 +1,7 @@
 'use client'
 
 // VerChem - Comprehensive Compound Database Browser
-// Advanced search, filtering, and visualization for 500+ compounds
+// Advanced search, filtering, and visualization for the canonical compound dataset
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Compound } from '@/lib/types/chemistry'

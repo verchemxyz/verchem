@@ -40,7 +40,7 @@ const supportTiers = [
 const fundingAreas = [
   {
     title: 'Reference data upkeep',
-    description: 'Keeping 118 elements and 1,300+ compounds aligned with current NIST/IUPAC editions.',
+    description: 'Keeping 118 elements and 1,311 compounds aligned with current NIST/IUPAC editions.',
   },
   {
     title: 'Engine validation',
@@ -88,7 +88,7 @@ export default function SupportPage() {
             <div className="text-sm text-muted-foreground">Elements (NIST/IUPAC)</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-foreground font-mono">1,300+</div>
+            <div className="text-3xl font-bold text-foreground font-mono">1,311</div>
             <div className="text-sm text-muted-foreground">Compounds</div>
           </div>
           <div className="text-center">

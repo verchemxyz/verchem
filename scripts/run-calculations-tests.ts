@@ -452,14 +452,14 @@ test('solutions: molarity throws on insufficient parameters', () => {
   )
 })
 
-test('solutions: molality, mass percent, and ppm basics', () => {
+test('solutions: molality, mass percent, and exact mass-fraction ppm basics', () => {
   const molality = calculateMolality(1, 0.5)
   expectApproximately(molality, 2, 0.0001)
 
   const massPercent = calculateMassPercent(10, 200)
   expectApproximately(massPercent, 5, 0.0001)
 
-  const ppm = calculatePPM(50, 1)
+  const ppm = calculatePPM(50, 1) // 50 mg solute / 1 kg solution
   expectApproximately(ppm, 50, 0.0001)
 })
 

@@ -10,6 +10,44 @@ export const WATER_NORMAL_BP = 100 // °C - Normal boiling point
 export const WATER_NORMAL_FP = 0 // °C - Normal freezing point
 
 /**
+ * Fixed pH model used by the educational engine and every signed/API payload.
+ * It intentionally exposes the approximation instead of presenting a
+ * concentration calculation as a thermodynamic activity measurement.
+ */
+export const PH_MODEL_25C = {
+  id: 'aqueous-ideal-dilute-25C',
+  solvent: 'water',
+  temperatureC: 25,
+  kw: 1.0e-14,
+  pKw: 14.0,
+  neutralPH: 7.0,
+  activityModel: 'concentration-as-activity',
+  assumptions: [
+    'Kw = 1.0×10^-14 and pH + pOH = 14.00 are used only for aqueous solution at 25 °C (Brown, LeMay & Bursten, Chemistry: The Central Science, 15th ed., Ch. 16).',
+    'Hydrogen-ion molar concentration is substituted for hydrogen-ion activity; this is valid only for an ideal-dilute aqueous model where the activity coefficient is treated as 1 (IUPAC Gold Book, DOI 10.1351/goldbook, “pH”).',
+  ],
+  references: [
+    'IUPAC Compendium of Chemical Terminology (Gold Book), DOI: 10.1351/goldbook — pH is defined from hydrogen-ion activity.',
+    'Brown, LeMay & Bursten, Chemistry: The Central Science, 15th ed., Ch. 16 — introductory aqueous equilibrium model at 25 °C.',
+  ],
+} as const
+
+export const KW_25C = PH_MODEL_25C.kw
+export const NEUTRAL_PH = PH_MODEL_25C.neutralPH
+
+export function assertSupportedPHModelScope(
+  temperatureC: number = PH_MODEL_25C.temperatureC,
+  activityModel: string = PH_MODEL_25C.activityModel
+): void {
+  if (!Number.isFinite(temperatureC) || temperatureC !== PH_MODEL_25C.temperatureC) {
+    throw new Error('This pH model supports only aqueous solutions at 25 °C; supply an activity model with temperature-dependent constants for other temperatures.')
+  }
+  if (activityModel !== PH_MODEL_25C.activityModel) {
+    throw new Error(`Unsupported activity model: "${activityModel}". This engine supports only the declared concentration-as-activity ideal-dilute model.`)
+  }
+}
+
+/**
  * Calculate molarity (M = mol/L)
  */
 export function calculateMolarity(
@@ -51,13 +89,28 @@ export function calculateMassPercent(
 }
 
 /**
- * Calculate ppm (parts per million)
+ * Calculate exact mass-fraction ppm. By definition, 1 mg/kg = 1 ppm.
+ * A volume denominator is intentionally not accepted because mg/L equals ppm
+ * only under an explicit density approximation.
  */
 export function calculatePPM(
-  soluteMass: number, // mg
-  solutionVolume: number // L
+  soluteMassMg: number,
+  solutionMassKg: number
 ): number {
-  return soluteMass / solutionVolume
+  if (!Number.isFinite(soluteMassMg) || soluteMassMg < 0) {
+    throw new Error('Solute mass must be a non-negative, finite number.')
+  }
+  if (!Number.isFinite(solutionMassKg) || solutionMassKg <= 0) {
+    throw new Error('Solution mass must be a positive, finite number.')
+  }
+  if (soluteMassMg > solutionMassKg * 1e6) {
+    throw new Error('Solute mass cannot exceed total solution mass.')
+  }
+  const ppm = soluteMassMg / solutionMassKg
+  if (!Number.isFinite(ppm)) {
+    throw new Error('Mass-fraction ppm is outside the finite representable range.')
+  }
+  return ppm
 }
 
 /**
@@ -65,7 +118,8 @@ export function calculatePPM(
  */
 
 /**
- * Calculate pH from H+ concentration
+ * Calculate the ideal-dilute 25 °C model pH from H+ molar concentration.
+ * Thermodynamic pH is defined from activity; see PH_MODEL_25C.
  */
 export function calculatePH(H_concentration: number): number {
   if (H_concentration <= 0) {
@@ -102,11 +156,11 @@ export function calculateOH_Concentration(pOH: number): number {
  * Convert between pH and pOH (at 25°C)
  */
 export function pHToPOH(pH: number): number {
-  return 14 - pH
+  return PH_MODEL_25C.pKw - pH
 }
 
 export function pOHToPH(pOH: number): number {
-  return 14 - pOH
+  return PH_MODEL_25C.pKw - pOH
 }
 
 export interface StrongAcidOptions {
@@ -337,7 +391,7 @@ export function calculateWeakBasePH(
   if (percentIonization_approx <= 5) {
     // Approximation is valid
     const pOH = calculatePOH(x_approx)
-    const pH = 14 - pOH
+    const pH = PH_MODEL_25C.pKw - pOH
     return {
       pH,
       pOH,
@@ -358,7 +412,7 @@ export function calculateWeakBasePH(
   const x_accurate = (-b + Math.sqrt(discriminant)) / (2 * a)
 
   const pOH = calculatePOH(x_accurate)
-  const pH = 14 - pOH
+  const pH = PH_MODEL_25C.pKw - pOH
   const percentIonization = (x_accurate / concentration) * 100
 
   return {
@@ -621,12 +675,6 @@ export const PKA_VALUES = {
   'NH4+': 9.25, // Ammonium
   'H2O': 15.74, // Water (as acid)
 }
-
-/**
- * Water constants
- */
-export const KW_25C = 1.0e-14 // Water autoionization at 25°C
-export const NEUTRAL_PH = 7.0 // Neutral pH at 25°C
 
 /**
  * Type aliases for UI

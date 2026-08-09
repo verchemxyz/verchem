@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { CalcShell, Card, SectionTitle } from '@/components/lab';
+import { COMPOUND_STATISTICS } from '@/lib/data/compounds';
 
 // There is no supporter ledger yet. Donations go through fixed-price Stripe
 // Payment Links, which are not wired to any database here, so this page has no
@@ -42,7 +43,7 @@ export default function SupportersPage() {
       <Card className="p-8">
         <SectionTitle className="mb-3">What your support pays for</SectionTitle>
         <ul className="space-y-3 text-muted-foreground">
-          <li>Keeping 118 elements and 1,300+ compounds aligned with current NIST/IUPAC editions.</li>
+          <li>Keeping 118 elements and {COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')} compounds aligned with current NIST/IUPAC editions.</li>
           <li>Validating the calculation engines and documenting what each one assumes.</li>
           <li>Hosting, storage, and the compute behind structure search and signed results.</li>
         </ul>

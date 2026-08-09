@@ -379,7 +379,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'What is VerChem?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem is a free chemistry platform offering deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,300+ compounds. Built for students, chemists, and engineers.'
+          text: 'VerChem is a free chemistry platform offering deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,311 compounds. Built for students, chemists, and engineers.'
         }
       },
       {
@@ -513,7 +513,7 @@ export function VerChemSoftwareApplicationSchema() {
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     url: 'https://verchem.xyz',
-    description: 'Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements) and a 1,300+ compound database. NIST/IUPAC reference data.',
+    description: 'Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements) and a 1,311-compound database. NIST/IUPAC reference data.',
     offers: [
       {
         '@type': 'Offer',
@@ -532,7 +532,7 @@ export function VerChemSoftwareApplicationSchema() {
       'Chemical Kinetics Calculator',
       'Electrochemistry Calculator',
       'Interactive Periodic Table (118 elements)',
-      'Compounds Database (1,000+ chemicals)',
+      'Compounds Database (1,311 chemicals)',
       'Step-by-step Solutions',
       'Uncertainty Analysis'
     ],
@@ -547,4 +547,3 @@ export function VerChemSoftwareApplicationSchema() {
     />
   )
 }
-

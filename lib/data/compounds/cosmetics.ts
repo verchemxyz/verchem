@@ -553,9 +553,10 @@ export const COSMETICS: Compound[] = [
   {
     id: 'sodium-laureth-sulfate',
     name: 'Sodium Laureth Sulfate',
-    nameThai: 'โซเดียมลอเรธซัลเฟต',
+    nameThai: 'โซเดียมลอเรทซัลเฟต',
     formula: 'C12H25(OCH2CH2)nOSO3Na',
-    molarMass: 422.57,
+    molarMass: 0,
+    molarMassBasis: 'not-applicable',
     casNumber: '9004-82-4',
     category: 'surfactant',
     subcategory: 'anionic',

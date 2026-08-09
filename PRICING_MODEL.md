@@ -59,7 +59,7 @@
 
 **Features**:
 - ✅ **ALL calculators** in **ALL VerCal products**
-- ✅ **Complete data**: 1,000+ compounds, all formulas, all standards
+- ✅ **Complete data**: 1,311 compounds, all formulas, all standards
 - ✅ **Unlimited saves** (cloud-synced across devices)
 - ✅ **Step-by-step solutions** (show work, not just answers)
 - ✅ **Export to PDF** (professional formatting)

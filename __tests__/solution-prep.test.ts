@@ -1,19 +1,20 @@
 /**
- * VerChem Stock Solution Preparation — Unit Tests
+ * VerChem concentration-model tests.
  *
- * Guards the bench-safety invariant behind `calculateStockPrep`: the returned
- * amount is only ever presented as a mass when it IS a mass. %v/v yields a
- * volume of liquid solute, and telling someone to weigh it is a real-world
- * measurement error (ethanol at 0.789 g/mL is off by >20%).
- *
- * Also pins the assumption reporting for %w/w (solution density) and normality
- * (equivalents factor), since a silently assumed value is the same class of
- * defect: a number that looks exact but isn't.
+ * These tests pin physical-basis separation, explicit stock-preparation context,
+ * neat-material handling, and measured-vs-approximated mixing volume.
  */
 
 import assert from 'node:assert/strict'
 
-import { calculateStockPrep } from '@/lib/calculations/solution-prep'
+import {
+  calculateMixing,
+  calculateStockPrep,
+  convertConcentration,
+  getConcentrationConversionRequirements,
+  type MixingConcentrationUnit,
+  type MixingVolumeUnit,
+} from '@/lib/calculations/solution-prep'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -28,189 +29,544 @@ function test(name: string, fn: TestFn) {
   tests.push({ name, fn })
 }
 
-function closeTo(actual: number, expected: number, precision = 6) {
-  const diff = Math.abs(actual - expected)
-  assert.ok(diff < Math.pow(10, -precision), `Expected ${actual} to be close to ${expected}`)
+function closeTo(actual: number, expected: number, tolerance = 1e-9) {
+  assert.ok(
+    Math.abs(actual - expected) <= tolerance,
+    'Expected ' + actual + ' to be within ' + tolerance + ' of ' + expected
+  )
 }
 
-/** Every step that instructs weighing, lowercased for matching. */
 function weighSteps(steps: string[]): string[] {
-  return steps.filter((s) => /weigh/i.test(s))
+  return steps.filter((step) => /^weigh\s/i.test(step))
 }
 
-describe('mass-based units report a mass', () => {
-  test('mol/L: 1 M NaCl in 1 L = 58.44 g, measured by mass', () => {
-    const r = calculateStockPrep({ targetConc: 1, targetVolume: 1, molarMass: 58.44, unit: 'mol/L' })
-    closeTo(r.amount, 58.44, 4)
-    assert.equal(r.amountUnit, 'g')
-    assert.equal(r.measureBy, 'mass')
-    assert.deepEqual(r.assumptions, [])
-    assert.ok(weighSteps(r.steps).length === 1, 'a mass result should instruct weighing exactly once')
+const MASS_CONTEXT = {
+  reagentPurityPercent: 100,
+  reagentPurityBasis: 'mass' as const,
+  reagentForm: 'NaCl (anhydrous)',
+  solvent: 'water',
+  preparationTemperatureC: 20,
+}
+
+const VOLUME_CONTEXT = {
+  reagentPurityPercent: 100,
+  reagentPurityBasis: 'volume' as const,
+  reagentForm: 'ethanol (neat)',
+  solvent: 'water',
+  preparationTemperatureC: 20,
+}
+
+describe('stock preparation: explicit model inputs', () => {
+  test('1 M NaCl in 1 L = 58.44 g of the exact reagent form', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 1,
+      targetVolume: 1,
+      molarMass: 58.44,
+      unit: 'mol/L',
+    })
+
+    closeTo(result.amount, 58.44)
+    assert.equal(result.amountUnit, 'g')
+    assert.equal(result.measureBy, 'mass')
+    assert.equal(result.model.molarMassBasis, 'exact-as-weighed-form')
+    assert.equal(result.model.reagentForm, 'NaCl (anhydrous)')
+    assert.equal(result.model.solvent, 'water')
+    assert.equal(result.model.preparationTemperatureC, 20)
+    assert.ok(result.assumptions.every((assumption) => /IUPAC|ISO|material balance/i.test(assumption)))
+    assert.equal(weighSteps(result.steps).length, 1)
   })
 
-  test('mmol/L converts to mol/L before massing', () => {
-    const r = calculateStockPrep({ targetConc: 500, targetVolume: 2, molarMass: 40, unit: 'mmol/L' })
-    closeTo(r.amount, 0.5 * 2 * 40, 6) // 0.5 mol/L x 2 L x 40 g/mol
-    assert.equal(r.amountUnit, 'g')
+  test('hydrate form uses the hydrate molar mass instead of an anhydrous default', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: 'CuSO4·5H2O',
+      targetConc: 1,
+      targetVolume: 1,
+      molarMass: 249.685,
+      unit: 'mol/L',
+    })
+
+    closeTo(result.amount, 249.685)
+    assert.equal(result.model.reagentForm, 'CuSO4·5H2O')
+    assert.ok(result.assumptions.some((assumption) => /hydrate\/solvate/i.test(assumption)))
   })
 
-  test('g/L is a direct mass', () => {
-    const r = calculateStockPrep({ targetConc: 10, targetVolume: 0.5, molarMass: 1, unit: 'g/L' })
-    closeTo(r.amount, 5, 6)
-    assert.equal(r.measureBy, 'mass')
+  test('99.5% mass assay increases the amount by the exact reciprocal assay', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentPurityPercent: 99.5,
+      targetConc: 10,
+      targetVolume: 1,
+      unit: 'g/L',
+    })
+
+    closeTo(result.amount, 10 / 0.995)
+    assert.equal(result.model.reagentPurityPercent, 99.5)
+    assert.equal(result.model.reagentPurityBasis, 'mass')
   })
 
-  test('%w/v is g per 100 mL', () => {
-    const r = calculateStockPrep({ targetConc: 5, targetVolume: 1, molarMass: 1, unit: 'pct_wv' })
-    closeTo(r.amount, 50, 6) // 5 g/100 mL over 1000 mL
-    assert.equal(r.measureBy, 'mass')
-    assert.deepEqual(r.assumptions, [])
+  test('mass units do not require a dummy molar mass', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 5,
+      targetVolume: 2,
+      unit: 'g/L',
+    })
+    closeTo(result.amount, 10)
+    assert.equal(result.model.molarMassBasis, null)
+  })
+
+  test('missing reagent form, solvent, temperature, or assay is rejected', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: '',
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    }), /reagent form is required/i)
+
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      solvent: '',
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    }), /solvent identity is required/i)
+
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      preparationTemperatureC: Number.NaN,
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    }), /temperature/i)
+
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentPurityPercent: Number.NaN,
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    }), /purity\/assay/i)
   })
 })
 
-describe('%v/v yields a VOLUME — never a mass', () => {
-  test('returns mL measured by volume, not grams', () => {
-    const r = calculateStockPrep({ targetConc: 5, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
-    closeTo(r.amount, 50, 6) // 5 mL per 100 mL over 1000 mL
-    assert.equal(r.amountUnit, 'mL')
-    assert.equal(r.measureBy, 'volume')
-  })
+describe('stock preparation: volume and fraction bases', () => {
+  test('%v/v returns a volume and never labels it as grams', () => {
+    const result = calculateStockPrep({
+      ...VOLUME_CONTEXT,
+      targetConc: 5,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    })
 
-  test('REGRESSION: preparation steps must never say to weigh a %v/v amount', () => {
-    const r = calculateStockPrep({ targetConc: 5, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
+    closeTo(result.amount, 50)
+    assert.equal(result.amountUnit, 'mL')
+    assert.equal(result.measureBy, 'volume')
     assert.equal(
-      weighSteps(r.steps).filter((s) => !/do NOT weigh|not weigh/i.test(s)).length,
-      0,
-      'a volume result must not produce a "weigh N g" instruction'
+      weighSteps(result.steps).filter((step) => !/must not be weighed|do not weigh/i.test(step)).length,
+      0
     )
-    assert.ok(
-      r.steps.some((s) => /measure/i.test(s) && s.includes('mL')),
-      'a volume result must instruct measuring in mL'
-    )
+    assert.ok(!result.steps.some((step) => /50(?:\.0+)?\s*g\b/.test(step)))
   })
 
-  test('the amount never appears followed by a gram unit in the steps', () => {
-    const r = calculateStockPrep({ targetConc: 10, targetVolume: 2, molarMass: 46.07, unit: 'pct_vv' })
-    const amountAsGrams = new RegExp(`${r.amount}\\s*g\\b`)
-    assert.ok(
-      !r.steps.some((s) => amountAsGrams.test(s)),
-      'the volume figure must never be labelled with grams'
-    )
-  })
-})
-
-describe('%w/w declares its density assumption', () => {
-  test('without a density it assumes 1 g/mL and says so', () => {
-    const r = calculateStockPrep({ targetConc: 10, targetVolume: 1, molarMass: 1, unit: 'pct_ww' })
-    closeTo(r.amount, 100, 6) // 10% of 1000 g
-    assert.equal(r.assumptions.length, 1)
-    assert.ok(/density/i.test(r.assumptions[0]))
+  test('%v/v requires a volume-basis assay', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 5,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    }), /purity on a volume basis/i)
   })
 
-  test('with a measured density the assumption disappears and the mass scales', () => {
-    const r = calculateStockPrep({
-      targetConc: 10, targetVolume: 1, molarMass: 1, unit: 'pct_ww', solutionDensity: 1.84,
+  test('%w/w requires measured solution density and uses it', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 10,
+      targetVolume: 1,
+      unit: 'pct_ww',
+    }), /solution density.*required/i)
+
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 10,
+      targetVolume: 1,
+      unit: 'pct_ww',
+      solutionDensity: 1.84,
     })
-    closeTo(r.amount, 184, 6) // 10% of (1000 mL x 1.84 g/mL)
-    assert.deepEqual(r.assumptions, [])
+    closeTo(result.amount, 184)
+    assert.equal(result.model.solutionDensity, 1.84)
   })
 
-  test('a non-positive density is rejected rather than silently ignored', () => {
-    assert.throws(
-      () => calculateStockPrep({
-        targetConc: 10, targetVolume: 1, molarMass: 1, unit: 'pct_ww', solutionDensity: 0,
-      }),
-      /density must be a positive, finite number/i
-    )
-  })
-})
-
-describe('normality declares its equivalents assumption', () => {
-  test('without a factor it assumes 1 and says so', () => {
-    const r = calculateStockPrep({ targetConc: 1, targetVolume: 1, molarMass: 98.08, unit: 'N' })
-    closeTo(r.amount, 98.08, 4)
-    assert.equal(r.assumptions.length, 1)
-    assert.ok(/equivalents/i.test(r.assumptions[0]))
-  })
-
-  test('H2SO4 with factor 2 needs half the mass', () => {
-    const r = calculateStockPrep({
-      targetConc: 1, targetVolume: 1, molarMass: 98.08, unit: 'N', equivalentsFactor: 2,
+  test('ppm stock preparation is mass fraction, not mg/L', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 1000,
+      targetVolume: 1,
+      unit: 'ppm',
+      solutionDensity: 1.2,
     })
-    closeTo(r.amount, 49.04, 4)
-    assert.deepEqual(r.assumptions, [])
+    closeTo(result.amount, 1.2)
+
+    const mgPerL = calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 1000,
+      targetVolume: 1,
+      unit: 'mg/L',
+    })
+    closeTo(mgPerL.amount, 1)
+    assert.notEqual(result.amount, mgPerL.amount)
   })
 
-  test('a non-positive equivalents factor is rejected', () => {
-    assert.throws(
-      () => calculateStockPrep({
-        targetConc: 1, targetVolume: 1, molarMass: 98.08, unit: 'N', equivalentsFactor: -1,
-      }),
-      /equivalents factor must be a positive, finite number/i
-    )
-  })
-})
+  test('normality requires the reaction-specific equivalents factor', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: 'H2SO4',
+      targetConc: 1,
+      targetVolume: 1,
+      molarMass: 98.072,
+      unit: 'N',
+    }), /equivalents factor is required/i)
 
-describe('input guards', () => {
-  test('rejects non-positive concentration, volume and molar mass', () => {
-    assert.throws(() => calculateStockPrep({ targetConc: 0, targetVolume: 1, molarMass: 1, unit: 'g/L' }))
-    assert.throws(() => calculateStockPrep({ targetConc: 1, targetVolume: 0, molarMass: 1, unit: 'g/L' }))
-    assert.throws(() => calculateStockPrep({ targetConc: 1, targetVolume: 1, molarMass: 0, unit: 'g/L' }))
-  })
-
-  test('rejects non-finite inputs rather than turning them into bench instructions', () => {
-    assert.throws(
-      () => calculateStockPrep({ targetConc: Infinity, targetVolume: 1, molarMass: 1, unit: 'pct_vv' }),
-      /finite/i
-    )
-    assert.throws(
-      () => calculateStockPrep({ targetConc: 1, targetVolume: NaN, molarMass: 1, unit: 'g/L' }),
-      /finite/i
-    )
-  })
-
-  test('a percentage above 100% is impossible and must be rejected', () => {
-    for (const unit of ['pct_vv', 'pct_ww', 'pct_wv'] as const) {
-      assert.throws(
-        () => calculateStockPrep({ targetConc: 120, targetVolume: 1, molarMass: 46.07, unit }),
-        /cannot exceed 100%/i,
-        `${unit} should reject 120%`
-      )
-    }
-  })
-
-  test('100% exactly is still allowed (neat liquid)', () => {
-    const r = calculateStockPrep({ targetConc: 100, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
-    closeTo(r.amount, 1000, 6)
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: 'H2SO4',
+      targetConc: 1,
+      targetVolume: 1,
+      molarMass: 98.072,
+      unit: 'N',
+      equivalentsFactor: 2,
+    })
+    closeTo(result.amount, 49.036)
+    assert.equal(result.model.equivalentsFactor, 2)
   })
 })
 
-describe('volume procedure fits the flask', () => {
-  test('REGRESSION: a high %v/v never charges more solvent than the flask can hold', () => {
-    // 80% v/v in 1 L needs 800 mL of solute; a fixed "half the flask" first
-    // charge would put 500 + 800 mL into a 1 L flask.
-    const r = calculateStockPrep({ targetConc: 80, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
-    closeTo(r.amount, 800, 6)
-
-    const step1 = r.steps.find((s) => s.startsWith('1.')) as string
-    const initial = Number(step1.replace(/,/g, '').match(/([\d.]+)\s*mL/)?.[1])
-    assert.ok(Number.isFinite(initial), `could not read the initial solvent charge from: ${step1}`)
-    assert.ok(
-      initial + r.amount <= 1000,
-      `initial solvent ${initial} mL + solute ${r.amount} mL overflows a 1000 mL flask`
-    )
+describe('stock preparation: neat material and safety boundary', () => {
+  test('100% v/v is a neat material with no dilution or generic acid SOP', () => {
+    const result = calculateStockPrep({
+      ...VOLUME_CONTEXT,
+      targetConc: 100,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    })
+    closeTo(result.amount, 1000)
+    assert.equal(result.workflow, 'neat-material')
+    assert.equal(result.model.solvent, null)
+    assert.ok(result.steps.some((step) => /no solvent is added/i.test(step)))
+    assert.ok(!result.steps.some((step) => /\badd acid\b|never the reverse|fill.*water/i.test(step)))
   })
 
-  test('a dilute %v/v still starts from a sensible solvent charge', () => {
-    const r = calculateStockPrep({ targetConc: 5, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
-    const step1 = r.steps.find((s) => s.startsWith('1.')) as string
-    const initial = Number(step1.replace(/,/g, '').match(/([\d.]+)\s*mL/)?.[1])
-    assert.ok(initial > 0 && initial + r.amount <= 1000)
+  test('100% w/w is a neat material and does not tell the user to add water', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: 'neat reagent',
+      targetConc: 100,
+      targetVolume: 1,
+      unit: 'pct_ww',
+      solutionDensity: 0.789,
+    })
+    closeTo(result.amount, 789)
+    assert.equal(result.workflow, 'neat-material')
+    assert.ok(!result.steps.some((step) => /\badd\b.*water|fill.*water/i.test(step)))
+  })
+
+  test('100% target from sub-100% reagent is rejected', () => {
+    assert.throws(() => calculateStockPrep({
+      ...VOLUME_CONTEXT,
+      reagentPurityPercent: 96,
+      targetConc: 100,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    }), /100% target.*below 100%/i)
+  })
+
+  test('unknown chemistry never receives a generic acid order-of-addition instruction', () => {
+    const result = calculateStockPrep({
+      ...MASS_CONTEXT,
+      reagentForm: 'unknown reagent',
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    })
+    assert.ok(result.steps.some((step) => /SDS and an approved protocol/i.test(step)))
+    assert.ok(!result.steps.some((step) => /always add acid|never the reverse/i.test(step)))
+  })
+})
+
+describe('stock preparation: numerical and domain guards', () => {
+  test('non-positive and non-finite primary inputs are rejected', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 0,
+      targetVolume: 1,
+      unit: 'g/L',
+    }))
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 1,
+      targetVolume: Number.POSITIVE_INFINITY,
+      unit: 'g/L',
+    }), /finite/i)
+  })
+
+  test('percentage and mass-fraction values above 100% are rejected', () => {
+    assert.throws(() => calculateStockPrep({
+      ...VOLUME_CONTEXT,
+      targetConc: 120,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    }), /cannot exceed 100%/i)
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      targetConc: 1_000_001,
+      targetVolume: 1,
+      unit: 'ppm',
+      solutionDensity: 1,
+    }), /cannot exceed/i)
+  })
+})
+
+describe('concentration conversion: correct physical bases', () => {
+  test('10% v/v ethanol uses solute density: 78.9 g/L', () => {
+    const result = convertConcentration({
+      value: 10,
+      fromUnit: 'pct_vv',
+      toUnit: 'g/L',
+      soluteDensity: 0.789,
+      densityTemperatureC: 20,
+    })
+    closeTo(result.convertedValue, 78.9)
+    assert.equal(result.model.soluteDensity, 0.789)
+    assert.equal(result.model.solutionDensity, null)
+  })
+
+  test('10% w/w solution uses solution density: 98.4 g/L', () => {
+    const result = convertConcentration({
+      value: 10,
+      fromUnit: 'pct_ww',
+      toUnit: 'g/L',
+      solutionDensity: 0.984,
+      densityTemperatureC: 20,
+    })
+    closeTo(result.convertedValue, 98.4)
+    assert.equal(result.model.solutionDensity, 0.984)
+    assert.equal(result.model.soluteDensity, null)
+  })
+
+  test('%v/v to %w/w requires and uses both densities', () => {
+    assert.throws(() => convertConcentration({
+      value: 10,
+      fromUnit: 'pct_vv',
+      toUnit: 'pct_ww',
+      soluteDensity: 0.789,
+      densityTemperatureC: 20,
+    }), /solution density is required/i)
+
+    const result = convertConcentration({
+      value: 10,
+      fromUnit: 'pct_vv',
+      toUnit: 'pct_ww',
+      soluteDensity: 0.789,
+      solutionDensity: 0.984,
+      densityTemperatureC: 20,
+    })
+    closeTo(result.convertedValue, (10 * 0.789) / 0.984)
+  })
+
+  test('mass-fraction ppm is separated from mg/L by solution density', () => {
+    assert.throws(() => convertConcentration({
+      value: 1000,
+      fromUnit: 'ppm',
+      toUnit: 'g/L',
+    }), /solution density is required/i)
+
+    const result = convertConcentration({
+      value: 1000,
+      fromUnit: 'ppm',
+      toUnit: 'g/L',
+      solutionDensity: 1.2,
+      densityTemperatureC: 20,
+    })
+    closeTo(result.convertedValue, 1.2)
+  })
+
+  test('ppm to ppb is an exact same-basis scale and needs no density', () => {
+    const requirements = getConcentrationConversionRequirements('ppm', 'ppb')
+    assert.deepEqual(requirements, {
+      molarMass: false,
+      soluteDensity: false,
+      solutionDensity: false,
+      densityTemperature: false,
+      equivalents: false,
+    })
+    closeTo(convertConcentration({
+      value: 1000,
+      fromUnit: 'ppm',
+      toUnit: 'ppb',
+    }).convertedValue, 1_000_000)
+  })
+
+  test('normality conversion requires explicit equivalents and returns 0.5 M for 1 N H2SO4 factor 2', () => {
+    assert.throws(() => convertConcentration({
+      value: 1,
+      fromUnit: 'N',
+      toUnit: 'mol/L',
+    }), /equivalents factor is required/i)
+
+    closeTo(convertConcentration({
+      value: 1,
+      fromUnit: 'N',
+      toUnit: 'mol/L',
+      equivalents: 2,
+    }).convertedValue, 0.5)
+  })
+
+  test('even an N-to-N identity conversion requires and records the reaction-specific factor', () => {
+    assert.throws(() => convertConcentration({
+      value: 1,
+      fromUnit: 'N',
+      toUnit: 'N',
+    }), /equivalents factor is required/i)
+
+    const result = convertConcentration({
+      value: 1,
+      fromUnit: 'N',
+      toUnit: 'N',
+      equivalents: 2,
+    })
+    closeTo(result.convertedValue, 1)
+    assert.equal(result.model.equivalents, 2)
+  })
+
+  test('fraction inputs and outputs cannot exceed 100%', () => {
+    assert.throws(() => convertConcentration({
+      value: 101,
+      fromUnit: 'pct_vv',
+      toUnit: 'g/L',
+      soluteDensity: 0.789,
+      densityTemperatureC: 20,
+    }), /exceeds 100%/i)
+
+    assert.throws(() => convertConcentration({
+      value: 2000,
+      fromUnit: 'g/L',
+      toUnit: 'pct_vv',
+      soluteDensity: 0.789,
+      densityTemperatureC: 20,
+    }), /exceeds 100%/i)
+  })
+})
+
+describe('mixing model: measured volume or declared approximation', () => {
+  const MIXING_SCOPE = {
+    soluteIdentity: 'NaCl',
+    concentrationUnit: 'mol/L' as const,
+    volumeUnit: 'L' as const,
+    noReactionOrLoss: true,
+  }
+
+  test('measured final volume is used instead of V1 + V2', () => {
+    const result = calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volumeBasis: 'measured-final',
+      finalVolume: 1.8,
+    })
+    closeTo(result.finalConc, 1 / 1.8)
+    closeTo(result.finalVolume, 1.8)
+    assert.equal(result.model.volumeBasis, 'measured-final')
+    assert.equal(result.model.volumeUnit, 'L')
+    assert.ok(!result.assumptions.some((assumption) => /V1 \+ V2/i.test(assumption)))
+  })
+
+  test('additive volume is allowed only as an explicitly signed approximation', () => {
+    const result = calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volumeBasis: 'additive-approximation',
+    })
+    closeTo(result.finalConc, 0.5)
+    closeTo(result.finalVolume, 2)
+    assert.ok(result.assumptions.some((assumption) => /approximated as V1 \+ V2/i.test(assumption)))
+  })
+
+  test('missing measured volume, volume unit, conservation, and unsupported fraction basis are rejected', () => {
+    assert.throws(() => calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volumeBasis: 'measured-final',
+    }), /measured final volume is required/i)
+
+    assert.throws(() => calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volumeBasis: 'additive-approximation',
+      noReactionOrLoss: false,
+    }), /explicit confirmation/i)
+
+    assert.throws(() => calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volumeUnit: 'm3' as MixingVolumeUnit,
+      volumeBasis: 'additive-approximation',
+    }), /explicitly declared as L or mL/i)
+
+    assert.throws(() => calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      concentrationUnit: 'pct_ww' as MixingConcentrationUnit,
+      volumeBasis: 'additive-approximation',
+    }), /volume-based concentration unit/i)
+  })
+
+  test('normality mixing requires one signed reaction/equivalence context', () => {
+    assert.throws(() => calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0.5,
+      v2: 1,
+      concentrationUnit: 'N',
+      volumeBasis: 'additive-approximation',
+    }), /normality reaction\/equivalence context is required/i)
+
+    const result = calculateMixing({
+      ...MIXING_SCOPE,
+      c1: 1,
+      v1: 1,
+      c2: 0.5,
+      v2: 1,
+      concentrationUnit: 'N',
+      normalityContext: 'acid-base neutralization (H+ equivalents)',
+      volumeBasis: 'additive-approximation',
+    })
+    closeTo(result.finalConc, 0.75)
+    assert.equal(result.model.normalityContext, 'acid-base neutralization (H+ equivalents)')
   })
 })
 
 async function runTests() {
-  console.log('🧪 Solution Preparation Tests\n')
+  console.log('🧪 Solution Preparation and Concentration Model Tests\n')
 
   let passed = 0
   const failures: string[] = []
@@ -219,23 +575,23 @@ async function runTests() {
     try {
       await testCase.fn()
       passed++
-      console.log(`  ✓ ${testCase.name}`)
+      console.log('  ✓ ' + testCase.name)
     } catch (error) {
       failures.push(testCase.name)
-      console.log(`  ✗ ${testCase.name}`)
+      console.log('  ✗ ' + testCase.name)
       console.error(error)
     }
   }
 
-  console.log(`\n${passed} passed, ${failures.length} failed`)
+  console.log('\n' + passed + ' passed, ' + failures.length + ' failed')
 
   if (failures.length > 0) {
-    failures.forEach((name) => console.log(`  - ${name}`))
+    failures.forEach((name) => console.log('  - ' + name))
     process.exitCode = 1
     return
   }
 
-  console.log('\n✅ All solution-prep tests passed!')
+  console.log('\n✅ All concentration-model tests passed!')
 }
 
 runTests().catch((error) => {

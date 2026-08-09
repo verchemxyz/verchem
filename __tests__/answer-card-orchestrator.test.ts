@@ -116,8 +116,38 @@ async function run() {
     assert.equal(card.tool_calls[0].result.ok, true)
     const pH = card.tool_calls[0].result.value.pH as number
     assert.ok(Math.abs(pH - 1) < 0.01, `expected pH≈1, got ${pH}`)
+    const pHModel = card.tool_calls[0].result.value.model as Record<string, unknown>
+    assert.equal(pHModel.temperatureC, 25)
+    assert.equal(pHModel.activityModel, 'concentration-as-activity')
+    assert.ok(Array.isArray(pHModel.assumptions), 'signed pH result must carry model assumptions')
     assert.equal(card.audit.clean, true, 'qualitative prose must produce a clean audit')
     assert.ok(card.signature.length > 0)
+  })
+
+  await test('normality factor is preserved in signed tool-call input and drives the result', async () => {
+    const client = makeFakeClient([
+      makeMessage([toolUse('calculate_stock_prep', {
+        target_conc: 1,
+        target_volume: 1,
+        molar_mass: 98.072,
+        unit: 'N',
+        equivalents_factor: 2,
+        reagent_purity_percent: 100,
+        reagent_purity_basis: 'mass',
+        reagent_form: 'H2SO4',
+        solvent: 'water',
+        preparation_temperature_C: 20,
+      })], 'tool_use'),
+      makeMessage([text('The deterministic material balance used the declared reaction context.')]),
+    ])
+    const card = await askVerified('How much H2SO4 is needed for 1 L of 1 N solution with factor 2?', { client })
+    assert.equal(card.status, 'verified')
+    assert.equal(card.tool_calls[0].input.equivalents_factor, 2)
+    assert.equal(card.tool_calls[0].result.ok, true)
+    const mass = card.tool_calls[0].result.value.mass_needed_g as number
+    assert.ok(Math.abs(mass - 49.036) < 1e-9)
+    const model = card.tool_calls[0].result.value.model as Record<string, unknown>
+    assert.equal(model.equivalentsFactor, 2)
   })
 
   // --- service error BEFORE any verified result → throw typed error ---

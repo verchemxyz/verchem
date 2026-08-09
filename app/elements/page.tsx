@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
 import { ElementCategory } from '@/lib/types/chemistry'
 import { CalcShell, Card, SectionTitle } from '@/components/lab'
+import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
 
 // Static metadata for SEO
 export const metadata: Metadata = {
@@ -225,7 +226,7 @@ export default function ElementsIndexPage() {
             >
               <h3 className="text-lg font-semibold text-foreground">Compound Database</h3>
               <p className="text-muted-foreground text-sm mt-2">
-                Browse 1,300+ chemical compounds with detailed properties
+                Browse {COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')} chemical compounds with detailed properties
               </p>
             </Link>
 

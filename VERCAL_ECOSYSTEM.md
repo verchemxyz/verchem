@@ -162,7 +162,7 @@ VerChem.xyz        VerCivil.com       VerElect.com
 **Features**:
 - ✅ **ALL Calculators** in **ALL VerCal Products** 🎁
 - ✅ **Silent Unlock**: Pay for VerChem → VerCivil & VerElect work too!
-- ✅ 1,000+ compounds/formulas/data
+- ✅ 1,311 compounds/formulas/data
 - ✅ **Unlimited saves**
 - ✅ **Step-by-step solutions**
 - ✅ **Export to PDF**

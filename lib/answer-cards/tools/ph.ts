@@ -6,7 +6,7 @@
  */
 
 import type { VerifiedTool, ToolResult } from '../types'
-import { readFiniteNumber, finalizeResult } from './_validate'
+import { readFiniteNumber, readOptionalFiniteNumber, finalizeResult } from './_validate'
 import { normalizeFormula, isAsciiFormula, isValidStandaloneFormula } from './_formula'
 import {
   calculateStrongAcidPH,
@@ -16,12 +16,48 @@ import {
   hendersonHasselbalch,
   calculateDilution,
   ACID_KA_VALUES,
+  PH_MODEL_25C,
+  assertSupportedPHModelScope,
 } from '@/lib/calculations/solutions'
 
 const CITATION = 'Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 6; Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 16'
 
+const PH_MODEL_INPUT_PROPERTIES = {
+  temperature_C: {
+    type: 'number',
+    description: 'Optional model temperature. This engine supports exactly 25 °C and rejects other temperatures.',
+  },
+  activity_model: {
+    type: 'string',
+    enum: [PH_MODEL_25C.activityModel],
+    description: 'Optional explicit activity model. Only concentration-as-activity (ideal dilute) is supported.',
+  },
+}
+
 function err(message: string): ToolResult {
   return { ok: false, value: {}, error: message }
+}
+
+function validatePHModelScope(input: Record<string, unknown>): ToolResult | null {
+  const temperatureC = readOptionalFiniteNumber(
+    input,
+    'temperature_C',
+    PH_MODEL_25C.temperatureC
+  )
+  if (temperatureC === undefined) return err('temperature_C must be finite if provided')
+
+  const activityModel = input.activity_model === undefined
+    ? PH_MODEL_25C.activityModel
+    : typeof input.activity_model === 'string'
+      ? input.activity_model.trim()
+      : ''
+
+  try {
+    assertSupportedPHModelScope(temperatureC, activityModel)
+    return null
+  } catch (error) {
+    return err(error instanceof Error ? error.message : 'Unsupported pH model scope')
+  }
 }
 
 /** Known strong acid proton counts for adapter validation (must match engine) */
@@ -60,13 +96,14 @@ const ACID_NAME_ALIASES: Record<string, string> = {
 
 const calculate_strong_acid_ph: VerifiedTool = {
   name: 'calculate_strong_acid_ph',
-  description: 'Calculate pH, pOH, and ion concentrations for a strong acid solution. Use when the user asks for pH of a strong acid (e.g., HCl, HNO3, H2SO4) given its concentration.',
+  description: 'Calculate model pH, pOH, and ion concentrations for a strong acid in an ideal-dilute aqueous solution at exactly 25 °C. Reject other temperatures or activity-corrected questions.',
   input_schema: {
     type: 'object',
     properties: {
       concentration: { type: 'number', description: 'Molar concentration of the acid (M)' },
       formula: { type: 'string', description: 'Optional chemical formula (e.g., HCl, H2SO4)' },
       proton_count: { type: 'integer', description: 'Optional number of protons donated per molecule' },
+      ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['concentration'],
   },
@@ -77,6 +114,8 @@ const calculate_strong_acid_ph: VerifiedTool = {
     if (concentration === undefined || concentration < 0) {
       return err('Concentration must be a non-negative finite number')
     }
+    const scopeError = validatePHModelScope(input)
+    if (scopeError) return scopeError
     try {
       let protonCount: number | undefined
       if (input.proton_count !== undefined) {
@@ -124,7 +163,8 @@ const calculate_strong_acid_ph: VerifiedTool = {
         pOH: result.pOH,
         H_concentration: result.H_concentration,
         OH_concentration: result.OH_concentration,
-        Kw: 1e-14,
+        Kw: PH_MODEL_25C.kw,
+        model: PH_MODEL_25C,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Strong acid pH calculation failed')
@@ -134,13 +174,14 @@ const calculate_strong_acid_ph: VerifiedTool = {
 
 const calculate_weak_acid_ph: VerifiedTool = {
   name: 'calculate_weak_acid_ph',
-  description: 'Calculate pH and percent ionization for a weak acid solution. Use when the user asks for pH of a weak acid given concentration and Ka (or a known acid name).',
+  description: 'Calculate model pH and percent ionization for a weak acid in an ideal-dilute aqueous solution at exactly 25 °C. Ka must apply to that temperature; reject non-ideal or other-temperature questions.',
   input_schema: {
     type: 'object',
     properties: {
       concentration: { type: 'number', description: 'Molar concentration of the weak acid (M)' },
       Ka: { type: 'number', description: 'Acid dissociation constant' },
       acid_name: { type: 'string', description: 'Optional common name (e.g., acetic acid, CH3COOH)' },
+      ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['concentration'],
   },
@@ -151,6 +192,8 @@ const calculate_weak_acid_ph: VerifiedTool = {
     if (concentration === undefined || concentration < 0) {
       return err('Concentration must be a non-negative finite number')
     }
+    const scopeError = validatePHModelScope(input)
+    if (scopeError) return scopeError
 
     let Ka: number | undefined
     if (typeof input.Ka === 'number' && Number.isFinite(input.Ka) && input.Ka > 0) {
@@ -184,7 +227,8 @@ const calculate_weak_acid_ph: VerifiedTool = {
         percent_ionization: result.percentIonization,
         method: result.method,
         warning: result.warning,
-        Kw: 1e-14,
+        Kw: PH_MODEL_25C.kw,
+        model: PH_MODEL_25C,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak acid pH calculation failed')
@@ -194,13 +238,14 @@ const calculate_weak_acid_ph: VerifiedTool = {
 
 const calculate_strong_base_ph: VerifiedTool = {
   name: 'calculate_strong_base_ph',
-  description: 'Calculate pH, pOH, and ion concentrations for a strong base solution. Use when the user asks for pH of a strong base (e.g., NaOH, KOH, Ca(OH)2) given its concentration.',
+  description: 'Calculate model pH, pOH, and ion concentrations for a strong base in an ideal-dilute aqueous solution at exactly 25 °C. Reject other temperatures or activity-corrected questions.',
   input_schema: {
     type: 'object',
     properties: {
       concentration: { type: 'number', description: 'Molar concentration of the base (M)' },
       formula: { type: 'string', description: 'Optional chemical formula (e.g., NaOH, Ca(OH)2)' },
       hydroxide_count: { type: 'integer', description: 'Optional number of OH- per formula unit' },
+      ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['concentration'],
   },
@@ -211,6 +256,8 @@ const calculate_strong_base_ph: VerifiedTool = {
     if (concentration === undefined || concentration < 0) {
       return err('Concentration must be a non-negative finite number')
     }
+    const scopeError = validatePHModelScope(input)
+    if (scopeError) return scopeError
     try {
       let hydroxideCount: number | undefined
       if (input.hydroxide_count !== undefined) {
@@ -258,7 +305,8 @@ const calculate_strong_base_ph: VerifiedTool = {
         pOH: result.pOH,
         H_concentration: result.H_concentration,
         OH_concentration: result.OH_concentration,
-        Kw: 1e-14,
+        Kw: PH_MODEL_25C.kw,
+        model: PH_MODEL_25C,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Strong base pH calculation failed')
@@ -268,12 +316,13 @@ const calculate_strong_base_ph: VerifiedTool = {
 
 const calculate_weak_base_ph: VerifiedTool = {
   name: 'calculate_weak_base_ph',
-  description: 'Calculate pH and percent ionization for a weak base solution. Use when the user asks for pH of a weak base given concentration and Kb.',
+  description: 'Calculate model pH and percent ionization for a weak base in an ideal-dilute aqueous solution at exactly 25 °C. Kb must apply to that temperature; reject non-ideal or other-temperature questions.',
   input_schema: {
     type: 'object',
     properties: {
       concentration: { type: 'number', description: 'Molar concentration of the weak base (M)' },
       Kb: { type: 'number', description: 'Base dissociation constant' },
+      ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['concentration', 'Kb'],
   },
@@ -288,6 +337,8 @@ const calculate_weak_base_ph: VerifiedTool = {
     if (Kb === undefined || Kb <= 0) {
       return err('Kb must be a positive finite number')
     }
+    const scopeError = validatePHModelScope(input)
+    if (scopeError) return scopeError
     try {
       const result = calculateWeakBasePH(concentration, Kb)
       return finalizeResult({
@@ -297,7 +348,8 @@ const calculate_weak_base_ph: VerifiedTool = {
         percent_ionization: result.percentIonization,
         method: result.method,
         warning: result.warning,
-        Kw: 1e-14,
+        Kw: PH_MODEL_25C.kw,
+        model: PH_MODEL_25C,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak base pH calculation failed')
@@ -307,13 +359,14 @@ const calculate_weak_base_ph: VerifiedTool = {
 
 const calculate_buffer_ph: VerifiedTool = {
   name: 'calculate_buffer_ph',
-  description: 'Calculate pH of a buffer solution using the Henderson-Hasselbalch equation. Use when the user asks for pH of a buffer given pKa and the ratio (or concentrations) of conjugate base to weak acid.',
+  description: 'Calculate model pH of a buffer with Henderson-Hasselbalch using concentration ratios as activity ratios in an ideal-dilute aqueous solution at exactly 25 °C.',
   input_schema: {
     type: 'object',
     properties: {
       pKa: { type: 'number', description: 'pKa of the weak acid' },
       acid_concentration: { type: 'number', description: 'Concentration of the weak acid [HA] (M)' },
       base_concentration: { type: 'number', description: 'Concentration of the conjugate base [A-] (M)' },
+      ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['pKa', 'acid_concentration', 'base_concentration'],
   },
@@ -326,9 +379,15 @@ const calculate_buffer_ph: VerifiedTool = {
     if (pKa === undefined) return err('pKa must be a finite number')
     if (acidConcentration === undefined || acidConcentration <= 0) return err('acid_concentration must be positive')
     if (baseConcentration === undefined || baseConcentration <= 0) return err('base_concentration must be positive')
+    const scopeError = validatePHModelScope(input)
+    if (scopeError) return scopeError
     try {
       const pH = hendersonHasselbalch(pKa, acidConcentration, baseConcentration)
-      return finalizeResult({ pH, ratio: baseConcentration / acidConcentration })
+      return finalizeResult({
+        pH,
+        ratio: baseConcentration / acidConcentration,
+        model: PH_MODEL_25C,
+      })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Buffer pH calculation failed')
     }

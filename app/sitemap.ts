@@ -180,7 +180,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  // Dynamic compound pages (1,130+ compounds)
+  // Dynamic compound pages generated from the canonical compound dataset
   const compoundRoutes: MetadataRoute.Sitemap = COMPREHENSIVE_COMPOUNDS.map((compound) => ({
     url: `${baseUrl}/compounds/${compound.id}`,
     lastModified: currentDate,

@@ -442,10 +442,10 @@ export const CLEANING_CHEMICALS: Compound[] = [
   // Specialty Cleaners
   {
     id: 'sodium-lauryl-sarcosinate',
-    name: 'Sodium Lauroyl Sarcosinate',
+    name: 'Sodium Lauroyl Sarcosinate Monohydrate',
     nameThai: 'โซเดียมลอโรอิลซาร์โคซิเนต',
-    formula: 'C15H28NNaO3',
-    molarMass: 293.38,
+    formula: 'C15H28NNaO3·H2O',
+    molarMass: 311.398,
     casNumber: '137-16-6',
     category: 'surfactant',
     subcategory: 'mild-surfactant',

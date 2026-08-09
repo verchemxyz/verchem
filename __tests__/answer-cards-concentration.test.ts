@@ -71,6 +71,38 @@ function expect(actual: unknown) {
   }
 }
 
+const SIGNED_STOCK_CONTEXT = {
+  reagent_purity_percent: 100,
+  reagent_purity_basis: 'mass',
+  reagent_form: 'NaCl (anhydrous)',
+  solvent: 'water',
+  preparation_temperature_C: 20,
+}
+
+const ENGINE_STOCK_CONTEXT = {
+  reagentPurityPercent: 100,
+  reagentPurityBasis: 'mass' as const,
+  reagentForm: 'NaCl (anhydrous)',
+  solvent: 'water',
+  preparationTemperatureC: 20,
+}
+
+const SIGNED_MIXING_CONTEXT = {
+  solute_identity: 'NaCl',
+  concentration_unit: 'mol/L',
+  volume_unit: 'L',
+  volume_basis: 'additive-approximation',
+  no_reaction_or_loss: true,
+}
+
+const ENGINE_MIXING_CONTEXT = {
+  soluteIdentity: 'NaCl',
+  concentrationUnit: 'mol/L' as const,
+  volumeUnit: 'L' as const,
+  volumeBasis: 'additive-approximation' as const,
+  noReactionOrLoss: true,
+}
+
 // ──────────────────────────────────────────────────────────
 // Happy path — routes to real engines
 // ──────────────────────────────────────────────────────────
@@ -140,9 +172,9 @@ describe('calculate_mass_percent', () => {
 })
 
 describe('calculate_ppm', () => {
-  test('500 mg / 1 L = 500 ppm', () => {
+  test('500 mg / 1 kg solution = 500 ppm mass fraction', () => {
     const tool = TOOL_BY_NAME.get('calculate_ppm')!
-    const result = tool.execute({ solute_mass_mg: 500, solution_volume_L: 1 })
+    const result = tool.execute({ solute_mass_mg: 500, solution_mass_kg: 1 })
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.ppm).toBeCloseTo(500, 10)
@@ -150,10 +182,27 @@ describe('calculate_ppm', () => {
 
   test('matches engine', () => {
     const tool = TOOL_BY_NAME.get('calculate_ppm')!
-    const result = tool.execute({ solute_mass_mg: 250, solution_volume_L: 2 })
+    const result = tool.execute({ solute_mass_mg: 250, solution_mass_kg: 2 })
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.ppm).toBeCloseTo(calculatePPM(250, 2), 10)
+  })
+
+  test('volume-only input is rejected instead of silently assuming 1 kg/L', () => {
+    const tool = TOOL_BY_NAME.get('calculate_ppm')!
+    expect(tool.execute({ solute_mass_mg: 500, solution_volume_L: 1 }).ok).toBe(false)
+  })
+
+  test('mass fraction above 100% is rejected and the signed result declares its source basis', () => {
+    const tool = TOOL_BY_NAME.get('calculate_ppm')!
+    expect(tool.execute({ solute_mass_mg: 2_000_000, solution_mass_kg: 1 }).ok).toBe(false)
+
+    const result = tool.execute({ solute_mass_mg: 500, solution_mass_kg: 1 })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect((result.value.assumptions as unknown[]).length).toBeGreaterThan(0)
+    const model = result.value.model as Record<string, unknown>
+    expect(model.basis).toBe('mass-fraction')
   })
 })
 
@@ -212,14 +261,28 @@ describe('calculate_freezing_point_depression', () => {
 describe('calculate_stock_prep', () => {
   test('1 M NaCl 0.5 L → 29.22 g', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
-    const result = tool.execute({ target_conc: 1, target_volume: 0.5, molar_mass: 58.44, unit: 'mol/L' })
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      target_conc: 1,
+      target_volume: 0.5,
+      molar_mass: 58.44,
+      unit: 'mol/L',
+    })
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    const engineResult = calculateStockPrep({ targetConc: 1, targetVolume: 0.5, molarMass: 58.44, unit: 'mol/L' })
+    const engineResult = calculateStockPrep({
+      ...ENGINE_STOCK_CONTEXT,
+      targetConc: 1,
+      targetVolume: 0.5,
+      molarMass: 58.44,
+      unit: 'mol/L',
+    })
     // The adapter may only report a mass when the engine actually produced one.
     expect(engineResult.measureBy).toBe('mass')
     expect(engineResult.amountUnit).toBe('g')
     expect(result.value.mass_needed_g).toBeCloseTo(engineResult.amount, 10)
+    expect(result.value.model).toEqual(engineResult.model)
+    expect(result.value.assumptions).toEqual(engineResult.assumptions)
   })
 
   test('pct_vv rejected (yields volume not mass — not verifiable)', () => {
@@ -238,17 +301,114 @@ describe('convert_concentration', () => {
     const engineResult = convertConcentration({ value: 1, fromUnit: 'mol/L', toUnit: 'g/L', molarMass: 58.44 })
     expect(result.value.converted_value).toBeCloseTo(engineResult.convertedValue, 10)
   })
+
+  test('1 N -> 0.5 mol/L requires explicit equivalents factor 2', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 1, from_unit: 'N', to_unit: 'mol/L' }).ok).toBe(false)
+
+    const result = tool.execute({ value: 1, from_unit: 'N', to_unit: 'mol/L', equivalents: 2 })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.converted_value).toBeCloseTo(0.5, 10)
+    const model = result.value.model as Record<string, unknown>
+    expect(model.equivalents).toBe(2)
+  })
+
+  test('N -> N still requires the signed equivalents factor', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 1, from_unit: 'N', to_unit: 'N' }).ok).toBe(false)
+    const result = tool.execute({ value: 1, from_unit: 'N', to_unit: 'N', equivalents: 2 })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.converted_value).toBe(1)
+  })
 })
 
 describe('calculate_mixing', () => {
   test('1M 1L + 0M 1L = 0.5M 2L', () => {
     const tool = TOOL_BY_NAME.get('calculate_mixing')!
-    const result = tool.execute({ c1: 1, v1: 1, c2: 0, v2: 1 })
+    const result = tool.execute({ ...SIGNED_MIXING_CONTEXT, c1: 1, v1: 1, c2: 0, v2: 1 })
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    const engineResult = calculateMixing({ c1: 1, v1: 1, c2: 0, v2: 1 })
+    const engineResult = calculateMixing({ ...ENGINE_MIXING_CONTEXT, c1: 1, v1: 1, c2: 0, v2: 1 })
     expect(result.value.final_concentration).toBeCloseTo(engineResult.finalConc, 10)
     expect(result.value.final_volume).toBeCloseTo(engineResult.finalVolume, 10)
+    expect(result.value.final_volume_unit).toBe('L')
+    expect(result.value.model).toEqual(engineResult.model)
+    expect(result.value.assumptions).toEqual(engineResult.assumptions)
+  })
+
+  test('measured final volume changes denominator and is recorded in signed model', () => {
+    const tool = TOOL_BY_NAME.get('calculate_mixing')!
+    const result = tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volume_basis: 'measured-final',
+      final_volume: 1.8,
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.final_concentration).toBeCloseTo(1 / 1.8, 10)
+    const model = result.value.model as Record<string, unknown>
+    expect(model.volumeBasis).toBe('measured-final')
+    expect(model.volumeUnit).toBe('L')
+  })
+
+  test('rejects missing measured volume and unconfirmed no-reaction scope', () => {
+    const tool = TOOL_BY_NAME.get('calculate_mixing')!
+    expect(tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volume_basis: 'measured-final',
+    }).ok).toBe(false)
+    expect(tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      no_reaction_or_loss: false,
+    }).ok).toBe(false)
+  })
+
+  test('requires an explicit volume unit and normality context', () => {
+    const tool = TOOL_BY_NAME.get('calculate_mixing')!
+    expect(tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0,
+      v2: 1,
+      volume_unit: undefined,
+    }).ok).toBe(false)
+    expect(tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0.5,
+      v2: 1,
+      concentration_unit: 'N',
+    }).ok).toBe(false)
+
+    const result = tool.execute({
+      ...SIGNED_MIXING_CONTEXT,
+      c1: 1,
+      v1: 1,
+      c2: 0.5,
+      v2: 1,
+      concentration_unit: 'N',
+      normality_context: 'acid-base neutralization (H+ equivalents)',
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const model = result.value.model as Record<string, unknown>
+    expect(model.normalityContext).toBe('acid-base neutralization (H+ equivalents)')
   })
 })
 
@@ -289,7 +449,7 @@ describe('Concentration guard rejection', () => {
 
   test('calculate_ppm rejects negative solute mass', () => {
     const tool = TOOL_BY_NAME.get('calculate_ppm')!
-    const result = tool.execute({ solute_mass_mg: -1, solution_volume_L: 1 })
+    const result = tool.execute({ solute_mass_mg: -1, solution_mass_kg: 1 })
     expect(result.ok).toBe(false)
   })
 
@@ -335,9 +495,9 @@ describe('Concentration guard rejection', () => {
     expect(result.ok).toBe(false)
   })
 
-  test('convert_concentration rejects missing density for pct_ww', () => {
+  test('convert_concentration rejects missing solution density for pct_ww', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    const result = tool.execute({ value: 1, from_unit: 'pct_ww', to_unit: 'g/L', molar_mass: 58 })
+    const result = tool.execute({ value: 1, from_unit: 'pct_ww', to_unit: 'g/L' })
     expect(result.ok).toBe(false)
   })
 
@@ -408,21 +568,92 @@ describe('Concentration numerical verification', () => {
 // ──────────────────────────────────────────────────────────
 
 describe('Concentration R1 fixes', () => {
-  test('stock_prep rejects pct_ww (density ≈1 assumption not verifiable)', () => {
+  test('stock_prep rejects pct_ww without solution density', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
-    const result = tool.execute({ target_conc: 10, target_volume: 1, molar_mass: 58.44, unit: 'pct_ww' })
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      target_conc: 10,
+      target_volume: 1,
+      unit: 'pct_ww',
+    })
     expect(result.ok).toBe(false)
   })
 
-  test('stock_prep rejects N (equivalents factor assumption)', () => {
+  test('stock_prep signs pct_ww when measured density and full model are present', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
-    const result = tool.execute({ target_conc: 1, target_volume: 1, molar_mass: 98, unit: 'N' })
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      target_conc: 10,
+      target_volume: 1,
+      unit: 'pct_ww',
+      solution_density: 1.2,
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.mass_needed_g).toBeCloseTo(120, 10)
+  })
+
+  test('stock_prep refuses mass-fraction ppm/ppb without solution density', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    for (const unit of ['ppm', 'ppb']) {
+      expect(tool.execute({
+        ...SIGNED_STOCK_CONTEXT,
+        target_conc: 1000,
+        target_volume: 1,
+        unit,
+      }).ok).toBe(false)
+    }
+  })
+
+  test('stock_prep signs exact mass-fraction ppm when solution density is supplied', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      target_conc: 1000,
+      target_volume: 1,
+      unit: 'ppm',
+      solution_density: 1.2,
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.mass_needed_g).toBeCloseTo(1.2, 10)
+    expect((result.value.assumptions as string[]).join(' ')).toContain('mass fraction')
+  })
+
+  test('stock_prep rejects N without equivalents factor', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      reagent_form: 'H2SO4',
+      target_conc: 1,
+      target_volume: 1,
+      molar_mass: 98.072,
+      unit: 'N',
+    })
     expect(result.ok).toBe(false)
+  })
+
+  test('stock_prep signs 1 N H2SO4 as 49.036 g only with factor 2', () => {
+    const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
+    const result = tool.execute({
+      ...SIGNED_STOCK_CONTEXT,
+      reagent_form: 'H2SO4',
+      target_conc: 1,
+      target_volume: 1,
+      molar_mass: 98.072,
+      unit: 'N',
+      equivalents_factor: 2,
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.mass_needed_g).toBeCloseTo(49.036, 10)
+    const model = result.value.model as Record<string, unknown>
+    expect(model.equivalentsFactor).toBe(2)
   })
 
   test('stock_prep g/L works without molar_mass (mass-based)', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
-    const result = tool.execute({ target_conc: 5, target_volume: 2, unit: 'g/L' })
+    const result = tool.execute({ ...SIGNED_STOCK_CONTEXT, target_conc: 5, target_volume: 2, unit: 'g/L' })
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.mass_needed_g).toBeCloseTo(10, 6)
@@ -430,7 +661,7 @@ describe('Concentration R1 fixes', () => {
 
   test('stock_prep mol/L requires molar_mass', () => {
     const tool = TOOL_BY_NAME.get('calculate_stock_prep')!
-    const result = tool.execute({ target_conc: 1, target_volume: 1, unit: 'mol/L' })
+    const result = tool.execute({ ...SIGNED_STOCK_CONTEXT, target_conc: 1, target_volume: 1, unit: 'mol/L' })
     expect(result.ok).toBe(false)
   })
 
@@ -478,24 +709,63 @@ describe('Concentration R5 fixes', () => {
 // ──────────────────────────────────────────────────────────
 
 describe('Concentration R7 fixes', () => {
-  test('convert rejects %v/v <-> %w/w (needs two densities)', () => {
+  test('convert %v/v <-> %w/w rejects when either of two densities is missing', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    expect(tool.execute({ value: 10, from_unit: 'pct_vv', to_unit: 'pct_ww', density: 0.789 }).ok).toBe(false)
+    expect(tool.execute({
+      value: 10,
+      from_unit: 'pct_vv',
+      to_unit: 'pct_ww',
+      solute_density: 0.789,
+      density_temperature_C: 20,
+    }).ok).toBe(false)
+  })
+
+  test('convert %v/v <-> %w/w uses solute and solution density separately', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    const result = tool.execute({
+      value: 10,
+      from_unit: 'pct_vv',
+      to_unit: 'pct_ww',
+      solute_density: 0.789,
+      solution_density: 0.984,
+      density_temperature_C: 20,
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.converted_value).toBeCloseTo((10 * 0.789) / 0.984, 10)
   })
 
   test('convert rejects %v/v input > 100', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    expect(tool.execute({ value: 150, from_unit: 'pct_vv', to_unit: 'g/L', density: 0.789 }).ok).toBe(false)
+    expect(tool.execute({
+      value: 150,
+      from_unit: 'pct_vv',
+      to_unit: 'g/L',
+      solute_density: 0.789,
+      density_temperature_C: 20,
+    }).ok).toBe(false)
   })
 
   test('convert rejects %w/w input > 100', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    expect(tool.execute({ value: 150, from_unit: 'pct_ww', to_unit: 'g/L', density: 1.0 }).ok).toBe(false)
+    expect(tool.execute({
+      value: 150,
+      from_unit: 'pct_ww',
+      to_unit: 'g/L',
+      solution_density: 1,
+      density_temperature_C: 20,
+    }).ok).toBe(false)
   })
 
   test('convert %v/v -> g/L still works (value <= 100)', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    const r = tool.execute({ value: 10, from_unit: 'pct_vv', to_unit: 'g/L', density: 0.789 })
+    const r = tool.execute({
+      value: 10,
+      from_unit: 'pct_vv',
+      to_unit: 'g/L',
+      solute_density: 0.789,
+      density_temperature_C: 20,
+    })
     expect(r.ok).toBe(true)
     if (!r.ok) return
     expect(r.value.converted_value).toBeCloseTo(78.9, 1)
@@ -503,7 +773,34 @@ describe('Concentration R7 fixes', () => {
 
   test('convert rejects result that overflows to > 100% (g/L -> %v/v)', () => {
     const tool = TOOL_BY_NAME.get('convert_concentration')!
-    expect(tool.execute({ value: 2000, from_unit: 'g/L', to_unit: 'pct_vv', density: 0.789 }).ok).toBe(false)
+    expect(tool.execute({
+      value: 2000,
+      from_unit: 'g/L',
+      to_unit: 'pct_vv',
+      solute_density: 0.789,
+      density_temperature_C: 20,
+    }).ok).toBe(false)
+  })
+
+  test('ppm -> g/L requires solution density; ppm -> ppb does not', () => {
+    const tool = TOOL_BY_NAME.get('convert_concentration')!
+    expect(tool.execute({ value: 1000, from_unit: 'ppm', to_unit: 'g/L' }).ok).toBe(false)
+
+    const massConcentration = tool.execute({
+      value: 1000,
+      from_unit: 'ppm',
+      to_unit: 'g/L',
+      solution_density: 1.2,
+      density_temperature_C: 20,
+    })
+    expect(massConcentration.ok).toBe(true)
+    if (massConcentration.ok) {
+      expect(massConcentration.value.converted_value).toBeCloseTo(1.2, 10)
+    }
+
+    const sameBasis = tool.execute({ value: 1000, from_unit: 'ppm', to_unit: 'ppb' })
+    expect(sameBasis.ok).toBe(true)
+    if (sameBasis.ok) expect(sameBasis.value.converted_value).toBeCloseTo(1_000_000, 6)
   })
 })
 

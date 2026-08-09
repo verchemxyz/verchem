@@ -24,7 +24,11 @@ import {
   calculateStockPrep,
   convertConcentration,
   calculateMixing,
+  getConcentrationConversionRequirements,
+  isMixingConcentrationUnit,
   type ConcentrationUnit,
+  type MixingVolumeBasis,
+  type MixingVolumeUnit,
 } from '@/lib/calculations/solution-prep'
 
 const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 13 (Solutions); Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 5'
@@ -38,25 +42,32 @@ const VALID_CONCENTRATION_UNITS = new Set([
   'pct_wv', 'pct_ww', 'pct_vv', 'N', 'ppm', 'ppb',
 ])
 
-// Subset usable for stock prep: mass must be a DETERMINISTIC function of inputs.
-// Excludes pct_ww (needs solution density), pct_vv (yields volume not mass),
-// and N (needs equivalents factor) — all carry a hidden assumption that must
-// never be signed VERIFIED.
+// Signed stock preparation reports grams, so %v/v remains outside this adapter:
+// the engine correctly returns mL for that unit. Every assumption-bearing mass
+// unit is allowed only when its required physical inputs are present and signed.
 const STOCK_PREP_UNITS = new Set([
-  'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'ppm', 'ppb', 'pct_wv',
+  'mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'ppm', 'ppb', 'pct_wv', 'pct_ww', 'N',
 ])
-
-// Fraction units are bounded 0..100%. %v/v uses solute density while %w/w uses
-// solution density — converting directly between them needs BOTH densities, but
-// the engine takes only one, so that pair is not verifiable.
-const FRACTION_UNITS = new Set(['pct_vv', 'pct_ww'])
 
 function needsMolarMass(unit: string): boolean {
   return unit === 'mol/L' || unit === 'mmol/L' || unit === 'N'
 }
 
-function needsDensity(unit: string): boolean {
-  return unit === 'pct_ww' || unit === 'pct_vv'
+function readRequiredText(value: unknown, _label: string): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim()
+  if (normalized.length === 0 || normalized.length > 160 || /[\x00-\x1F\x7F]/.test(normalized)) {
+    return undefined
+  }
+  return normalized
+}
+
+function hasInvalidOptionalNumber(
+  input: Record<string, unknown>,
+  key: string,
+  parsed: number | undefined
+): boolean {
+  return input[key] !== undefined && parsed === undefined
 }
 
 const calculate_molarity: VerifiedTool = {
@@ -165,25 +176,35 @@ const calculate_mass_percent: VerifiedTool = {
 
 const calculate_ppm: VerifiedTool = {
   name: 'calculate_ppm',
-  description: 'Calculate parts per million (ppm) concentration. Use when the user asks for ppm. Note: solute mass in mg, solution volume in L.',
+  description: 'Calculate exact mass-fraction ppm from solute mass in mg and total solution mass in kg (1 ppm = 1 mg/kg). Do not use a volume denominator unless it has first been converted to solution mass with measured density.',
   input_schema: {
     type: 'object',
     properties: {
       solute_mass_mg: { type: 'number', description: 'Mass of solute in milligrams (mg)' },
-      solution_volume_L: { type: 'number', description: 'Volume of solution in liters (L)' },
+      solution_mass_kg: { type: 'number', description: 'Total mass of solution in kilograms (kg)' },
     },
-    required: ['solute_mass_mg', 'solution_volume_L'],
+    required: ['solute_mass_mg', 'solution_mass_kg'],
   },
   citation: CITATION,
   engine: 'ppm',
   execute: (input) => {
     const soluteMass = readFiniteNumber(input.solute_mass_mg)
-    const solutionVolume = readFiniteNumber(input.solution_volume_L)
+    const solutionMass = readFiniteNumber(input.solution_mass_kg)
     if (soluteMass === undefined || soluteMass < 0) return err('solute_mass_mg must be a non-negative finite number')
-    if (solutionVolume === undefined || solutionVolume <= 0) return err('solution_volume_L must be a positive finite number')
+    if (solutionMass === undefined || solutionMass <= 0) return err('solution_mass_kg must be a positive finite number')
     try {
-      const result = calculatePPM(soluteMass, solutionVolume)
-      return finalizeResult({ ppm: result, note: 'solute mass in mg, solution volume in L' })
+      const result = calculatePPM(soluteMass, solutionMass)
+      return finalizeResult({
+        ppm: result,
+        basis: 'mass fraction (mg solute per kg solution)',
+        assumptions: [
+          'ppm is interpreted as a mass fraction scaled by 10⁶ (1 mg/kg); this result is valid only when both numerator and denominator are masses (IUPAC Gold Book, DOI 10.1351/goldbook, “parts per million”).',
+        ],
+        model: {
+          basis: 'mass-fraction',
+          scale: '1 ppm = 1 mg/kg',
+        },
+      })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'PPM calculation failed')
     }
@@ -287,16 +308,26 @@ const calculate_freezing_point_depression: VerifiedTool = {
 
 const calculate_stock_prep: VerifiedTool = {
   name: 'calculate_stock_prep',
-  description: 'Calculate the mass (or volume) of solute needed to prepare a stock solution of a given concentration and volume. Use when the user asks how to make a solution.',
+  description: 'Calculate a purity-corrected reagent mass for stock preparation under an explicit reagent-form, solvent, temperature, and concentration-basis model. This is a material balance, not a substance-specific safety SOP.',
   input_schema: {
     type: 'object',
     properties: {
       target_conc: { type: 'number', description: 'Target concentration (value depends on unit)' },
       target_volume: { type: 'number', description: 'Target volume in liters (L)' },
-      molar_mass: { type: 'number', description: 'Molar mass of solute in g/mol' },
-      unit: { type: 'string', description: 'Concentration unit: mol/L, mmol/L, g/L, mg/L, ug/L, pct_wv, pct_ww, pct_vv, N, ppm, ppb' },
+      molar_mass: { type: 'number', description: 'Molar mass in g/mol of the exact as-weighed reagent form, including hydrate/solvate; required for mol/L, mmol/L, and N' },
+      unit: { type: 'string', description: 'Mass-output concentration unit: mol/L, mmol/L, g/L, mg/L, ug/L, pct_wv, pct_ww, N, ppm, ppb. pct_vv is intentionally unsupported because its preparation output is a volume, not a mass.' },
+      solution_density: { type: 'number', description: 'Solution density in g/mL at preparation_temperature_C; required for pct_ww and mass-fraction ppm/ppb' },
+      equivalents_factor: { type: 'number', description: 'Equivalents per mole for the stated normality context; required for N' },
+      reagent_purity_percent: { type: 'number', description: 'Certificate-of-analysis assay/purity percent' },
+      reagent_purity_basis: { type: 'string', enum: ['mass'], description: 'Assay basis. Signed mass-preparation units require mass basis.' },
+      reagent_form: { type: 'string', description: 'Exact as-weighed reagent identity/form, e.g. CuSO4·5H2O' },
+      solvent: { type: 'string', description: 'Solvent identity; use "none" only for a 100% neat-material target' },
+      preparation_temperature_C: { type: 'number', description: 'Temperature in °C at which target volume and density apply' },
     },
-    required: ['target_conc', 'target_volume', 'molar_mass', 'unit'],
+    required: [
+      'target_conc', 'target_volume', 'unit', 'reagent_purity_percent',
+      'reagent_purity_basis', 'reagent_form', 'solvent', 'preparation_temperature_C',
+    ],
   },
   citation: CITATION,
   engine: 'stock-prep',
@@ -304,31 +335,70 @@ const calculate_stock_prep: VerifiedTool = {
     const targetConc = readFiniteNumber(input.target_conc)
     const targetVolume = readFiniteNumber(input.target_volume)
     const molarMass = readFiniteNumber(input.molar_mass)
+    const solutionDensity = readFiniteNumber(input.solution_density)
+    const equivalentsFactor = readFiniteNumber(input.equivalents_factor)
+    const reagentPurityPercent = readFiniteNumber(input.reagent_purity_percent)
+    const preparationTemperatureC = readFiniteNumber(input.preparation_temperature_C)
     const unit = typeof input.unit === 'string' ? input.unit.trim() : ''
+    const reagentPurityBasis = typeof input.reagent_purity_basis === 'string'
+      ? input.reagent_purity_basis.trim()
+      : ''
+    const reagentForm = readRequiredText(input.reagent_form, 'reagent_form')
+    const solvent = readRequiredText(input.solvent, 'solvent')
 
     if (targetConc === undefined || targetConc <= 0) return err('target_conc must be a positive finite number')
     if (targetVolume === undefined || targetVolume <= 0) return err('target_volume must be a positive finite number')
+    if (hasInvalidOptionalNumber(input, 'molar_mass', molarMass)) return err('molar_mass must be a finite number if provided')
+    if (hasInvalidOptionalNumber(input, 'solution_density', solutionDensity)) return err('solution_density must be a finite number if provided')
+    if (hasInvalidOptionalNumber(input, 'equivalents_factor', equivalentsFactor)) return err('equivalents_factor must be a finite number if provided')
     if (!STOCK_PREP_UNITS.has(unit)) {
-      return err(`Unsupported stock-prep unit: "${unit}". Supported (deterministic mass): mol/L, mmol/L, g/L, mg/L, ug/L, ppm, ppb, pct_wv`)
+      return err(`Unsupported signed stock-prep unit: "${unit}". Supported mass outputs: mol/L, mmol/L, g/L, mg/L, ug/L, pct_wv, pct_ww, N, ppm, ppb`)
     }
-    // molar_mass is used (and required) only for amount-based units
     if (needsMolarMass(unit) && (molarMass === undefined || molarMass <= 0)) {
-      return err('molar_mass is required and must be positive for mol/L or mmol/L')
+      return err('molar_mass of the exact reagent form is required and must be positive for mol/L, mmol/L, or N')
+    }
+    if ((unit === 'pct_ww' || unit === 'ppm' || unit === 'ppb') &&
+        (solutionDensity === undefined || solutionDensity <= 0)) {
+      return err('solution_density is required and must be positive for pct_ww and mass-fraction ppm/ppb')
+    }
+    if (unit === 'N' && (equivalentsFactor === undefined || equivalentsFactor <= 0)) {
+      return err('equivalents_factor is required and must be positive for normality')
+    }
+    if (reagentPurityPercent === undefined || reagentPurityPercent <= 0 || reagentPurityPercent > 100) {
+      return err('reagent_purity_percent must be positive and no greater than 100')
+    }
+    if (reagentPurityBasis !== 'mass') return err('reagent_purity_basis must be "mass" for signed mass preparation')
+    if (reagentForm === undefined) return err('reagent_form must identify the exact as-weighed form')
+    if (solvent === undefined) return err('solvent must be an explicit identity (or "none" for a neat material)')
+    if (preparationTemperatureC === undefined || preparationTemperatureC <= -273.15) {
+      return err('preparation_temperature_C must be finite and above absolute zero')
     }
 
     try {
-      // Engine requires molarMass > 0 even for mass-based units that ignore it.
-      const safeMolarMass = molarMass !== undefined && molarMass > 0 ? molarMass : 1
-      const result = calculateStockPrep({ targetConc, targetVolume, molarMass: safeMolarMass, unit: unit as ConcentrationUnit })
-      // Defence in depth: STOCK_PREP_UNITS already excludes every unit that
-      // yields a volume or carries a hidden assumption, but never sign a value
-      // under a `_g` key without confirming the engine actually returned grams.
-      if (result.measureBy !== 'mass' || result.amountUnit !== 'g' || result.assumptions.length > 0) {
-        return err(`Unit "${unit}" does not yield a deterministic mass — refusing to report it as one.`)
+      const result = calculateStockPrep({
+        targetConc,
+        targetVolume,
+        molarMass,
+        unit: unit as ConcentrationUnit,
+        solutionDensity,
+        equivalentsFactor,
+        reagentPurityPercent,
+        reagentPurityBasis: 'mass',
+        reagentForm,
+        solvent,
+        preparationTemperatureC,
+      })
+      // Never sign a volume under a gram-labelled field. Assumptions are allowed
+      // only because they are returned inside the signed result payload.
+      if (result.measureBy !== 'mass' || result.amountUnit !== 'g') {
+        return err(`Unit "${unit}" does not yield a mass in grams — refusing to report it as one.`)
       }
       return finalizeResult({
         mass_needed_g: result.amount,
         unit,
+        assumptions: result.assumptions,
+        model: result.model,
+        workflow: result.workflow,
         steps: result.steps,
       })
     } catch (e) {
@@ -339,16 +409,18 @@ const calculate_stock_prep: VerifiedTool = {
 
 const convert_concentration: VerifiedTool = {
   name: 'convert_concentration',
-  description: 'Convert a concentration value between supported units (mol/L, g/L, %, ppm, etc.). Use when the user asks to convert concentration units.',
+  description: 'Convert concentration units with explicit physical bases. ppm/ppb mean mass fraction (mg/kg, µg/kg), not mg/L/µg/L. %v/v uses solute density; %w/w and ppm/ppb use solution density.',
   input_schema: {
     type: 'object',
     properties: {
       value: { type: 'number', description: 'Concentration value to convert' },
       from_unit: { type: 'string', description: 'Source concentration unit' },
       to_unit: { type: 'string', description: 'Target concentration unit' },
-      molar_mass: { type: 'number', description: 'Molar mass in g/mol (required for mol/L, mmol/L, N conversions)' },
-      density: { type: 'number', description: 'Density in g/mL (required for %w/w and %v/v conversions)' },
-      equivalents: { type: 'number', description: 'Equivalents factor (required for normality conversions). Default: 1' },
+      molar_mass: { type: 'number', description: 'Molar mass in g/mol when bridging amount and mass bases' },
+      solute_density: { type: 'number', description: 'Pure solute density in g/mL, required when %v/v crosses another basis' },
+      solution_density: { type: 'number', description: 'Complete solution density in g/mL, required when %w/w or mass-fraction ppm/ppb crosses another basis' },
+      density_temperature_C: { type: 'number', description: 'Temperature in °C at which supplied density values apply' },
+      equivalents: { type: 'number', description: 'Equivalents per mole, required whenever normality is converted' },
     },
     required: ['value', 'from_unit', 'to_unit'],
   },
@@ -359,35 +431,39 @@ const convert_concentration: VerifiedTool = {
     const fromUnit = typeof input.from_unit === 'string' ? input.from_unit.trim() : ''
     const toUnit = typeof input.to_unit === 'string' ? input.to_unit.trim() : ''
     const molarMass = readFiniteNumber(input.molar_mass)
-    const density = readFiniteNumber(input.density)
-    const equivalents = readOptionalFiniteNumber(input, 'equivalents', 1)
+    const soluteDensity = readFiniteNumber(input.solute_density)
+    const solutionDensity = readFiniteNumber(input.solution_density)
+    const densityTemperatureC = readFiniteNumber(input.density_temperature_C)
+    const equivalents = readFiniteNumber(input.equivalents)
 
     if (value === undefined || value < 0) return err('value must be a non-negative finite number')
-    if (equivalents === undefined) return err('equivalents must be a finite number if provided')
     if (!VALID_CONCENTRATION_UNITS.has(fromUnit)) return err(`Unsupported from_unit: "${fromUnit}"`)
     if (!VALID_CONCENTRATION_UNITS.has(toUnit)) return err(`Unsupported to_unit: "${toUnit}"`)
+    if (hasInvalidOptionalNumber(input, 'molar_mass', molarMass)) return err('molar_mass must be a finite number if provided')
+    if (hasInvalidOptionalNumber(input, 'solute_density', soluteDensity)) return err('solute_density must be a finite number if provided')
+    if (hasInvalidOptionalNumber(input, 'solution_density', solutionDensity)) return err('solution_density must be a finite number if provided')
+    if (hasInvalidOptionalNumber(input, 'density_temperature_C', densityTemperatureC)) return err('density_temperature_C must be finite if provided')
+    if (hasInvalidOptionalNumber(input, 'equivalents', equivalents)) return err('equivalents must be finite if provided')
 
-    // Fraction units (% v/v, % w/w) are physically bounded to 0..100%
-    if (FRACTION_UNITS.has(fromUnit) && value > 100) {
-      return err(`${fromUnit} concentration cannot exceed 100%`)
+    const requirements = getConcentrationConversionRequirements(
+      fromUnit as ConcentrationUnit,
+      toUnit as ConcentrationUnit
+    )
+    if (requirements.molarMass && (molarMass === undefined || molarMass <= 0)) {
+      return err('molar_mass is required and must be positive to bridge amount and mass bases')
     }
-    // %v/v <-> %w/w needs both solute and solution densities (engine takes one) — not verifiable
-    if (FRACTION_UNITS.has(fromUnit) && FRACTION_UNITS.has(toUnit) && fromUnit !== toUnit) {
-      return err('Direct %v/v <-> %w/w conversion needs both solute and solution densities; not supported')
+    if (requirements.soluteDensity && (soluteDensity === undefined || soluteDensity <= 0)) {
+      return err('solute_density is required and must be positive for %v/v conversion')
     }
-
-    if (needsMolarMass(fromUnit) || needsMolarMass(toUnit)) {
-      if (molarMass === undefined || molarMass <= 0) {
-        return err('molar_mass is required and must be positive for this conversion')
-      }
+    if (requirements.solutionDensity && (solutionDensity === undefined || solutionDensity <= 0)) {
+      return err('solution_density is required and must be positive for mass-fraction conversion')
     }
-    if (needsDensity(fromUnit) || needsDensity(toUnit)) {
-      if (density === undefined || density <= 0) {
-        return err('density is required and must be positive for %w/w or %v/v conversions')
-      }
+    if (requirements.densityTemperature &&
+        (densityTemperatureC === undefined || densityTemperatureC <= -273.15)) {
+      return err('density_temperature_C is required and must be above absolute zero when density is used')
     }
-    if ((fromUnit === 'N' || toUnit === 'N') && equivalents <= 0) {
-      return err('equivalents must be a positive finite number for normality conversions')
+    if (requirements.equivalents && (equivalents === undefined || equivalents <= 0)) {
+      return err('equivalents is required and must be positive for normality conversion')
     }
 
     try {
@@ -396,18 +472,18 @@ const convert_concentration: VerifiedTool = {
         fromUnit: fromUnit as ConcentrationUnit,
         toUnit: toUnit as ConcentrationUnit,
         molarMass,
-        density,
+        soluteDensity,
+        solutionDensity,
+        densityTemperatureC,
         equivalents,
       })
-      // A fraction-unit result cannot exceed 100%
-      if (FRACTION_UNITS.has(toUnit) && result.convertedValue > 100) {
-        return err(`Conversion produced an impossible ${toUnit} value (exceeds 100%)`)
-      }
       return finalizeResult({
         value: result.value,
         from_unit: result.fromUnit,
         to_unit: result.toUnit,
         converted_value: result.convertedValue,
+        assumptions: result.assumptions,
+        model: result.model,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Concentration conversion failed')
@@ -417,7 +493,7 @@ const convert_concentration: VerifiedTool = {
 
 const calculate_mixing: VerifiedTool = {
   name: 'calculate_mixing',
-  description: 'Calculate the final concentration when two solutions are mixed. Use when the user asks what happens when two solutions are combined.',
+  description: 'Calculate a material-balance concentration for two solutions of one named solute in one shared volume-based unit, with no reaction/loss. Requires either a measured final volume or an explicitly labelled additive-volume approximation.',
   input_schema: {
     type: 'object',
     properties: {
@@ -425,8 +501,18 @@ const calculate_mixing: VerifiedTool = {
       v1: { type: 'number', description: 'Volume of first solution (L or mL, consistent with v2)' },
       c2: { type: 'number', description: 'Concentration of second solution' },
       v2: { type: 'number', description: 'Volume of second solution (L or mL, consistent with v1)' },
+      solute_identity: { type: 'string', description: 'One shared solute/analyte identity for both solutions' },
+      concentration_unit: { type: 'string', enum: ['mol/L', 'mmol/L', 'g/L', 'mg/L', 'ug/L', 'pct_wv', 'N'], description: 'One shared, volume-based concentration unit for c1 and c2' },
+      volume_unit: { type: 'string', enum: ['L', 'mL'], description: 'One explicit shared unit for v1, v2, and final_volume' },
+      normality_context: { type: 'string', description: 'Required for N: the shared reaction or analytical equivalent-entity definition used by both inputs' },
+      volume_basis: { type: 'string', enum: ['measured-final', 'additive-approximation'], description: 'Use measured-final when final volume is observed; additive-approximation explicitly assumes Vfinal = V1 + V2' },
+      final_volume: { type: 'number', description: 'Measured final volume, required only for measured-final; same unit as v1/v2' },
+      no_reaction_or_loss: { type: 'boolean', description: 'Must be true to confirm no reaction, precipitation, volatilization, or solute loss' },
     },
-    required: ['c1', 'v1', 'c2', 'v2'],
+    required: [
+      'c1', 'v1', 'c2', 'v2', 'solute_identity', 'concentration_unit',
+      'volume_unit', 'volume_basis', 'no_reaction_or_loss',
+    ],
   },
   citation: CITATION,
   engine: 'mixing',
@@ -435,16 +521,71 @@ const calculate_mixing: VerifiedTool = {
     const v1 = readFiniteNumber(input.v1)
     const c2 = readFiniteNumber(input.c2)
     const v2 = readFiniteNumber(input.v2)
+    const finalVolume = readFiniteNumber(input.final_volume)
+    const soluteIdentity = readRequiredText(input.solute_identity, 'solute_identity')
+    const normalityContext = input.normality_context === undefined
+      ? undefined
+      : readRequiredText(input.normality_context, 'normality_context')
+    const concentrationUnit = typeof input.concentration_unit === 'string'
+      ? input.concentration_unit.trim()
+      : ''
+    const volumeUnit = typeof input.volume_unit === 'string'
+      ? input.volume_unit.trim()
+      : ''
+    const volumeBasis = typeof input.volume_basis === 'string'
+      ? input.volume_basis.trim()
+      : ''
     if (c1 === undefined || c1 < 0) return err('c1 must be a non-negative finite number')
     if (v1 === undefined || v1 < 0) return err('v1 must be a non-negative finite number')
     if (c2 === undefined || c2 < 0) return err('c2 must be a non-negative finite number')
     if (v2 === undefined || v2 < 0) return err('v2 must be a non-negative finite number')
     if ((v1 + v2) === 0) return err('Total volume (v1 + v2) must be greater than zero')
+    if (hasInvalidOptionalNumber(input, 'final_volume', finalVolume)) return err('final_volume must be finite if provided')
+    if (soluteIdentity === undefined) return err('solute_identity must name the one shared solute/analyte')
+    if (!isMixingConcentrationUnit(concentrationUnit)) {
+      return err('concentration_unit must be one shared volume-based unit: mol/L, mmol/L, g/L, mg/L, ug/L, pct_wv, or N')
+    }
+    if (volumeUnit !== 'L' && volumeUnit !== 'mL') {
+      return err('volume_unit must explicitly be L or mL')
+    }
+    if (concentrationUnit === 'N' && normalityContext === undefined) {
+      return err('normality_context must define the shared reaction/equivalence context when concentration_unit is N')
+    }
+    if (concentrationUnit !== 'N' && input.normality_context !== undefined) {
+      return err('normality_context must be omitted unless concentration_unit is N')
+    }
+    if (volumeBasis !== 'measured-final' && volumeBasis !== 'additive-approximation') {
+      return err('volume_basis must be measured-final or additive-approximation')
+    }
+    if (input.no_reaction_or_loss !== true) {
+      return err('no_reaction_or_loss must be explicitly true for this mixing model')
+    }
+    if (volumeBasis === 'measured-final' && (finalVolume === undefined || finalVolume <= 0)) {
+      return err('final_volume is required and must be positive for measured-final')
+    }
+    if (volumeBasis === 'additive-approximation' && input.final_volume !== undefined) {
+      return err('final_volume must be omitted for additive-approximation')
+    }
     try {
-      const result = calculateMixing({ c1, v1, c2, v2 })
+      const result = calculateMixing({
+        c1,
+        v1,
+        c2,
+        v2,
+        soluteIdentity,
+        concentrationUnit,
+        volumeUnit: volumeUnit as MixingVolumeUnit,
+        normalityContext,
+        volumeBasis: volumeBasis as MixingVolumeBasis,
+        finalVolume,
+        noReactionOrLoss: true,
+      })
       return finalizeResult({
         final_concentration: result.finalConc,
         final_volume: result.finalVolume,
+        final_volume_unit: result.model.volumeUnit,
+        assumptions: result.assumptions,
+        model: result.model,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Mixing calculation failed')
