@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { CardStatus } from '@/lib/answer-cards/types'
+import type { EngineReplayStatus } from '@/lib/answer-cards/replay'
 import { CalcShell, Card, ErrorBanner } from '@/components/lab'
 
 interface CardSummary {
@@ -13,6 +14,8 @@ interface CardSummary {
   is_public: boolean
   created_at: string
   signatureValid: boolean
+  engineReplayStatus: EngineReplayStatus
+  currentEngineAgrees: boolean
 }
 
 const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
@@ -20,6 +23,12 @@ const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
   partial: { label: 'Partial', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
   unverified: { label: 'Unverified', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
   error: { label: 'Error', cls: 'border-destructive/40 bg-destructive/10 text-destructive-strong' },
+}
+
+const REPLAY_STYLE: Record<Exclude<EngineReplayStatus, 'current'>, { label: string; cls: string }> = {
+  superseded: { label: 'Superseded', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
+  corrected: { label: 'Corrected', cls: 'border-destructive/40 bg-destructive/10 text-destructive-strong' },
+  unavailable: { label: 'Replay unavailable', cls: 'border-warning/40 bg-warning/10 text-warning-strong' },
 }
 
 export default function CardsPage() {
@@ -55,7 +64,7 @@ export default function CardsPage() {
   }, [router])
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!confirm('Delete this verified card? This cannot be undone.')) return
+    if (!confirm('Delete this signed card? This cannot be undone.')) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/answer-cards/${id}`, { method: 'DELETE' })
@@ -102,16 +111,16 @@ export default function CardsPage() {
 
   return (
     <CalcShell
-      eyebrow="Account · Verified cards"
-      title="My Verified Cards"
-      subtitle="Signed answer cards you have saved. Each carries an HMAC signature that is re-verified on load."
+      eyebrow="Account · Signed cards"
+      title="My Signed Cards"
+      subtitle="Saved answer cards with separately reported HMAC integrity and current-engine replay status."
       backHref="/account"
       backLabel="Account"
       maxWidth="4xl"
     >
       {cards.length === 0 ? (
         <Card className="p-10 text-center">
-          <p className="text-muted-foreground mb-4">You haven&apos;t saved any verified answers yet.</p>
+          <p className="text-muted-foreground mb-4">You haven&apos;t saved any signed answers yet.</p>
           <Link
             href="/tools/verified-answer"
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary-500 px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-600 min-h-[44px]"
@@ -123,6 +132,7 @@ export default function CardsPage() {
         <ul className="space-y-3">
           {cards.map((c) => {
             const s = STATUS_STYLE[c.status]
+            const replayStyle = c.engineReplayStatus === 'current' ? null : REPLAY_STYLE[c.engineReplayStatus]
             return (
               <Card key={c.id} className="p-4 transition-colors hover:border-primary-500">
                 <div className="flex items-start justify-between gap-4">
@@ -131,13 +141,17 @@ export default function CardsPage() {
                       {c.question}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                      {c.signatureValid ? (
-                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium ${s.cls}`}>
-                          {s.label}
-                        </span>
-                      ) : (
+                      {!c.signatureValid ? (
                         <span className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-2 py-0.5 font-medium text-destructive-strong">
                           Tampered
+                        </span>
+                      ) : replayStyle ? (
+                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium ${replayStyle.cls}`}>
+                          {replayStyle.label}
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 font-medium ${s.cls}`}>
+                          {s.label}
                         </span>
                       )}
                       {c.is_public ? (

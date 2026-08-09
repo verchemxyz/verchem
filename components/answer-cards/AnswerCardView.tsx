@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { AnswerCard, CardStatus } from '@/lib/answer-cards/types'
+import type { EngineReplayAssessment } from '@/lib/answer-cards/replay'
 
 interface AnswerCardViewProps {
   card: AnswerCard
@@ -13,6 +14,8 @@ interface AnswerCardViewProps {
    * never present a VERIFIED badge.
    */
   signatureValid?: boolean
+  /** Server-side replay against the current deterministic engine registry. */
+  engineReplay?: EngineReplayAssessment
 }
 
 function truncateSignature(sig: string): string {
@@ -84,9 +87,11 @@ function statusBadge(status: CardStatus): {
   }
 }
 
-export default function AnswerCardView({ card, signatureValid }: AnswerCardViewProps) {
+export default function AnswerCardView({ card, signatureValid, engineReplay }: AnswerCardViewProps) {
   const badge = statusBadge(card.status)
   const tampered = signatureValid === false
+  const replayStatus = engineReplay?.status ?? 'current'
+  const replayBlocksVerification = !tampered && replayStatus !== 'current'
 
   // Defense in depth: a tampered/corrupt loaded card could carry malformed
   // tool_calls/audit. The data layer already falls back to a safe empty card,
@@ -117,6 +122,33 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
         </div>
       )}
 
+      {!tampered && replayStatus === 'superseded' && (
+        <div role="status" className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning-strong">
+          <div className="font-semibold">Signature intact · engine release superseded</div>
+          <p className="mt-1">
+            The current engine reproduces this signed result, but the card was issued by an older release. It is historical evidence, not a current VERIFIED card.
+          </p>
+        </div>
+      )}
+
+      {!tampered && replayStatus === 'corrected' && (
+        <div role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive-strong">
+          <div className="font-semibold">Signature intact · current engine disagrees</div>
+          <p className="mt-1">
+            The card has not been altered, but replay now produces a different result. Treat this card as corrected and generate a new card before relying on the value.
+          </p>
+        </div>
+      )}
+
+      {!tampered && replayStatus === 'unavailable' && (
+        <div role="status" className="rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm text-warning-strong">
+          <div className="font-semibold">Signature intact · current replay unavailable</div>
+          <p className="mt-1">
+            VerChem cannot reproduce this signed result with the current engine registry, so it is not presented as currently verified.
+          </p>
+        </div>
+      )}
+
       {/* Header: Verification badge */}
       <div className="flex flex-wrap items-center gap-3">
         {tampered ? (
@@ -125,6 +157,18 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
             SIGNATURE INVALID
+          </span>
+        ) : replayStatus === 'superseded' ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-sm font-medium text-warning-strong">
+            SUPERSEDED
+          </span>
+        ) : replayStatus === 'corrected' ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive-strong">
+            CORRECTED
+          </span>
+        ) : replayStatus === 'unavailable' ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1 text-sm font-medium text-warning-strong">
+            REPLAY UNAVAILABLE
           </span>
         ) : (
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${badge.borderClass} ${badge.bgClass} ${badge.colorClass}`}>
@@ -138,7 +182,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
       </div>
 
       {/* Downgrade reason (engine-driven only) */}
-      {badge.reason && (
+      {badge.reason && !replayBlocksVerification && (
         <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning-strong">
           {badge.reason}
         </div>
@@ -151,49 +195,59 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Verified Engine Results
+            {replayBlocksVerification || tampered ? 'Signed Historical Engine Results' : 'Verified Engine Results'}
           </h3>
-          {toolCalls.map((tc, idx) => (
-            <div
-              key={`${tc.name}-${idx}`}
-              className={`rounded-xl border p-4 ${
-                tc.result?.ok
-                  ? 'border-success/20 bg-success/5'
-                  : 'border-destructive/20 bg-destructive/5'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">{tc.engine}</span>
-                <span className="text-xs text-muted-foreground">{tc.name}</span>
-              </div>
-
-              <div className="grid gap-2 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Inputs:</span>{' '}
-                  <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
-                    {JSON.stringify(tc.input)}
-                  </code>
+          {toolCalls.map((tc, idx) => {
+            const replayCheck = engineReplay?.checks[idx]
+            return (
+              <div
+                key={`${tc.name}-${idx}`}
+                className={`rounded-xl border p-4 ${
+                  tc.result?.ok
+                    ? 'border-success/20 bg-success/5'
+                    : 'border-destructive/20 bg-destructive/5'
+                }`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <span className="text-sm font-medium text-foreground">
+                    {tc.engine} · signed release {tc.engine_version ?? 'legacy/unversioned'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{tc.name}</span>
                 </div>
-                {tc.result?.ok ? (
+
+                <div className="grid gap-2 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Result:</span>{' '}
-                    <code className="rounded bg-success/10 px-1.5 py-0.5 text-success-strong">
-                      {JSON.stringify(tc.result.value)}
+                    <span className="text-muted-foreground">Inputs:</span>{' '}
+                    <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
+                      {JSON.stringify(tc.input)}
                     </code>
                   </div>
-                ) : (
-                  <div className="text-destructive-strong">
-                    <span className="text-muted-foreground">Error:</span> {tc.result?.error}
-                  </div>
-                )}
-                {tc.citation && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Citation: {tc.citation}
-                  </div>
-                )}
+                  {tc.result?.ok ? (
+                    <div>
+                      <span className="text-muted-foreground">Result:</span>{' '}
+                      <code className="rounded bg-success/10 px-1.5 py-0.5 text-success-strong">
+                        {JSON.stringify(tc.result.value)}
+                      </code>
+                    </div>
+                  ) : (
+                    <div className="text-destructive-strong">
+                      <span className="text-muted-foreground">Error:</span> {tc.result?.error}
+                    </div>
+                  )}
+                  {tc.citation && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Citation: {tc.citation}
+                    </div>
+                  )}
+                  {replayCheck && (
+                    <div className={`text-xs mt-1 ${replayCheck.currentEngineAgrees ? 'text-success-strong' : 'text-destructive-strong'}`}>
+                      Current release {replayCheck.currentEngineVersion ?? 'unavailable'}: {replayCheck.currentEngineAgrees ? 'replay agrees' : 'replay does not agree'} ({replayCheck.status})
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -204,7 +258,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
           aria-label="Audit warning: unverified figures in explanation"
           className="rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-warning-strong"
         >
-          <span className="font-medium">Audit notice:</span> The explanation references figure(s) not produced by the verified engines. The authoritative values are shown in the Verified Engine Results above.
+          <span className="font-medium">Audit notice:</span> The explanation references figure(s) not produced by the signed engines. Review the signed engine results and current replay status above.
         </div>
       )}
 
@@ -218,7 +272,7 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
             {card.explanation}
           </div>
           <p className="mt-4 text-xs text-muted-foreground italic">
-            This explanation is AI-generated narrative. Only the values in the Verified Engine Results above are computed by deterministic, signed engines.
+            This explanation is AI-generated narrative. Only the signed engine-result fields above were computed by deterministic engines; current validity also depends on the replay status shown on this card.
           </p>
         </div>
       )}
@@ -238,11 +292,19 @@ export default function AnswerCardView({ card, signatureValid }: AnswerCardViewP
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
-                verified on load
+                signature intact
               </span>
             )}
           </div>
           <code className="text-xs text-muted-foreground break-all">{truncateSignature(card.signature)}</code>
+        </div>
+      )}
+
+      {engineReplay && !tampered && (
+        <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
+          <div>Signature integrity: {signatureValid === true ? 'intact' : 'not re-checked in this view'}</div>
+          <div>Current engine agrees: {engineReplay.currentEngineAgrees ? 'yes' : 'no'}</div>
+          <div>Engine release status: {engineReplay.status}</div>
         </div>
       )}
 

@@ -5,7 +5,8 @@
  * Anthropic SDK tool format conversion included.
  */
 
-import type { VerifiedTool } from '../types'
+import type { VerifiedTool, VersionedVerifiedTool } from '../types'
+import { getCurrentEngineVersion } from '../engine-versions'
 import { phTools } from './ph'
 import { gasTools } from './gas-laws'
 import { equationTools } from './equation'
@@ -18,7 +19,7 @@ import { nuclearTools } from './nuclear'
 import { quantumTools } from './quantum'
 import { electronConfigTools } from './electron-config'
 
-export const ALL_TOOLS: VerifiedTool[] = [
+const TOOL_DEFINITIONS: VerifiedTool[] = [
   ...phTools,
   ...gasTools,
   ...equationTools,
@@ -32,7 +33,15 @@ export const ALL_TOOLS: VerifiedTool[] = [
   ...electronConfigTools,
 ]
 
-export const TOOL_BY_NAME = new Map<string, VerifiedTool>()
+export const ALL_TOOLS: VersionedVerifiedTool[] = TOOL_DEFINITIONS.map((tool) => {
+  const engineVersion = getCurrentEngineVersion(tool.engine)
+  if (!engineVersion) {
+    throw new Error(`Missing semantic version for answer-card engine "${tool.engine}"`)
+  }
+  return { ...tool, engineVersion }
+})
+
+export const TOOL_BY_NAME = new Map<string, VersionedVerifiedTool>()
 for (const tool of ALL_TOOLS) {
   TOOL_BY_NAME.set(tool.name, tool)
 }

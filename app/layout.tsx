@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     default: "VerChem — Verified Chemistry Workbench",
     template: "%s | VerChem"
   },
-  description: "Deterministic chemistry calculators with HMAC-signed results. An interactive 118-element table citing IUPAC and NIST references, 3D molecular viewer, stoichiometry, pH, and gas laws. Free.",
+  description: "Free deterministic chemistry calculators plus optional HMAC-signed Verified Answer Cards. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
     title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Deterministic chemistry calculators with HMAC-signed results. Free and accessible.',
+    description: 'Free deterministic chemistry calculators with optional HMAC-signed Verified Answer Cards.',
     images: [
       {
         url: '/opengraph-image.png',
@@ -89,7 +89,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Deterministic chemistry calculators with HMAC-signed results. Free and accessible.',
+    description: 'Free deterministic chemistry calculators with optional HMAC-signed Verified Answer Cards.',
     images: ['/opengraph-image.png'],
   },
   robots: {
@@ -187,7 +187,7 @@ export default function RootLayout({
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center text-muted-foreground">
                       <p className="mb-2">
-                        VerChem — Deterministic chemistry calculators with signed results
+                        VerChem — Deterministic calculators plus signed Verified Answer Cards
                       </p>
                       <p className="text-sm">
                         Built with accessibility in mind. Press <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">Ctrl+/</kbd> to view keyboard shortcuts.

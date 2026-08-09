@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { AnswerCard } from '@/lib/answer-cards/types'
+import type { EngineReplayAssessment } from '@/lib/answer-cards/replay'
 import AnswerCardView from '@/components/answer-cards/AnswerCardView'
 import { CalcShell, Card } from '@/components/lab'
 
@@ -13,6 +14,7 @@ interface LoadedCard {
   is_public: boolean
   created_at: string
   signatureValid: boolean
+  engineReplay: EngineReplayAssessment
 }
 
 export default function CardDetailPage() {
@@ -80,7 +82,7 @@ export default function CardDetailPage() {
   )
 
   const handleDelete = useCallback(async () => {
-    if (!loaded || !confirm('Delete this verified card? This cannot be undone.')) return
+    if (!loaded || !confirm('Delete this signed card? This cannot be undone.')) return
     setBusy(true)
     try {
       const res = await fetch(`/api/answer-cards/${loaded.id}`, { method: 'DELETE' })
@@ -131,14 +133,18 @@ export default function CardDetailPage() {
 
   return (
     <CalcShell
-      eyebrow="Account · Verified card"
+      eyebrow="Account · Signed card"
       title={`Q: ${loaded.card.question}`}
       backHref="/account/cards"
-      backLabel="My Verified Cards"
+      backLabel="My Signed Cards"
       maxWidth="4xl"
     >
       <Card className="p-6 md:p-8">
-        <AnswerCardView card={loaded.card} signatureValid={loaded.signatureValid} />
+        <AnswerCardView
+          card={loaded.card}
+          signatureValid={loaded.signatureValid}
+          engineReplay={loaded.engineReplay}
+        />
       </Card>
 
       {/* Manage */}

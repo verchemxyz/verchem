@@ -480,7 +480,7 @@ export function VerChemGlobalFAQSchema({ compoundCount }: { compoundCount: numbe
         name: 'How is VerChem different from asking an AI chatbot for a chemistry calculation?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and a saved result records the exact inputs it was given, which engine computed it, a textbook citation, and a signature covering all of it — so it can be re-run and compared later. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check. VerChem does use AI to explain a result in plain language; the explanation is signed alongside the engine output, so any later edit to either shows up.'
+          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output. An optional Verified Answer Card records the exact inputs, semantic engine release, output, textbook citation, AI explanation, and a signature covering them so the engine fields can be replayed and compared later. Signature integrity and current-engine agreement are reported separately; cards from replaced releases are marked superseded or corrected instead of current VERIFIED. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check.'
         }
       },
       {
@@ -488,7 +488,7 @@ export function VerChemGlobalFAQSchema({ compoundCount }: { compoundCount: numbe
         name: 'Is a VerChem result guaranteed to be correct?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'It is reproducible, not infallible. A VerChem result is deterministic — identical inputs always give identical output — and cites published element references including IUPAC and NIST. Required physical inputs such as solution density or a reaction-specific equivalents factor must be supplied; calculations that need a missing value are rejected rather than guessed. Any listed assumptions describe the declared model scope. Signed results are tamper-evident: any later edit breaks the signature. That signature proves the record was not altered; it does not prove the underlying chemistry applies to your situation.'
+          text: 'It is reproducible, not infallible. A VerChem calculation is deterministic — identical inputs always give identical output — and cites published element references including IUPAC and NIST. Required physical inputs such as solution density or a reaction-specific equivalents factor must be supplied; calculations that need a missing value are rejected rather than guessed. Any listed assumptions describe the declared model scope. Verified Answer Cards are tamper-evident: any later edit breaks the signature. That signature proves the signed record was not altered; current validity is a separate replay check, and neither property proves the chemistry model applies to your situation.'
         }
       }
     ]

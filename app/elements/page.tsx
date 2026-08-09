@@ -8,7 +8,7 @@ import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
 // Static metadata for SEO
 export const metadata: Metadata = {
   title: 'Periodic Table of Elements - All 118 Elements | VerChem',
-  description: 'Complete periodic table with all 118 chemical elements. Browse elements by category: alkali metals, transition metals, noble gases, and more. Detailed atomic properties, electron configurations, and physical data.',
+  description: 'Periodic table covering all 118 chemical elements. Browse standard atomic weights, electron configurations, and selected physical properties; optional property coverage varies by element.',
   keywords: [
     'periodic table',
     'chemical elements',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Periodic Table of Elements | VerChem',
-    description: 'Explore all 118 chemical elements with detailed atomic data, electron configurations, and physical properties.',
+    description: 'Explore all 118 chemical elements with standard atomic weights, electron configurations, and selected physical properties whose coverage varies by element.',
     type: 'website',
     url: 'https://verchem.xyz/elements',
     siteName: 'VerChem',
@@ -115,9 +115,9 @@ export default function ElementsIndexPage() {
       />
 
       <CalcShell
-        eyebrow="Reference data · 118 elements · NIST/IUPAC 2021"
+        eyebrow="Reference data · 118 elements · IUPAC 2021 weights"
         title="Periodic Table of Elements"
-        subtitle="Explore all 118 chemical elements with detailed atomic properties, electron configurations, and physical data. Click any element to learn more."
+        subtitle="Explore all 118 elements. Standard atomic weights follow IUPAC 2021; selected NIST/CRC physical-property coverage varies by element."
         backHref="/"
         backLabel="Home"
         maxWidth="7xl"
@@ -226,7 +226,7 @@ export default function ElementsIndexPage() {
             >
               <h3 className="text-lg font-semibold text-foreground">Compound Database</h3>
               <p className="text-muted-foreground text-sm mt-2">
-                Browse {COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')} chemical compounds with detailed properties
+                Browse {COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')} chemical records; optional property and safety coverage varies by record
               </p>
             </Link>
 
@@ -244,7 +244,7 @@ export default function ElementsIndexPage() {
 
         {/* Footnote */}
         <p className="text-center text-xs text-muted-foreground">
-          Data sourced from NIST and IUPAC (2021). All 118 elements with verified atomic data.
+          Standard atomic weights follow IUPAC 2021. Selected physical properties cite NIST and CRC references; VerChem is not certified by those organizations, and coverage varies by element.
         </p>
       </CalcShell>
     </>

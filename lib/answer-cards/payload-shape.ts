@@ -11,6 +11,7 @@
 import type { SignablePayload, CardStatus } from './types'
 
 const STATUSES: readonly CardStatus[] = ['verified', 'partial', 'unverified', 'error']
+const ENGINE_SEMVER = /^\d+\.\d+\.\d+$/
 
 function isStr(v: unknown): v is string {
   return typeof v === 'string'
@@ -34,6 +35,10 @@ export function isValidSignablePayload(p: unknown): p is SignablePayload {
   for (const tc of p.tool_calls) {
     if (!isPlainObj(tc)) return false
     if (!isStr(tc.name) || !isStr(tc.engine) || !isStr(tc.citation)) return false
+    if (
+      tc.engine_version !== undefined &&
+      (!isStr(tc.engine_version) || !ENGINE_SEMVER.test(tc.engine_version))
+    ) return false
     if (!isPlainObj(tc.input)) return false
     if (!isPlainObj(tc.result)) return false
     const r = tc.result

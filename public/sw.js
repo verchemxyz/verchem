@@ -6,9 +6,10 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-const CACHE_VERSION = 'verchem-v1.0.0';
+const CACHE_VERSION = 'verchem-v2.0.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+const MIGRATED_ROUTES = ['/tools/ph-calculator'];
 
 // Static assets to cache immediately (app shell)
 const STATIC_ASSETS = [
@@ -20,19 +21,6 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/logo.png',
   '/offline.html',
-];
-
-// Pages to cache on first visit
-const CACHE_ON_VISIT = [
-  '/tools/equation-balancer',
-  '/tools/stoichiometry',
-  '/solutions',
-  '/tools/gas-laws',
-  '/tools/molar-mass',
-  '/tools/solution-prep',
-  '/tools/lab-safety',
-  '/tools/nuclear',
-  '/tools/quantum',
 ];
 
 // Install event - cache static assets
@@ -61,6 +49,24 @@ self.addEventListener('activate', (event) => {
 
   event.waitUntil(
     caches.keys()
+      .then((cacheNames) => {
+        // Remove pre-consolidation route responses even from a same-version
+        // cache. This prevents the old standalone pH implementation from
+        // surviving now that the URL serves the shared /solutions component
+        // through a partially completed service-worker update.
+        return Promise.all(
+          cacheNames.map((cacheName) =>
+            caches.open(cacheName).then((cache) =>
+              Promise.all(
+                MIGRATED_ROUTES.map((route) =>
+                  cache.delete(new URL(route, self.location.origin).toString())
+                )
+              )
+            )
+          )
+        );
+      })
+      .then(() => caches.keys())
       .then((cacheNames) => {
         return Promise.all(
           cacheNames
@@ -150,7 +156,7 @@ self.addEventListener('fetch', (event) => {
       .then((cachedResponse) => {
         if (cachedResponse) {
           // Return cached version, but also update cache in background
-          const fetchPromise = fetch(request)
+          fetch(request)
             .then((networkResponse) => {
               if (networkResponse.ok) {
                 const responseClone = networkResponse.clone();

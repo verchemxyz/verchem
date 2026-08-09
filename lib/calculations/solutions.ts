@@ -184,6 +184,72 @@ export function pOHToPH(pOH: number): number {
   return PH_MODEL_25C.pKw - pOH
 }
 
+export type PHConversionSource = 'ph' | 'poh' | 'h-concentration' | 'oh-concentration'
+
+export interface PHConversionResult {
+  pH: number
+  pOH: number
+  H_concentration: number
+  OH_concentration: number
+}
+
+/**
+ * Resolve pH, pOH, [H+] and [OH-] from any one of those four values using the
+ * single declared 25 °C ideal-dilute model. UI and public API callers share
+ * this function so neither surface can drift back to literal 14/7 constants.
+ */
+export function calculatePHConversion(
+  source: PHConversionSource,
+  value: number
+): PHConversionResult {
+  if (!Number.isFinite(value)) throw new Error('Input must be a finite number')
+
+  let pH: number
+  let pOH: number
+  let H_concentration: number
+  let OH_concentration: number
+
+  switch (source) {
+    case 'ph':
+      pH = value
+      pOH = pHToPOH(pH)
+      H_concentration = calculateH_Concentration(pH)
+      OH_concentration = calculateOH_Concentration(pOH)
+      break
+    case 'poh':
+      pOH = value
+      pH = pOHToPH(pOH)
+      H_concentration = calculateH_Concentration(pH)
+      OH_concentration = calculateOH_Concentration(pOH)
+      break
+    case 'h-concentration':
+      H_concentration = value
+      pH = calculatePH(H_concentration)
+      pOH = pHToPOH(pH)
+      OH_concentration = calculateOH_Concentration(pOH)
+      break
+    case 'oh-concentration':
+      OH_concentration = value
+      pOH = calculatePOH(OH_concentration)
+      pH = pOHToPH(pOH)
+      H_concentration = calculateH_Concentration(pH)
+      break
+  }
+
+  if (
+    !Number.isFinite(pH) ||
+    !Number.isFinite(pOH) ||
+    !Number.isFinite(H_concentration) ||
+    !Number.isFinite(OH_concentration) ||
+    H_concentration <= 0 ||
+    OH_concentration <= 0
+  ) {
+    throw new Error('Input is outside the positive finite representable range')
+  }
+
+  return { pH, pOH, H_concentration, OH_concentration }
+}
+
 export interface StrongAcidOptions {
   formula?: string
   protonCount?: number

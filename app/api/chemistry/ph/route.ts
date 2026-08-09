@@ -12,11 +12,15 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
+import { publicApiJson } from '@/lib/api/public-contract';
 import {
   PH_MODEL_25C,
   assertSupportedPHModelScope,
+  calculatePHConversion,
+  type PHConversionResult,
+  type PHConversionSource,
 } from '@/lib/calculations/solutions';
 
 /**
@@ -41,63 +45,14 @@ interface pHResult {
   description: string;
 }
 
-function calculateFromH(h: number): pHResult {
-  const pH = -Math.log10(h);
-  const pOH = PH_MODEL_25C.pKw - pH;
-  const oh = PH_MODEL_25C.kw / h;
-
+function describeConversion(result: PHConversionResult): pHResult {
   return {
-    pH,
-    pOH,
-    hConcentration: h,
-    ohConcentration: oh,
-    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
-    description: getDescription(pH),
-  };
-}
-
-function calculateFromOH(oh: number): pHResult {
-  const pOH = -Math.log10(oh);
-  const pH = PH_MODEL_25C.pKw - pOH;
-  const h = PH_MODEL_25C.kw / oh;
-
-  return {
-    pH,
-    pOH,
-    hConcentration: h,
-    ohConcentration: oh,
-    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
-    description: getDescription(pH),
-  };
-}
-
-function calculateFrompH(pH: number): pHResult {
-  const h = Math.pow(10, -pH);
-  const pOH = PH_MODEL_25C.pKw - pH;
-  const oh = Math.pow(10, -pOH);
-
-  return {
-    pH,
-    pOH,
-    hConcentration: h,
-    ohConcentration: oh,
-    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
-    description: getDescription(pH),
-  };
-}
-
-function calculateFrompOH(pOH: number): pHResult {
-  const pH = PH_MODEL_25C.pKw - pOH;
-  const h = Math.pow(10, -pH);
-  const oh = Math.pow(10, -pOH);
-
-  return {
-    pH,
-    pOH,
-    hConcentration: h,
-    ohConcentration: oh,
-    acidity: pH < PH_MODEL_25C.neutralPH ? 'acidic' : pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
-    description: getDescription(pH),
+    pH: result.pH,
+    pOH: result.pOH,
+    hConcentration: result.H_concentration,
+    ohConcentration: result.OH_concentration,
+    acidity: result.pH < PH_MODEL_25C.neutralPH ? 'acidic' : result.pH > PH_MODEL_25C.neutralPH ? 'basic' : 'neutral',
+    description: getDescription(result.pH),
   };
 }
 
@@ -106,7 +61,7 @@ function getDescription(pH: number): string {
   if (pH < 3) return 'Very strongly acidic (stomach acid, lemon juice)';
   if (pH < 5) return 'Strongly acidic (vinegar, soda)';
   if (pH < 6) return 'Moderately acidic (black coffee, rain water)';
-  if (pH < 7) return 'Slightly acidic (milk, saliva)';
+  if (pH < PH_MODEL_25C.neutralPH) return 'Slightly acidic (milk, saliva)';
   if (pH === PH_MODEL_25C.neutralPH) return 'Neutral in this 25 °C ideal-dilute aqueous model';
   if (pH < 8) return 'Slightly basic (blood, sea water)';
   if (pH < 9) return 'Moderately basic (baking soda)';
@@ -133,10 +88,19 @@ export async function GET(request: NextRequest) {
   const pohParam = searchParams.get('poh');
   const temperatureParam = searchParams.get('temperature_c');
   const activityModelParam = searchParams.get('activity_model');
+  const candidateInputs: Array<{ raw: string; source: PHConversionSource; label: string } | null> = [
+    hParam === null ? null : { raw: hParam, source: 'h-concentration' as const, label: 'H+ concentration' },
+    ohParam === null ? null : { raw: ohParam, source: 'oh-concentration' as const, label: 'OH- concentration' },
+    phParam === null ? null : { raw: phParam, source: 'ph' as const, label: 'pH' },
+    pohParam === null ? null : { raw: pohParam, source: 'poh' as const, label: 'pOH' },
+  ];
+  const suppliedInputs = candidateInputs.filter(
+    (input): input is { raw: string; source: PHConversionSource; label: string } => input !== null
+  );
 
   // Check if any parameter is provided
-  if (!hParam && !ohParam && !phParam && !pohParam) {
-    return NextResponse.json(
+  if (suppliedInputs.length === 0) {
+    return publicApiJson(
       {
         error: 'Missing parameter',
         hint: 'Provide one of: h, oh, ph, poh',
@@ -151,6 +115,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  if (suppliedInputs.length > 1) {
+    return publicApiJson(
+      { error: 'Ambiguous input - provide exactly one of: h, oh, ph, poh' },
+      { status: 400 }
+    );
+  }
+
   let result: pHResult;
 
   try {
@@ -158,7 +129,7 @@ export async function GET(request: NextRequest) {
       ? PH_MODEL_25C.temperatureC
       : parseFiniteParam(temperatureParam);
     if (temperatureC === null) {
-      return NextResponse.json(
+      return publicApiJson(
         { error: 'Invalid temperature_c - must be a finite number' },
         { status: 400 }
       );
@@ -167,7 +138,7 @@ export async function GET(request: NextRequest) {
     try {
       assertSupportedPHModelScope(temperatureC, activityModel);
     } catch (scopeError) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: scopeError instanceof Error ? scopeError.message : 'Unsupported pH model scope',
           supportedModel: PH_MODEL_25C,
@@ -176,45 +147,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (hParam) {
-      const h = parseFiniteParam(hParam);
-      if (h === null || h <= 0) {
-        return NextResponse.json(
-          { error: 'Invalid H+ concentration - must be positive number' },
-          { status: 400 }
-        );
-      }
-      result = calculateFromH(h);
-    } else if (ohParam) {
-      const oh = parseFiniteParam(ohParam);
-      if (oh === null || oh <= 0) {
-        return NextResponse.json(
-          { error: 'Invalid OH- concentration - must be positive number' },
-          { status: 400 }
-        );
-      }
-      result = calculateFromOH(oh);
-    } else if (phParam) {
-      const pH = parseFiniteParam(phParam);
-      if (pH === null || pH < 0 || pH > 14) {
-        return NextResponse.json(
-          { error: 'Invalid pH - must be between 0 and 14' },
-          { status: 400 }
-        );
-      }
-      result = calculateFrompH(pH);
-    } else if (pohParam) {
-      const pOH = parseFiniteParam(pohParam);
-      if (pOH === null || pOH < 0 || pOH > 14) {
-        return NextResponse.json(
-          { error: 'Invalid pOH - must be between 0 and 14' },
-          { status: 400 }
-        );
-      }
-      result = calculateFrompOH(pOH);
-    } else {
-      return NextResponse.json(
-        { error: 'No valid parameter provided' },
+    const selectedInput = suppliedInputs[0];
+    const value = parseFiniteParam(selectedInput.raw);
+    if (value === null) {
+      return publicApiJson(
+        { error: `Invalid ${selectedInput.label} - must be a finite number` },
+        { status: 400 }
+      );
+    }
+    if (
+      (selectedInput.source === 'h-concentration' || selectedInput.source === 'oh-concentration') &&
+      value <= 0
+    ) {
+      return publicApiJson(
+        { error: `Invalid ${selectedInput.label} - must be positive` },
+        { status: 400 }
+      );
+    }
+    try {
+      result = describeConversion(calculatePHConversion(selectedInput.source, value));
+    } catch (conversionError) {
+      return publicApiJson(
+        { error: conversionError instanceof Error ? conversionError.message : 'pH conversion failed' },
         { status: 400 }
       );
     }
@@ -228,13 +182,13 @@ export async function GET(request: NextRequest) {
       !Number.isFinite(result.hConcentration) ||
       !Number.isFinite(result.ohConcentration)
     ) {
-      return NextResponse.json(
+      return publicApiJson(
         { error: 'Input out of representable range - result is not finite' },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(
+    return publicApiJson(
       {
         success: true,
         result: {
@@ -271,12 +225,11 @@ export async function GET(request: NextRequest) {
       {
         headers: {
           'Cache-Control': 'public, max-age=3600',
-          'X-API-Version': '1.1.0',
         },
       }
     );
   } catch (error) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Calculation failed',
         message: (error as Error).message,

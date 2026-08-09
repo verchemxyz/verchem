@@ -51,13 +51,13 @@ Successfully expanded VerChem's compound database from 25 to 1,311 comprehensive
 - **Oxides**: CO, NO, NO₂, N₂O
 
 ### 3. Enhanced Data Structure
-Each compound includes:
-- ✅ **Basic Properties**: name, formula, molecular weight, IUPAC name, CAS number
-- ✅ **Physical Properties**: melting point, boiling point, density, appearance, odor
-- ✅ **Chemical Properties**: pKa, pKb, solubility data
-- ✅ **Safety Data**: GHS hazards, severity levels, precaution codes
-- ✅ **Applications**: Common uses and industrial applications
-- ✅ **Multilingual Support**: Thai names included
+Every record has a core identity (id, name, formula representation, category, and physical state). Per-record optional coverage may include:
+- **Identity references**: IUPAC name and CAS number
+- **Physical properties**: melting point, boiling point, density, appearance, odor
+- **Chemical properties**: pKa, pKb, solubility data
+- **Safety data**: selected GHS hazards and pictograms where curated
+- **Applications**: common uses and industrial applications
+- **Multilingual support**: Thai names where curated
 
 ### 4. Advanced Search & Filtering System
 
@@ -127,7 +127,7 @@ const solutionProps = getSolutionProperties("NaCl")
 
 #### Safety Data Integration
 - **GHS Classification**: Hazard types and severity levels
-- **Safety Precautions**: Auto-generated based on hazards
+- **Safety Precautions**: Show only reviewed fields; missing classification is labelled and never inferred
 - **First Aid Instructions**: Contextual safety recommendations
 - **Storage Guidelines**: Proper handling and storage instructions
 
@@ -154,7 +154,7 @@ const solutionProps = getSolutionProperties("NaCl")
 ### 8. Database Statistics
 
 #### Coverage Summary
-- **Total Compounds**: 1,311 verified compounds
+- **Total Compounds**: 1,311 curated records; this is not a blanket verification claim for every optional field
 - **Organic Compounds**: 300+ (alkanes, alkenes, aromatics, functional groups)
 - **Inorganic Compounds**: 100+ (acids, bases, salts, oxides)
 - **Biochemicals**: 50+ (amino acids, sugars, nucleotides)
@@ -164,10 +164,10 @@ const solutionProps = getSolutionProperties("NaCl")
 - **Materials Science**: 15+ (semiconductors, superconductors)
 
 #### Data Quality
-- **Completeness**: 100% of compounds have required fields
-- **Accuracy**: Data sourced from NIST, PubChem, CRC Handbook
+- **Required-field coverage**: Core identity fields are present; optional physical-property and safety fields vary by record
+- **Source scope**: Sources apply per curated field and record; users must consult primary records and supplier SDS documents for critical use
 - **Consistency**: Standardized naming and formatting
-- **Validation**: Automated data validation and verification
+- **Validation**: Automated identity, formula, unit, collision, and code-integrity checks; no blanket certification
 
 ## 🚀 Implementation Highlights
 
@@ -275,16 +275,16 @@ const data = exportCompoundData("csv", selectedCompounds)
 
 ### Quantitative Achievements
 - ✅ **52x Expansion**: 25 → 1,311 compounds
-- ✅ **100% Data Completeness**: All required fields populated
+- ✅ **Explicit Coverage**: Core identity fields are present and optional-field gaps are represented rather than guessed
 - ✅ **20+ Categories**: Comprehensive chemical coverage
 - ✅ **Advanced Search**: 10+ filtering criteria
 - ✅ **Full Integration**: Seamless calculator connectivity
 
 ### Qualitative Improvements
 - ✅ **World-Class Database**: Comparable to professional chemical databases
-- ✅ **Educational Value**: Safe, curated compound selections
-- ✅ **Research Utility**: Comprehensive data for advanced applications
-- ✅ **Safety Focus**: Integrated hazard and safety information
+- ✅ **Educational Value**: Curated reference records with explicit coverage limits
+- ✅ **Research Utility**: Searchable reference records with per-field coverage
+- ✅ **Safety Focus**: Curated hazard fields where available, explicit missing-data status, and supplier-SDS guidance
 - ✅ **User Experience**: Intuitive search and selection interfaces
 
 ## 🚀 Future Enhancements

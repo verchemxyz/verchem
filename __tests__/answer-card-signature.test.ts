@@ -5,7 +5,7 @@
  * - tamper payload → verify ✗
  * - tamper tool result → verify ✗
  * - tamper explanation → verify ✗
- * - tamper engine → verify ✗
+ * - tamper engine / engine version → verify ✗
  * - tamper status → verify ✗
  * - tamper citation → verify ✗
  * - key order does not affect signature
@@ -118,6 +118,22 @@ describe('signCard + verifyCardSignature', () => {
         },
       ],
     })
+    expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
+  })
+
+  test('tampered engine version fails verification', async () => {
+    const payload = makePayload({
+      tool_calls: [{
+        ...makePayload().tool_calls[0],
+        engine_version: '2.0.0',
+      }],
+      version: 'w3-v2',
+    })
+    const sig = await signCard(payload)
+    const tampered: SignablePayload = {
+      ...payload,
+      tool_calls: [{ ...payload.tool_calls[0], engine_version: '2.0.1' }],
+    }
     expect(await verifyCardSignature(tampered, sig)).toBeFalsy()
   })
 

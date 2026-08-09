@@ -3,13 +3,13 @@ import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
+import { CURRENT_ENGINE_VERSIONS } from "@/lib/answer-cards/engine-versions";
 
-// The hero card claims "every result is HMAC-signed", so the demo signature must
-// itself be a REAL HMAC-SHA256 over the evidence the card displays — not a stand-in
-// hash. Signed here with a PUBLIC demo key (anyone can recompute it); the live
-// product signs answer cards with a server-only secret instead.
+// This hero is explicitly a Verified Answer Card demo, so its signature is a
+// real HMAC-SHA256 over the displayed evidence rather than a stand-in hash.
+// The public demo key is reproducible; live cards use a server-only secret.
 const DEMO_PAYLOAD =
-  "engine=molar-mass@verchem;compound=H2SO4;result=98.072 g/mol;arithmetic=2×1.008 + 32.06 + 4×15.999;source=IUPAC 2021";
+  `engine=molecular-mass;engine_version=${CURRENT_ENGINE_VERSIONS['molecular-mass']};compound=H2SO4;result=98.072 g/mol;arithmetic=2×1.008 + 32.06 + 4×15.999;source=IUPAC 2021`;
 const DEMO_PUBLIC_KEY = "verchem-public-demo-key";
 const DEMO_SIGNATURE = createHmac("sha256", DEMO_PUBLIC_KEY)
   .update(DEMO_PAYLOAD)
@@ -31,7 +31,7 @@ export default function Home() {
               Verified Chemistry Workbench
             </h1>
             <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Deterministic engines calculate. AI explains only the signed result.
+              Deterministic calculators stay fast and local. Verified Answer Cards add signed, replayable evidence when you need it.
             </p>
           </div>
 
@@ -74,7 +74,7 @@ export default function Home() {
                 {/* Source line — amber accent dot, muted text for WCAG AA */}
                 <div className="mt-3 flex items-center gap-2 border-l-2 border-warning pl-2">
                   <span className="font-mono text-[11px] text-muted-foreground uppercase tracking-wide">
-                    Source: IUPAC 2021 · Engine: molar-mass@verchem
+                    Source: IUPAC 2021 · Engine: molecular-mass@{CURRENT_ENGINE_VERSIONS['molecular-mass']}
                   </span>
                 </div>
 
@@ -246,7 +246,7 @@ export default function Home() {
               Why verified?
             </h2>
             <p className="mt-2 text-muted-foreground max-w-xl">
-              AI can hallucinate. VerChem signs every answer so you can audit the chain of trust.
+              AI can hallucinate. A VerChem Verified Answer Card records and signs the engine evidence so you can audit the chain of trust.
             </p>
           </div>
 
@@ -271,7 +271,7 @@ export default function Home() {
                 <h3 className="font-semibold text-foreground">HMAC signs</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Each result is sealed with an HMAC-SHA256 signature covering the calculation inputs, the engine that produced them, the explanation and the timestamp. Tamper-evident by design.
+                Each Verified Answer Card is sealed with an HMAC-SHA256 signature covering its calculation inputs, engine release, result, explanation, and timestamp. Standard calculator panels are not signed.
               </p>
             </div>
 
@@ -283,7 +283,7 @@ export default function Home() {
                 <h3 className="font-semibold text-foreground">AI explains</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                AI only narrates around the signed numbers — it never generates the result itself. The signature covers the engine result and the explanation together, so any later edit to either one shows up.
+                On a Verified Answer Card, AI only narrates around the signed numbers — it never generates the result itself. Any later edit to the signed engine result or explanation breaks the signature.
               </p>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function Home() {
                 <span className="font-bold text-foreground">VerChem</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Deterministic chemistry workbench. HMAC-signed results and cited reference data.
+                Deterministic chemistry workbench with optional HMAC-signed Verified Answer Cards and cited reference data.
               </p>
             </div>
 

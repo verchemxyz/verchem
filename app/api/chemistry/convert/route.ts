@@ -17,8 +17,9 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
+import { publicApiJson } from '@/lib/api/public-contract';
 import {
   convert,
   formatValue,
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
   // Validate required parameters
   if (!value || !from || !to || !category) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Missing required parameters',
         required: ['value', 'from', 'to', 'category'],
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
 
   // Validate category
   if (!CATEGORIES.includes(category)) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Invalid category',
         category,
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
   // Validate units for category
   const availableUnits = AVAILABLE_UNITS[category];
   if (!availableUnits.includes(from)) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: `Invalid "from" unit for ${category}`,
         from,
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
     );
   }
   if (!availableUnits.includes(to)) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: `Invalid "to" unit for ${category}`,
         to,
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
   // ("1e309"→Infinity). parseFloat would accept "1abc" as 1; Number() does not.
   const numericValue = Number(value.trim());
   if (value.trim() === '' || !Number.isFinite(numericValue)) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Invalid value - must be a finite number',
         value,
@@ -130,13 +131,13 @@ export async function GET(request: NextRequest) {
     // Guard the computed result: a finite input can still overflow on conversion
     // (e.g. 1e308 atm → Pa = Infinity). Never serialize a non-finite number.
     if (!Number.isFinite(result)) {
-      return NextResponse.json(
+      return publicApiJson(
         { error: 'Conversion result out of representable range', value },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(
+    return publicApiJson(
       {
         success: true,
         input: {
@@ -154,12 +155,11 @@ export async function GET(request: NextRequest) {
       {
         headers: {
           'Cache-Control': 'public, max-age=3600',
-          'X-API-Version': '1.0.0',
         },
       }
     );
   } catch (error) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Conversion failed',
         message: (error as Error).message,
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
 
 // List available categories and units
 export async function OPTIONS() {
-  return NextResponse.json({
+  return publicApiJson({
     categories: CATEGORIES.map((cat) => ({
       name: cat,
       units: AVAILABLE_UNITS[cat],

@@ -44,7 +44,7 @@ export function pickSchemaKeys(
 }
 
 const MODEL = 'claude-haiku-4-5-20251001'
-const VERSION = 'w3-v1'
+const VERSION = 'w3-v2'
 const MAX_TOKENS = 1500
 const MAX_ROUNDS = 5
 
@@ -300,6 +300,7 @@ export async function askVerified(
         toolCalls.push({
           name: block.name,
           engine: tool?.engine || 'unknown',
+          engine_version: tool?.engineVersion,
           input: { raw: String(block.input) },
           result: badInputResult,
           citation: tool?.citation || '',
@@ -324,6 +325,7 @@ export async function askVerified(
       toolCalls.push({
         name: block.name,
         engine: tool?.engine || 'unknown',
+        engine_version: tool?.engineVersion,
         input: strippedInput,
         result,
         citation: tool?.citation || '',

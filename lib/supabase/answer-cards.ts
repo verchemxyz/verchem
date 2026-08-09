@@ -21,6 +21,13 @@ import {
   toSignablePayload,
 } from '@/lib/answer-cards/signature'
 import { isValidSignablePayload } from '@/lib/answer-cards/payload-shape'
+import {
+  assessEngineReplay,
+  isCurrentlyVerifiedAnswer,
+  unavailableEngineReplay,
+  type EngineReplayAssessment,
+  type EngineReplayStatus,
+} from '@/lib/answer-cards/replay'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -55,6 +62,9 @@ export interface AnswerCardSummary {
   created_at: string
   /** false → row no longer matches its signature; list must not show VERIFIED. */
   signatureValid: boolean
+  /** Current-engine status is separate from signature integrity. */
+  engineReplayStatus: EngineReplayStatus
+  currentEngineAgrees: boolean
 }
 
 
@@ -66,6 +76,7 @@ export interface LoadedAnswerCard {
   created_at: string
   /** false → the stored bytes no longer match the signature (tampered/corrupt). */
   signatureValid: boolean
+  engineReplay: EngineReplayAssessment
 }
 
 /**
@@ -88,8 +99,8 @@ export async function rowToVerifiedCard(row: AnswerCardRow): Promise<LoadedAnswe
     ? {
         question: parsed.question,
         status: parsed.status,
-        // A card is only "verified" if its signature still holds.
-        verified: parsed.status === 'verified' && signatureValid,
+        // Assigned after the independent signature + replay gates below.
+        verified: false,
         tool_calls: parsed.tool_calls as ToolCall[],
         explanation: parsed.explanation,
         audit: parsed.audit,
@@ -112,12 +123,25 @@ export async function rowToVerifiedCard(row: AnswerCardRow): Promise<LoadedAnswe
         signature: row.signature,
       }
 
+  const engineReplay = parsed && signatureValid
+    ? assessEngineReplay(parsed.tool_calls as ToolCall[])
+    : unavailableEngineReplay(
+        parsed
+          ? 'Replay was not attempted because the payload signature is invalid.'
+          : 'The signed payload is malformed and cannot be replayed.'
+      )
+
+  // The deprecated boolean must never collapse signature integrity and replay
+  // currency into one misleading VERIFIED state.
+  card.verified = isCurrentlyVerifiedAnswer(card.status, signatureValid, engineReplay)
+
   return {
     id: row.id,
     card,
     is_public: row.is_public,
     created_at: row.created_at,
     signatureValid: signatureValid && parsed !== null,
+    engineReplay,
   }
 }
 
@@ -187,16 +211,34 @@ export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerC
       const signatureValid = await verifyCanonicalSignature(r.signed_payload, r.signature)
       let question = r.question
       let status = r.status
+      let parsed: SignablePayload | null = null
       try {
         const raw = JSON.parse(r.signed_payload)
         if (isValidSignablePayload(raw)) {
+          parsed = raw
           question = raw.question
           status = raw.status
         }
       } catch {
         /* keep denormalized columns as a last resort; row shows as tampered */
       }
-      return { id: r.id, question, status, is_public: r.is_public, created_at: r.created_at, signatureValid }
+      const engineReplay = parsed && signatureValid
+        ? assessEngineReplay(parsed.tool_calls as ToolCall[])
+        : unavailableEngineReplay(
+            parsed
+              ? 'Replay was not attempted because the payload signature is invalid.'
+              : 'The signed payload is malformed and cannot be replayed.'
+          )
+      return {
+        id: r.id,
+        question,
+        status,
+        is_public: r.is_public,
+        created_at: r.created_at,
+        signatureValid: signatureValid && parsed !== null,
+        engineReplayStatus: engineReplay.status,
+        currentEngineAgrees: engineReplay.currentEngineAgrees,
+      }
     })
   )
 }

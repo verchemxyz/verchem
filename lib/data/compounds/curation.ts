@@ -1,4 +1,4 @@
-import type { Compound } from './types'
+import { getSafetyDataStatus, type Compound } from './types'
 import { calculateMolarMass, parseFormula } from './utils'
 
 type OptionalScalarField =
@@ -404,6 +404,7 @@ function normalizeCompound(compound: Compound): Compound {
   const normalizedUses = unionStrings([compound.uses], normalizeUse)
   const applicableHazards = mergeApplicableHazards([compound], compound.physicalState)
   const applicableGhs = mergeApplicablePictograms([compound], compound.physicalState)
+  const safetyDataStatus = getSafetyDataStatus({ hazards: applicableHazards, ghs: applicableGhs })
 
   if (calculatedMass !== undefined) {
     return {
@@ -411,6 +412,7 @@ function normalizeCompound(compound: Compound): Compound {
       uses: normalizedUses,
       hazards: applicableHazards,
       ghs: applicableGhs,
+      safetyDataStatus,
       molarMass: calculatedMass,
       molecularMass: calculatedMass,
       molarMassBasis: isRepeatUnit ? 'repeat-unit' : 'formula',
@@ -425,6 +427,7 @@ function normalizeCompound(compound: Compound): Compound {
       uses: normalizedUses,
       hazards: applicableHazards,
       ghs: applicableGhs,
+      safetyDataStatus,
       molecularMass: compound.molarMass,
       molarMassBasis: 'mixture-average',
       casNumber,
@@ -437,6 +440,7 @@ function normalizeCompound(compound: Compound): Compound {
     uses: normalizedUses,
     hazards: applicableHazards,
     ghs: applicableGhs,
+    safetyDataStatus,
     molarMass: null,
     molecularMass: null,
     molarMassBasis: 'not-applicable',

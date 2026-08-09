@@ -13,7 +13,7 @@ import {
   findCompoundById,
 } from '@/lib/data/compounds'
 import { COMPOUND_COLLISION_RESOLUTIONS } from '@/lib/data/compounds/curation'
-import { hasApplicableMolarMass } from '@/lib/data/compounds/types'
+import { getSafetyDataStatus, hasApplicableMolarMass } from '@/lib/data/compounds/types'
 import { parseFormula } from '@/lib/data/compounds/utils'
 import { GHS_PICTOGRAMS, H_STATEMENTS } from '@/lib/data/lab-safety'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
@@ -213,6 +213,24 @@ test('state-specific GHS hazards are semantically compatible across the full dat
 
   assert.ok(findCompoundById('methane')?.hazards?.includes('H220'), 'methane should retain reviewed H220')
   assert.equal(findCompoundById('octane')?.hazards?.includes('H220') ?? false, false, 'liquid octane must not carry H220')
+})
+
+test('every public compound makes missing safety curation explicit', () => {
+  for (const compound of COMPREHENSIVE_COMPOUNDS) {
+    assert.equal(
+      compound.safetyDataStatus,
+      getSafetyDataStatus(compound),
+      `${compound.id}: safetyDataStatus must match its curated fields`
+    )
+  }
+
+  for (const id of ['octane', 'nonane', 'decane', 'pentene', 'hexene', 'pentyne', 'hexyne']) {
+    const compound = findCompoundById(id)
+    assert.ok(compound, `${id}: expected record`)
+    assert.equal(compound?.safetyDataStatus, 'not-curated', `${id}: missing classification must be explicit`)
+    assert.deepEqual(compound?.hazards ?? [], [], `${id}: do not invent a replacement H-code`)
+    assert.deepEqual(compound?.ghs ?? [], [], `${id}: do not invent a replacement pictogram`)
+  }
 })
 
 test('not-applicable molar masses stay out of numerical consumers and formula calculators', () => {

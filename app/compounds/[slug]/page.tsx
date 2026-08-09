@@ -6,6 +6,7 @@ import { COMPREHENSIVE_COMPOUNDS } from '@/lib/data/compounds'
 import {
   Compound,
   CompoundCategory,
+  getSafetyDataStatus,
   hasApplicableMolarMass,
   hasFormulaMolarMass,
 } from '@/lib/data/compounds/types'
@@ -247,6 +248,8 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
 
   const relatedCompounds = getRelatedCompounds(compound)
   const hazardCodes = formatHazards(compound.hazards)
+  const safetyDataStatus = compound.safetyDataStatus ?? getSafetyDataStatus(compound)
+  const hasCuratedSafetyData = safetyDataStatus === 'curated-partial'
   const hasMolarMass = hasApplicableMolarMass(compound)
   const supportsFormulaCalculators = hasFormulaMolarMass(compound)
   const massLabel = compound.molarMassBasis === 'mixture-average'
@@ -390,46 +393,57 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
           </Card>
         </div>
 
-        {/* Safety Section — GHS/hazard colors are semantic, kept via destructive/warning tokens */}
-        {(hazardCodes.length > 0 || (compound.ghs && compound.ghs.length > 0)) && (
-          <Card className="p-6 border-l-2 border-l-destructive">
-            <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
-              <svg className="w-5 h-5 text-destructive-strong shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
-              </svg>
-              Safety Information
-            </h2>
-            {compound.ghs && compound.ghs.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">GHS Pictograms</h3>
-                <div className="flex flex-wrap gap-2">
-                  {compound.ghs.map((code) => (
-                    <span key={code} className="px-3 py-1 bg-destructive/10 text-destructive-strong border border-destructive/30 rounded-full text-sm font-mono">
+        {/* Safety is never hidden: missing classification must not look like "safe". */}
+        <Card className={`p-6 border-l-2 ${hasCuratedSafetyData ? 'border-l-destructive' : 'border-l-warning'}`}>
+          <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+            <svg className="w-5 h-5 text-destructive-strong shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+            </svg>
+            Safety Information
+          </h2>
+          <p className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Safety data status: {safetyDataStatus === 'curated-partial' ? 'Curated fields available (partial)' : 'No curated classification'}
+          </p>
+          {compound.ghs && compound.ghs.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">GHS Pictograms</h3>
+              <div className="flex flex-wrap gap-2">
+                {compound.ghs.map((code) => (
+                  <span key={code} className="px-3 py-1 bg-destructive/10 text-destructive-strong border border-destructive/30 rounded-full text-sm font-mono">
+                    {code}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {hazardCodes.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Hazard Statements</h3>
+              <ul className="space-y-2">
+                {hazardCodes.map((code) => (
+                  <li key={code} className="flex items-start gap-2">
+                    <span className="font-mono text-sm bg-warning/10 text-warning-strong border border-warning/30 px-2 py-0.5 rounded shrink-0">
                       {code}
                     </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {hazardCodes.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Hazard Statements</h3>
-                <ul className="space-y-2">
-                  {hazardCodes.map((code) => (
-                    <li key={code} className="flex items-start gap-2">
-                      <span className="font-mono text-sm bg-warning/10 text-warning-strong border border-warning/30 px-2 py-0.5 rounded shrink-0">
-                        {code}
-                      </span>
-                      <span className="text-foreground text-sm">
-                        {GHS_DESCRIPTIONS[code] || 'Hazardous material'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Card>
-        )}
+                    <span className="text-foreground text-sm">
+                      {GHS_DESCRIPTIONS[code] || 'Hazardous material'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {!hasCuratedSafetyData && (
+            <div role="alert" className="rounded-md border border-warning/30 bg-warning/10 p-4 text-sm text-warning-strong">
+              No classification is curated for this record. Absence does not mean safe — consult the supplier Safety Data Sheet (SDS) before handling, storing, transporting, or disposing of this substance.
+            </div>
+          )}
+          {hasCuratedSafetyData && (
+            <p className="mt-4 text-sm text-muted-foreground">
+              These are selected curated fields, not a complete SDS. Confirm the current supplier Safety Data Sheet before use.
+            </p>
+          )}
+        </Card>
 
         {/* Uses Section */}
         {compound.uses && compound.uses.length > 0 && (

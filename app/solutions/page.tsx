@@ -22,12 +22,14 @@ import {
   calculateWeakAcidPH,
   calculateWeakBasePH,
   calculateBufferPH,
+  calculatePHConversion,
   calculateDilution as calcDilution,
   STRONG_ACIDS,
   STRONG_BASES,
   PH_MODEL_25C,
   type MolarityResult,
   type PHResult,
+  type PHConversionSource,
   type DilutionResult,
 } from '@/lib/calculations/solutions'
 import { parseRequiredFiniteNumber } from '@/lib/numeric-input'
@@ -40,6 +42,10 @@ type CalculatorMode =
   | 'weak-base-ph'
   | 'buffer-ph'
   | 'dilution'
+  | 'convert-from-ph'
+  | 'convert-from-poh'
+  | 'convert-from-h'
+  | 'convert-from-oh'
 
 const MODES: { id: CalculatorMode; label: string }[] = [
   { id: 'molarity', label: 'Molarity (M)' },
@@ -49,6 +55,10 @@ const MODES: { id: CalculatorMode; label: string }[] = [
   { id: 'weak-base-ph', label: 'Weak Base pH' },
   { id: 'buffer-ph', label: 'Buffer pH' },
   { id: 'dilution', label: 'Dilution (M₁V₁=M₂V₂)' },
+  { id: 'convert-from-ph', label: 'Convert from pH' },
+  { id: 'convert-from-poh', label: 'Convert from pOH' },
+  { id: 'convert-from-h', label: 'Convert from [H⁺]' },
+  { id: 'convert-from-oh', label: 'Convert from [OH⁻]' },
 ]
 
 export default function SolutionsPage() {
@@ -69,6 +79,7 @@ export default function SolutionsPage() {
   const [acidConc, setAcidConc] = useState('0.1')
   const [conjugateBaseConc, setConjugateBaseConc] = useState('0.1')
   const [phResult, setPhResult] = useState<PHResult | null>(null)
+  const [conversionInput, setConversionInput] = useState('7')
 
   // Dilution
   const [m1, setM1] = useState('2')
@@ -320,6 +331,44 @@ export default function SolutionsPage() {
           ])
           break
         }
+
+        case 'convert-from-ph':
+        case 'convert-from-poh':
+        case 'convert-from-h':
+        case 'convert-from-oh': {
+          const isConcentration = mode === 'convert-from-h' || mode === 'convert-from-oh'
+          const inputLabel = mode === 'convert-from-ph'
+            ? 'pH'
+            : mode === 'convert-from-poh'
+              ? 'pOH'
+              : mode === 'convert-from-h'
+                ? '[H⁺] concentration'
+                : '[OH⁻] concentration'
+          const value = parseRequiredFiniteNumber(
+            conversionInput,
+            inputLabel,
+            isConcentration ? { minExclusive: 0 } : undefined
+          )
+          const source: PHConversionSource = mode === 'convert-from-ph'
+            ? 'ph'
+            : mode === 'convert-from-poh'
+              ? 'poh'
+              : mode === 'convert-from-h'
+                ? 'h-concentration'
+                : 'oh-concentration'
+          const result = calculatePHConversion(source, value)
+          setPhResult(result)
+          setSteps([
+            `Declared model: ${PH_MODEL_25C.id}`,
+            `Given ${inputLabel} = ${value}${isConcentration ? ' mol/L' : ''}`,
+            `pH + pOH = pKw = ${PH_MODEL_25C.pKw.toFixed(2)}`,
+            `pH = ${result.pH.toFixed(6)}`,
+            `pOH = ${result.pOH.toFixed(6)}`,
+            `[H⁺] = ${result.H_concentration.toExponential(6)} mol/L`,
+            `[OH⁻] = ${result.OH_concentration.toExponential(6)} mol/L`,
+          ])
+          break
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Calculation error')
@@ -346,12 +395,12 @@ export default function SolutionsPage() {
     <>
       <PHCalculatorSchema />
       <CalcShell
-      eyebrow="Solutions & pH · 7 calculation modes"
-      title="Solutions & pH"
-      subtitle="Molarity, pH, buffers, and dilution calculations with a visual pH scale."
-      backHref="/"
-      backLabel="Home"
-    >
+        eyebrow="Solutions & pH · 11 calculation modes"
+        title="Solutions & pH"
+        subtitle="Molarity, acid-base equilibria, dilution, and four-way pH conversion with one declared model."
+        backHref="/"
+        backLabel="Home"
+      >
       {/* Mode Selector */}
       <Card className="p-6">
         <SectionTitle className="mb-4">Select calculator mode</SectionTitle>
@@ -580,6 +629,36 @@ export default function SolutionsPage() {
           </div>
         )}
 
+        {(mode === 'convert-from-ph' ||
+          mode === 'convert-from-poh' ||
+          mode === 'convert-from-h' ||
+          mode === 'convert-from-oh') && (
+          <div className="space-y-4">
+            <FormulaBlock label={`Model: ${PH_MODEL_25C.id}`}>
+              pH + pOH = pKw = {PH_MODEL_25C.pKw.toFixed(2)} at {PH_MODEL_25C.temperatureC} °C
+            </FormulaBlock>
+            <Field
+              label={mode === 'convert-from-ph'
+                ? 'pH'
+                : mode === 'convert-from-poh'
+                  ? 'pOH'
+                  : mode === 'convert-from-h'
+                    ? '[H⁺] (mol/L)'
+                    : '[OH⁻] (mol/L)'}
+              hint="The result uses the declared ideal-dilute aqueous model; pH is not artificially restricted to the conventional 0–14 teaching range."
+            >
+              <input
+                type="text"
+                inputMode="decimal"
+                value={conversionInput}
+                onChange={(event) => setConversionInput(event.target.value)}
+                placeholder={mode === 'convert-from-h' || mode === 'convert-from-oh' ? 'e.g., 1e-7' : 'e.g., 7'}
+                className="input-premium w-full font-mono"
+              />
+            </Field>
+          </div>
+        )}
+
         {/* Calculate Button */}
         <Button onClick={calculate} className="w-full mt-6">
           Calculate
@@ -760,6 +839,7 @@ export default function SolutionsPage() {
             <ul className="space-y-1 text-sm text-muted-foreground">
               <li>• pH = -log[H⁺]</li>
               <li>• pOH = -log[OH⁻]</li>
+              <li>• pH + pOH = pKw = {PH_MODEL_25C.pKw.toFixed(2)} in the declared model</li>
               <li>• pH = pKa + log([A⁻]/[HA]) (Henderson-Hasselbalch)</li>
               <li>• M₁V₁ = M₂V₂ (dilution)</li>
             </ul>

@@ -26,6 +26,7 @@ export function toSignablePayload(card: Omit<AnswerCard, 'signature'>): Signable
     tool_calls: card.tool_calls.map((tc) => ({
       name: tc.name,
       engine: tc.engine,
+      ...(tc.engine_version === undefined ? {} : { engine_version: tc.engine_version }),
       input: tc.input,
       result: tc.result,
       citation: tc.citation,

@@ -9,6 +9,7 @@
  */
 
 import type { AnswerCard, CardStatus, ToolCall, ToolResult } from './types'
+import type { EngineSemanticVersion } from './engine-versions'
 
 const STATUSES: readonly CardStatus[] = ['verified', 'partial', 'unverified', 'error']
 const MAX_QUESTION = 1000
@@ -21,6 +22,8 @@ const MAX_VERSION = 50
 const MAX_ISSUED_AT = 64
 const MAX_NAME = 120
 const MAX_ENGINE = 120
+const MAX_ENGINE_VERSION = 50
+const ENGINE_SEMVER = /^\d+\.\d+\.\d+$/
 const MAX_UNMATCHED_ITEMS = 64
 const MAX_UNMATCHED_LEN = 128
 
@@ -105,6 +108,13 @@ export function parseSubmittedCard(body: unknown): AnswerCard | null {
   for (const tc of tool_calls) {
     if (!isPlainObj(tc)) return null
     if (!isStr(tc.name) || !isStr(tc.engine) || !isStr(tc.citation)) return null
+    if (
+      tc.engine_version !== undefined &&
+      (!isStr(tc.engine_version) ||
+        tc.engine_version.length === 0 ||
+        tc.engine_version.length > MAX_ENGINE_VERSION ||
+        !ENGINE_SEMVER.test(tc.engine_version))
+    ) return null
     if (tc.name.length > MAX_NAME || tc.engine.length > MAX_ENGINE || tc.citation.length > MAX_CITATION) {
       return null
     }
@@ -114,6 +124,9 @@ export function parseSubmittedCard(body: unknown): AnswerCard | null {
     parsedToolCalls.push({
       name: tc.name,
       engine: tc.engine,
+      ...(tc.engine_version === undefined
+        ? {}
+        : { engine_version: tc.engine_version as EngineSemanticVersion }),
       input: tc.input,
       result,
       citation: tc.citation,

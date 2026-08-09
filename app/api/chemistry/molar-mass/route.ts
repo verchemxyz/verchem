@@ -7,8 +7,9 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
+import { publicApiJson } from '@/lib/api/public-contract';
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table';
 import { expandParentheses } from '@/lib/calculations/equation-balancer';
 
@@ -117,7 +118,7 @@ export async function GET(request: NextRequest) {
 
   // Validate input
   if (!formula) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Missing formula parameter',
         example: '/api/chemistry/molar-mass?formula=H2O',
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
 
   // Validate formula length (prevent DoS)
   if (formula.length > 100) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Formula too long (max 100 characters)',
       },
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
   const result = parseMolarMass(formula);
 
   if (!result) {
-    return NextResponse.json(
+    return publicApiJson(
       {
         error: 'Invalid formula or unknown element',
         formula,
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(
+  return publicApiJson(
     {
       success: true,
       formula: formula.trim(),
@@ -178,7 +179,6 @@ export async function GET(request: NextRequest) {
     {
       headers: {
         'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
-        'X-API-Version': '1.0.0',
       },
     }
   );

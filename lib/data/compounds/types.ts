@@ -4,6 +4,13 @@ export type PhysicalState = 'solid' | 'liquid' | 'gas'
 
 export type MolarMassBasis = 'formula' | 'repeat-unit' | 'mixture-average' | 'not-applicable'
 
+/**
+ * `curated-partial` never means a complete SDS. `not-curated` means VerChem
+ * currently publishes no reviewed classification for this record; it must not
+ * be interpreted as evidence that the substance is safe.
+ */
+export type SafetyDataStatus = 'curated-partial' | 'not-curated'
+
 export type CompoundCategory =
   | 'acid'
   | 'base'
@@ -98,7 +105,14 @@ export interface Compound {
   pKb?: number
   hazards?: Array<string | { type?: string; ghsCode?: string; severity?: string }>
   ghs?: string[] // GHS pictogram codes (GHS01-GHS09)
+  safetyDataStatus?: SafetyDataStatus
   uses?: string[]
+}
+
+export function getSafetyDataStatus(compound: Pick<Compound, 'hazards' | 'ghs'>): SafetyDataStatus {
+  return (compound.hazards?.length ?? 0) > 0 || (compound.ghs?.length ?? 0) > 0
+    ? 'curated-partial'
+    : 'not-curated'
 }
 
 export function withMolarMass<T extends Omit<Compound, 'molarMass'>>(
@@ -111,6 +125,7 @@ export function withMolarMass<T extends Omit<Compound, 'molarMass'>>(
     molarMass: mass ?? null,
     molecularMass: mass ?? null,
     cas: compound.cas ?? compound.casNumber,
+    safetyDataStatus: getSafetyDataStatus(compound),
   }
 }
 

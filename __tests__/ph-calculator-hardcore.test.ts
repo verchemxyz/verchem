@@ -15,6 +15,7 @@ import {
   calculatePH,
   calculatePOH,
   calculateH_Concentration,
+  calculatePHConversion,
   calculateStrongAcidPH,
   calculateStrongBasePH,
   calculateWeakAcidPH,
@@ -111,6 +112,36 @@ test('pOH from [OH-] = 1e-7 (neutral) = 7', () => {
 test('pH + pOH = 14 at 25°C', () => {
   expect(pHToPOH(3)).toBeCloseTo(11, 0.001)
   expect(pOHToPH(5)).toBeCloseTo(9, 0.001)
+})
+
+test('all four conversion inputs resolve through one declared pH model', () => {
+  const expected = {
+    pH: 7,
+    pOH: 7,
+    H_concentration: 1e-7,
+    OH_concentration: 1e-7,
+  }
+  for (const [source, value] of [
+    ['ph', 7],
+    ['poh', 7],
+    ['h-concentration', 1e-7],
+    ['oh-concentration', 1e-7],
+  ] as const) {
+    const result = calculatePHConversion(source, value)
+    expect(result.pH).toBeCloseTo(expected.pH, 1e-12)
+    expect(result.pOH).toBeCloseTo(expected.pOH, 1e-12)
+    expect(result.H_concentration).toBeCloseTo(expected.H_concentration, 1e-12)
+    expect(result.OH_concentration).toBeCloseTo(expected.OH_concentration, 1e-12)
+  }
+})
+
+test('conversion supports finite pH outside the conventional 0-14 teaching range', () => {
+  const acidic = calculatePHConversion('ph', -1)
+  const basic = calculatePHConversion('poh', -1)
+  expect(acidic.H_concentration).toBeCloseTo(10, 1e-12)
+  expect(acidic.pOH).toBeCloseTo(15, 1e-12)
+  expect(basic.OH_concentration).toBeCloseTo(10, 1e-12)
+  expect(basic.pH).toBeCloseTo(15, 1e-12)
 })
 
 console.log('')

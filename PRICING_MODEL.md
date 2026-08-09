@@ -59,7 +59,7 @@
 
 **Features**:
 - ✅ **ALL calculators** in **ALL VerCal products**
-- ✅ **Complete data**: 1,311 compounds, all formulas, all standards
+- ✅ **Record coverage**: 1,311 compound records with core identity fields; optional physical-property and safety coverage varies by record
 - ✅ **Unlimited saves** (cloud-synced across devices)
 - ✅ **Step-by-step solutions** (show work, not just answers)
 - ✅ **Export to PDF** (professional formatting)

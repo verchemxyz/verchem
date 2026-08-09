@@ -150,6 +150,9 @@ async function run() {
     assert.equal(parseSubmittedCard({ ...base, status: 'totally-made-up' }), null)
     assert.equal(parseSubmittedCard({ ...base, question: 'x'.repeat(1001) }), null)
     assert.equal(parseSubmittedCard({ ...base, explanation: 'x'.repeat(20_001) }), null)
+    const invalidEngineVersion = JSON.parse(JSON.stringify(base))
+    invalidEngineVersion.tool_calls[0].engine_version = 'release-two'
+    assert.equal(parseSubmittedCard(invalidEngineVersion), null)
     const oneToolCall = (base.tool_calls as unknown[])[0]
     assert.equal(parseSubmittedCard({ ...base, tool_calls: new Array(33).fill(oneToolCall) }), null)
   })

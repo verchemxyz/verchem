@@ -23,6 +23,10 @@ const legacyPHRoute = read('app/tools/ph-calculator/page.tsx')
 const solutionPrepPage = read('app/tools/solution-prep/page.tsx')
 const compoundDetailPage = read('app/compounds/[slug]/page.tsx')
 const compoundsApi = read('app/api/chemistry/compounds/route.ts')
+const elementsIndex = read('app/elements/page.tsx')
+const pricingModel = read('PRICING_MODEL.md')
+const compoundExpansion = read('COMPOUND_DATABASE_EXPANSION.md')
+const serviceWorker = read('public/sw.js')
 const publicCredibilityCopy = [
   llms,
   jsonLd,
@@ -35,6 +39,9 @@ const publicCredibilityCopy = [
   read('app/tools/periodic-table/layout.tsx'),
   read('app/tools/page.tsx'),
   read('app/compounds/page.tsx'),
+  elementsIndex,
+  pricingModel,
+  compoundExpansion,
   read('lib/utils/citations.ts'),
 ].join('\n')
 
@@ -59,7 +66,10 @@ assert.doesNotMatch(`${support}\n${layout}\n${jsonLd}`, /\b1,311\b/)
 assert.doesNotMatch(llms, /\/tools\/ph-calculator/)
 assert.match(llms, /https:\/\/verchem\.xyz\/solutions/)
 assert.match(solutionsLayout, /canonical: 'https:\/\/verchem\.xyz\/solutions'/)
-assert.match(legacyPHRoute, /permanentRedirect\('\/solutions'\)/)
+assert.match(solutionsLayout, /Eleven deterministic/)
+assert.match(legacyPHRoute, /export \{ default \} from '@\/app\/solutions\/page'/)
+assert.match(solutionsPage, /Solutions & pH · 11 calculation modes/)
+assert.match(solutionsPage, /calculatePHConversion/)
 assert.match(solutionsPage, /PH_MODEL_25C\.assumptions/)
 assert.match(solutionsPage, /phResult\.method/)
 assert.match(solutionsPage, /phResult\.warning/)
@@ -74,6 +84,9 @@ assert.match(compoundDetailPage, /hasApplicableMolarMass\(compound\)/)
 assert.match(compoundDetailPage, /hasMolarMass \? \{/)
 assert.match(compoundsApi, /molarMassBasis: MolarMassBasis/)
 assert.match(compoundsApi, /hasApplicableMolarMass\(compound\) \? compound\.molarMass : null/)
+assert.match(compoundsApi, /safetyDataStatus: SafetyDataStatus/)
+assert.match(compoundDetailPage, /Absence does not mean safe/)
+assert.match(compoundDetailPage, /supplier Safety Data Sheet \(SDS\)/)
 
 assert.doesNotMatch(
   publicCredibilityCopy,
@@ -84,5 +97,12 @@ assert.doesNotMatch(
   /missing (?:density|equivalents?)[^\n.]{0,100}(?:assum|default)|(?:density|equivalents?)[^\n.]{0,100}(?:assum|default)(?:ed)? when missing/i
 )
 assert.match(llms, /missing value is rejected rather than guessed/i)
+assert.match(llms, /Signature integrity and current-engine agreement are reported separately/)
+assert.match(jsonLd, /Signature integrity and current-engine agreement are reported separately/)
+assert.doesNotMatch(`${elementsIndex}\n${pricingModel}\n${compoundExpansion}`, /verified compounds|100% Data Completeness|All 118 elements with verified atomic data/i)
+assert.match(serviceWorker, /CACHE_VERSION = 'verchem-v2\.0\.0'/)
+assert.match(serviceWorker, /MIGRATED_ROUTES = \['\/tools\/ph-calculator'\]/)
+assert.match(serviceWorker, /cache\.delete\(new URL\(route, self\.location\.origin\)\.toString\(\)\)/)
+assert.doesNotMatch(serviceWorker, /CACHE_ON_VISIT/)
 
 console.log('Content contract tests passed')

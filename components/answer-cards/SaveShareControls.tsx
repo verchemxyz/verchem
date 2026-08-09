@@ -96,7 +96,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
     <div className="mt-6 rounded-xl border border-border bg-card p-4">
       {!savedId ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm text-muted-foreground">Save this verified card to your library.</span>
+          <span className="text-sm text-muted-foreground">Save this signed card to your library.</span>
           <button
             onClick={save}
             disabled={busy}
@@ -156,7 +156,7 @@ export default function SaveShareControls({ card }: SaveShareControlsProps) {
           <Link href="/" className="underline">
             log in
           </Link>{' '}
-          to save and share verified cards.
+          to save and share signed cards.
         </p>
       )}
       {error && <p className="mt-3 text-sm text-destructive-strong">{error}</p>}

@@ -10,10 +10,16 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
+import { publicApiJson } from '@/lib/api/public-contract';
 import { COMMON_COMPOUNDS } from '@/lib/data/compounds';
-import { hasApplicableMolarMass, type MolarMassBasis } from '@/lib/data/compounds/types';
+import {
+  getSafetyDataStatus,
+  hasApplicableMolarMass,
+  type MolarMassBasis,
+  type SafetyDataStatus,
+} from '@/lib/data/compounds/types';
 
 // Simplified compound response
 interface CompoundResponse {
@@ -31,6 +37,8 @@ interface CompoundResponse {
     density: number | null;
   };
   hazards: string[];
+  ghs: string[];
+  safetyDataStatus: SafetyDataStatus;
   uses: string[];
 }
 
@@ -52,6 +60,8 @@ function formatCompound(compound: typeof COMMON_COMPOUNDS[0]): CompoundResponse 
     hazards: (compound.hazards || []).map((h) =>
       typeof h === 'string' ? h : (h as { type?: string; ghsCode?: string }).type || (h as { type?: string; ghsCode?: string }).ghsCode || ''
     ).filter(Boolean),
+    ghs: compound.ghs ?? [],
+    safetyDataStatus: compound.safetyDataStatus ?? getSafetyDataStatus(compound),
     uses: compound.uses || [],
   };
 }
@@ -73,7 +83,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (!compound) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: 'Compound not found',
           id,
@@ -82,7 +92,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    return publicApiJson(
       {
         success: true,
         compound: formatCompound(compound),
@@ -91,7 +101,6 @@ export async function GET(request: NextRequest) {
       {
         headers: {
           'Cache-Control': 'public, max-age=86400',
-          'X-API-Version': '1.0.0',
         },
       }
     );
@@ -126,7 +135,7 @@ export async function GET(request: NextRequest) {
   if (limit !== null && limit !== '') {
     const parsedLimit = Number(limit);
     if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
-      return NextResponse.json(
+      return publicApiJson(
         { error: 'Invalid limit - must be a positive integer' },
         { status: 400 }
       );
@@ -137,7 +146,7 @@ export async function GET(request: NextRequest) {
   // Get all categories
   const categories = [...new Set(COMMON_COMPOUNDS.map((c) => c.category))].sort();
 
-  return NextResponse.json(
+  return publicApiJson(
     {
       success: true,
       count: Math.min(filteredCompounds.length, maxLimit),
@@ -154,7 +163,6 @@ export async function GET(request: NextRequest) {
     {
       headers: {
         'Cache-Control': 'public, max-age=3600',
-        'X-API-Version': '1.0.0',
       },
     }
   );

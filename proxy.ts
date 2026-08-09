@@ -4,8 +4,8 @@
  * 🔐 AUTHENTICATION REQUIRED FOR PROTECTED ROUTES
  *
  * Strategy (Dec 2025):
- * - ALL features are FREE for AIVerID members
- * - User MUST be logged in via AIVerID to access protected calculators/tools
+ * - Local-only chemistry tools may be used without an AIVerID account
+ * - Account-backed features still require AIVerID
  * - Early Bird members (registered before cutoff) get discounted pricing when we monetize
  *
  * Security (Jan 2026 - Fixed by สมคิด + สมหมาย audit):
@@ -17,12 +17,13 @@
  * - / (homepage)
  * - /login, /oauth/* (auth routes)
  * - /tools/* (SEO landing pages)
+ * - /solutions (public local-only calculator)
  * - /api/* (API routes handle their own auth)
  * - /_next/*, /favicon.ico, etc. (static files)
  *
  * Protected routes (login required):
  * - /calculators/*
- * - /stoichiometry, /solutions, /gas-laws, /thermodynamics, etc.
+ * - /stoichiometry, /gas-laws, /thermodynamics, etc.
  * - /periodic-table, /vsepr, /electron-config, /lewis, /3d-viewer
  * - /virtual-lab/*
  * - /practice/*
@@ -81,7 +82,6 @@ const PROTECTED_ROUTES = [
   // Calculators
   '/calculators',
   '/stoichiometry',
-  '/solutions',
   '/gas-laws',
   '/thermodynamics',
   '/electrochemistry',
@@ -117,6 +117,7 @@ const PUBLIC_ROUTES = [
   '/login',
   '/oauth',
   '/tools',
+  '/solutions',
   '/api',
   '/_next',
   '/favicon.ico',

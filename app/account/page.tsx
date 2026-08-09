@@ -190,7 +190,7 @@ export default function AccountPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { href: '/account/molecules', label: 'My Molecules' },
-            { href: '/account/cards', label: 'Verified Cards' },
+            { href: '/account/cards', label: 'Signed Cards' },
             { href: '/calculators', label: 'Calculators' },
             { href: '/periodic-table', label: 'Periodic Table' },
             { href: '/tools', label: 'All Tools' },

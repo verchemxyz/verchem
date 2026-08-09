@@ -1,7 +1,8 @@
 import 'server-only'
 
-import { NextResponse } from 'next/server'
+import type { NextResponse } from 'next/server'
 import { checkRateLimit, getClientId } from '@/lib/rate-limit'
+import { publicApiJson } from '@/lib/api/public-contract'
 
 /**
  * Rate limiting for the public, unauthenticated chemistry API.
@@ -30,7 +31,7 @@ export function publicApiRateLimit(request: Request, _endpoint: string): NextRes
   if (result.success) return null
 
   const retryAfter = Math.max(1, result.retryAfter ?? Math.ceil((result.resetTime - Date.now()) / 1000))
-  return NextResponse.json(
+  return publicApiJson(
     {
       error: 'Rate limit exceeded',
       limit: `${PUBLIC_API_LIMIT.maxRequests} requests per minute`,
