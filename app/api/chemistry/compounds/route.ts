@@ -11,9 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
-import { COMMON_COMPOUNDS } from '@/lib/data/compounds';
-import { hasApplicableMolarMass, type MolarMassBasis } from '@/lib/data/compounds/types';
+import { LEGACY_COMMON_COMPOUNDS } from '@/lib/data/compounds';
 
 // Simplified compound response
 interface CompoundResponse {
@@ -21,7 +19,6 @@ interface CompoundResponse {
   name: string;
   formula: string;
   molecularMass: number | null;
-  molarMassBasis: MolarMassBasis;
   casNumber: string | null;
   category: string;
   physicalProperties: {
@@ -34,13 +31,18 @@ interface CompoundResponse {
   uses: string[];
 }
 
-function formatCompound(compound: typeof COMMON_COMPOUNDS[0]): CompoundResponse {
+function formatCompound(compound: typeof LEGACY_COMMON_COMPOUNDS[0]): CompoundResponse {
+  const legacyMass = compound.molarMass ?? compound.molecularMass
   return {
     id: compound.id,
     name: compound.name,
     formula: compound.formula,
-    molecularMass: hasApplicableMolarMass(compound) ? compound.molarMass : null,
-    molarMassBasis: compound.molarMassBasis ?? 'not-applicable',
+    // Preserve the v1 field and legacy reviewed values, but never resurrect the
+    // old sentinel `0 g/mol` for mixtures/non-stoichiometric materials.
+    molecularMass: typeof legacyMass === 'number' &&
+      Number.isFinite(legacyMass) && legacyMass > 0
+      ? legacyMass
+      : null,
     casNumber: compound.casNumber || compound.cas || null,
     category: compound.category,
     physicalProperties: {
@@ -57,9 +59,6 @@ function formatCompound(compound: typeof COMMON_COMPOUNDS[0]): CompoundResponse 
 }
 
 export async function GET(request: NextRequest) {
-  const limited = publicApiRateLimit(request, 'compounds');
-  if (limited) return limited;
-
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
   const category = searchParams.get('category');
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
 
   // Get specific compound by ID
   if (id) {
-    const compound = COMMON_COMPOUNDS.find(
+    const compound = LEGACY_COMMON_COMPOUNDS.find(
       (c) => c.id.toLowerCase() === id.toLowerCase()
     );
 
@@ -98,12 +97,12 @@ export async function GET(request: NextRequest) {
   }
 
   // Filter compounds
-  let filteredCompounds = COMMON_COMPOUNDS;
+  let filteredCompounds = LEGACY_COMMON_COMPOUNDS;
 
   // Search by query
   if (query) {
     const queryLower = query.toLowerCase();
-    filteredCompounds = COMMON_COMPOUNDS.filter(
+    filteredCompounds = LEGACY_COMMON_COMPOUNDS.filter(
       (c) =>
         c.name.toLowerCase().includes(queryLower) ||
         c.formula.toLowerCase().includes(queryLower) ||
@@ -135,7 +134,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Get all categories
-  const categories = [...new Set(COMMON_COMPOUNDS.map((c) => c.category))].sort();
+  const categories = [...new Set(LEGACY_COMMON_COMPOUNDS.map((c) => c.category))].sort();
 
   return NextResponse.json(
     {

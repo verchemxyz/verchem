@@ -1,0 +1,93 @@
+{
+  "baseline": "22dbdfa",
+  "fixedTime": "2026-08-10T00:00:00.000Z",
+  "fixtures": {
+    "index": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=3600", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": {
+        "name": "VerChem Chemistry API",
+        "version": "1.0.0",
+        "description": "Free chemistry calculations and data API",
+        "documentation": "https://verchem.xyz/api/docs",
+        "endpoints": {
+          "/api/chemistry": { "method": "GET", "description": "API documentation (this endpoint)" },
+          "/api/chemistry/molar-mass": { "method": "GET", "description": "Calculate molar mass from formula", "params": { "formula": "Chemical formula (e.g., H2O, NaCl, C6H12O6)" }, "example": "/api/chemistry/molar-mass?formula=H2O" },
+          "/api/chemistry/elements": { "method": "GET", "description": "Get all elements or specific element data", "params": { "symbol": "Optional element symbol (e.g., H, He, Li)" }, "example": "/api/chemistry/elements?symbol=Na" },
+          "/api/chemistry/compounds": { "method": "GET", "description": "Search compounds database", "params": { "q": "Search query (name or formula)", "category": "Filter by category" }, "example": "/api/chemistry/compounds?q=water" },
+          "/api/chemistry/convert": { "method": "GET", "description": "Convert between units", "params": { "value": "Number to convert", "from": "Source unit", "to": "Target unit", "category": "Unit category (temperature, pressure, volume, mass, length, energy)" }, "example": "/api/chemistry/convert?value=100&from=C&to=F&category=temperature" },
+          "/api/chemistry/ph": { "method": "GET", "description": "Calculate pH from concentration or pOH", "params": { "h": "H+ concentration (mol/L)", "oh": "OH- concentration (mol/L)", "poh": "pOH value" }, "example": "/api/chemistry/ph?h=0.001" }
+        },
+        "rateLimit": { "free": "100 requests/hour", "authenticated": "1000 requests/hour", "note": "Login with AIVerID to increase limits" },
+        "support": { "email": "verchem.xyz@gmail.com", "donate": "https://verchem.xyz/support" },
+        "status": "operational",
+        "timestamp": "2026-08-10T00:00:00.000Z"
+      }
+    },
+    "elementSodium": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=86400", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "element": { "atomicNumber": 11, "symbol": "Na", "name": "Sodium", "atomicMass": 22.99, "category": "alkali-metal", "group": 1, "period": 3, "electronConfiguration": "[Ne] 3s¹", "electronegativity": 0.93, "oxidationStates": [1], "state": "solid", "meltingPoint": 370.95, "boilingPoint": 1156, "density": 0.971 }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "elementLegacyNumberParsing": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=86400", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "element": { "atomicNumber": 1, "symbol": "H", "name": "Hydrogen", "atomicMass": 1.008, "category": "nonmetal", "group": 1, "period": 1, "electronConfiguration": "1s¹", "electronegativity": 2.2, "oxidationStates": [-1, 1], "state": "gas", "meltingPoint": 14.01, "boilingPoint": 20.28, "density": 0.00008988 }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "compoundWater": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=86400", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "compound": { "id": "water", "name": "Water", "formula": "H2O", "molecularMass": 18.015, "casNumber": null, "category": "oxide", "physicalProperties": { "state": "liquid", "meltingPoint": 0, "boilingPoint": 100, "density": 1 }, "hazards": [], "uses": ["universal solvent", "coolant"] }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "compoundLegacyMixtureMass": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=86400", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "compound": { "id": "petroleum-ether", "name": "Petroleum Ether", "formula": "C5-C6", "molecularMass": 80, "casNumber": "8032-32-4", "category": "solvent", "physicalProperties": { "state": "liquid", "meltingPoint": -70, "boilingPoint": 60, "density": 0.64 }, "hazards": ["Extremely flammable"], "uses": ["Extraction", "Cleaning", "Chromatography"] }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "compoundInvalidLimit": { "status": 400, "headers": { "content-type": "application/json" }, "body": { "error": "Invalid limit - must be a positive integer" } },
+    "convertTemperature": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=3600", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "input": { "value": 100, "unit": "C" }, "output": { "value": 212, "unit": "F", "formatted": "212" }, "category": "temperature", "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "convertMissing": {
+      "status": 400,
+      "headers": { "content-type": "application/json" },
+      "body": { "error": "Missing required parameters", "required": ["value", "from", "to", "category"], "example": "/api/chemistry/convert?value=100&from=C&to=F&category=temperature", "categories": ["temperature", "pressure", "volume", "mass", "length", "energy", "amount", "concentration", "density", "time", "flowRate"] }
+    },
+    "molarMassWater": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=86400", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": {
+        "success": true,
+        "formula": "H2O",
+        "molarMass": { "value": 18.015, "unit": "g/mol", "formatted": "18.0150 g/mol" },
+        "composition": [
+          { "element": "H", "count": 2, "mass": { "value": 2.016, "unit": "g/mol" }, "percentage": { "value": 11.19067443796836, "formatted": "11.19%" } },
+          { "element": "O", "count": 1, "mass": { "value": 15.999, "unit": "g/mol" }, "percentage": { "value": 88.80932556203163, "formatted": "88.81%" } }
+        ],
+        "timestamp": "2026-08-10T00:00:00.000Z"
+      }
+    },
+    "molarMassParenthesesRejected": {
+      "status": 400,
+      "headers": { "content-type": "application/json" },
+      "body": { "error": "Invalid formula or unknown element", "formula": "Ca(OH)2", "hint": "Use standard element symbols without parentheses (e.g., H2O, NaCl, H2SO4). Parenthesized formulas like Ca(OH)2 are not supported — use CaO2H2 instead." }
+    },
+    "phLegacyModelFieldsIgnored": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=3600", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "result": { "pH": { "value": 7, "formatted": "7.00" }, "pOH": { "value": 7, "formatted": "7.00" }, "hConcentration": { "value": 1e-7, "unit": "mol/L", "scientific": "1.00 × 10^-7" }, "ohConcentration": { "value": 1e-7, "unit": "mol/L", "scientific": "1.00 × 10^-7" }, "acidity": "neutral", "description": "Neutral (pure water)" }, "constants": { "Kw": { "value": 1e-14, "description": "Water ion product at 25°C" } }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "phLegacyPrecedence": {
+      "status": 200,
+      "headers": { "cache-control": "public, max-age=3600", "content-type": "application/json", "x-api-version": "1.0.0" },
+      "body": { "success": true, "result": { "pH": { "value": 3, "formatted": "3.00" }, "pOH": { "value": 11, "formatted": "11.00" }, "hConcentration": { "value": 0.001, "unit": "mol/L", "scientific": "1.00 × 10^-3" }, "ohConcentration": { "value": 1e-11, "unit": "mol/L", "scientific": "1.00 × 10^-11" }, "acidity": "acidic", "description": "Strongly acidic (vinegar, soda)" }, "constants": { "Kw": { "value": 1e-14, "description": "Water ion product at 25°C" } }, "timestamp": "2026-08-10T00:00:00.000Z" }
+    },
+    "phMissing": {
+      "status": 400,
+      "headers": { "content-type": "application/json" },
+      "body": { "error": "Missing parameter", "hint": "Provide one of: h, oh, ph, poh", "examples": ["/api/chemistry/ph?h=0.001", "/api/chemistry/ph?oh=0.00001", "/api/chemistry/ph?ph=7", "/api/chemistry/ph?poh=5"] }
+    }
+  }
+}

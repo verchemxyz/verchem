@@ -2,29 +2,24 @@
  * VerChem Public Chemistry API - Root Endpoint
  *
  * Available endpoints:
- * - GET /api/chemistry - endpoint index (this route)
+ * - GET /api/chemistry - API info and documentation
  * - GET /api/chemistry/molar-mass?formula=H2O
- * - GET /api/chemistry/elements?symbol=Na
- * - GET /api/chemistry/compounds?q=water
+ * - GET /api/chemistry/elements/:symbol
  * - GET /api/chemistry/convert?value=100&from=C&to=F&category=temperature
- * - GET /api/chemistry/ph?h=0.001
+ * - POST /api/chemistry/balance (equation balancing)
  *
  * Created: 2026-01-29
  * Author: สมนึก (Claude Opus 4.5)
  */
 
 import { NextResponse } from 'next/server';
-import { PUBLIC_API_LIMIT, publicApiRateLimit } from '@/lib/api/public-rate-limit';
 
-export async function GET(request: Request) {
-  const limited = publicApiRateLimit(request, 'index');
-  if (limited) return limited;
-
+export async function GET() {
   return NextResponse.json({
     name: 'VerChem Chemistry API',
     version: '1.0.0',
     description: 'Free chemistry calculations and data API',
-    documentation: 'This endpoint is the documentation — every available route is listed below.',
+    documentation: 'https://verchem.xyz/api/docs',
     endpoints: {
       '/api/chemistry': {
         method: 'GET',
@@ -78,9 +73,9 @@ export async function GET(request: Request) {
       },
     },
     rateLimit: {
-      limit: `${PUBLIC_API_LIMIT.maxRequests} requests per minute`,
-      scope: 'per client, per server instance',
-      note: 'Best-effort courtesy limit counted in instance memory, not a hard quota. Over budget returns HTTP 429 with Retry-After.',
+      free: '100 requests/hour',
+      authenticated: '1000 requests/hour',
+      note: 'Login with AIVerID to increase limits',
     },
     support: {
       email: 'verchem.xyz@gmail.com',

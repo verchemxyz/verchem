@@ -20,9 +20,9 @@ interface CardSummary {
 
 interface CardsPageResponse {
   cards: CardSummary[]
-  page: number
   pageSize: number
   hasMore: boolean
+  nextCursor: string | null
 }
 
 const STATUS_STYLE: Record<CardStatus, { label: string; cls: string }> = {
@@ -44,11 +44,11 @@ export default function CardsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [page, setPage] = useState(0)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  const loadPage = useCallback(async (nextPage: number, append: boolean) => {
+  const loadPage = useCallback(async (cursor: string | null, append: boolean) => {
     if (append) setIsLoadingMore(true)
     else setIsLoading(true)
     setError(null)
@@ -58,15 +58,21 @@ export default function CardsPage() {
         router.push('/')
         return
       }
-      const res = await fetch(`/api/answer-cards?page=${nextPage}`)
+      const query = cursor === null ? '' : encodeURIComponent(cursor)
+      const res = await fetch(`/api/answer-cards?cursor=${query}`)
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}))
         setError(payload.error || 'Failed to load your cards')
         return
       }
       const payload = (await res.json()) as CardsPageResponse
-      setCards((current) => append ? [...current, ...payload.cards] : payload.cards)
-      setPage(payload.page)
+      setCards((current) => {
+        if (!append) return payload.cards
+        const byId = new Map(current.map((card) => [card.id, card]))
+        for (const card of payload.cards) byId.set(card.id, card)
+        return [...byId.values()]
+      })
+      setNextCursor(payload.nextCursor)
       setHasMore(payload.hasMore)
     } catch (err) {
       console.error('Fetch error:', err)
@@ -78,7 +84,7 @@ export default function CardsPage() {
   }, [router])
 
   useEffect(() => {
-    void loadPage(0, false)
+    void loadPage(null, false)
   }, [loadPage])
 
   const handleDelete = useCallback(async (id: string) => {
@@ -201,11 +207,11 @@ export default function CardsPage() {
               )
             })}
           </ul>
-          {hasMore ? (
+          {hasMore && nextCursor ? (
             <div className="mt-6 flex justify-center">
               <button
                 type="button"
-                onClick={() => void loadPage(page + 1, true)}
+                onClick={() => void loadPage(nextCursor, true)}
                 disabled={isLoadingMore}
                 className="min-h-[44px] rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-wait disabled:opacity-60"
               >

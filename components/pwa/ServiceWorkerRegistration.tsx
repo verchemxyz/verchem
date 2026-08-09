@@ -1,12 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  controllerChanged,
+  updateRecovery,
+  updateRequested,
+  type UpdateLifecycleState,
+} from '@/lib/pwa/update-lifecycle';
+
+const UPDATE_RECOVERY_DELAY_MS = 4_000;
 
 export function ServiceWorkerRegistration() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
-  const reloadOnControllerChange = useRef(false);
+  const registrationRef = useRef<globalThis.ServiceWorkerRegistration | null>(null);
+  const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lifecycleRef = useRef<UpdateLifecycleState>({
+    hadController: false,
+    updateAvailable: false,
+    applying: false,
+  });
+
+  const applyLifecycleState = useCallback((state: UpdateLifecycleState) => {
+    lifecycleRef.current = state;
+    setUpdateAvailable(state.updateAvailable);
+    setIsApplyingUpdate(state.applying);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -15,11 +34,22 @@ export function ServiceWorkerRegistration() {
 
     let disposed = false;
     let reloading = false;
+    lifecycleRef.current = {
+      ...lifecycleRef.current,
+      hadController: navigator.serviceWorker.controller !== null,
+    };
 
     const handleControllerChange = () => {
-      if (!reloadOnControllerChange.current || reloading) return;
-      reloading = true;
-      window.location.reload();
+      const transition = controllerChanged(lifecycleRef.current);
+      applyLifecycleState(transition.state);
+      if (recoveryTimerRef.current !== null) {
+        clearTimeout(recoveryTimerRef.current);
+        recoveryTimerRef.current = null;
+      }
+      if (transition.reload && !reloading) {
+        reloading = true;
+        window.location.reload();
+      }
     };
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
@@ -30,7 +60,17 @@ export function ServiceWorkerRegistration() {
         });
 
         if (disposed) return;
+        registrationRef.current = registration;
         console.log('[PWA] Service Worker registered:', registration.scope);
+
+        const showUpdate = () => {
+          if (disposed) return;
+          applyLifecycleState({
+            ...lifecycleRef.current,
+            updateAvailable: true,
+            applying: false,
+          });
+        };
 
         // Check for updates periodically
         registration.addEventListener('updatefound', () => {
@@ -41,16 +81,14 @@ export function ServiceWorkerRegistration() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New update available
               console.log('[PWA] New version available!');
-              setUpdateAvailable(true);
-              setWaitingWorker(registration.waiting ?? newWorker);
+              showUpdate();
             }
           });
         });
 
         // Check for waiting service worker on load
         if (registration.waiting) {
-          setUpdateAvailable(true);
-          setWaitingWorker(registration.waiting);
+          showUpdate();
         }
       } catch (error) {
         console.error('[PWA] Service Worker registration failed:', error);
@@ -70,18 +108,62 @@ export function ServiceWorkerRegistration() {
 
     return () => {
       disposed = true;
+      registrationRef.current = null;
+      if (recoveryTimerRef.current !== null) {
+        clearTimeout(recoveryTimerRef.current);
+        recoveryTimerRef.current = null;
+      }
       window.removeEventListener('load', handleLoad);
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
     };
-  }, []);
+  }, [applyLifecycleState]);
 
-  const handleUpdate = () => {
-    if (!waitingWorker) return;
+  const handleUpdate = async () => {
+    if (!('serviceWorker' in navigator)) return;
 
-    // Tell waiting service worker to take over
-    reloadOnControllerChange.current = true;
-    setIsApplyingUpdate(true);
-    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    try {
+      const registration = registrationRef.current ??
+        await navigator.serviceWorker.getRegistration('/');
+      const liveWaitingWorker = registration?.waiting?.state === 'installed'
+        ? registration.waiting
+        : null;
+      const transition = updateRequested(
+        lifecycleRef.current,
+        liveWaitingWorker !== null
+      );
+      applyLifecycleState(transition.state);
+
+      if (transition.reload) {
+        window.location.reload();
+        return;
+      }
+      if (!transition.postSkipWaiting || !liveWaitingWorker) return;
+
+      liveWaitingWorker.postMessage({ type: 'SKIP_WAITING' });
+      if (recoveryTimerRef.current !== null) {
+        clearTimeout(recoveryTimerRef.current);
+      }
+      recoveryTimerRef.current = setTimeout(() => {
+        void (async () => {
+          let stillWaiting = false;
+          try {
+            const latest = await navigator.serviceWorker.getRegistration('/');
+            stillWaiting = latest?.waiting?.state === 'installed';
+          } catch (error) {
+            console.error('[PWA] Could not inspect update state:', error);
+          }
+          const recovery = updateRecovery(lifecycleRef.current, stillWaiting);
+          applyLifecycleState(recovery.state);
+          if (recovery.reload) window.location.reload();
+          recoveryTimerRef.current = null;
+        })();
+      }, UPDATE_RECOVERY_DELAY_MS);
+    } catch (error) {
+      console.error('[PWA] Could not apply service-worker update:', error);
+      const recovery = updateRecovery(lifecycleRef.current, false);
+      applyLifecycleState(recovery.state);
+      if (recovery.reload) window.location.reload();
+    }
   };
 
   if (!updateAvailable) {
@@ -105,14 +187,18 @@ export function ServiceWorkerRegistration() {
       </div>
       <div className="flex gap-2 mt-3">
         <button
-          onClick={handleUpdate}
+          onClick={() => void handleUpdate()}
           disabled={isApplyingUpdate}
           className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors disabled:cursor-wait disabled:opacity-60"
         >
           {isApplyingUpdate ? 'Updating…' : 'Update Now'}
         </button>
         <button
-          onClick={() => setUpdateAvailable(false)}
+          onClick={() => applyLifecycleState({
+            ...lifecycleRef.current,
+            updateAvailable: false,
+            applying: false,
+          })}
           className="px-4 py-2 bg-card border border-border text-foreground rounded-md hover:bg-muted transition-colors"
         >
           Later

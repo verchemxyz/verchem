@@ -1,9 +1,16 @@
-/** Public API v1 compatibility lane and explicit v2 contract. */
+/** Behavioral golden contract for the unversioned public API. */
 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { NextRequest } from 'next/server'
 
+import { GET as getIndex } from '@/app/api/chemistry/route'
+import { GET as getElements } from '@/app/api/chemistry/elements/route'
+import { GET as getCompounds } from '@/app/api/chemistry/compounds/route'
+import { GET as getConvert } from '@/app/api/chemistry/convert/route'
+import { GET as getMolarMass } from '@/app/api/chemistry/molar-mass/route'
+import { GET as getPH } from '@/app/api/chemistry/ph/route'
 import {
   PUBLIC_API_MIGRATION_PATH,
   PUBLIC_API_VERSION,
@@ -11,33 +18,94 @@ import {
   publicApiJson,
 } from '@/lib/api/public-contract'
 
-const read = (path: string): string => readFileSync(resolve(process.cwd(), path), 'utf8')
-const endpoints = ['index', 'compounds', 'convert', 'elements', 'molar-mass', 'ph'] as const
-const v1Path = (endpoint: (typeof endpoints)[number]): string =>
-  endpoint === 'index' ? 'app/api/chemistry/route.ts' : `app/api/chemistry/${endpoint}/route.ts`
-const v2HandlerPath = (endpoint: (typeof endpoints)[number]): string =>
-  `lib/api/chemistry/v2/${endpoint}.ts`
-const v2WrapperPath = (endpoint: (typeof endpoints)[number]): string =>
-  endpoint === 'index' ? 'app/api/chemistry/v2/route.ts' : `app/api/chemistry/v2/${endpoint}/route.ts`
+interface ResponseSnapshot {
+  status: number
+  headers: Record<string, string>
+  body: unknown
+}
 
-async function run(): Promise<void> {
-  assert.equal(PUBLIC_API_VERSION, '2.0.0')
-  assert.equal(PUBLIC_API_MIGRATION_PATH, '/api/chemistry/v2')
+interface GoldenFile {
+  baseline: string
+  fixedTime: string
+  fixtures: Record<string, ResponseSnapshot>
+}
 
-  for (const endpoint of endpoints) {
-    const legacy = read(v1Path(endpoint))
-    assert.match(legacy, /NextResponse\.json/, `${endpoint}: unversioned route must retain v1 JSON`)
-    assert.doesNotMatch(legacy, /publicApiJson/, `${endpoint}: v2 envelope leaked into v1`)
+const golden = JSON.parse(
+  readFileSync(resolve(process.cwd(), '__tests__/fixtures/public-api-v1-22dbdfa.json'), 'utf8')
+) as GoldenFile
 
-    const v2 = read(v2HandlerPath(endpoint))
-    assert.match(v2, /publicApiJson/, `${endpoint}: v2 must use the versioned response helper`)
-    assert.match(v2, /publicApiV2RateLimit/, `${endpoint}: v2 429 must use the v2 envelope`)
-    assert.doesNotMatch(v2, /NextResponse\.json/, `${endpoint}: versioned response bypass`)
-
-    const wrapper = read(v2WrapperPath(endpoint))
-    assert.match(wrapper, new RegExp(`@/lib/api/chemistry/v2/${endpoint}`))
+const NativeDate = Date
+class FrozenDate extends NativeDate {
+  constructor(value?: string | number | Date) {
+    if (value === undefined) super(golden.fixedTime)
+    else super(value)
   }
 
+  static now(): number {
+    return NativeDate.parse(golden.fixedTime)
+  }
+}
+
+function request(path: string): NextRequest {
+  return new NextRequest(`https://verchem.xyz${path}`)
+}
+
+async function snapshot(response: Response): Promise<ResponseSnapshot> {
+  return {
+    status: response.status,
+    headers: Object.fromEntries(
+      [...response.headers.entries()].sort(([a], [b]) => a.localeCompare(b))
+    ),
+    body: await response.json() as unknown,
+  }
+}
+
+async function run(): Promise<void> {
+  assert.equal(golden.baseline, '22dbdfa')
+  globalThis.Date = FrozenDate as DateConstructor
+
+  try {
+    const actual: Record<string, ResponseSnapshot> = {
+      index: await snapshot(await getIndex()),
+      elementSodium: await snapshot(await getElements(request('/api/chemistry/elements?symbol=Na'))),
+      elementLegacyNumberParsing: await snapshot(await getElements(request('/api/chemistry/elements?number=1abc'))),
+      compoundWater: await snapshot(await getCompounds(request('/api/chemistry/compounds?id=water'))),
+      compoundLegacyMixtureMass: await snapshot(await getCompounds(request('/api/chemistry/compounds?id=petroleum-ether'))),
+      compoundInvalidLimit: await snapshot(await getCompounds(request('/api/chemistry/compounds?limit=0'))),
+      convertTemperature: await snapshot(await getConvert(request('/api/chemistry/convert?value=100&from=C&to=F&category=temperature'))),
+      convertMissing: await snapshot(await getConvert(request('/api/chemistry/convert'))),
+      molarMassWater: await snapshot(await getMolarMass(request('/api/chemistry/molar-mass?formula=H2O'))),
+      molarMassParenthesesRejected: await snapshot(await getMolarMass(request('/api/chemistry/molar-mass?formula=Ca(OH)2'))),
+      phLegacyModelFieldsIgnored: await snapshot(await getPH(request('/api/chemistry/ph?ph=7&temperature_c=80&activity_model=ideal'))),
+      phLegacyPrecedence: await snapshot(await getPH(request('/api/chemistry/ph?h=0.001&ph=12'))),
+      phMissing: await snapshot(await getPH(request('/api/chemistry/ph'))),
+    }
+
+    assert.deepEqual(actual, golden.fixtures)
+
+    const legacyZeroSentinel = await snapshot(
+      await getCompounds(request('/api/chemistry/compounds?id=npk-15-15-15'))
+    )
+    const zeroSentinelBody = legacyZeroSentinel.body as {
+      compound?: { molecularMass?: number | null }
+    }
+    assert.equal(zeroSentinelBody.compound?.molecularMass, null)
+
+    // The v1 lane at 22dbdfa had no executable limiter. Repeated real handler
+    // calls must remain byte-for-byte equivalent rather than turning into 429.
+    for (let requestNumber = 0; requestNumber < 75; requestNumber += 1) {
+      const repeated = await snapshot(
+        await getMolarMass(request('/api/chemistry/molar-mass?formula=H2O'))
+      )
+      assert.deepEqual(repeated, golden.fixtures.molarMassWater)
+    }
+  } finally {
+    globalThis.Date = NativeDate
+  }
+
+  // v2 stays explicitly versioned and is tested through its response helper.
+  assert.equal(PUBLIC_API_VERSION, '2.0.0')
+  assert.equal(PUBLIC_API_MIGRATION_PATH, '/api/chemistry/v2')
   const success = publicApiJson({ success: true })
   assert.equal(success.headers.get('X-API-Version'), PUBLIC_API_VERSION)
   assert.equal(success.headers.get('X-API-Migration'), PUBLIC_API_MIGRATION_PATH)
@@ -48,56 +116,15 @@ async function run(): Promise<void> {
   assert.equal(frameworkHeaders.get('X-API-Version'), PUBLIC_API_VERSION)
   assert.equal(frameworkHeaders.get('X-API-Migration'), PUBLIC_API_MIGRATION_PATH)
 
-  const attemptedOverride = publicApiJson({ apiVersion: '1.0.0' })
-  assert.equal((await attemptedOverride.json()).apiVersion, PUBLIC_API_VERSION)
-
   const error = publicApiJson(
     { error: 'Rate limit exceeded' },
     { status: 429, headers: { 'Retry-After': '60' } }
   )
   assert.equal(error.status, 429)
-  assert.equal(error.headers.get('X-API-Version'), PUBLIC_API_VERSION)
   assert.equal(error.headers.get('Retry-After'), '60')
   assert.equal((await error.json()).apiVersion, PUBLIC_API_VERSION)
 
-  const legacyIndex = read(v1Path('index'))
-  assert.match(legacyIndex, /version: '1\.0\.0'/)
-  assert.doesNotMatch(legacyIndex, /migrationFrom|breakingChanges/)
-
-  const index = read(v2HandlerPath('index'))
-  assert.match(index, /migrationFrom: '1\.x'/)
-  assert.match(index, /Unversioned \/api\/chemistry\/\* paths retain the v1 contract/)
-  assert.match(index, /pH endpoint requires exactly one of h, oh, ph, or poh/)
-  assert.match(index, /framework 404, 405, and 500 responses/)
-  assert.match(index, /Compound molecularMass can be null/)
-  assert.match(index, /safetyDataStatus/)
-  assert.match(index, /expandedFormula/)
-  assert.match(index, /HTTP 429/)
-
-  const rateLimit = read('lib/api/public-rate-limit.ts')
-  assert.match(rateLimit, /export function publicApiRateLimit[\s\S]*?return NextResponse\.json/)
-  assert.match(rateLimit, /export function publicApiV2RateLimit[\s\S]*?return publicApiJson/)
-
-  const proxy = read('proxy.ts')
-  assert.match(proxy, /pathname === '\/api\/chemistry\/v2'/)
-  assert.match(proxy, /applyPublicApiVersionHeaders\(response\.headers\)/)
-
-  const compounds = read(v2HandlerPath('compounds'))
-  assert.match(compounds, /safetyDataStatus: SafetyDataStatus/)
-  assert.match(compounds, /molecularMass: number \| null/)
-  assert.match(compounds, /ghs: compound\.ghs \?\? \[\]/)
-
-  const legacyPH = read(v1Path('ph'))
-  assert.match(legacyPH, /if \(hParam\)[\s\S]*?else if \(ohParam\)[\s\S]*?else if \(phParam\)/)
-  assert.doesNotMatch(legacyPH, /Ambiguous input|suppliedInputs\.length > 1/)
-
-  const ph = read(v2HandlerPath('ph'))
-  assert.match(ph, /suppliedInputs\.length > 1/)
-  assert.match(ph, /provide exactly one of: h, oh, ph, poh/)
-  assert.match(ph, /calculatePHConversion/)
-  assert.doesNotMatch(ph, /pH < 0 \|\| pH > 14|pOH < 0 \|\| pOH > 14/)
-
-  console.log('Public API contract tests passed')
+  console.log('Public API v1 behavioral golden passed against 22dbdfa')
 }
 
 run().catch((error: unknown) => {

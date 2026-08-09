@@ -9,7 +9,6 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
-import { ANSWER_CARD_PAGE_SIZE, parseAnswerCardPage } from '@/lib/answer-cards/list-pagination'
 import { SOLUTION_MODES, SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 import { LLMS_TEXT } from '@/lib/seo/llms'
 
@@ -30,11 +29,6 @@ const compoundsApi = read('lib/api/chemistry/v2/compounds.ts')
 const elementsIndex = read('app/elements/page.tsx')
 const pricingModel = read('PRICING_MODEL.md')
 const compoundExpansion = read('COMPOUND_DATABASE_EXPANSION.md')
-const serviceWorker = read('public/sw.js')
-const serviceWorkerRegistration = read('components/pwa/ServiceWorkerRegistration.tsx')
-const answerCardList = read('lib/supabase/answer-cards.ts')
-const answerCardListApi = read('app/api/answer-cards/route.ts')
-const answerCardListPage = read('app/account/cards/page.tsx')
 const rootLayout = read('app/layout.tsx')
 const calculatorConfig = read('lib/config/calculators.ts')
 const readme = read('README.md')
@@ -135,42 +129,6 @@ assert.doesNotMatch(
   `${elementsIndex}\n${pricingModel}\n${compoundExpansion}`,
   new RegExp(`verified compounds|${absoluteCompletenessClaim.source}|All 118 elements with verified atomic data`, 'i')
 )
-assert.match(serviceWorker, /CACHE_VERSION = 'verchem-v2\.0\.0'/)
-assert.match(serviceWorker, /MIGRATED_ROUTES = \['\/tools\/ph-calculator'\]/)
-assert.match(serviceWorker, /'\/solutions'/)
-assert.match(serviceWorker, /async function warmStaticAssets/)
-assert.ok(
-  serviceWorker.indexOf('await warmStaticAssets();') < serviceWorker.indexOf("console.log('[SW] Deleting old cache:'"),
-  'v2 offline routes must be warm before old caches are deleted'
-)
-const installBlock = serviceWorker.slice(
-  serviceWorker.indexOf("self.addEventListener('install'"),
-  serviceWorker.indexOf("self.addEventListener('message'")
-)
-assert.doesNotMatch(installBlock, /skipWaiting/)
-assert.match(serviceWorker, /event\.data\?\.type === 'SKIP_WAITING'/)
-assert.match(serviceWorkerRegistration, /addEventListener\('controllerchange'/)
-assert.match(serviceWorkerRegistration, /reloadOnControllerChange\.current = true/)
-assert.doesNotMatch(serviceWorkerRegistration, /waitingWorker\.addEventListener\('statechange'/)
-assert.match(serviceWorker, /cache\.delete\(new URL\(route, self\.location\.origin\)\.toString\(\)\)/)
-assert.doesNotMatch(serviceWorker, /CACHE_ON_VISIT/)
-
-assert.equal(ANSWER_CARD_PAGE_SIZE, 20)
-assert.equal(parseAnswerCardPage(null), 0)
-assert.equal(parseAnswerCardPage('2'), 2)
-assert.equal(parseAnswerCardPage('-1'), null)
-assert.equal(parseAnswerCardPage('1.5'), null)
-assert.equal(parseAnswerCardPage('not-a-page'), null)
-assert.match(answerCardList, /\.range\(from, to\)/)
-assert.match(answerCardList, /rowsWithLookahead\.slice\(0, ANSWER_CARD_PAGE_SIZE\)/)
-assert.ok(
-  answerCardList.indexOf('rowsWithLookahead.slice') < answerCardList.indexOf('const cards = await Promise.all'),
-  'only the returned page may be replayed'
-)
-assert.match(answerCardListApi, /parseAnswerCardPage\(request\.nextUrl\.searchParams\.get\('page'\)\)/)
-assert.match(answerCardListPage, /fetch\(`\/api\/answer-cards\?page=\$\{nextPage\}`\)/)
-assert.match(answerCardListPage, /Load more cards/)
-
 assert.match(rootLayout, /template: "%s \| VerChem"/)
 for (const titlePath of [
   'app/challenge/layout.tsx',

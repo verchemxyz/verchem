@@ -75,6 +75,15 @@ const SOURCE_COMPOUND_GROUPS = {
   photography: PHOTOGRAPHY_CHEMICALS,
 }
 
+/**
+ * Compatibility view for the unversioned public API. At 22dbdfa that API read
+ * the source arrays directly, before collision curation, mass-basis modelling,
+ * and normalization. Keep this view isolated from all app and v2 consumers.
+ */
+export const LEGACY_COMMON_COMPOUNDS: Compound[] = Object.values(
+  SOURCE_COMPOUND_GROUPS
+).flatMap(compounds => [...compounds])
+
 const curatedGroups = curateCompoundGroups(SOURCE_COMPOUND_GROUPS)
 
 export const COMPOUND_GROUPS = Object.fromEntries(

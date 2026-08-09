@@ -15,9 +15,13 @@ import { verifySession } from '@/lib/auth/session'
 import { isValidOrigin } from '@/lib/auth/origin-check'
 import { verifyCardSignature, toSignablePayload } from '@/lib/answer-cards/signature'
 import { parseSubmittedCard } from '@/lib/answer-cards/validate-card'
-import { createAnswerCard, listAnswerCardsByUser } from '@/lib/supabase/answer-cards'
+import {
+  createAnswerCard,
+  listAnswerCardPageByUser,
+  listAnswerCardsByUser,
+} from '@/lib/supabase/answer-cards'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { parseAnswerCardPage } from '@/lib/answer-cards/list-pagination'
+import { resolveAnswerCardList } from '@/lib/answer-cards/list-contract'
 
 // Generous per-user daily cap so a valid signed card can't be saved thousands
 // of times to bloat the table. (Saving requires a real generate call first.)
@@ -94,16 +98,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const page = parseAnswerCardPage(request.nextUrl.searchParams.get('page'))
-    if (page === null) {
+    const result = await resolveAnswerCardList(
+      request.nextUrl.searchParams.get('cursor'),
+      () => listAnswerCardsByUser(session.userId),
+      (cursor) => listAnswerCardPageByUser(session.userId, cursor)
+    )
+    if (!result.ok) {
       return NextResponse.json(
-        { error: 'Invalid page - must be a non-negative integer' },
+        { error: result.error },
         { status: 400 }
       )
     }
 
-    const result = await listAnswerCardsByUser(session.userId, page)
-    return NextResponse.json(result)
+    return NextResponse.json(result.value)
   } catch (err: unknown) {
     console.error('GET /api/answer-cards error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -30,6 +30,9 @@ import {
 } from '@/lib/answer-cards/replay'
 import {
   ANSWER_CARD_PAGE_SIZE,
+  answerCardCursorFilter,
+  encodeAnswerCardCursor,
+  type AnswerCardCursor,
   type AnswerCardPage,
 } from '@/lib/answer-cards/list-pagination'
 
@@ -187,39 +190,18 @@ export async function createAnswerCard(
   return data as { id: string; created_at: string }
 }
 
-export async function listAnswerCardsByUser(
-  aiverid_id: string,
-  page: number
-): Promise<AnswerCardPage<AnswerCardSummary>> {
-  const supabase = getSupabase()
-  const from = page * ANSWER_CARD_PAGE_SIZE
-  // Supabase ranges are inclusive. Fetch one extra row only to determine
-  // whether another page exists; replay is limited to the returned page.
-  const to = from + ANSWER_CARD_PAGE_SIZE
+type AnswerCardListRow = Pick<
+  AnswerCardRow,
+  'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'
+>
 
-  const { data, error } = await supabase
-    .from('answer_cards')
-    .select('id, question, status, is_public, created_at, signed_payload, signature')
-    .eq('aiverid_id', aiverid_id)
-    .order('created_at', { ascending: false })
-    .range(from, to)
-
-  if (error) {
-    console.error('listAnswerCardsByUser error:', error)
-    throw new Error('Database error while listing answer cards')
-  }
-
-  const rowsWithLookahead = (data ?? []) as Array<
-    Pick<AnswerCardRow, 'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'>
-  >
-  const rows = rowsWithLookahead.slice(0, ANSWER_CARD_PAGE_SIZE)
-
+async function summarizeAnswerCardRows(rows: AnswerCardListRow[]): Promise<AnswerCardSummary[]> {
   // Re-verify each row AND derive question/status from the SIGNED payload — not
   // the denormalized columns. Otherwise tampering only `status` (to 'verified')
   // without touching signed_payload/signature would keep signatureValid true and
   // the list would show a forged Verified badge. The signed_payload is verified
   // but NOT returned to the client (keeps the list light).
-  const cards = await Promise.all(
+  return Promise.all(
     rows.map(async (r) => {
       const signatureValid = await verifyCanonicalSignature(r.signed_payload, r.signature)
       let question = r.question
@@ -254,12 +236,64 @@ export async function listAnswerCardsByUser(
       }
     })
   )
+}
+
+/** Legacy, unpaginated response used when the client did not explicitly opt in. */
+export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerCardSummary[]> {
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('answer_cards')
+    .select('id, question, status, is_public, created_at, signed_payload, signature')
+    .eq('aiverid_id', aiverid_id)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+
+  if (error) {
+    console.error('listAnswerCardsByUser error:', error)
+    throw new Error('Database error while listing answer cards')
+  }
+
+  return summarizeAnswerCardRows((data ?? []) as AnswerCardListRow[])
+}
+
+/** Mutation-safe keyset pagination ordered by the deterministic tuple. */
+export async function listAnswerCardPageByUser(
+  aiverid_id: string,
+  cursor: AnswerCardCursor | null
+): Promise<AnswerCardPage<AnswerCardSummary>> {
+  const supabase = getSupabase()
+  let query = supabase
+    .from('answer_cards')
+    .select('id, question, status, is_public, created_at, signed_payload, signature')
+    .eq('aiverid_id', aiverid_id)
+
+  if (cursor) {
+    query = query.or(answerCardCursorFilter(cursor))
+  }
+
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(ANSWER_CARD_PAGE_SIZE + 1)
+
+  if (error) {
+    console.error('listAnswerCardPageByUser error:', error)
+    throw new Error('Database error while listing answer cards')
+  }
+
+  const rowsWithLookahead = (data ?? []) as AnswerCardListRow[]
+  const rows = rowsWithLookahead.slice(0, ANSWER_CARD_PAGE_SIZE)
+  const cards = await summarizeAnswerCardRows(rows)
+  const hasMore = rowsWithLookahead.length > ANSWER_CARD_PAGE_SIZE
+  const last = rows.at(-1)
 
   return {
     cards,
-    page,
     pageSize: ANSWER_CARD_PAGE_SIZE,
-    hasMore: rowsWithLookahead.length > ANSWER_CARD_PAGE_SIZE,
+    hasMore,
+    nextCursor: hasMore && last
+      ? encodeAnswerCardCursor({ createdAt: last.created_at, id: last.id })
+      : null,
   }
 }
 

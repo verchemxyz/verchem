@@ -6,10 +6,12 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-const CACHE_VERSION = 'verchem-v2.0.0';
+const CACHE_VERSION = 'verchem-v2.0.1';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
-const MIGRATED_ROUTES = ['/tools/ph-calculator'];
+const OFFLINE_ROUTE_ALIASES = {
+  '/tools/ph-calculator': '/solutions',
+};
 
 // Static assets to cache immediately (app shell)
 const STATIC_ASSETS = [
@@ -19,6 +21,7 @@ const STATIC_ASSETS = [
   '/tools',
   '/compounds',
   '/solutions',
+  '/tools/ph-calculator',
   '/manifest.json',
   '/logo.png',
   '/offline.html',
@@ -48,7 +51,10 @@ async function warmStaticAssets() {
       await cache.put(request, response);
       return;
     } catch (networkError) {
-      const migrated = await caches.match(request);
+      const pathname = new URL(request.url).pathname;
+      const alias = OFFLINE_ROUTE_ALIASES[pathname];
+      const migrated = await caches.match(request) ||
+        (alias ? await caches.match(new URL(alias, self.location.origin).toString()) : undefined);
       if (!migrated) throw networkError;
       await cache.put(request, migrated.clone());
     }
@@ -67,55 +73,16 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Updated workers wait until the UI explicitly asks them to activate.
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    event.waitUntil(self.skipWaiting());
-  }
-});
-
-// Activate event - clean up old caches
+// Activate only after the replacement shell is warm. Legacy caches remain as
+// offline history: dynamic pages cannot be reconstructed from a static list.
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...');
 
   event.waitUntil(
     (async () => {
-      // Required routes (including /solutions) must exist in v2 before any v1
-      // cache can be removed. This also repairs an interrupted partial warm.
+      // This also repairs an interrupted partial warm.
       await warmStaticAssets();
-
-      const cacheNames = await caches.keys();
-        // Remove pre-consolidation route responses even from a same-version
-        // cache. This prevents the old standalone pH implementation from
-        // surviving now that the URL serves the shared /solutions component
-        // through a partially completed service-worker update.
-      await Promise.all(
-          cacheNames.map((cacheName) =>
-            caches.open(cacheName).then((cache) =>
-              Promise.all(
-                MIGRATED_ROUTES.map((route) =>
-                  cache.delete(new URL(route, self.location.origin).toString())
-                )
-              )
-            )
-          )
-        );
-
-      const warmedCacheNames = await caches.keys();
-      await Promise.all(
-          warmedCacheNames
-            .filter((cacheName) => {
-              return cacheName.startsWith('verchem-') &&
-                     cacheName !== STATIC_CACHE &&
-                     cacheName !== DYNAMIC_CACHE;
-            })
-            .map((cacheName) => {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            })
-        );
-
-      console.log('[SW] Old caches cleaned up');
+      console.log('[SW] Replacement shell ready; legacy offline caches preserved');
       await self.clients.claim();
     })()
   );
@@ -174,10 +141,17 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           // Return cached version or offline page
-          return caches.match(request)
-            .then((cachedResponse) => {
-              return cachedResponse || caches.match('/offline.html');
-            });
+          return caches.match(request).then(async (cachedResponse) => {
+            if (cachedResponse) return cachedResponse;
+            const alias = OFFLINE_ROUTE_ALIASES[url.pathname];
+            if (alias) {
+              const aliasResponse = await caches.match(
+                new URL(alias, self.location.origin).toString()
+              );
+              if (aliasResponse) return aliasResponse;
+            }
+            return caches.match('/offline.html');
+          });
         })
     );
     return;
@@ -293,13 +267,14 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-// Message handler for manual cache updates
+// One message listener owns both update activation and manual cache warming.
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  if (event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
+    return;
   }
 
-  if (event.data && event.data.type === 'CACHE_URLS') {
+  if (event.data?.type === 'CACHE_URLS') {
     const urlsToCache = event.data.urls || [];
     event.waitUntil(
       caches.open(DYNAMIC_CACHE).then((cache) => {
