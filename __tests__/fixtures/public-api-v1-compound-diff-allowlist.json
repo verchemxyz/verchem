@@ -1,0 +1,1444 @@
+{
+  "baseline": "22dbdfa1ed7f5505cdceb32bbbd2787189b7d10f",
+  "baselineCompoundSha256": "9d86bd39afcb90df0ed7e61a14b5cb401993fbc33b93509b71f8e404ff5c6845",
+  "changes": [
+    {
+      "index": 9,
+      "id": "hydroiodic-acid",
+      "fields": {
+        "molecularMass": {
+          "baseline": 127.912,
+          "current": 127.908
+        }
+      }
+    },
+    {
+      "index": 23,
+      "id": "periodic-acid",
+      "fields": {
+        "molecularMass": {
+          "baseline": 191.908,
+          "current": 191.904
+        }
+      }
+    },
+    {
+      "index": 29,
+      "id": "barium-hydroxide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 171.341,
+          "current": 171.344
+        }
+      }
+    },
+    {
+      "index": 36,
+      "id": "cesium-hydroxide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 149.912,
+          "current": 149.917
+        }
+      }
+    },
+    {
+      "index": 53,
+      "id": "sodium-iodide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 149.894,
+          "current": 149.89
+        }
+      }
+    },
+    {
+      "index": 54,
+      "id": "potassium-iodide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 166.002,
+          "current": 165.998
+        }
+      }
+    },
+    {
+      "index": 121,
+      "id": "barium-oxide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 153.326,
+          "current": 153.329
+        }
+      }
+    },
+    {
+      "index": 131,
+      "id": "pentane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 132,
+      "id": "hexane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 133,
+      "id": "heptane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 134,
+      "id": "octane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 135,
+      "id": "nonane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 136,
+      "id": "decane",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 140,
+      "id": "pentene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 141,
+      "id": "hexene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 142,
+      "id": "heptene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 143,
+      "id": "octene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 144,
+      "id": "nonene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 145,
+      "id": "decene",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 149,
+      "id": "pentyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 150,
+      "id": "hexyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 151,
+      "id": "heptyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 152,
+      "id": "octyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 153,
+      "id": "nonyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 154,
+      "id": "decyne",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H220"
+          ],
+          "current": []
+        }
+      }
+    },
+    {
+      "index": 325,
+      "id": "ethylene-oxide",
+      "fields": {
+        "hazards": {
+          "baseline": [
+            "H224",
+            "H350"
+          ],
+          "current": [
+            "H220",
+            "H350"
+          ]
+        }
+      }
+    },
+    {
+      "index": 398,
+      "id": "iodine",
+      "fields": {
+        "molecularMass": {
+          "baseline": 253.808,
+          "current": 253.8
+        }
+      }
+    },
+    {
+      "index": 415,
+      "id": "silver-nitrate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 169.872,
+          "current": 169.874
+        }
+      }
+    },
+    {
+      "index": 416,
+      "id": "potassium-iodate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 213.999,
+          "current": 213.995
+        }
+      }
+    },
+    {
+      "index": 449,
+      "id": "r-410a",
+      "fields": {
+        "casNumber": {
+          "baseline": "75-10-5/354-33-6",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 521,
+      "id": "npk-15-15-15",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 522,
+      "id": "npk-16-20-0",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 535,
+      "id": "blood-meal",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 536,
+      "id": "fish-meal",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 537,
+      "id": "seaweed-extract",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 538,
+      "id": "humic-acid",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 539,
+      "id": "fulvic-acid",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 569,
+      "id": "xanthan-gum",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 570,
+      "id": "carrageenan",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 571,
+      "id": "pectin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 572,
+      "id": "gelatin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 573,
+      "id": "agar",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 574,
+      "id": "guar-gum",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 575,
+      "id": "caramel-color",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 586,
+      "id": "graphene-oxide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        },
+        "casNumber": {
+          "baseline": "796631-62-6",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 587,
+      "id": "reduced-graphene-oxide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 12.01,
+          "current": null
+        },
+        "casNumber": {
+          "baseline": "918422-70-1",
+          "current": null
+        },
+        "formula": {
+          "baseline": "C",
+          "current": "C:O:H variable"
+        }
+      }
+    },
+    {
+      "index": 604,
+      "id": "cdse-zns-quantum-dots",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 605,
+      "id": "inp-quantum-dots",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 611,
+      "id": "montmorillonite-nano",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 644,
+      "id": "sodium-laureth-sulfate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 420,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 648,
+      "id": "sodium-lauryl-sarcosinate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 293.38,
+          "current": 311.398
+        },
+        "formula": {
+          "baseline": "C15H28NNaO3",
+          "current": "C15H28NNaO3·H2O"
+        },
+        "name": {
+          "baseline": "Sodium Lauroyl Sarcosinate",
+          "current": "Sodium Lauroyl Sarcosinate Monohydrate"
+        }
+      }
+    },
+    {
+      "index": 736,
+      "id": "stainless-steel-304",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 737,
+      "id": "stainless-steel-316",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 738,
+      "id": "brass",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 739,
+      "id": "bronze",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 740,
+      "id": "pewter",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 741,
+      "id": "solder-60-40",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 742,
+      "id": "lead-free-solder",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 743,
+      "id": "duralumin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 744,
+      "id": "inconel-625",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 745,
+      "id": "hastelloy-c276",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 746,
+      "id": "titanium-6al4v",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 747,
+      "id": "nitinol",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 748,
+      "id": "kovar",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 749,
+      "id": "invar",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 750,
+      "id": "cupronickel",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 751,
+      "id": "monel-400",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 752,
+      "id": "german-silver",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 753,
+      "id": "gunmetal",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 754,
+      "id": "white-gold",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 755,
+      "id": "rose-gold",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 756,
+      "id": "sterling-silver",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 757,
+      "id": "elektrum",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 758,
+      "id": "polyethylene-ldpe",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": 28.054
+        }
+      }
+    },
+    {
+      "index": 759,
+      "id": "polyethylene-hdpe",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": 28.054
+        }
+      }
+    },
+    {
+      "index": 760,
+      "id": "polyethylene-uhmwpe",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 761,
+      "id": "polypropylene",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 762,
+      "id": "polystyrene",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 763,
+      "id": "expanded-polystyrene",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 764,
+      "id": "polyvinyl-chloride",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 765,
+      "id": "cpvc",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 766,
+      "id": "pet",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 767,
+      "id": "nylon-6",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": 113.16
+        }
+      }
+    },
+    {
+      "index": 768,
+      "id": "nylon-66",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": 226.32
+        }
+      }
+    },
+    {
+      "index": 769,
+      "id": "polycarbonate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 770,
+      "id": "abs",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 771,
+      "id": "pmma",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 772,
+      "id": "pom",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 773,
+      "id": "pbt",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 774,
+      "id": "peek",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 775,
+      "id": "ptfe",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 776,
+      "id": "pvdf",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 777,
+      "id": "pps",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 778,
+      "id": "pei",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 779,
+      "id": "polyimide",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 780,
+      "id": "epoxy-resin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 781,
+      "id": "phenolic-resin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 782,
+      "id": "polyurethane",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 783,
+      "id": "polyester-resin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 784,
+      "id": "vinyl-ester-resin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 785,
+      "id": "melamine-resin",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 786,
+      "id": "urea-formaldehyde",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 787,
+      "id": "natural-rubber",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 788,
+      "id": "sbr",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 789,
+      "id": "nitrile-rubber",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 790,
+      "id": "epdm",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 791,
+      "id": "silicone-rubber",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 792,
+      "id": "neoprene",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 793,
+      "id": "viton",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 794,
+      "id": "pla",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 795,
+      "id": "pha",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 796,
+      "id": "cellulose-acetate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 797,
+      "id": "starch-plastic",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 806,
+      "id": "buffered-oxide-etch",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 807,
+      "id": "piranha-solution",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 810,
+      "id": "aluminum-etchant",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 811,
+      "id": "chrome-etchant",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 812,
+      "id": "gold-etchant",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 819,
+      "id": "sc1-solution",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 820,
+      "id": "sc2-solution",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 824,
+      "id": "positive-photoresist",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        },
+        "casNumber": {
+          "baseline": "Various",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 825,
+      "id": "negative-photoresist",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        },
+        "casNumber": {
+          "baseline": "Various",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 826,
+      "id": "chemically-amplified-resist",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 827,
+      "id": "euv-resist",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 906,
+      "id": "mancozeb",
+      "fields": {
+        "molecularMass": {
+          "baseline": 0,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 959,
+      "id": "sodium-laureth-sulfate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 422.57,
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 976,
+      "id": "plagioclase",
+      "fields": {
+        "casNumber": {
+          "baseline": "12244-10-5",
+          "current": "12244-10-9"
+        }
+      }
+    },
+    {
+      "index": 1019,
+      "id": "turquoise",
+      "fields": {
+        "casNumber": {
+          "baseline": "1302-07-2",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1046,
+      "id": "cerium-doped-yag",
+      "fields": {
+        "casNumber": {
+          "baseline": "308073-18-7",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1052,
+      "id": "mischmetal",
+      "fields": {
+        "casNumber": {
+          "baseline": "62379-63-1",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1076,
+      "id": "lgps-sulfide",
+      "fields": {
+        "casNumber": {
+          "baseline": "1401785-01-6",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1078,
+      "id": "nasicon-type",
+      "fields": {
+        "casNumber": {
+          "baseline": "69638-49-5",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1081,
+      "id": "sodium-layered-oxide",
+      "fields": {
+        "casNumber": {
+          "baseline": "1314909-13-9",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1289,
+      "id": "spandex-elastane",
+      "fields": {
+        "casNumber": {
+          "baseline": "24938-58-3",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1306,
+      "id": "fluorocarbon-finish",
+      "fields": {
+        "casNumber": {
+          "baseline": "65530-63-6",
+          "current": null
+        }
+      }
+    },
+    {
+      "index": 1395,
+      "id": "sodium-lauryl-sarcosinate",
+      "fields": {
+        "molecularMass": {
+          "baseline": 293.38,
+          "current": 311.398
+        },
+        "formula": {
+          "baseline": "C15H28NNaO3",
+          "current": "C15H28NNaO3·H2O"
+        },
+        "name": {
+          "baseline": "Sodium Lauroyl Sarcosinate",
+          "current": "Sodium Lauroyl Sarcosinate Monohydrate"
+        }
+      }
+    }
+  ]
+}

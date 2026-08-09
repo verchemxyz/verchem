@@ -71,6 +71,7 @@ async function run(): Promise<void> {
   const legacy = await caches.open('verchem-v1.0.0-dynamic')
   await legacy.put('/opened-before-upgrade', new Response('legacy-opened-page'))
   await legacy.put('/solutions', new Response('legacy-solutions'))
+  await legacy.put('/logo.png', new Response('legacy-logo'))
   await legacy.put('/offline.html', new Response('legacy-offline'))
 
   const handlers = new Map<string, EventHandler[]>()
@@ -134,14 +135,42 @@ async function run(): Promise<void> {
     'activation must preserve pages opened under the legacy worker'
   )
 
-  const currentStatic = await caches.open('verchem-v2.0.1-static')
+  const currentStatic = await caches.open('verchem-v2.0.2-static')
   assert.ok(await currentStatic.match('/solutions'))
   assert.ok(await currentStatic.match('/tools/ph-calculator'))
+  assert.equal(await (await currentStatic.match('/solutions'))?.text(), 'network:/solutions')
+  assert.equal(await (await currentStatic.match('/logo.png'))?.text(), 'network:/logo.png')
+
+  assert.equal(await legacy.match('/solutions'), undefined, 'warmed canonical entry retires its legacy duplicate')
+  assert.equal(await legacy.match('/logo.png'), undefined, 'warmed asset retires its legacy duplicate')
+  assert.equal(await legacy.match('/offline.html'), undefined, 'warmed fallback retires its legacy duplicate')
+
+  // Recreate the original failure after activation: CacheStorage creation order
+  // still puts this stale entry before the current cache. The fetch handler must
+  // nevertheless return current and retire the duplicate it just superseded.
+  await legacy.put('/logo.png', new Response('stale-logo-reintroduced'))
+  networkOffline = true
+  const assetResponses: Array<Promise<Response | undefined>> = []
+  const assetEvent: Record<string, unknown> = {
+    request: {
+      method: 'GET',
+      mode: 'same-origin',
+      destination: 'image',
+      url: `${ORIGIN}/logo.png`,
+    },
+    respondWith: (response: Promise<Response | undefined>) => {
+      assetResponses.push(response)
+    },
+  }
+  for (const handler of handlers.get('fetch') ?? []) handler(assetEvent)
+  assert.equal(await (await assetResponses[0])?.text(), 'network:/logo.png')
+  assert.equal(await legacy.match('/logo.png'), undefined)
 
   // Exercise the actual navigation handler: if the alias entry is unavailable,
-  // an offline legacy bookmark maps to the cached canonical /solutions page.
+  // an offline legacy bookmark maps to the CURRENT canonical /solutions page,
+  // even if the same canonical URL reappears in a legacy cache first.
   await currentStatic.delete('/tools/ph-calculator')
-  networkOffline = true
+  await legacy.put('/solutions', new Response('stale-solutions-reintroduced'))
   const navigationResponses: Array<Promise<Response | undefined>> = []
   const navigationEvent: Record<string, unknown> = {
     request: {
@@ -157,7 +186,8 @@ async function run(): Promise<void> {
   for (const handler of handlers.get('fetch') ?? []) handler(navigationEvent)
   const navigationResponse = navigationResponses[0]
   assert.ok(navigationResponse)
-  assert.equal(await (await navigationResponse)?.text(), 'legacy-solutions')
+  assert.equal(await (await navigationResponse)?.text(), 'network:/solutions')
+  assert.equal(await legacy.match('/solutions'), undefined)
 
   assert.equal(handlers.get('message')?.length, 1, 'only one message listener may own SKIP_WAITING')
   await dispatchExtendable('message', { type: 'SKIP_WAITING' })

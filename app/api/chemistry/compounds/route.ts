@@ -12,51 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { LEGACY_COMMON_COMPOUNDS } from '@/lib/data/compounds';
-
-// Simplified compound response
-interface CompoundResponse {
-  id: string;
-  name: string;
-  formula: string;
-  molecularMass: number | null;
-  casNumber: string | null;
-  category: string;
-  physicalProperties: {
-    state: string;
-    meltingPoint: number | null;
-    boilingPoint: number | null;
-    density: number | null;
-  };
-  hazards: string[];
-  uses: string[];
-}
-
-function formatCompound(compound: typeof LEGACY_COMMON_COMPOUNDS[0]): CompoundResponse {
-  const legacyMass = compound.molarMass ?? compound.molecularMass
-  return {
-    id: compound.id,
-    name: compound.name,
-    formula: compound.formula,
-    // Preserve the v1 field and legacy reviewed values, but never resurrect the
-    // old sentinel `0 g/mol` for mixtures/non-stoichiometric materials.
-    molecularMass: typeof legacyMass === 'number' &&
-      Number.isFinite(legacyMass) && legacyMass > 0
-      ? legacyMass
-      : null,
-    casNumber: compound.casNumber || compound.cas || null,
-    category: compound.category,
-    physicalProperties: {
-      state: compound.physicalState || 'unknown',
-      meltingPoint: compound.meltingPoint ?? null,
-      boilingPoint: compound.boilingPoint ?? null,
-      density: compound.density ?? null,
-    },
-    hazards: (compound.hazards || []).map((h) =>
-      typeof h === 'string' ? h : (h as { type?: string; ghsCode?: string }).type || (h as { type?: string; ghsCode?: string }).ghsCode || ''
-    ).filter(Boolean),
-    uses: compound.uses || [],
-  };
-}
+import { formatLegacyCompound } from '@/lib/api/chemistry/v1/compounds';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -84,7 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        compound: formatCompound(compound),
+        compound: formatLegacyCompound(compound),
         timestamp: new Date().toISOString(),
       },
       {
@@ -141,7 +97,7 @@ export async function GET(request: NextRequest) {
       success: true,
       count: Math.min(filteredCompounds.length, maxLimit),
       total: filteredCompounds.length,
-      compounds: filteredCompounds.slice(0, maxLimit).map(formatCompound),
+      compounds: filteredCompounds.slice(0, maxLimit).map(formatLegacyCompound),
       categories,
       filters: {
         query: query || null,

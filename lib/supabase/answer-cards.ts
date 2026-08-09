@@ -35,6 +35,11 @@ import {
   type AnswerCardCursor,
   type AnswerCardPage,
 } from '@/lib/answer-cards/list-pagination'
+import {
+  summarizeLegacyAnswerCardRows,
+  type LegacyAnswerCardListRow,
+  type LegacyAnswerCardSummary,
+} from '@/lib/answer-cards/legacy-list-serialization'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -239,21 +244,25 @@ async function summarizeAnswerCardRows(rows: AnswerCardListRow[]): Promise<Answe
 }
 
 /** Legacy, unpaginated response used when the client did not explicitly opt in. */
-export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerCardSummary[]> {
+export async function listAnswerCardsByUser(
+  aiverid_id: string
+): Promise<LegacyAnswerCardSummary[]> {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('answer_cards')
     .select('id, question, status, is_public, created_at, signed_payload, signature')
     .eq('aiverid_id', aiverid_id)
     .order('created_at', { ascending: false })
-    .order('id', { ascending: false })
 
   if (error) {
     console.error('listAnswerCardsByUser error:', error)
     throw new Error('Database error while listing answer cards')
   }
 
-  return summarizeAnswerCardRows((data ?? []) as AnswerCardListRow[])
+  return summarizeLegacyAnswerCardRows(
+    (data ?? []) as LegacyAnswerCardListRow[],
+    verifyCanonicalSignature
+  )
 }
 
 /** Mutation-safe keyset pagination ordered by the deterministic tuple. */

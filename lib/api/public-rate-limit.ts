@@ -1,5 +1,3 @@
-import 'server-only'
-
 import { NextResponse } from 'next/server'
 import { checkRateLimit, getClientId } from '@/lib/rate-limit'
 import { publicApiJson } from '@/lib/api/public-contract'

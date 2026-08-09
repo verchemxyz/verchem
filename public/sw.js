@@ -6,7 +6,7 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-const CACHE_VERSION = 'verchem-v2.0.1';
+const CACHE_VERSION = 'verchem-v2.0.2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const OFFLINE_ROUTE_ALIASES = {
@@ -27,6 +27,58 @@ const STATIC_ASSETS = [
   '/offline.html',
 ];
 
+function isCurrentCache(cacheName) {
+  return cacheName === STATIC_CACHE || cacheName === DYNAMIC_CACHE;
+}
+
+async function matchCaches(cacheNames, request) {
+  for (const cacheName of cacheNames) {
+    const response = await (await caches.open(cacheName)).match(request);
+    if (response) return response;
+  }
+  return undefined;
+}
+
+async function legacyCacheNames() {
+  return (await caches.keys()).filter((cacheName) =>
+    cacheName.startsWith('verchem-') && !isCurrentCache(cacheName)
+  );
+}
+
+/**
+ * Remove only entries that the current worker can already serve. Other pages
+ * opened under an older worker remain available as offline history.
+ */
+async function retireLegacyEntry(request) {
+  const names = await legacyCacheNames();
+  await Promise.all(names.map(async (cacheName) => {
+    await (await caches.open(cacheName)).delete(request);
+  }));
+}
+
+/**
+ * CacheStorage.match() searches caches in creation order, which lets a v1
+ * response beat a warmed v2 response forever. Always search the two current
+ * caches explicitly before consulting legacy history.
+ */
+async function matchCurrentThenLegacy(request, preferDynamic = false) {
+  const currentOrder = preferDynamic
+    ? [DYNAMIC_CACHE, STATIC_CACHE]
+    : [STATIC_CACHE, DYNAMIC_CACHE];
+  const current = await matchCaches(currentOrder, request);
+  if (current) {
+    await retireLegacyEntry(request);
+    return current;
+  }
+
+  return matchCaches(await legacyCacheNames(), request);
+}
+
+async function putInCurrentCache(cacheName, request, response) {
+  await (await caches.open(cacheName)).put(request, response);
+  await retireLegacyEntry(request);
+}
+
 /**
  * Populate the new cache before any legacy cache is removed. Network content
  * wins; an older cached response is used only as an offline migration fallback.
@@ -36,12 +88,15 @@ const STATIC_ASSETS = [
 async function warmStaticAssets() {
   const cache = await caches.open(STATIC_CACHE);
 
-  await Promise.all(STATIC_ASSETS.map(async (asset) => {
+  const warmAsset = async (asset) => {
     const request = new Request(new URL(asset, self.location.origin).toString(), {
       cache: 'reload',
     });
 
-    if (await cache.match(request)) return;
+    if (await cache.match(request)) {
+      await retireLegacyEntry(request);
+      return;
+    }
 
     try {
       const response = await fetch(request);
@@ -49,16 +104,26 @@ async function warmStaticAssets() {
         throw new Error(`Failed to warm ${asset}: HTTP ${response.status}`);
       }
       await cache.put(request, response);
+      await retireLegacyEntry(request);
       return;
     } catch (networkError) {
       const pathname = new URL(request.url).pathname;
       const alias = OFFLINE_ROUTE_ALIASES[pathname];
-      const migrated = await caches.match(request) ||
-        (alias ? await caches.match(new URL(alias, self.location.origin).toString()) : undefined);
+      const migrated = await matchCurrentThenLegacy(request) ||
+        (alias
+          ? await matchCurrentThenLegacy(new URL(alias, self.location.origin).toString(), true)
+          : undefined);
       if (!migrated) throw networkError;
       await cache.put(request, migrated.clone());
+      await retireLegacyEntry(request);
     }
-  }));
+  };
+
+  // Warm canonical routes first so an offline alias migrates from the current
+  // canonical response, never from an older cache racing the same install.
+  const aliases = new Set(Object.keys(OFFLINE_ROUTE_ALIASES));
+  await Promise.all(STATIC_ASSETS.filter((asset) => !aliases.has(asset)).map(warmAsset));
+  await Promise.all(STATIC_ASSETS.filter((asset) => aliases.has(asset)).map(warmAsset));
 }
 
 // Install event - cache static assets
@@ -133,24 +198,25 @@ self.addEventListener('fetch', (event) => {
           // Cache successful page loads
           if (response.ok) {
             const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
-            });
+            void putInCurrentCache(DYNAMIC_CACHE, request, responseClone);
           }
           return response;
         })
         .catch(() => {
           // Return cached version or offline page
-          return caches.match(request).then(async (cachedResponse) => {
+          return matchCurrentThenLegacy(request, true).then(async (cachedResponse) => {
             if (cachedResponse) return cachedResponse;
             const alias = OFFLINE_ROUTE_ALIASES[url.pathname];
             if (alias) {
-              const aliasResponse = await caches.match(
-                new URL(alias, self.location.origin).toString()
+              const aliasResponse = await matchCurrentThenLegacy(
+                new URL(alias, self.location.origin).toString(),
+                true
               );
               if (aliasResponse) return aliasResponse;
             }
-            return caches.match('/offline.html');
+            return matchCurrentThenLegacy(
+              new URL('/offline.html', self.location.origin).toString()
+            );
           });
         })
     );
@@ -159,7 +225,7 @@ self.addEventListener('fetch', (event) => {
 
   // For static assets (CSS, JS, images)
   event.respondWith(
-    caches.match(request)
+    matchCurrentThenLegacy(request)
       .then((cachedResponse) => {
         if (cachedResponse) {
           // Return cached version, but also update cache in background
@@ -167,9 +233,7 @@ self.addEventListener('fetch', (event) => {
             .then((networkResponse) => {
               if (networkResponse.ok) {
                 const responseClone = networkResponse.clone();
-                caches.open(STATIC_CACHE).then((cache) => {
-                  cache.put(request, responseClone);
-                });
+                void putInCurrentCache(STATIC_CACHE, request, responseClone);
               }
               return networkResponse;
             })
@@ -183,9 +247,7 @@ self.addEventListener('fetch', (event) => {
           .then((networkResponse) => {
             if (networkResponse.ok) {
               const responseClone = networkResponse.clone();
-              caches.open(DYNAMIC_CACHE).then((cache) => {
-                cache.put(request, responseClone);
-              });
+              void putInCurrentCache(DYNAMIC_CACHE, request, responseClone);
             }
             return networkResponse;
           })
