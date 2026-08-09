@@ -1,6 +1,6 @@
 /**
  * VerChem Unit System - Conversion Functions
- * NIST-validated conversion factors
+ * Conversion factors based on published SI/NIST references
  *
  * Created: 2026-01-29
  * Author: สมนึก (Claude Opus 4.5)

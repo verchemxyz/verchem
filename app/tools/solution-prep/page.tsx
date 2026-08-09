@@ -28,6 +28,7 @@ import {
   type MixingVolumeBasis,
   type MixingVolumeUnit,
 } from '@/lib/calculations/solution-prep'
+import { parseOptionalFiniteNumber, parseRequiredFiniteNumber } from '@/lib/numeric-input'
 
 // ============================================
 // TYPES
@@ -184,20 +185,13 @@ function DilutionCalculator() {
     setError('')
     setResult(null)
 
-    const input: DilutionInput = {
-      c1: c1.trim() !== '' ? parseFloat(c1) : undefined,
-      v1: v1.trim() !== '' ? parseFloat(v1) : undefined,
-      c2: c2.trim() !== '' ? parseFloat(c2) : undefined,
-      v2: v2.trim() !== '' ? parseFloat(v2) : undefined,
-    }
-
-    // Check for NaN in provided values
-    if (c1.trim() !== '' && isNaN(input.c1!)) { setError('C\u2081 is not a valid number.'); return }
-    if (v1.trim() !== '' && isNaN(input.v1!)) { setError('V\u2081 is not a valid number.'); return }
-    if (c2.trim() !== '' && isNaN(input.c2!)) { setError('C\u2082 is not a valid number.'); return }
-    if (v2.trim() !== '' && isNaN(input.v2!)) { setError('V\u2082 is not a valid number.'); return }
-
     try {
+      const input: DilutionInput = {
+        c1: parseOptionalFiniteNumber(c1, 'C1', { minInclusive: 0 }),
+        v1: parseOptionalFiniteNumber(v1, 'V1', { minInclusive: 0 }),
+        c2: parseOptionalFiniteNumber(c2, 'C2', { minInclusive: 0 }),
+        v2: parseOptionalFiniteNumber(v2, 'V2', { minInclusive: 0 }),
+      }
       const res = solveDilution(input)
       setResult(res)
     } catch (err) {
@@ -295,10 +289,11 @@ function StockPrepCalculator() {
   const [unit, setUnit] = useState<ConcentrationUnit>('mol/L')
   const [solutionDensityInput, setSolutionDensityInput] = useState('')
   const [eqFactor, setEqFactor] = useState('')
-  const [reagentPurity, setReagentPurity] = useState('100')
+  const [reagentPurity, setReagentPurity] = useState('')
   const [reagentForm, setReagentForm] = useState('')
-  const [solvent, setSolvent] = useState('water')
-  const [temperatureC, setTemperatureC] = useState('20')
+  const [solvent, setSolvent] = useState('')
+  const [temperatureC, setTemperatureC] = useState('')
+  const [presetNotice, setPresetNotice] = useState('')
   const [result, setResult] = useState<StockPrepResult | null>(null)
   const [error, setError] = useState('')
 
@@ -316,35 +311,30 @@ function StockPrepCalculator() {
     setError('')
     setResult(null)
 
-    const cVal = Number(conc)
-    const vVal = Number(vol)
-    const mVal = mm.trim() === '' ? undefined : Number(mm)
-    const purityVal = Number(reagentPurity)
-    const temperatureVal = Number(temperatureC)
-
-    if (!Number.isFinite(cVal)) { setError('Concentration is not a valid finite number.'); return }
-    if (!Number.isFinite(vVal)) { setError('Volume is not a valid finite number.'); return }
-    if (needsMolarMass && (mVal === undefined || !Number.isFinite(mVal) || mVal <= 0)) { setError('Molar mass of the exact reagent form is required and must be positive.'); return }
-    if (!Number.isFinite(purityVal) || purityVal <= 0 || purityVal > 100) { setError('Reagent assay/purity must be greater than 0% and no more than 100%.'); return }
-    if (reagentForm.trim() === '') { setError('Enter the exact reagent form, including hydrate or solvate state.'); return }
-    if (!isNeatMaterial && solvent.trim() === '') { setError('Enter the solvent identity; it is not assumed to be water.'); return }
-    if (!Number.isFinite(temperatureVal) || temperatureVal <= -273.15) { setError('Preparation temperature must be finite and above absolute zero.'); return }
-
-    let solutionDensity: number | undefined
-    if (needsDensity) {
-      const dVal = Number(solutionDensityInput)
-      if (!Number.isFinite(dVal) || dVal <= 0) { setError('Measured solution density is required and must be positive for this mass-fraction calculation.'); return }
-      solutionDensity = dVal
-    }
-
-    let equivalentsFactor: number | undefined
-    if (needsEqFactor) {
-      const eVal = Number(eqFactor)
-      if (!Number.isFinite(eVal) || eVal <= 0) { setError('Equivalents factor is required and must be positive for normality.'); return }
-      equivalentsFactor = eVal
-    }
-
     try {
+      const cVal = parseRequiredFiniteNumber(conc, 'Target concentration', { minExclusive: 0 })
+      const vVal = parseRequiredFiniteNumber(vol, 'Target volume', { minExclusive: 0 })
+      const mVal = needsMolarMass
+        ? parseRequiredFiniteNumber(mm, 'Molar mass of the exact reagent form', { minExclusive: 0 })
+        : parseOptionalFiniteNumber(mm, 'Molar mass', { minExclusive: 0 })
+      const purityVal = parseRequiredFiniteNumber(reagentPurity, 'Reagent assay/purity', { minExclusive: 0 })
+      if (purityVal > 100) throw new Error('Reagent assay/purity must not exceed 100%')
+      if (reagentForm.trim() === '') throw new Error('Enter the exact reagent form, including hydrate or solvate state')
+      if (!isNeatMaterial && solvent.trim() === '') {
+        throw new Error('Enter the actual solvent identity; it is not assumed to be water')
+      }
+      const temperatureVal = parseRequiredFiniteNumber(
+        temperatureC,
+        'Preparation / density temperature',
+        { minExclusive: -273.15 }
+      )
+      const solutionDensity = needsDensity
+        ? parseRequiredFiniteNumber(solutionDensityInput, 'Measured solution density', { minExclusive: 0 })
+        : undefined
+      const equivalentsFactor = needsEqFactor
+        ? parseRequiredFiniteNumber(eqFactor, 'Equivalents factor', { minExclusive: 0 })
+        : undefined
+
       const res = calculateStockPrep({
         targetConc: cVal,
         targetVolume: vVal,
@@ -381,6 +371,7 @@ function StockPrepCalculator() {
     setEqFactor('')
     setResult(null)
     setError('')
+    setPresetNotice('This preset filled assay = 100%, solvent = water, and preparation temperature = 20 °C. Review them against the reagent certificate, actual solvent, glassware, and density reference before calculating.')
   }, [])
 
   return (
@@ -407,6 +398,12 @@ function StockPrepCalculator() {
           ))}
         </div>
       </div>
+
+      {presetNotice && (
+        <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-warning-strong">
+          {presetNotice}
+        </div>
+      )}
 
       {/* Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -461,6 +458,11 @@ function StockPrepCalculator() {
             onChange={setSolvent}
             placeholder="e.g. water, ethanol"
           />
+        )}
+        {isNeatMaterial && (
+          <div className="rounded-md border border-border bg-muted p-3 text-sm text-foreground">
+            Solvent: <span className="font-mono font-semibold">none</span> — this target is neat material, not a dilution.
+          </div>
         )}
         <InputField
           label="Preparation / Density Temperature (°C)"
@@ -561,17 +563,14 @@ function SerialDilutionCalculator() {
     setError('')
     setResult(null)
 
-    const cVal = parseFloat(conc)
-    const fVal = parseFloat(factor)
-    const nVal = parseInt(num, 10)
-    const tVal = parseFloat(transfer)
-
-    if (isNaN(cVal)) { setError('Initial concentration is not a valid number.'); return }
-    if (isNaN(fVal)) { setError('Dilution factor is not a valid number.'); return }
-    if (isNaN(nVal)) { setError('Number of dilutions is not a valid number.'); return }
-    if (isNaN(tVal)) { setError('Transfer volume is not a valid number.'); return }
-
     try {
+      const cVal = parseRequiredFiniteNumber(conc, 'Initial concentration', { minExclusive: 0 })
+      const fVal = parseRequiredFiniteNumber(factor, 'Dilution factor', { minExclusive: 1 })
+      const nVal = parseRequiredFiniteNumber(num, 'Number of dilutions', {
+        integer: true,
+        minInclusive: 1,
+      })
+      const tVal = parseRequiredFiniteNumber(transfer, 'Transfer volume', { minExclusive: 0 })
       const res = calculateSerialDilution({
         initialConc: cVal,
         dilutionFactor: fVal,
@@ -708,7 +707,7 @@ function UnitConverterCalculator() {
   const [molarMass, setMolarMass] = useState('')
   const [soluteDensity, setSoluteDensity] = useState('')
   const [solutionDensity, setSolutionDensity] = useState('')
-  const [densityTemperatureC, setDensityTemperatureC] = useState('20')
+  const [densityTemperatureC, setDensityTemperatureC] = useState('')
   const [equivalents, setEquivalents] = useState('')
   const [result, setResult] = useState<UnitConversionResult | null>(null)
   const [error, setError] = useState('')
@@ -721,22 +720,24 @@ function UnitConverterCalculator() {
     setError('')
     setResult(null)
 
-    const vVal = Number(value)
-    if (!Number.isFinite(vVal)) { setError('Value is not a valid finite number.'); return }
-
-    const mmVal = molarMass.trim() === '' ? undefined : Number(molarMass)
-    const soluteDensityVal = soluteDensity.trim() === '' ? undefined : Number(soluteDensity)
-    const solutionDensityVal = solutionDensity.trim() === '' ? undefined : Number(solutionDensity)
-    const densityTemperatureVal = densityTemperatureC.trim() === '' ? undefined : Number(densityTemperatureC)
-    const eqVal = equivalents.trim() === '' ? undefined : Number(equivalents)
-
-    if (requirements.molarMass && (mmVal === undefined || !Number.isFinite(mmVal) || mmVal <= 0)) { setError('Molar mass is required and must be positive to bridge amount and mass bases.'); return }
-    if (requirements.soluteDensity && (soluteDensityVal === undefined || !Number.isFinite(soluteDensityVal) || soluteDensityVal <= 0)) { setError('Pure solute density is required and must be positive for % v/v.'); return }
-    if (requirements.solutionDensity && (solutionDensityVal === undefined || !Number.isFinite(solutionDensityVal) || solutionDensityVal <= 0)) { setError('Complete solution density is required and must be positive for mass fraction.'); return }
-    if (requirements.densityTemperature && (densityTemperatureVal === undefined || !Number.isFinite(densityTemperatureVal) || densityTemperatureVal <= -273.15)) { setError('Density temperature is required and must be above absolute zero.'); return }
-    if (requirements.equivalents && (eqVal === undefined || !Number.isFinite(eqVal) || eqVal <= 0)) { setError('Equivalents factor is required and must be positive for normality.'); return }
-
     try {
+      const vVal = parseRequiredFiniteNumber(value, 'Concentration value', { minInclusive: 0 })
+      const mmVal = requirements.molarMass
+        ? parseRequiredFiniteNumber(molarMass, 'Molar mass', { minExclusive: 0 })
+        : parseOptionalFiniteNumber(molarMass, 'Molar mass', { minExclusive: 0 })
+      const soluteDensityVal = requirements.soluteDensity
+        ? parseRequiredFiniteNumber(soluteDensity, 'Pure solute density', { minExclusive: 0 })
+        : parseOptionalFiniteNumber(soluteDensity, 'Pure solute density', { minExclusive: 0 })
+      const solutionDensityVal = requirements.solutionDensity
+        ? parseRequiredFiniteNumber(solutionDensity, 'Complete solution density', { minExclusive: 0 })
+        : parseOptionalFiniteNumber(solutionDensity, 'Complete solution density', { minExclusive: 0 })
+      const densityTemperatureVal = requirements.densityTemperature
+        ? parseRequiredFiniteNumber(densityTemperatureC, 'Density temperature', { minExclusive: -273.15 })
+        : parseOptionalFiniteNumber(densityTemperatureC, 'Density temperature', { minExclusive: -273.15 })
+      const eqVal = requirements.equivalents
+        ? parseRequiredFiniteNumber(equivalents, 'Equivalents factor', { minExclusive: 0 })
+        : parseOptionalFiniteNumber(equivalents, 'Equivalents factor', { minExclusive: 0 })
+
       const res = convertConcentration({
         value: vVal,
         fromUnit,
@@ -900,25 +901,17 @@ function MixingCalculator() {
     setError('')
     setResult(null)
 
-    const c1Val = Number(c1)
-    const v1Val = Number(v1)
-    const c2Val = Number(c2)
-    const v2Val = Number(v2)
-    const finalVolumeVal = finalVolume.trim() === '' ? undefined : Number(finalVolume)
-
-    if (!Number.isFinite(c1Val)) { setError('C\u2081 is not a valid finite number.'); return }
-    if (!Number.isFinite(v1Val)) { setError('V\u2081 is not a valid finite number.'); return }
-    if (!Number.isFinite(c2Val)) { setError('C\u2082 is not a valid finite number.'); return }
-    if (!Number.isFinite(v2Val)) { setError('V\u2082 is not a valid finite number.'); return }
     if (soluteIdentity.trim() === '') { setError('Enter the one shared solute/analyte identity.'); return }
     if (concentrationUnit === 'N' && normalityContext.trim() === '') { setError('Enter the shared reaction/equivalence context for both normality values.'); return }
     if (!noReactionOrLoss) { setError('Confirm that the same solute is conserved with no reaction or loss.'); return }
-    if (volumeBasis === 'measured-final' &&
-        (finalVolumeVal === undefined || !Number.isFinite(finalVolumeVal) || finalVolumeVal <= 0)) {
-      setError('Enter a positive measured final volume.'); return
-    }
-
     try {
+      const c1Val = parseRequiredFiniteNumber(c1, 'C1', { minInclusive: 0 })
+      const v1Val = parseRequiredFiniteNumber(v1, 'V1', { minInclusive: 0 })
+      const c2Val = parseRequiredFiniteNumber(c2, 'C2', { minInclusive: 0 })
+      const v2Val = parseRequiredFiniteNumber(v2, 'V2', { minInclusive: 0 })
+      const finalVolumeVal = volumeBasis === 'measured-final'
+        ? parseRequiredFiniteNumber(finalVolume, 'Measured final volume', { minExclusive: 0 })
+        : undefined
       const res = calculateMixing({
         c1: c1Val,
         v1: v1Val,
@@ -958,10 +951,10 @@ function MixingCalculator() {
   }, [])
 
   // Visualization data
-  const c1Val = parseFloat(c1) || 0
-  const v1Val = parseFloat(v1) || 0
-  const c2Val = parseFloat(c2) || 0
-  const v2Val = parseFloat(v2) || 0
+  const c1Val = result ? Number(c1) : 0
+  const v1Val = result ? Number(v1) : 0
+  const c2Val = result ? Number(c2) : 0
+  const v2Val = result ? Number(v2) : 0
 
   return (
     <div className="space-y-6">

@@ -7,10 +7,10 @@
 
 import type { VerifiedTool, ToolResult } from '../types'
 import { finalizeResult } from './_validate'
-import { isValidCompound } from './_formula'
 import {
   balanceEquation,
   identifyReactionType,
+  parseChemicalEquation,
 } from '@/lib/calculations/equation-balancer'
 
 const CITATION = 'Brown, LeMay & Bursten, Chemistry: The Central Science (15th ed.), Ch. 3; Atkins & de Paula, Physical Chemistry (11th ed.), Ch. 7'
@@ -36,40 +36,10 @@ const balance_equation: VerifiedTool = {
       return err('equation is required and must be a non-empty string')
     }
 
-    // Normalize "=>" to canonical "->" — the engine parser splits on
-    // /->|→|=/, so a bare "=>" would split at "=" and leak ">" into the
-    // product (e.g. "2H2 + O2 → 2> H2O"). Engine already handles -> → =.
-    const equation = input.equation.trim().replace(/=>/g, '->')
-
-    // Validate arrow presence
-    const arrowMatch = equation.match(/->|→|=/)
-    if (!arrowMatch) {
-      return err('Equation must contain an arrow (->, =>, =, or →) separating reactants and products')
-    }
-
-    const parts = equation.split(/->|→|=>|=/)
-    if (parts.length !== 2) {
-      return err('Equation must have exactly one set of reactants and one set of products')
-    }
-
-    // Split into individual compounds and validate EACH one
-    // Do NOT filter(Boolean) — empty terms from leading/trailing/double + must be caught
-    const rawTerms = equation.split(/->|→|=>|=|\+/).map((s) => s.trim())
-    if (rawTerms.some((t) => t === '')) {
-      return err('Equation contains empty terms (check for leading, trailing, or double + signs)')
-    }
-    const compounds = rawTerms.filter(Boolean)
-    if (compounds.length === 0) {
-      return err('No compounds found in equation')
-    }
-
-    for (const compound of compounds) {
-      if (!isValidCompound(compound)) {
-        return err(`Invalid compound in equation: "${compound}"`)
-      }
-    }
+    const equation = input.equation.trim()
 
     try {
+      parseChemicalEquation(equation)
       const result = balanceEquation(equation)
       if (!result.isBalanced) {
         return err('Could not balance the provided equation. Please check the formula and format.')
@@ -91,7 +61,7 @@ const balance_equation: VerifiedTool = {
         reaction_type: reactionType,
       })
     } catch (e) {
-      return err(e instanceof Error ? e.message : 'Equation balancing failed')
+      return err(e instanceof Error ? `Invalid equation: ${e.message}` : 'Equation balancing failed')
     }
   },
 }

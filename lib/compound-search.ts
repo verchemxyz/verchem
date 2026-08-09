@@ -3,6 +3,11 @@
 
 import { Compound } from './types/chemistry'
 import { COMPREHENSIVE_COMPOUNDS, COMPOUND_STATISTICS } from './data/compounds'
+import { hasApplicableMolarMass } from './data/compounds/types'
+
+function applicableMolarMass(compound: Compound): number | null {
+  return hasApplicableMolarMass(compound) ? compound.molarMass : null
+}
 
 /**
  * Advanced search options interface
@@ -74,9 +79,10 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
   // Molecular mass range
   if (options.molecularMassRange) {
     const [min, max] = options.molecularMassRange
-    results = results.filter(compound => 
-      (compound.molecularMass ?? compound.molarMass) >= min && (compound.molecularMass ?? compound.molarMass) <= max
-    )
+    results = results.filter(compound => {
+      const mass = applicableMolarMass(compound)
+      return mass !== null && mass >= min && mass <= max
+    })
   }
 
   // Physical property ranges
@@ -139,8 +145,17 @@ export function searchCompoundsAdvanced(options: SearchOptions): Compound[] {
           bValue = b.name
           break
         case 'molecularMass':
-          aValue = a.molecularMass ?? a.molarMass
-          bValue = b.molecularMass ?? b.molarMass
+          {
+            const aMass = applicableMolarMass(a)
+            const bMass = applicableMolarMass(b)
+            // N/A values are not numerical masses and always sort after real values.
+            if (aMass === null || bMass === null) {
+              if (aMass === bMass) return 0
+              return aMass === null ? 1 : -1
+            }
+            aValue = aMass
+            bValue = bMass
+          }
           break
         case 'boilingPoint':
           aValue = a.boilingPoint || 0
@@ -186,8 +201,9 @@ export function filterByProperty(filters: PropertyFilter[]): Compound[] {
 
   for (const filter of filters) {
     results = results.filter(compound => {
+      if (filter.property === 'molecularMass' && !hasApplicableMolarMass(compound)) return false
       const value = compound[filter.property]
-      if (value === undefined) return false
+      if (typeof value !== 'number' || !Number.isFinite(value)) return false
 
       switch (filter.operator) {
         case '>':
@@ -293,16 +309,19 @@ export function getCompoundsByFunctionalGroup(functionalGroup: string): Compound
  * Get similar compounds based on molecular mass similarity
  */
 export function findSimilarCompounds(compound: Compound, threshold: number = 0.1): Compound[] {
-  const baseMass = compound.molecularMass ?? compound.molarMass
+  const baseMass = applicableMolarMass(compound)
+  if (baseMass === null) return []
   const massRange = baseMass * threshold
   const minMass = baseMass - massRange
   const maxMass = baseMass + massRange
 
-  return COMPREHENSIVE_COMPOUNDS.filter(c => 
-    c.id !== compound.id &&
-    (c.molecularMass ?? c.molarMass) >= minMass &&
-    (c.molecularMass ?? c.molarMass) <= maxMass
-  )
+  return COMPREHENSIVE_COMPOUNDS.filter(c => {
+    const candidateMass = applicableMolarMass(c)
+    return c.id !== compound.id &&
+      candidateMass !== null &&
+      candidateMass >= minMass &&
+      candidateMass <= maxMass
+  })
 }
 
 /**
@@ -384,8 +403,9 @@ export function calculateMolecularSimilarity(compound1: Compound, compound2: Com
   const elementSimilarity = commonElements.length / totalElements.length
   
   // Calculate mass similarity
-  const massA = compound1.molecularMass ?? compound1.molarMass
-  const massB = compound2.molecularMass ?? compound2.molarMass
+  const massA = applicableMolarMass(compound1)
+  const massB = applicableMolarMass(compound2)
+  if (massA === null || massB === null) return elementSimilarity
   const massDiff = Math.abs(massA - massB)
   const massSimilarity = 1 - (massDiff / Math.max(massA, massB))
   
@@ -440,9 +460,14 @@ export function validateCompoundData(compound: Partial<Compound>): string[] {
   if (!compound.id) errors.push('ID is required')
   if (!compound.name) errors.push('Name is required')
   if (!compound.formula) errors.push('Formula is required')
-  const massValue = compound.molecularMass ?? compound.molarMass
-  if (massValue === undefined || Number(massValue) <= 0) {
+  const massIsNotApplicable = compound.molarMassBasis === 'not-applicable'
+  const massValue = compound.molarMass
+  if (!massIsNotApplicable &&
+      (typeof massValue !== 'number' || !Number.isFinite(massValue) || massValue <= 0)) {
     errors.push('Valid molecular mass is required')
+  }
+  if (massIsNotApplicable && massValue !== null) {
+    errors.push('Not-applicable molecular mass must be null')
   }
 
   // Validate formula format (basic check)

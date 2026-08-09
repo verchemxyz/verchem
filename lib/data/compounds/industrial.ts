@@ -19,7 +19,7 @@ const industrialData: Array<Omit<Compound, 'molarMass'>> = [
   { id: 'acrylonitrile', name: 'Acrylonitrile', formula: 'C3H3N', category: 'industrial', physicalState: 'liquid', hazards: ['H225', 'H351'], uses: ['ABS plastics', 'fibers'] },
   { id: 'vinyl-chloride', name: 'Vinyl Chloride', formula: 'C2H3Cl', category: 'industrial', physicalState: 'gas', hazards: ['H350', 'H220'], uses: ['PVC monomer'] },
   { id: 'vinyl-acetate', name: 'Vinyl Acetate', formula: 'C4H6O2', category: 'industrial', physicalState: 'liquid', hazards: ['H225'], uses: ['PVA polymers'] },
-  { id: 'ethylene-oxide', name: 'Ethylene Oxide', formula: 'C2H4O', category: 'industrial', physicalState: 'gas', hazards: ['H224', 'H350'], uses: ['sterilization', 'ethylene glycol production'] },
+  { id: 'ethylene-oxide', name: 'Ethylene Oxide', formula: 'C2H4O', category: 'industrial', physicalState: 'gas', hazards: ['H220', 'H350'], uses: ['sterilization', 'ethylene glycol production'] },
   { id: 'propylene-oxide', name: 'Propylene Oxide', formula: 'C3H6O', category: 'industrial', physicalState: 'liquid', hazards: ['H224', 'H350'], uses: ['polyurethane polyols'] },
   { id: 'dimethylformamide', name: 'Dimethylformamide', formula: 'C3H7NO', category: 'industrial', physicalState: 'liquid', hazards: ['H351'], uses: ['solvent'] },
   { id: 'dimethyl-sulfoxide', name: 'Dimethyl Sulfoxide', formula: 'C2H6OS', category: 'industrial', physicalState: 'liquid', uses: ['solvent', 'cryoprotection'] },

@@ -277,12 +277,46 @@ function unionStrings(values: ReadonlyArray<readonly string[] | undefined>, norm
   return byLowerCase.size > 0 ? [...byLowerCase.values()] : undefined
 }
 
-function unionHazards(records: readonly Compound[]): Compound['hazards'] {
+/**
+ * UNECE GHS physical-hazard statements whose class is tied to a material
+ * state. A conflicting code is omitted instead of guessed or copied across a
+ * duplicate identity. Exact replacement classifications require reviewed,
+ * substance-specific evidence.
+ */
+const HAZARD_CODE_STATE: Readonly<Record<string, Compound['physicalState']>> = {
+  H220: 'gas',
+  H221: 'gas',
+  H224: 'liquid',
+  H225: 'liquid',
+  H226: 'liquid',
+  H228: 'solid',
+  H230: 'gas',
+  H231: 'gas',
+  H280: 'gas',
+  H281: 'gas',
+}
+
+function hazardAppliesToState(
+  hazard: NonNullable<Compound['hazards']>[number],
+  physicalState: Compound['physicalState']
+): boolean {
+  const text = typeof hazard === 'string'
+    ? hazard
+    : `${hazard.type ?? ''} ${hazard.ghsCode ?? ''}`
+  const codes = text.match(/\bH\d{3}\b/g) ?? []
+  return codes.every(code => HAZARD_CODE_STATE[code] === undefined || HAZARD_CODE_STATE[code] === physicalState)
+}
+
+function mergeApplicableHazards(
+  records: readonly Compound[],
+  physicalState: Compound['physicalState']
+): Compound['hazards'] {
   type Hazard = NonNullable<Compound['hazards']>[number]
   const hazards = new Map<string, Hazard>()
 
   for (const record of records) {
     for (const hazard of record.hazards ?? []) {
+      if (!hazardAppliesToState(hazard, physicalState)) continue
       const key = typeof hazard === 'string'
         ? `string:${hazard.trim().toLocaleLowerCase('en')}`
         : `object:${hazard.type ?? ''}:${hazard.ghsCode ?? ''}:${hazard.severity ?? ''}`
@@ -291,6 +325,17 @@ function unionHazards(records: readonly Compound[]): Compound['hazards'] {
   }
 
   return hazards.size > 0 ? [...hazards.values()] : undefined
+}
+
+function mergeApplicablePictograms(
+  records: readonly Compound[],
+  physicalState: Compound['physicalState']
+): string[] | undefined {
+  const merged = unionStrings(records.map(record => record.ghs))
+  // GHS04 is specifically the gas-cylinder pictogram. Other pictograms (for
+  // example the flame) can legitimately apply across several physical states.
+  const applicable = merged?.filter(code => code !== 'GHS04' || physicalState === 'gas')
+  return applicable && applicable.length > 0 ? applicable : undefined
 }
 
 function applyIdentitySplits(records: readonly SourcedCompound[]): SourcedCompound[] {
@@ -330,14 +375,17 @@ function mergeCollision(id: string, records: readonly SourcedCompound[], resolut
 
   const fallback = records.reduce<Compound>((merged, record) => ({ ...merged, ...record.compound }), records[0]!.compound)
   const sourceCompounds = records.map(record => record.compound)
-  const merged: Compound = {
+  const identity: Compound = {
     ...fallback,
     ...primary.compound,
     ...resolution.overrides,
     id,
+  }
+  const merged: Compound = {
+    ...identity,
     uses: unionStrings(sourceCompounds.map(record => record.uses), normalizeUse),
-    hazards: unionHazards(sourceCompounds),
-    ghs: unionStrings(sourceCompounds.map(record => record.ghs)),
+    hazards: mergeApplicableHazards(sourceCompounds, identity.physicalState),
+    ghs: mergeApplicablePictograms(sourceCompounds, identity.physicalState),
     componentCasNumbers: unionStrings(sourceCompounds.map(record => record.componentCasNumbers)),
   }
 
@@ -354,11 +402,15 @@ function normalizeCompound(compound: Compound): Compound {
     ? undefined
     : calculateMolarMass(compound.formula)
   const normalizedUses = unionStrings([compound.uses], normalizeUse)
+  const applicableHazards = mergeApplicableHazards([compound], compound.physicalState)
+  const applicableGhs = mergeApplicablePictograms([compound], compound.physicalState)
 
   if (calculatedMass !== undefined) {
     return {
       ...compound,
       uses: normalizedUses,
+      hazards: applicableHazards,
+      ghs: applicableGhs,
       molarMass: calculatedMass,
       molecularMass: calculatedMass,
       molarMassBasis: isRepeatUnit ? 'repeat-unit' : 'formula',
@@ -371,6 +423,8 @@ function normalizeCompound(compound: Compound): Compound {
     return {
       ...compound,
       uses: normalizedUses,
+      hazards: applicableHazards,
+      ghs: applicableGhs,
       molecularMass: compound.molarMass,
       molarMassBasis: 'mixture-average',
       casNumber,
@@ -381,8 +435,10 @@ function normalizeCompound(compound: Compound): Compound {
   return {
     ...compound,
     uses: normalizedUses,
-    molarMass: 0,
-    molecularMass: 0,
+    hazards: applicableHazards,
+    ghs: applicableGhs,
+    molarMass: null,
+    molecularMass: null,
     molarMassBasis: 'not-applicable',
     casNumber,
     cas: casNumber,

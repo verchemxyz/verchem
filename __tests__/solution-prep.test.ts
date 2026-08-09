@@ -8,13 +8,19 @@
 import assert from 'node:assert/strict'
 
 import {
+  calculateSerialDilution,
   calculateMixing,
   calculateStockPrep,
   convertConcentration,
   getConcentrationConversionRequirements,
+  solveDilution,
   type MixingConcentrationUnit,
   type MixingVolumeUnit,
 } from '@/lib/calculations/solution-prep'
+import {
+  parseOptionalFiniteNumber,
+  parseRequiredFiniteNumber,
+} from '@/lib/numeric-input'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -247,6 +253,7 @@ describe('stock preparation: neat material and safety boundary', () => {
   test('100% v/v is a neat material with no dilution or generic acid SOP', () => {
     const result = calculateStockPrep({
       ...VOLUME_CONTEXT,
+      solvent: 'none',
       targetConc: 100,
       targetVolume: 1,
       unit: 'pct_vv',
@@ -262,6 +269,7 @@ describe('stock preparation: neat material and safety boundary', () => {
     const result = calculateStockPrep({
       ...MASS_CONTEXT,
       reagentForm: 'neat reagent',
+      solvent: 'none',
       targetConc: 100,
       targetVolume: 1,
       unit: 'pct_ww',
@@ -275,11 +283,30 @@ describe('stock preparation: neat material and safety boundary', () => {
   test('100% target from sub-100% reagent is rejected', () => {
     assert.throws(() => calculateStockPrep({
       ...VOLUME_CONTEXT,
+      solvent: 'none',
       reagentPurityPercent: 96,
       targetConc: 100,
       targetVolume: 1,
       unit: 'pct_vv',
     }), /100% target.*below 100%/i)
+  })
+
+  test('"none" is accepted only for neat material and a neat target must declare it', () => {
+    assert.throws(() => calculateStockPrep({
+      ...MASS_CONTEXT,
+      solvent: 'none',
+      targetConc: 1,
+      targetVolume: 1,
+      unit: 'g/L',
+    }), /actual solvent identity/i)
+
+    assert.throws(() => calculateStockPrep({
+      ...VOLUME_CONTEXT,
+      solvent: 'water',
+      targetConc: 100,
+      targetVolume: 1,
+      unit: 'pct_vv',
+    }), /requires solvent.*"none"/i)
   })
 
   test('unknown chemistry never receives a generic acid order-of-addition instruction', () => {
@@ -325,6 +352,45 @@ describe('stock preparation: numerical and domain guards', () => {
       unit: 'ppm',
       solutionDensity: 1,
     }), /cannot exceed/i)
+  })
+})
+
+describe('strict calculator input and dilution guards', () => {
+  test('text fields reject blanks, partial numeric tokens, and non-finite values', () => {
+    assert.throws(() => parseRequiredFiniteNumber('', 'Value'), /required/i)
+    assert.throws(() => parseRequiredFiniteNumber('2abc', 'Value'), /finite/i)
+    assert.throws(() => parseRequiredFiniteNumber('Infinity', 'Value'), /finite/i)
+    assert.equal(parseOptionalFiniteNumber('  ', 'Value'), undefined)
+    assert.equal(parseRequiredFiniteNumber('2.5', 'Value'), 2.5)
+  })
+
+  test('dilution rejects non-finite inputs and non-finite derived results', () => {
+    assert.throws(() => solveDilution({
+      c1: Number.POSITIVE_INFINITY,
+      v1: 1,
+      c2: 1,
+    }), /finite/i)
+    assert.throws(() => solveDilution({
+      c1: Number.MAX_VALUE,
+      v1: Number.MAX_VALUE,
+      c2: 1,
+    }), /finite representable range/i)
+  })
+
+  test('serial dilution requires a finite whole count and finite derived values', () => {
+    const base = {
+      initialConc: 1,
+      dilutionFactor: 10,
+      transferVolume: 1,
+    }
+    assert.throws(() => calculateSerialDilution({ ...base, numDilutions: 2.5 }), /whole integer/i)
+    assert.throws(() => calculateSerialDilution({ ...base, numDilutions: Number.POSITIVE_INFINITY }), /whole integer/i)
+    assert.throws(() => calculateSerialDilution({
+      ...base,
+      dilutionFactor: Number.MAX_VALUE,
+      transferVolume: Number.MAX_VALUE,
+      numDilutions: 2,
+    }), /finite representable range/i)
   })
 })
 

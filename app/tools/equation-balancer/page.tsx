@@ -341,7 +341,7 @@ export default function EquationBalancerToolPage() {
             {' • '}
             <Link href="/tools/stoichiometry" className="hover:text-primary-600 transition-colors">Stoichiometry</Link>
             {' • '}
-            <Link href="/tools/ph-calculator" className="hover:text-primary-600 transition-colors">pH Calculator</Link>
+            <Link href="/solutions" className="hover:text-primary-600 transition-colors">pH Calculator</Link>
             {' • '}
             <Link href="/periodic-table" className="hover:text-primary-600 transition-colors">Periodic Table</Link>
           </p>

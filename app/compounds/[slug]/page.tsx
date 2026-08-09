@@ -3,7 +3,12 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { CalcShell, Card, SectionTitle } from '@/components/lab'
 import { COMPREHENSIVE_COMPOUNDS } from '@/lib/data/compounds'
-import { Compound, CompoundCategory } from '@/lib/data/compounds/types'
+import {
+  Compound,
+  CompoundCategory,
+  hasApplicableMolarMass,
+  hasFormulaMolarMass,
+} from '@/lib/data/compounds/types'
 
 // Generate static params for all compounds
 export async function generateStaticParams() {
@@ -21,8 +26,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Compound Not Found | VerChem' }
   }
 
-  const title = `${compound.name} (${compound.formula}) - Properties & Safety | VerChem`
-  const description = `${compound.name}${compound.nameThai ? ` (${compound.nameThai})` : ''}: ${compound.formula}, molar mass ${compound.molarMass.toFixed(2)} g/mol${compound.casNumber ? `, CAS ${compound.casNumber}` : ''}. Properties, safety data, and uses.`
+  const title = `${compound.name} (${compound.formula}) - Chemical Record | VerChem`
+  const massDescription = hasApplicableMolarMass(compound)
+    ? `, ${compound.molarMassBasis === 'mixture-average' ? 'reviewed mixture-average molar mass' : compound.molarMassBasis === 'repeat-unit' ? 'repeat-unit molar mass' : 'molar mass'} ${compound.molarMass.toFixed(2)} g/mol`
+    : ''
+  const availableDetails = [
+    compound.hazards?.length || compound.ghs?.length ? 'curated safety fields' : null,
+    compound.uses?.length ? 'uses' : null,
+    compound.meltingPoint !== undefined || compound.boilingPoint !== undefined || compound.density !== undefined
+      ? 'selected physical properties'
+      : null,
+  ].filter((value): value is string => value !== null)
+  const detailsDescription = availableDetails.length > 0
+    ? `. Includes ${availableDetails.join(', ')}`
+    : ''
+  const description = `${compound.name}${compound.nameThai ? ` (${compound.nameThai})` : ''}: ${compound.formula}${massDescription}${compound.casNumber ? `, CAS ${compound.casNumber}` : ''}${detailsDescription}.`
 
   return {
     title,
@@ -149,6 +167,12 @@ const GHS_DESCRIPTIONS: Record<string, string> = {
 
 // Schema.org markup
 function CompoundSchema({ compound }: { compound: Compound }) {
+  const hasMolarMass = hasApplicableMolarMass(compound)
+  const massBasisLabel = compound.molarMassBasis === 'mixture-average'
+    ? 'reviewed mixture-average molar mass'
+    : compound.molarMassBasis === 'repeat-unit'
+      ? 'repeat-unit molar mass'
+      : 'molar mass'
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'ChemicalSubstance',
@@ -172,14 +196,14 @@ function CompoundSchema({ compound }: { compound: Compound }) {
           text: `The chemical formula of ${compound.name} is ${compound.formula}.`,
         },
       },
-      {
+      hasMolarMass ? {
         '@type': 'Question',
-        name: `What is the molar mass of ${compound.name}?`,
+        name: `What is the ${massBasisLabel} of ${compound.name}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `The molar mass of ${compound.name} (${compound.formula}) is ${compound.molarMass.toFixed(2)} g/mol.`,
+          text: `The ${massBasisLabel} of ${compound.name} (${compound.formula}) is ${compound.molarMass.toFixed(2)} g/mol.`,
         },
-      },
+      } : null,
       compound.casNumber ? {
         '@type': 'Question',
         name: `What is the CAS number of ${compound.name}?`,
@@ -223,6 +247,13 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
 
   const relatedCompounds = getRelatedCompounds(compound)
   const hazardCodes = formatHazards(compound.hazards)
+  const hasMolarMass = hasApplicableMolarMass(compound)
+  const supportsFormulaCalculators = hasFormulaMolarMass(compound)
+  const massLabel = compound.molarMassBasis === 'mixture-average'
+    ? 'Mixture-average molar mass'
+    : compound.molarMassBasis === 'repeat-unit'
+      ? 'Repeat-unit molar mass'
+      : 'Molar mass'
 
   return (
     <>
@@ -266,7 +297,11 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
                 )}
               </div>
               <p className="text-2xl font-semibold font-mono text-foreground">
-                {compound.molarMass.toFixed(4)} <span className="text-base font-normal text-muted-foreground">g/mol</span>
+                {hasMolarMass ? (
+                  <>{compound.molarMass.toFixed(4)} <span className="text-base font-normal text-muted-foreground">g/mol</span></>
+                ) : (
+                  <span className="text-base font-normal text-muted-foreground">Molar mass: N/A (variable composition)</span>
+                )}
               </p>
             </div>
           </div>
@@ -283,8 +318,10 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
                 <dd className="font-medium text-foreground font-mono">{compound.formula}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Molar Mass</dt>
-                <dd className="font-medium text-foreground font-mono">{compound.molarMass.toFixed(4)} g/mol</dd>
+                <dt className="text-muted-foreground">{massLabel}</dt>
+                <dd className="font-medium text-foreground font-mono">
+                  {hasMolarMass ? `${compound.molarMass.toFixed(4)} g/mol` : 'N/A (variable composition)'}
+                </dd>
               </div>
               {compound.casNumber && (
                 <div className="flex justify-between">
@@ -437,23 +474,31 @@ export default async function CompoundPage({ params }: { params: Promise<{ slug:
         <Card className="p-6">
           <SectionTitle className="mb-2 text-xl">Calculate with {compound.name}</SectionTitle>
           <p className="text-muted-foreground mb-4">
-            Use our chemistry calculators to work with {compound.formula} in reactions and solutions.
+            {supportsFormulaCalculators
+              ? `Use our chemistry calculators to work with ${compound.formula} in reactions and solutions.`
+              : hasMolarMass
+                ? 'This record has a reviewed mixture-average molar mass, not one molecular formula, so formula-based mass and stoichiometry calculations are not offered.'
+                : 'This variable-composition material has no single molar mass, so formula-based mass and stoichiometry calculations are not offered for this record.'}
           </p>
           <div className="flex flex-wrap gap-3">
+            {supportsFormulaCalculators && (
+              <>
+                <Link
+                  href="/tools/molar-mass"
+                  className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+                >
+                  Molar Mass Calculator
+                </Link>
+                <Link
+                  href="/tools/stoichiometry"
+                  className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
+                >
+                  Stoichiometry Calculator
+                </Link>
+              </>
+            )}
             <Link
-              href="/tools/molar-mass"
-              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
-            >
-              Molar Mass Calculator
-            </Link>
-            <Link
-              href="/tools/stoichiometry"
-              className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
-            >
-              Stoichiometry Calculator
-            </Link>
-            <Link
-              href="/tools/ph-calculator"
+              href="/solutions"
               className="inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium"
             >
               pH Calculator

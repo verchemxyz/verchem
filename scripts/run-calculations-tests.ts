@@ -503,10 +503,10 @@ test('solutions: pH ↔ pOH relationships at 25°C', () => {
 })
 
 test('solutions: strong acid and strong base pH', () => {
-  const strongAcid = calculateStrongAcidPH(0.01)
+  const strongAcid = calculateStrongAcidPH(0.01, { formula: 'HCl' })
   expectApproximately(strongAcid.pH, 2, 0.01)
 
-  const strongBase = calculateStrongBasePH(0.01)
+  const strongBase = calculateStrongBasePH(0.01, { formula: 'NaOH' })
   expectApproximately(strongBase.pH, 12, 0.01)
 })
 

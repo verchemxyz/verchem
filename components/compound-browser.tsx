@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Compound } from '@/lib/types/chemistry'
+import { hasApplicableMolarMass } from '@/lib/data/compounds/types'
 import { 
   searchCompoundsAdvanced, 
   getRandomCompounds,
@@ -35,7 +36,6 @@ export default function CompoundBrowser({
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedHazard, setSelectedHazard] = useState<string>('all')
-  const [molecularMassRange] = useState<[number, number]>([0, 1000])
   const [sortBy, setSortBy] = useState<'name' | 'molecularMass' | 'boilingPoint'>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -80,7 +80,6 @@ export default function CompoundBrowser({
         query: searchQuery,
         category: selectedCategory === 'all' ? undefined : [selectedCategory],
         hazardTypes: selectedHazard === 'all' ? undefined : [selectedHazard],
-        molecularMassRange: molecularMassRange[1] > 0 ? molecularMassRange : undefined,
         sortBy,
         sortOrder,
         limit: 100
@@ -93,7 +92,7 @@ export default function CompoundBrowser({
     } finally {
       setLoading(false)
     }
-  }, [searchQuery, selectedCategory, selectedHazard, molecularMassRange, sortBy, sortOrder])
+  }, [searchQuery, selectedCategory, selectedHazard, sortBy, sortOrder])
 
   // Load compounds on mount
   useEffect(() => {
@@ -144,7 +143,11 @@ export default function CompoundBrowser({
         </div>
 
         <div className="text-sm text-muted-foreground mb-2">
-          {compound.molecularMass && <div>MW: {compound.molecularMass.toFixed(2)} g/mol</div>}
+          <div>
+            Molar mass: {hasApplicableMolarMass(compound)
+              ? `${compound.molarMass.toFixed(2)} g/mol`
+              : 'N/A (variable composition)'}
+          </div>
           {compound.meltingPoint && <div>MP: {compound.meltingPoint}°C</div>}
           {compound.boilingPoint && <div>BP: {compound.boilingPoint}°C</div>}
         </div>
@@ -218,7 +221,11 @@ export default function CompoundBrowser({
             <div className="flex items-center gap-3">
               <h3 className="font-bold text-foreground">{compound.name}</h3>
               <span className="text-sm text-muted-foreground">{compound.formula}</span>
-              {compound.molecularMass && <span className="text-sm text-muted-foreground">MW: {compound.molecularMass.toFixed(1)}</span>}
+              <span className="text-sm text-muted-foreground">
+                Molar mass: {hasApplicableMolarMass(compound)
+                  ? `${compound.molarMass.toFixed(1)} g/mol`
+                  : 'N/A'}
+              </span>
             </div>
 
             <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
@@ -463,7 +470,12 @@ export default function CompoundBrowser({
               <h3 className="font-semibold mb-2 text-foreground">Basic Properties</h3>
               <div className="space-y-1 text-sm text-foreground">
                 <div><strong>Formula:</strong> {selectedCompound.formula}</div>
-                {selectedCompound.molecularMass && <div><strong>Molecular Mass:</strong> {selectedCompound.molecularMass.toFixed(2)} g/mol</div>}
+                <div>
+                  <strong>Molar Mass:</strong>{' '}
+                  {hasApplicableMolarMass(selectedCompound)
+                    ? `${selectedCompound.molarMass.toFixed(2)} g/mol`
+                    : 'N/A (variable composition)'}
+                </div>
                 {selectedCompound.cas && <div><strong>CAS:</strong> {selectedCompound.cas}</div>}
                 {selectedCompound.meltingPoint && <div><strong>Melting Point:</strong> {selectedCompound.meltingPoint}°C</div>}
                 {selectedCompound.boilingPoint && <div><strong>Boiling Point:</strong> {selectedCompound.boilingPoint}°C</div>}

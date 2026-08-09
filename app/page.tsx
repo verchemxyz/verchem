@@ -176,7 +176,7 @@ export default function Home() {
             Tools
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Deterministic engines, validated against NIST and IUPAC standards.
+            Deterministic engines with published references and explicit model assumptions.
           </p>
         </div>
 
@@ -184,7 +184,7 @@ export default function Home() {
           <ToolCard
             href="/periodic-table"
             title="Periodic Table"
-            description="All 118 elements with NIST-validated atomic weights, electron configurations, and spectral data."
+            description="All 118 elements; standard atomic weights based on IUPAC 2021, with selected properties citing NIST and CRC references."
             icon={<BeakerIcon />}
           />
           <ToolCard
@@ -317,7 +317,7 @@ export default function Home() {
                 <span className="font-bold text-foreground">VerChem</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Deterministic chemistry workbench. HMAC-signed results, NIST-validated data.
+                Deterministic chemistry workbench. HMAC-signed results and cited reference data.
               </p>
             </div>
 

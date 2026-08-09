@@ -16,12 +16,12 @@ const CHEMISTRY_TOOLS = [
   {
     href: '/tools/molar-mass',
     label: 'Molar Mass Calculator',
-    description: 'Molecular weight with element-by-element breakdown (NIST-validated atomic masses).',
+    description: 'Molar mass with an element-by-element breakdown using standard atomic weights based on IUPAC 2021.',
   },
   {
     href: '/tools/substructure-search',
     label: 'Substructure Search',
-    description: 'Draw a fragment, find every compound that contains it — substructure & similarity over a verified structure library (RDKit).',
+    description: 'Draw a fragment and find matching records in the RDKit-verified structure-search corpus.',
   },
   {
     href: '/tools/periodic-table',
@@ -39,7 +39,7 @@ const CHEMISTRY_TOOLS = [
     description: 'Moles, limiting reagent, and theoretical yield — fast and beginner-friendly.',
   },
   {
-    href: '/tools/ph-calculator',
+    href: '/solutions',
     label: 'pH Calculator',
     description: 'Calculate pH, pOH, and concentrations for common acid/base problems.',
   },

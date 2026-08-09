@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'pH Calculator - Free Online Acid Base Calculator | VerChem',
-  description: 'Calculate pH, pOH, H+ and OH- concentrations instantly. Free online pH calculator for acids, bases, and buffer solutions. Perfect for chemistry students and lab work.',
+  title: 'pH Calculator | VerChem',
+  description: 'Legacy URL for the canonical VerChem Solutions & pH calculator.',
   keywords: [
     'pH calculator',
     'pH calculation',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title: 'pH Calculator - Free Online Acid Base Calculator',
     description: 'Calculate pH, pOH, and ion concentrations instantly. Free, accurate, and easy to use.',
     type: 'website',
-    url: 'https://verchem.xyz/tools/ph-calculator',
+    url: 'https://verchem.xyz/solutions',
     images: [
       {
         url: '/og-ph-calculator.png',
@@ -35,13 +35,13 @@ export const metadata: Metadata = {
     description: 'Calculate pH, pOH, and ion concentrations instantly. Free and accurate.',
   },
   alternates: {
-    canonical: 'https://verchem.xyz/tools/ph-calculator',
+    canonical: 'https://verchem.xyz/solutions',
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',

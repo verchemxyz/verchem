@@ -170,7 +170,7 @@ export default function MolarMassCalculatorPage() {
     <>
       <MolarMassSchema />
       <CalcShell
-        eyebrow="NIST-validated atomic masses"
+        eyebrow="Standard atomic weights · based on IUPAC 2021"
         title="Molar Mass Calculator"
         subtitle="Calculate molecular weight instantly with element-by-element breakdown. Perfect for stoichiometry, lab work, and chemistry homework."
         backHref="/tools"
@@ -183,7 +183,7 @@ export default function MolarMassCalculatorPage() {
             <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success-strong" /> NIST Data
+            <CheckCircle className="h-4 w-4 text-success-strong" /> Cited IUPAC Weights
           </span>
           <span className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-success-strong" /> Element Breakdown
@@ -391,7 +391,7 @@ export default function MolarMassCalculatorPage() {
               {
                 step: '3',
                 title: 'Lookup Masses',
-                description: 'NIST atomic masses are used for precise calculations'
+                description: 'Standard atomic weights are based on the IUPAC 2021 table'
               },
               {
                 step: '4',
@@ -464,8 +464,8 @@ export default function MolarMassCalculatorPage() {
               },
               {
                 icon: Atom,
-                title: 'NIST Atomic Masses',
-                description: 'Uses official NIST atomic weight values for maximum accuracy'
+                title: 'IUPAC-Based Atomic Weights',
+                description: 'Uses standard atomic weights based on the IUPAC 2021 table and states that reference basis explicitly'
               },
               {
                 icon: Scale,
@@ -562,7 +562,7 @@ export default function MolarMassCalculatorPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/tools/ph-calculator"
+              href="/solutions"
               className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               pH Calculator

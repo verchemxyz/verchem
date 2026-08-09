@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { PHCalculatorSchema } from '@/components/seo/JsonLd'
 import {
   CalcShell,
   Card,
@@ -24,10 +25,12 @@ import {
   calculateDilution as calcDilution,
   STRONG_ACIDS,
   STRONG_BASES,
+  PH_MODEL_25C,
   type MolarityResult,
   type PHResult,
   type DilutionResult,
 } from '@/lib/calculations/solutions'
+import { parseRequiredFiniteNumber } from '@/lib/numeric-input'
 
 type CalculatorMode =
   | 'molarity'
@@ -89,8 +92,8 @@ export default function SolutionsPage() {
 
   // Get pH label
   const getPhLabel = (ph: number): string => {
-    if (ph < 7) return 'Acidic'
-    if (ph === 7) return 'Neutral'
+    if (ph < PH_MODEL_25C.neutralPH) return 'Acidic'
+    if (Math.abs(ph - PH_MODEL_25C.neutralPH) < 1e-10) return 'Neutral'
     return 'Basic'
   }
 
@@ -105,8 +108,8 @@ export default function SolutionsPage() {
     try {
       switch (mode) {
         case 'molarity': {
-          const n = parseFloat(moles)
-          const V = parseFloat(volumeL)
+          const n = parseRequiredFiniteNumber(moles, 'Moles', { minInclusive: 0 })
+          const V = parseRequiredFiniteNumber(volumeL, 'Volume', { minExclusive: 0 })
           const result = calculateMolarity(n, V)
           setMolarityResult(result)
           setSteps([
@@ -124,7 +127,7 @@ export default function SolutionsPage() {
         }
 
         case 'strong-acid-ph': {
-          const conc = parseFloat(concentration)
+          const conc = parseRequiredFiniteNumber(concentration, 'Concentration', { minInclusive: 0 })
           const result = calculateStrongAcidPH(conc, { formula: selectedAcid })
           setPhResult(result)
           const usesSecondDissociation = selectedAcid === 'H2SO4'
@@ -154,7 +157,7 @@ export default function SolutionsPage() {
         }
 
         case 'strong-base-ph': {
-          const conc = parseFloat(concentration)
+          const conc = parseRequiredFiniteNumber(concentration, 'Concentration', { minInclusive: 0 })
           const result = calculateStrongBasePH(conc, { formula: selectedBase })
           setPhResult(result)
           setSteps([
@@ -180,10 +183,20 @@ export default function SolutionsPage() {
         }
 
         case 'weak-acid-ph': {
-          const conc = parseFloat(concentration)
-          const kaValue = parseFloat(ka)
+          const conc = parseRequiredFiniteNumber(concentration, 'Concentration', { minExclusive: 0 })
+          const kaValue = parseRequiredFiniteNumber(ka, 'Ka', { minExclusive: 0 })
           const result = calculateWeakAcidPH(conc, kaValue)
           setPhResult(result)
+          const equilibriumSteps = result.method === 'approximation'
+            ? [
+                `The estimated ionization is ${result.percentIonization.toFixed(2)}%, so the 5% approximation is used.`,
+                `x ≈ √(Ka × C)`,
+                `x = √(${kaValue.toExponential(2)} × ${conc})`,
+              ]
+            : [
+                `The 5% approximation is not valid; solve x² + Kax - KaC = 0.`,
+                `x = (-Ka + √(Ka² + 4KaC)) / 2`,
+              ]
           setSteps([
             `Weak Acid: Ka = ${kaValue.toExponential(2)}`,
             ``,
@@ -199,10 +212,7 @@ export default function SolutionsPage() {
             `Ka = [H⁺][A⁻] / [HA]`,
             `Ka = x² / (${conc} - x)`,
             ``,
-            `Assuming x << ${conc}:`,
-            `x² ≈ Ka × ${conc}`,
-            `x = √(Ka × C)`,
-            `x = √(${kaValue.toExponential(2)} × ${conc})`,
+            ...equilibriumSteps,
             `x = [H⁺] = ${result.H_concentration.toExponential(3)} M`,
             ``,
             `pH = -log₁₀[H⁺] = ${result.pH.toFixed(2)}`,
@@ -213,10 +223,20 @@ export default function SolutionsPage() {
         }
 
         case 'weak-base-ph': {
-          const conc = parseFloat(concentration)
-          const kbValue = parseFloat(kb)
+          const conc = parseRequiredFiniteNumber(concentration, 'Concentration', { minExclusive: 0 })
+          const kbValue = parseRequiredFiniteNumber(kb, 'Kb', { minExclusive: 0 })
           const result = calculateWeakBasePH(conc, kbValue)
           setPhResult(result)
+          const equilibriumSteps = result.method === 'approximation'
+            ? [
+                `The estimated ionization is ${result.percentIonization.toFixed(2)}%, so the 5% approximation is used.`,
+                `x ≈ √(Kb × C)`,
+                `x = √(${kbValue.toExponential(2)} × ${conc})`,
+              ]
+            : [
+                `The 5% approximation is not valid; solve x² + Kbx - KbC = 0.`,
+                `x = (-Kb + √(Kb² + 4KbC)) / 2`,
+              ]
           setSteps([
             `Weak Base: Kb = ${kbValue.toExponential(2)}`,
             ``,
@@ -232,13 +252,11 @@ export default function SolutionsPage() {
             `Kb = [BH⁺][OH⁻] / [B]`,
             `Kb = x² / (${conc} - x)`,
             ``,
-            `Assuming x << ${conc}:`,
-            `x² ≈ Kb × ${conc}`,
-            `x = √(Kb × C)`,
+            ...equilibriumSteps,
             `x = [OH⁻] = ${result.OH_concentration.toExponential(3)} M`,
             ``,
             `pOH = -log₁₀[OH⁻] = ${result.pOH.toFixed(2)}`,
-            `pH = 14 - pOH = ${result.pH.toFixed(2)}`,
+            `pH = ${PH_MODEL_25C.pKw.toFixed(2)} - pOH = ${result.pH.toFixed(2)}`,
             ``,
             `Classification: ${getPhLabel(result.pH)}`,
           ])
@@ -246,9 +264,9 @@ export default function SolutionsPage() {
         }
 
         case 'buffer-ph': {
-          const pkaValue = parseFloat(pka)
-          const acid = parseFloat(acidConc)
-          const base = parseFloat(conjugateBaseConc)
+          const pkaValue = parseRequiredFiniteNumber(pka, 'pKa')
+          const acid = parseRequiredFiniteNumber(acidConc, 'Weak-acid concentration', { minExclusive: 0 })
+          const base = parseRequiredFiniteNumber(conjugateBaseConc, 'Conjugate-base concentration', { minExclusive: 0 })
           const pH = calculateBufferPH(pkaValue, acid, base)
           setPhResult({ pH })
           setSteps([
@@ -276,9 +294,10 @@ export default function SolutionsPage() {
         }
 
         case 'dilution': {
-          const M1 = parseFloat(m1)
-          const V1 = parseFloat(v1)
-          const V2 = parseFloat(v2)
+          const M1 = parseRequiredFiniteNumber(m1, 'Initial molarity', { minExclusive: 0 })
+          const V1 = parseRequiredFiniteNumber(v1, 'Initial volume', { minExclusive: 0 })
+          const V2 = parseRequiredFiniteNumber(v2, 'Final volume', { minExclusive: 0 })
+          if (V2 <= V1) throw new Error('Final volume must be greater than initial volume for a dilution')
           const result = calcDilution({ M1, V1, V2 })
           setDilutionResult(result)
           setSteps([
@@ -324,7 +343,9 @@ export default function SolutionsPage() {
   }
 
   return (
-    <CalcShell
+    <>
+      <PHCalculatorSchema />
+      <CalcShell
       eyebrow="Solutions & pH · 7 calculation modes"
       title="Solutions & pH"
       subtitle="Molarity, pH, buffers, and dilution calculations with a visual pH scale."
@@ -615,7 +636,7 @@ export default function SolutionsPage() {
                     <div
                       className="absolute top-0 bottom-0 w-1 bg-foreground"
                       style={{
-                        left: `${(phResult.pH / 14) * 100}%`,
+                        left: `${(Math.min(14, Math.max(0, phResult.pH)) / 14) * 100}%`,
                         transform: 'translateX(-50%)',
                       }}
                     >
@@ -680,6 +701,19 @@ export default function SolutionsPage() {
                 <div className="text-center text-2xl font-bold">
                   {getPhLabel(phResult.pH).toUpperCase()} Solution
                 </div>
+                {phResult.resolved && (
+                  <p className="mt-3 text-center text-sm text-muted-foreground">
+                    Resolved species: {phResult.resolved.identity}; stoichiometric factor {phResult.resolved.stoichiometricFactor} {phResult.resolved.ion} per formula unit.
+                  </p>
+                )}
+                {phResult.method && (
+                  <p className="mt-3 text-center text-sm text-muted-foreground">
+                    Equilibrium method: {phResult.method === 'quadratic' ? 'quadratic solution' : '5% approximation'}
+                  </p>
+                )}
+                {phResult.warning && (
+                  <p className="mt-2 text-center text-sm text-warning-strong">{phResult.warning}</p>
+                )}
               </div>
             </div>
           )}
@@ -698,16 +732,26 @@ export default function SolutionsPage() {
 
       {/* Reference Info */}
       <Card className="p-6">
+        <SectionTitle className="mb-3">Declared pH model</SectionTitle>
+        <p className="text-sm text-foreground">
+          Aqueous ideal-dilute model at {PH_MODEL_25C.temperatureC} °C; Kw = {PH_MODEL_25C.kw.toExponential(1)}, pKw = {PH_MODEL_25C.pKw.toFixed(2)}, and concentration is used as an activity approximation.
+        </p>
+        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+          {PH_MODEL_25C.assumptions.map((assumption) => <li key={assumption}>• {assumption}</li>)}
+        </ul>
+      </Card>
+
+      <Card className="p-6">
         <SectionTitle className="mb-4">Quick reference</SectionTitle>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-semibold text-primary-600 mb-2">pH scale</h3>
             <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• pH &lt; 7: Acidic (more H⁺)</li>
-              <li>• pH = 7: Neutral (pure water)</li>
-              <li>• pH &gt; 7: Basic/Alkaline (more OH⁻)</li>
-              <li>• pH + pOH = 14 (at 25°C)</li>
+              <li>• pH &lt; {PH_MODEL_25C.neutralPH}: Acidic (more H⁺)</li>
+              <li>• pH = {PH_MODEL_25C.neutralPH}: Neutral in this 25 °C aqueous model</li>
+              <li>• pH &gt; {PH_MODEL_25C.neutralPH}: Basic/Alkaline (more OH⁻)</li>
+              <li>• pH + pOH = {PH_MODEL_25C.pKw} (at {PH_MODEL_25C.temperatureC}°C)</li>
             </ul>
           </div>
 
@@ -732,6 +776,7 @@ export default function SolutionsPage() {
           </ul>
         </div>
       </Card>
-    </CalcShell>
+      </CalcShell>
+    </>
   )
 }

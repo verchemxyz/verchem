@@ -180,9 +180,9 @@ export default function PeriodicTablePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-6">
           <div className="text-3xl font-bold font-mono text-primary-600 mb-2">118</div>
-          <div className="text-foreground font-medium mb-2">Complete Elements</div>
+          <div className="text-foreground font-medium mb-2">Element Records</div>
           <div className="text-sm text-muted-foreground">
-            All elements from Hydrogen to Oganesson with complete data
+            All elements from Hydrogen to Oganesson; optional property coverage varies by element
           </div>
         </Card>
 
@@ -297,7 +297,7 @@ export default function PeriodicTablePage() {
 
       {/* Footnote */}
       <p className="text-center text-xs text-muted-foreground">
-        Atomic masses and properties compiled from NIST/IUPAC 2021 standard values.
+        Standard atomic weights are based on IUPAC 2021; selected properties cite NIST and CRC references.
       </p>
     </CalcShell>
   )

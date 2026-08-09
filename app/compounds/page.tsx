@@ -9,6 +9,8 @@ import { CalcShell, Card, SectionTitle, Button } from '@/components/lab'
 import CompoundBrowser from '@/components/compound-browser'
 import { Compound } from '@/lib/types/chemistry'
 import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
+import { hasApplicableMolarMass } from '@/lib/data/compounds/types'
+import { serializeCsv } from '@/lib/csv'
 
 export default function CompoundsPage() {
   const [selectedCompounds, setSelectedCompounds] = useState<Compound[]>([])
@@ -32,7 +34,8 @@ export default function CompoundsPage() {
       id: compound.id,
       name: compound.name,
       formula: compound.formula,
-      molecularMass: compound.molecularMass,
+      molecularMass: hasApplicableMolarMass(compound) ? compound.molarMass : null,
+      molarMassBasis: compound.molarMassBasis,
       cas: compound.cas,
       meltingPoint: compound.meltingPoint,
       boilingPoint: compound.boilingPoint,
@@ -49,19 +52,20 @@ export default function CompoundsPage() {
       a.click()
       URL.revokeObjectURL(url)
     } else if (format === 'csv') {
-      const headers = ['ID', 'Name', 'Formula', 'Molecular Mass', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Uses']
+      const headers = ['ID', 'Name', 'Formula', 'Molar Mass (g/mol)', 'Molar Mass Basis', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Uses']
       const rows = data.map(compound => [
         compound.id,
         compound.name,
         compound.formula,
-        compound.molecularMass,
+        compound.molecularMass ?? '',
+        compound.molarMassBasis ?? '',
         compound.cas || '',
         compound.meltingPoint || '',
         compound.boilingPoint || '',
         compound.density || '',
         compound.uses?.join(';') || ''
       ])
-      const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+      const csv = serializeCsv([headers, ...rows])
 
       const blob = new Blob([csv], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)
@@ -79,12 +83,12 @@ export default function CompoundsPage() {
       body: 'Search by name, formula, properties, hazards, applications, and more. Filter by molecular mass, physical properties, and functional groups.',
     },
     {
-      title: 'Comprehensive Data',
-      body: 'Each compound includes physical properties, safety data, thermodynamic properties, solubility information, and common applications.',
+      title: 'Per-record Coverage',
+      body: 'Every record has an identity and formula representation. Physical properties, solubility, uses, CAS identifiers, structures, and safety fields are shown only where curated for that record.',
     },
     {
       title: 'Calculator Integration',
-      body: 'Seamlessly integrate with stoichiometry, thermodynamics, and solutions calculators. Automatic property lookup and calculation suggestions.',
+      body: 'Formula-based molar-mass and stoichiometry workflows are available only for fixed-formula or reviewed repeat-unit records. Variable-composition materials and mixture averages are excluded from formula parsing.',
     },
     {
       title: 'Diverse Categories',
@@ -92,7 +96,7 @@ export default function CompoundsPage() {
     },
     {
       title: 'Safety Focus',
-      body: 'Comprehensive hazard information with GHS codes, safety precautions, first aid instructions, and storage recommendations.',
+      body: 'Curated GHS pictograms and hazard statements are displayed when present. This reference does not replace a supplier SDS or an approved laboratory protocol.',
     },
     {
       title: 'Educational Resources',
@@ -113,9 +117,9 @@ export default function CompoundsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { value: COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US'), label: 'Total Compounds' },
-          { value: '20+', label: 'Categories' },
-          { value: '100%', label: 'Data Complete' },
-          { value: '∞', label: 'Applications' },
+          { value: Object.keys(COMPOUND_STATISTICS.categories).length.toLocaleString('en-US'), label: 'Source Groups' },
+          { value: 'Per record', label: 'Field Coverage' },
+          { value: 'CSV / JSON', label: 'Export Formats' },
         ].map(stat => (
           <Card key={stat.label} className="p-4 text-center">
             <div className="text-2xl font-bold font-mono text-primary-600">{stat.value}</div>
@@ -213,25 +217,20 @@ export default function CompoundsPage() {
         <SectionTitle className="mb-4 text-2xl">Technical specifications</SectionTitle>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-semibold mb-2 text-foreground">Data Sources</h3>
+            <h3 className="font-semibold mb-2 text-foreground">Reference Basis</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• NIST Chemistry WebBook</li>
-              <li>• PubChem Database</li>
-              <li>• ChemSpider</li>
-              <li>• CRC Handbook of Chemistry and Physics</li>
-              <li>• Merck Index</li>
-              <li>• IUPAC Standards</li>
+              <li>• Formula masses use the project&apos;s IUPAC 2021 standard atomic weights.</li>
+              <li>• Selected element and physical-property references cite NIST and CRC sources.</li>
+              <li>• VerChem cites these publications; it is not certified by those organizations.</li>
             </ul>
           </div>
           <div>
             <h3 className="font-semibold mb-2 text-foreground">Data Coverage</h3>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Basic properties (name, formula, MW)</li>
-              <li>• Physical properties (MP, BP, density)</li>
-              <li>• Thermodynamic data (ΔH, ΔG, S, Cp)</li>
-              <li>• Safety data (GHS, hazards, precautions)</li>
-              <li>• Structure data (SMILES, InChI)</li>
-              <li>• Applications and uses</li>
+              <li>• Identity and formula representation are present for every record.</li>
+              <li>• Molar mass is omitted for variable-composition records.</li>
+              <li>• MP, BP, density, solubility, CAS, uses, GHS and SMILES coverage varies.</li>
+              <li>• Missing fields are left unavailable rather than filled with inferred values.</li>
             </ul>
           </div>
         </div>

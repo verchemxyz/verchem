@@ -148,7 +148,7 @@ export function MolarMassSchema() {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'Molar Mass Calculator',
-      description: 'Calculate molecular weight of any compound with element breakdown. Uses NIST atomic masses.',
+      description: 'Calculate molar mass from supported fixed-composition formulas with an element breakdown, using standard atomic weights based on the IUPAC 2021 table.',
       url: 'https://verchem.xyz/tools/molar-mass',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'All',
@@ -191,8 +191,8 @@ export function PHCalculatorSchema() {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'pH Calculator',
-      description: 'Calculate pH, pOH, and ion concentrations. Visual pH scale included.',
-      url: 'https://verchem.xyz/tools/ph-calculator',
+      description: 'Calculate molarity, strong- and weak-acid/base pH, buffer pH, and dilution with a declared ideal-dilute aqueous model at 25 °C.',
+      url: 'https://verchem.xyz/solutions',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'All',
       offers: {
@@ -210,7 +210,7 @@ export function PHCalculatorSchema() {
           name: 'What is pH?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'pH is a measure of how acidic or basic a solution is, on a scale from 0 to 14. pH 7 is neutral, below 7 is acidic, and above 7 is basic. It is defined as the negative logarithm of hydrogen ion concentration: pH = -log[H+].'
+            text: 'Thermodynamic pH is defined from hydrogen-ion activity. This educational calculator uses hydrogen-ion molar concentration as an activity approximation for ideal-dilute aqueous solutions at 25 °C.'
           }
         },
         {
@@ -304,7 +304,7 @@ export function PeriodicTableSchema() {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'Interactive Periodic Table',
-      description: 'Explore all 118 elements with detailed properties. NIST/IUPAC certified data.',
+      description: 'Explore all 118 elements with standard atomic weights based on IUPAC 2021 and selected properties citing NIST and CRC references.',
       url: 'https://verchem.xyz/tools/periodic-table',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'All',
@@ -368,7 +368,8 @@ export function BreadcrumbJsonLd({ items }: { items: { name: string; url: string
 // Global FAQ Schema for AI Discoverability
 // ============================================
 
-export function VerChemGlobalFAQSchema() {
+export function VerChemGlobalFAQSchema({ compoundCount }: { compoundCount: number }) {
+  const formattedCompoundCount = compoundCount.toLocaleString('en-US')
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -379,7 +380,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'What is VerChem?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem is a free chemistry platform offering deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,311 compounds. Built for students, chemists, and engineers.'
+          text: `VerChem is a free chemistry platform offering deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements, and a database of ${formattedCompoundCount} compounds. Published element references include IUPAC and NIST. Built for students, chemists, and engineers.`
         }
       },
       {
@@ -395,7 +396,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'How accurate is VerChem data?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. All 118 elements have certified atomic masses and properties updated to 2021 standards.'
+          text: 'VerChem cites published reference sources: standard atomic weights are based on the IUPAC 2021 table, while selected physical properties cite NIST and the CRC Handbook. VerChem is not certified by those organizations, and property coverage varies by element.'
         }
       },
       // Calculator Questions
@@ -404,7 +405,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'What calculators does VerChem offer?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (7 modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus interactive tools: 3D Molecular Viewer, Lewis Structures, VSEPR Geometry, and a complete Periodic Table.'
+          text: 'VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (7 modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus interactive tools: 3D Molecular Viewer, Lewis Structures, VSEPR Geometry, and a table covering all 118 elements.'
         }
       },
       {
@@ -412,7 +413,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'How do I calculate molar mass?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Enter a chemical formula (e.g., H2SO4, NaCl, C6H12O6) into the Molar Mass Calculator. It automatically calculates molecular weight by summing atomic masses × subscripts. For H2O: (2 × 1.008) + (1 × 15.999) = 18.015 g/mol. Uses NIST atomic masses.'
+          text: 'Enter a supported chemical formula (e.g., H2SO4, NaCl, C6H12O6) into the Molar Mass Calculator. It calculates molar mass by summing standard atomic weights × subscripts. For H2O: (2 × 1.008) + (1 × 15.999) = 18.015 g/mol. The standard atomic weights are based on the IUPAC 2021 table.'
         }
       },
       {
@@ -487,7 +488,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'Is a VerChem result guaranteed to be correct?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'It is reproducible, not infallible. A VerChem result is deterministic — identical inputs always give identical output — and uses NIST/IUPAC reference data for the elements. Where a calculation depends on something you did not supply, such as a solution density or an equivalents factor, the tool states the assumption it used instead of hiding it. Signed results are tamper-evident: any later edit breaks the signature. That signature proves the record was not altered; it does not prove the underlying chemistry applies to your situation, so always check the stated assumptions against your own system.'
+          text: 'It is reproducible, not infallible. A VerChem result is deterministic — identical inputs always give identical output — and cites published element references including IUPAC and NIST. Required physical inputs such as solution density or a reaction-specific equivalents factor must be supplied; calculations that need a missing value are rejected rather than guessed. Any listed assumptions describe the declared model scope. Signed results are tamper-evident: any later edit breaks the signature. That signature proves the record was not altered; it does not prove the underlying chemistry applies to your situation.'
         }
       }
     ]
@@ -505,7 +506,8 @@ export function VerChemGlobalFAQSchema() {
 // SoftwareApplication Schema for AI Discovery
 // ============================================
 
-export function VerChemSoftwareApplicationSchema() {
+export function VerChemSoftwareApplicationSchema({ compoundCount }: { compoundCount: number }) {
+  const formattedCompoundCount = compoundCount.toLocaleString('en-US')
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -513,7 +515,7 @@ export function VerChemSoftwareApplicationSchema() {
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     url: 'https://verchem.xyz',
-    description: 'Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements) and a 1,311-compound database. NIST/IUPAC reference data.',
+    description: `Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements), and a ${formattedCompoundCount}-compound database. Element data cites published IUPAC and NIST references.`,
     offers: [
       {
         '@type': 'Offer',
@@ -532,7 +534,7 @@ export function VerChemSoftwareApplicationSchema() {
       'Chemical Kinetics Calculator',
       'Electrochemistry Calculator',
       'Interactive Periodic Table (118 elements)',
-      'Compounds Database (1,311 chemicals)',
+      `Compounds Database (${formattedCompoundCount} records)`,
       'Step-by-step Solutions',
       'Uncertainty Analysis'
     ],

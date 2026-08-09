@@ -5,6 +5,8 @@ import { Compound } from './types/chemistry'
 import { searchCompoundsAdvanced } from './compound-search'
 import { calculateMolecularMass, calculatePercentComposition } from './calculations/stoichiometry'
 import { COMPREHENSIVE_COMPOUNDS } from './data/compounds'
+import { hasApplicableMolarMass, hasFormulaMolarMass } from './data/compounds/types'
+import { serializeCsv } from './csv'
 
 /**
  * Enhanced compound data with calculated properties
@@ -27,7 +29,7 @@ export function getCompoundForStoichiometry(formula: string): EnhancedCompound |
     c.formula.toLowerCase() === formula.toLowerCase()
   )
   
-  if (!compound) return null
+  if (!compound || !hasFormulaMolarMass(compound)) return null
   
   return enhanceCompoundData(compound)
 }
@@ -119,7 +121,7 @@ export function getSolutionProperties(formula: string): {
   Kb: number | null  // For bases
   pH: number | null  // For 0.1M solution
 } {
-  const compound = getCompoundForStoichiometry(formula)
+  const compound = findCompoundByFormula(formula)
   if (!compound) {
     return {
       solubility: null,
@@ -182,7 +184,7 @@ export function getSafetyData(formula: string): {
   firstAid: string[]
   storage: string[]
 } {
-  const compound = getCompoundForStoichiometry(formula)
+  const compound = findCompoundByFormula(formula)
   if (!compound) {
     return {
       hazards: [],
@@ -305,6 +307,9 @@ export function exportCompoundData(format: 'json' | 'csv' | 'tsv', compounds?: C
 // Helper functions
 
 function enhanceCompoundData(compound: Compound): EnhancedCompound {
+  if (!hasFormulaMolarMass(compound)) {
+    throw new Error(`${compound.name} does not have a fixed-formula or repeat-unit molar mass for stoichiometric integration.`)
+  }
   const molecularMass = calculateMolecularMass(compound.formula)
   const percentComposition = calculatePercentComposition(compound.formula)
   const elementCount = parseFormula(compound.formula)
@@ -321,6 +326,12 @@ function enhanceCompoundData(compound: Compound): EnhancedCompound {
       empiricalFormula
     }
   }
+}
+
+function findCompoundByFormula(formula: string): Compound | undefined {
+  return COMPREHENSIVE_COMPOUNDS.find(
+    compound => compound.formula.toLocaleLowerCase('en') === formula.toLocaleLowerCase('en')
+  )
 }
 
 function parseFormula(formula: string): Record<string, number> {
@@ -507,12 +518,13 @@ function generateStorageInstructions(hazards: Array<{type: string, severity: str
 }
 
 function convertToCSV(compounds: Compound[]): string {
-  const headers = ['ID', 'Name', 'Formula', 'Molecular Mass', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Solubility', 'Uses']
+  const headers = ['ID', 'Name', 'Formula', 'Molar Mass (g/mol)', 'Molar Mass Basis', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Solubility', 'Uses']
   const rows = compounds.map(compound => [
     compound.id,
     compound.name,
     compound.formula,
-    compound.molecularMass,
+    hasApplicableMolarMass(compound) ? compound.molarMass : '',
+    compound.molarMassBasis ?? '',
     compound.cas || '',
     compound.meltingPoint || '',
     compound.boilingPoint || '',
@@ -521,16 +533,17 @@ function convertToCSV(compounds: Compound[]): string {
     compound.uses?.join(';') || ''
   ])
 
-  return [headers, ...rows].map(row => row.join(',')).join('\n')
+  return serializeCsv([headers, ...rows])
 }
 
 function convertToTSV(compounds: Compound[]): string {
-  const headers = ['ID', 'Name', 'Formula', 'Molecular Mass', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Solubility', 'Uses']
+  const headers = ['ID', 'Name', 'Formula', 'Molar Mass (g/mol)', 'Molar Mass Basis', 'CAS', 'Melting Point', 'Boiling Point', 'Density', 'Solubility', 'Uses']
   const rows = compounds.map(compound => [
     compound.id,
     compound.name,
     compound.formula,
-    compound.molecularMass,
+    hasApplicableMolarMass(compound) ? compound.molarMass : '',
+    compound.molarMassBasis ?? '',
     compound.cas || '',
     compound.meltingPoint || '',
     compound.boilingPoint || '',

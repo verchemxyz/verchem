@@ -129,7 +129,7 @@ export default function SubstructureSearchPage() {
     <CalcShell
       eyebrow={`${SEARCHABLE_COMPOUND_COUNT} verified structures`}
       title="Substructure Search"
-      subtitle="Draw or paste a fragment — find every compound that contains it. Powered by RDKit, matched on real molecular connectivity, not text."
+      subtitle="Draw or paste a fragment to find matching records in the RDKit-verified structure corpus, using molecular connectivity rather than text."
       backHref="/tools"
       backLabel="All tools"
       maxWidth="6xl"

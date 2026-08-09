@@ -542,7 +542,7 @@ export default function GasLawsCalculatorPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/tools/ph-calculator"
+              href="/solutions"
               className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-6 py-3 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
             >
               pH Calculator

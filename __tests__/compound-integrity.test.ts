@@ -13,9 +13,13 @@ import {
   findCompoundById,
 } from '@/lib/data/compounds'
 import { COMPOUND_COLLISION_RESOLUTIONS } from '@/lib/data/compounds/curation'
+import { hasApplicableMolarMass } from '@/lib/data/compounds/types'
 import { parseFormula } from '@/lib/data/compounds/utils'
 import { GHS_PICTOGRAMS, H_STATEMENTS } from '@/lib/data/lab-safety'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
+import { searchCompoundsAdvanced } from '@/lib/compound-search'
+import { exportCompoundData, getCompoundForStoichiometry } from '@/lib/compound-integration'
+import { serializeCsv } from '@/lib/csv'
 
 type TestCase = { name: string; fn: () => void }
 const tests: TestCase[] = []
@@ -88,6 +92,8 @@ test('canonical groups contain the same unique records as the public dataset', (
 test('formula and repeat-unit molar masses use project IUPAC 2021 atomic weights', () => {
   for (const compound of COMPREHENSIVE_COMPOUNDS) {
     if (compound.molarMassBasis === 'formula' || compound.molarMassBasis === 'repeat-unit') {
+      assert.ok(hasApplicableMolarMass(compound), `${compound.id}: fixed formula needs an applicable molar mass`)
+      if (!hasApplicableMolarMass(compound)) continue
       const expected = formulaMass(compound.formula)
       assert.notEqual(expected, undefined, `${compound.id}: formula should be parseable (${compound.formula})`)
       assert.ok(
@@ -99,13 +105,16 @@ test('formula and repeat-unit molar masses use project IUPAC 2021 atomic weights
     }
 
     if (compound.molarMassBasis === 'mixture-average') {
+      assert.ok(hasApplicableMolarMass(compound), `${compound.id}: reviewed mixture average needs an applicable mass`)
+      if (!hasApplicableMolarMass(compound)) continue
       assert.ok(Number.isFinite(compound.molarMass) && compound.molarMass > 0)
       assert.equal(compound.id, 'r-410a', `${compound.id}: unreviewed mixture-average mass`)
       continue
     }
 
     assert.equal(compound.molarMassBasis, 'not-applicable', `${compound.id}: missing molar-mass basis`)
-    assert.equal(compound.molarMass, 0, `${compound.id}: variable composition must not claim one molar mass`)
+    assert.equal(compound.molarMass, null, `${compound.id}: variable composition must not claim one molar mass`)
+    assert.equal(hasApplicableMolarMass(compound), false, `${compound.id}: N/A mass passed the consumer gate`)
   }
 })
 
@@ -167,6 +176,74 @@ test('every GHS pictogram and H-statement code exists in lab-safety data', () =>
       }
     }
   }
+})
+
+test('state-specific GHS hazards are semantically compatible across the full dataset', () => {
+  const allowedStateByCode = new Map<string, 'gas' | 'liquid' | 'solid'>([
+    ['H220', 'gas'],
+    ['H221', 'gas'],
+    ['H230', 'gas'],
+    ['H231', 'gas'],
+    ['H280', 'gas'],
+    ['H281', 'gas'],
+    ['H224', 'liquid'],
+    ['H225', 'liquid'],
+    ['H226', 'liquid'],
+    ['H228', 'solid'],
+  ])
+
+  for (const compound of COMPREHENSIVE_COMPOUNDS) {
+    for (const hazard of compound.hazards ?? []) {
+      const text = typeof hazard === 'string' ? hazard : hazard.ghsCode ?? ''
+      for (const code of text.match(/\bH\d{3}\b/g) ?? []) {
+        const requiredState = allowedStateByCode.get(code)
+        if (requiredState) {
+          assert.equal(
+            compound.physicalState,
+            requiredState,
+            `${compound.id}: ${code} applies to ${requiredState}, not ${compound.physicalState}`
+          )
+        }
+      }
+    }
+    if (compound.ghs?.includes('GHS04')) {
+      assert.equal(compound.physicalState, 'gas', `${compound.id}: GHS04 requires a gas-state record`)
+    }
+  }
+
+  assert.ok(findCompoundById('methane')?.hazards?.includes('H220'), 'methane should retain reviewed H220')
+  assert.equal(findCompoundById('octane')?.hazards?.includes('H220') ?? false, false, 'liquid octane must not carry H220')
+})
+
+test('not-applicable molar masses stay out of numerical consumers and formula calculators', () => {
+  assert.equal(
+    COMPREHENSIVE_COMPOUNDS.filter(compound => compound.molarMassBasis === 'not-applicable').length,
+    113
+  )
+  const petroleumEther = findCompoundById('petroleum-ether')
+  assert.ok(petroleumEther)
+  assert.equal(petroleumEther?.molarMassBasis, 'not-applicable')
+  assert.equal(petroleumEther?.molarMass, null)
+  assert.equal(getCompoundForStoichiometry(petroleumEther?.formula ?? ''), null)
+  assert.equal(getCompoundForStoichiometry('CH2F2/C2HF5'), null, 'mixture average is not one molecular formula')
+
+  const massFiltered = searchCompoundsAdvanced({ molecularMassRange: [0, 10_000] })
+  assert.ok(massFiltered.length > 0)
+  assert.ok(massFiltered.every(hasApplicableMolarMass))
+})
+
+test('compound CSV export follows RFC 4180 for commas, quotes and newlines', () => {
+  assert.equal(
+    serializeCsv([
+      ['Name', 'Notes'],
+      ['Nylon 6,6 (PA66)', 'line 1\r\n"quoted", line 2'],
+    ]),
+    'Name,Notes\r\n"Nylon 6,6 (PA66)","line 1\r\n""quoted"", line 2"'
+  )
+
+  const nylon = findCompoundById('nylon-66')
+  assert.ok(nylon)
+  assert.match(exportCompoundData('csv', nylon ? [nylon] : []), /"Nylon 6,6 \(PA66\)"/)
 })
 
 test('merged list fields contain no case-only duplicates', () => {

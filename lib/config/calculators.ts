@@ -113,7 +113,7 @@ export const VERCHEM_CALCULATORS: Calculator[] = [
   {
     id: 'periodic-table',
     name: 'Interactive Periodic Table',
-    description: 'All 118 elements with complete data',
+    description: 'All 118 elements with per-record property coverage',
     tier: 'free',
     path: '/periodic-table',
     icon: '🔬',

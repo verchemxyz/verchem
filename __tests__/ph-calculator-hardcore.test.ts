@@ -218,6 +218,32 @@ strongBaseTests.forEach(({ name, conc, formula, expectedPH }) => {
   })
 })
 
+test('strong-acid/base identity must be resolved instead of defaulting to factor 1', () => {
+  let acidRejected = false
+  let baseRejected = false
+  try {
+    calculateStrongAcidPH(0.1)
+  } catch (error) {
+    acidRejected = error instanceof Error && /formula|protonCount/i.test(error.message)
+  }
+  try {
+    calculateStrongBasePH(0.1)
+  } catch (error) {
+    baseRejected = error instanceof Error && /formula|hydroxideCount/i.test(error.message)
+  }
+  expect(acidRejected).toBe(true)
+  expect(baseRejected).toBe(true)
+})
+
+test('strong species result records resolved identity and stoichiometric factor', () => {
+  const acid = calculateStrongAcidPH(0.1, { formula: 'H2SO4' })
+  const base = calculateStrongBasePH(0.1, { formula: 'Ca(OH)2' })
+  expect(acid.resolved.identity).toBe('H2SO4')
+  expect(acid.resolved.stoichiometricFactor).toBe(2)
+  expect(base.resolved.identity).toBe('Ca(OH)2')
+  expect(base.resolved.stoichiometricFactor).toBe(2)
+})
+
 console.log('')
 
 // =====================================================

@@ -78,10 +78,25 @@ function parseFormula(formula: string): Record<string, number> {
   const elements: Record<string, number> = {}
   const original = formula
 
-  // Remove states (s), (l), (g), (aq)
-  formula = formula.replace(/\([slgaq]+\)/g, '')
+  // Physical states have already been removed by sanitizeCompound. Do not use
+  // a broad character-class replacement here: it would mistake invalid groups
+  // such as (qq), (gas), or (aqs) for state annotations and silently accept
+  // the wrong formula.
 
-  // Defence in depth — parseEquation rejects charges before splitting, but a
+  // Every digit sequence at this point is a subscript or group multiplier.
+  // Validate it before expansion so H02 inside Ca(H02)2 cannot be normalized
+  // into an apparently valid H4 token.
+  for (const digitMatch of formula.matchAll(/\d+/g)) {
+    if (!/^[1-9]\d*$/.test(digitMatch[0])) {
+      throw new Error(`Invalid subscript "${digitMatch[0]}" in "${original}"`)
+    }
+  }
+
+  if (/\(\s*\)/.test(formula)) {
+    throw new Error(`Empty parenthesized group in "${original}"`)
+  }
+
+  // Defence in depth — parseChemicalEquation rejects charges before splitting, but a
   // direct caller must not get "Cr3+" read as three chromium atoms.
   if (/[+\-^⁺⁻]/.test(formula)) {
     throw new Error(
@@ -207,11 +222,24 @@ export function expandParentheses(formula: string): string {
 function sanitizeCompound(compound: string): string {
   let sanitized = compound.trim()
 
-  // Remove leading coefficient if user provided one (e.g., 2H2O)
-  sanitized = sanitized.replace(/^\d+\s*/, '')
+  // Remove a valid positive leading coefficient if the user supplied one.
+  // Zero and leading-zero coefficients are not chemical coefficients and must
+  // not be silently stripped into an otherwise valid formula.
+  const coefficientMatch = /^(\d+)\s*/.exec(sanitized)
+  if (coefficientMatch) {
+    const coefficientText = coefficientMatch[1]
+    const coefficient = Number(coefficientText)
+    if (!/^[1-9]\d*$/.test(coefficientText) || !Number.isSafeInteger(coefficient)) {
+      throw new Error(`Invalid leading coefficient in "${compound.trim()}"`)
+    }
+    sanitized = sanitized.slice(coefficientMatch[0].length)
+  }
 
-  // Remove physical state annotations like (s), (l), (g), (aq)
-  sanitized = sanitized.replace(/\s*\((?:aq|s|l|g)\)\s*/gi, '')
+  // A physical-state annotation is valid only once and only at the end.
+  sanitized = sanitized.replace(/\s*\((?:aq|s|l|g)\)\s*$/i, '')
+  if (/\((?:aq|s|l|g)\)/i.test(sanitized)) {
+    throw new Error(`Invalid physical-state annotation in "${compound.trim()}"`)
+  }
 
   return sanitized.trim()
 }
@@ -220,9 +248,13 @@ function sanitizeCompound(compound: string): string {
  * Parse chemical equation into reactants and products
  * "H2 + O2 -> H2O" -> { reactants: ['H2', 'O2'], products: ['H2O'] }
  */
-function parseEquation(equation: string): { reactants: string[]; products: string[] } {
+export function parseChemicalEquation(equation: string): { reactants: string[]; products: string[] } {
+  if (typeof equation !== 'string' || equation.trim().length === 0) {
+    throw new Error('Equation is required')
+  }
+
   // Split by arrow (support multiple arrow formats)
-  const parts = equation.split(/->|→|=>|=/)
+  const parts = equation.split(/->|=>|→|=/)
 
   if (parts.length !== 2) {
     throw new Error('Invalid equation format. Use format: A + B -> C + D')
@@ -238,18 +270,25 @@ function parseEquation(equation: string): { reactants: string[]; products: strin
     }
   }
 
-  const reactants = parts[0]
-    .split('+')
-    .map(sanitizeCompound)
-    .filter(s => s.length > 0)
-  const products = parts[1]
-    .split('+')
-    .map(sanitizeCompound)
-    .filter(s => s.length > 0)
+  const rawReactants = parts[0].split('+')
+  const rawProducts = parts[1].split('+')
 
-  if (reactants.length === 0 || products.length === 0) {
-    throw new Error('Invalid equation format. Must include reactants and products')
+  // Empty terms are malformed input, not optional separators. Reject before
+  // sanitizing so leading, trailing and doubled plus signs cannot disappear.
+  if (
+    rawReactants.length === 0 ||
+    rawProducts.length === 0 ||
+    [...rawReactants, ...rawProducts].some(term => term.trim().length === 0)
+  ) {
+    throw new Error('Equation contains empty terms (check for leading, trailing, or double + signs)')
   }
+
+  const reactants = rawReactants.map(sanitizeCompound)
+  const products = rawProducts.map(sanitizeCompound)
+
+  // This is the canonical validation path used by balancing, classification
+  // and Answer Cards. Every sanitized term must parse completely.
+  for (const compound of [...reactants, ...products]) parseFormula(compound)
 
   return { reactants, products }
 }
@@ -316,7 +355,7 @@ function arrayGCD(arr: number[]): number {
  */
 export function balanceEquation(equation: string): BalancedEquation {
   try {
-    const { reactants, products } = parseEquation(equation)
+    const { reactants, products } = parseChemicalEquation(equation)
     const elements = getAllElements(reactants, products)
 
     // Total number of compounds
@@ -759,7 +798,7 @@ function buildBalancedEquation(
  */
 export function identifyReactionType(equation: string): string {
   try {
-    const { reactants, products } = parseEquation(equation)
+    const { reactants, products } = parseChemicalEquation(equation)
 
     // Structural pattern first, electron-transfer last. Many reactions are
     // legitimately both (H2 + O2 -> H2O is a synthesis AND a redox); textbooks
@@ -794,6 +833,13 @@ export function identifyReactionType(equation: string): string {
       return 'decomposition'
     }
 
+    // Electron transfer must be checked before the generic 2 -> 2 structural
+    // bucket. Otherwise reactions such as Fe2O3 + CO -> Fe + CO2 can never be
+    // classified as redox.
+    if (detectRedoxReaction(reactants, products)) {
+      return 'redox'
+    }
+
     // Single replacement: A + BC -> AC + B (check if one reactant is element)
     if (reactants.length === 2 && products.length === 2) {
       const r1Elements = Object.keys(parseFormula(reactants[0]))
@@ -802,16 +848,6 @@ export function identifyReactionType(equation: string): string {
         return 'single-replacement'
       }
       return 'double-replacement'
-    }
-
-    // Precipitation (double replacement forming solid)
-    if (reactants.length === 2 && products.length === 2) {
-      return 'double-replacement'
-    }
-
-    // No structural pattern matched — fall back to electron transfer.
-    if (detectRedoxReaction(reactants, products)) {
-      return 'redox'
     }
 
     return 'unknown'

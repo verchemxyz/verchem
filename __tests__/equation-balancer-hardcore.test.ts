@@ -219,6 +219,13 @@ test('Invalid equation should not balance', () => {
   expect(result.isBalanced).toBe(false)
 })
 
+for (const malformed of ['+ H2 -> H2', 'H2 ++ O2 -> H2O', 'H2 + O2 -> H2O +']) {
+  test(`Empty species is rejected: ${malformed}`, () => {
+    expect(balanceEquation(malformed).isBalanced).toBe(false)
+    expect(identifyReactionType(malformed)).toBe('unknown')
+  })
+}
+
 console.log('')
 
 // =====================================================
@@ -241,6 +248,10 @@ test('Combustion: CH4 + O2 -> CO2 + H2O', () => {
 
 test('Acid-base: HCl + NaOH -> NaCl + H2O', () => {
   expect(identifyReactionType('HCl + NaOH -> NaCl + H2O')).toBe('acid-base')
+})
+
+test('Redox is detected before generic 2-to-2 replacement', () => {
+  expect(identifyReactionType('Fe2O3 + CO -> Fe + CO2')).toBe('redox')
 })
 
 console.log('')

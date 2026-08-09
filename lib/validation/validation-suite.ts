@@ -87,7 +87,7 @@ export async function runAllValidationTests(): Promise<{
   ]
 
   for (const test of strongAcidTests) {
-    const result = calculateStrongAcidPH(test.concentration)
+    const result = calculateStrongAcidPH(test.concentration, { formula: 'HCl' })
     const validation = validateAgainstReference(
       result.pH,
       test.expectedPH,
@@ -349,9 +349,9 @@ ${recommendations.map(r => `- ${r}`).join('\n')}
 - IUPAC Technical Reports and Recommendations
 - CODATA 2018 Fundamental Constants
 
-## Certification
+## Reference-comparison scope
 
-This validation suite tests VerChem calculators against internationally recognized reference values from NIST, CRC, and IUPAC. All calculations are performed at standard conditions (25°C, 1 atm) unless otherwise specified.
+This validation suite compares the listed test vectors with their cited NIST, CRC, IUPAC, or CODATA references. Conditions are those declared by each test; this report is not certification by any referenced organization.
 
 ---
 

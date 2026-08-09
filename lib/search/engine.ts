@@ -1,5 +1,6 @@
 // VerChem Advanced Search Engine
 import Fuse from 'fuse.js'
+import { hasApplicableMolarMass } from '@/lib/data/compounds/types'
 import { 
   SearchResult, 
   SearchQuery, 
@@ -48,7 +49,8 @@ export class VerChemSearchEngine {
         id: compound.id,
         name: compound.name,
         formula: compound.formula,
-        molecularMass: compound.molecularMass ?? compound.molarMass ?? 0,
+        molecularMass: hasApplicableMolarMass(compound) ? compound.molarMass : null,
+        molarMassBasis: compound.molarMassBasis,
         pKa: compound.pKa,
         pKb: compound.pKb,
         smiles: (compound as { structure?: string }).structure,
@@ -420,7 +422,7 @@ export class VerChemSearchEngine {
         content: 'Understanding pH, pKa, buffers, and acid-base reactions',
         category: 'concept',
         tags: ['acids', 'bases', 'ph', 'pka', 'buffers', 'neutralization'],
-        url: '/tools/ph-calculator'
+        url: '/solutions'
       },
       {
         id: 'oxidation-reduction',
@@ -796,7 +798,7 @@ export class VerChemSearchEngine {
       type: 'compound' as const,
       title: result.item.name,
       subtitle: result.item.formula,
-      description: `Molecular weight: ${result.item.molecularMass} g/mol. ${result.item.appearance || ''}`,
+      description: `${result.item.molecularMass === null ? 'Molar mass: N/A (variable composition)' : `Molar mass: ${result.item.molecularMass} g/mol`}. ${result.item.appearance || ''}`,
       category: 'Chemical Compound',
       tags: result.item.tags,
       relevance: 1 - (result.score || 0),
@@ -892,7 +894,9 @@ export class VerChemSearchEngine {
         type: 'compound' as const,
         title: item.name,
         subtitle: item.formula,
-        description: `Molecular weight: ${item.molecularMass} g/mol`,
+        description: item.molecularMass === null
+          ? 'Molar mass: N/A (variable composition)'
+          : `Molar mass: ${item.molecularMass} g/mol`,
         category: 'Chemical Compound',
         tags: item.tags,
         relevance: 1,
@@ -992,6 +996,7 @@ export class VerChemSearchEngine {
     // Molecular weight range
     if (filters.molecularWeightRange) {
       const { min, max } = filters.molecularWeightRange
+      if (data.molarMassBasis === 'not-applicable' || data.molecularMass === null) return false
       if ((min !== undefined && data.molecularMass < min) || (max !== undefined && data.molecularMass > max)) {
         return false
       }
@@ -1123,7 +1128,12 @@ export class VerChemSearchEngine {
           if (a.type === 'compound' && b.type === 'compound') {
             const aWeight = (a.data as CompoundSearchData).molecularMass
             const bWeight = (b.data as CompoundSearchData).molecularMass
-            comparison = aWeight - bWeight
+            if (aWeight === null || bWeight === null) {
+              // N/A is not a numeric zero and remains after real masses in both directions.
+              return aWeight === bWeight ? 0 : aWeight === null ? 1 : -1
+            } else {
+              comparison = aWeight - bWeight
+            }
           }
           break
         case 'atomicNumber':

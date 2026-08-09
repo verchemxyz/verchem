@@ -225,7 +225,7 @@ export default function PeriodicTablePage() {
               <ArrowRight className="h-5 w-5" />
             </Link>
             <p className="text-muted-foreground mt-3 text-sm">
-              All 118 elements with complete properties
+              All 118 elements with available properties shown per record
             </p>
           </div>
         </Card>
@@ -364,7 +364,7 @@ export default function PeriodicTablePage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/tools/ph-calculator"
+              href="/solutions"
               className="inline-flex items-center justify-center gap-2 rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors"
             >
               pH Calculator

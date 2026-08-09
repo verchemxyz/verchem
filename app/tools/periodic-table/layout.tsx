@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Interactive Periodic Table - Free Online Element Database | VerChem',
-  description: 'Explore all 118 elements with our free interactive periodic table. Detailed information including atomic mass, electron configuration, properties, and more. NIST/IUPAC certified data.',
+  description: 'Explore all 118 elements with an interactive periodic table. Standard atomic weights are based on IUPAC 2021; selected properties cite NIST and CRC references.',
   keywords: [
     'periodic table',
     'interactive periodic table',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Interactive Periodic Table - Free Online Element Database',
-    description: 'Explore all 118 elements with detailed properties. Free, interactive, NIST/IUPAC certified.',
+    description: 'Explore all 118 elements with cited IUPAC, NIST, and CRC reference data. Free and interactive.',
     type: 'website',
     url: 'https://verchem.xyz/tools/periodic-table',
     images: [

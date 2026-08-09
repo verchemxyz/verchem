@@ -42,15 +42,15 @@ export function ValidationBadge({
   const badges = {
     excellent: {
       icon: <SealIcon />,
-      text: 'Validated',
+      text: 'Reference checked',
       color: 'bg-muted text-success-strong border-success',
-      description: 'Validated against NIST/CRC standards'
+      description: 'Compared with the cited reference values for this test set'
     },
     good: {
       icon: <CheckIcon />,
       text: 'Verified',
       color: 'bg-muted text-primary-600 border-primary-300 dark:text-primary-500 dark:border-primary-700',
-      description: 'Verified with reference data'
+      description: 'Passed the declared reference-data checks'
     },
     acceptable: {
       icon: <CheckIcon />,

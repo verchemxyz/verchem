@@ -182,17 +182,18 @@ describe('finalizeResult', () => {
 describe('pH tools route to real engines', () => {
   test('calculate_strong_acid_ph matches engine', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
-    const result = tool.execute({ concentration: 0.01 })
+    const result = tool.execute({ concentration: 0.01, formula: 'HCl' })
     expect(result.ok).toBe(true)
     if (!result.ok) return
 
-    const engineResult = calculateStrongAcidPH(0.01)
+    const engineResult = calculateStrongAcidPH(0.01, { formula: 'HCl' })
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.OH_concentration).toBeCloseTo(engineResult.OH_concentration as number, 10)
     expect(result.value.Kw).toBe(1e-14)
     expect(result.value.model).toEqual(PH_MODEL_25C)
+    expect(result.value.resolved_species).toEqual(engineResult.resolved)
   })
 
   test('calculate_weak_acid_ph matches engine', () => {
@@ -231,15 +232,16 @@ describe('pH tools route to real engines', () => {
 
   test('calculate_strong_base_ph matches engine', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_base_ph')!
-    const result = tool.execute({ concentration: 0.01 })
+    const result = tool.execute({ concentration: 0.01, formula: 'NaOH' })
     expect(result.ok).toBe(true)
     if (!result.ok) return
 
-    const engineResult = calculateStrongBasePH(0.01)
+    const engineResult = calculateStrongBasePH(0.01, { formula: 'NaOH' })
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
     expect(result.value.Kw).toBe(1e-14)
     expect(result.value.model).toEqual(PH_MODEL_25C)
+    expect(result.value.resolved_species).toEqual(engineResult.resolved)
   })
 
   test('calculate_weak_base_ph matches engine', () => {
@@ -276,6 +278,7 @@ describe('pH tools route to real engines', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
     const result = tool.execute({
       concentration: 0.01,
+      formula: 'HCl',
       temperature_C: 25,
       activity_model: 'concentration-as-activity',
     })
@@ -305,6 +308,13 @@ describe('pH tools route to real engines', () => {
 })
 
 describe('proton_count / hydroxide_count validation', () => {
+  test('rejects strong acid and base without a resolved formula or explicit ion count', () => {
+    const acid = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
+    const base = TOOL_BY_NAME.get('calculate_strong_base_ph')!
+    expect(acid.execute({ concentration: 0.1 }).ok).toBe(false)
+    expect(base.execute({ concentration: 0.1 }).ok).toBe(false)
+  })
+
   test('rejects negative proton_count', () => {
     const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')!
     const result = tool.execute({ concentration: 0.1, formula: 'H2SO4', proton_count: -1 })
@@ -380,7 +390,7 @@ describe('proton_count / hydroxide_count validation', () => {
     const result = tool.execute({ concentration: 0.1, formula: 'Xx' })
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error?.toLowerCase().includes('valid chemical formula')).toBe(true)
+    expect(result.error?.toLowerCase().includes('not a recognized strong acid')).toBe(true)
   })
 
   test('rejects strong-acid formula with zero subscript "H0Cl"', () => {
@@ -452,7 +462,7 @@ describe('proton_count / hydroxide_count validation', () => {
     const result = tool.execute({ concentration: 0.1, formula: 'XxOH' })
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error?.toLowerCase().includes('valid chemical formula')).toBe(true)
+    expect(result.error?.toLowerCase().includes('not a recognized strong base')).toBe(true)
   })
 
   test('rejects strong-base formula with zero multiplier "Ca(OH)0"', () => {
@@ -888,6 +898,22 @@ describe('Equation balancer tool routes to real engine', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.error?.toLowerCase().includes('empty')).toBe(true)
+  })
+
+  test('rejects H2 + O2 -> H2O + (trailing plus = empty term)', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'H2 + O2 -> H2O +' })
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.error?.toLowerCase().includes('empty')).toBe(true)
+  })
+
+  test('signed equation result classifies 2-to-2 electron transfer as redox', () => {
+    const tool = TOOL_BY_NAME.get('balance_equation')!
+    const result = tool.execute({ equation: 'Fe2O3 + CO -> Fe + CO2' })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.reaction_type).toBe('redox')
   })
 
   test('accepts 2H2 + O2 -> 2H2O (positive leading coefficient)', () => {

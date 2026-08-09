@@ -57,12 +57,21 @@ export function calculateMolarity(
   molarMass?: number
 ): number {
   if (moles !== undefined && volumeLiters !== undefined) {
-    return moles / volumeLiters
+    if (!Number.isFinite(moles) || moles < 0) throw new Error('Moles must be a finite, non-negative number')
+    if (!Number.isFinite(volumeLiters) || volumeLiters <= 0) throw new Error('Volume must be a positive, finite number')
+    const result = moles / volumeLiters
+    if (!Number.isFinite(result)) throw new Error('Molarity is outside the finite representable range')
+    return result
   }
 
   if (massGrams !== undefined && molarMass !== undefined && volumeLiters !== undefined) {
+    if (!Number.isFinite(massGrams) || massGrams < 0) throw new Error('Mass must be a finite, non-negative number')
+    if (!Number.isFinite(molarMass) || molarMass <= 0) throw new Error('Molar mass must be a positive, finite number')
+    if (!Number.isFinite(volumeLiters) || volumeLiters <= 0) throw new Error('Volume must be a positive, finite number')
     const moles = massGrams / molarMass
-    return moles / volumeLiters
+    const result = moles / volumeLiters
+    if (!Number.isFinite(result)) throw new Error('Molarity is outside the finite representable range')
+    return result
   }
 
   throw new Error('Insufficient parameters to calculate molarity')
@@ -122,8 +131,8 @@ export function calculatePPM(
  * Thermodynamic pH is defined from activity; see PH_MODEL_25C.
  */
 export function calculatePH(H_concentration: number): number {
-  if (H_concentration <= 0) {
-    throw new Error('H+ concentration must be positive')
+  if (!Number.isFinite(H_concentration) || H_concentration <= 0) {
+    throw new Error('H+ concentration must be a positive, finite number')
   }
   return -Math.log10(H_concentration)
 }
@@ -132,15 +141,20 @@ export function calculatePH(H_concentration: number): number {
  * Calculate H+ concentration from pH
  */
 export function calculateH_Concentration(pH: number): number {
-  return Math.pow(10, -pH)
+  if (!Number.isFinite(pH)) throw new Error('pH must be finite')
+  const concentration = Math.pow(10, -pH)
+  if (!Number.isFinite(concentration) || concentration <= 0) {
+    throw new Error('H+ concentration is outside the positive finite representable range')
+  }
+  return concentration
 }
 
 /**
  * Calculate pOH from OH- concentration
  */
 export function calculatePOH(OH_concentration: number): number {
-  if (OH_concentration <= 0) {
-    throw new Error('OH- concentration must be positive')
+  if (!Number.isFinite(OH_concentration) || OH_concentration <= 0) {
+    throw new Error('OH- concentration must be a positive, finite number')
   }
   return -Math.log10(OH_concentration)
 }
@@ -149,17 +163,24 @@ export function calculatePOH(OH_concentration: number): number {
  * Calculate OH- concentration from pOH
  */
 export function calculateOH_Concentration(pOH: number): number {
-  return Math.pow(10, -pOH)
+  if (!Number.isFinite(pOH)) throw new Error('pOH must be finite')
+  const concentration = Math.pow(10, -pOH)
+  if (!Number.isFinite(concentration) || concentration <= 0) {
+    throw new Error('OH- concentration is outside the positive finite representable range')
+  }
+  return concentration
 }
 
 /**
  * Convert between pH and pOH (at 25°C)
  */
 export function pHToPOH(pH: number): number {
+  if (!Number.isFinite(pH)) throw new Error('pH must be finite')
   return PH_MODEL_25C.pKw - pH
 }
 
 export function pOHToPH(pOH: number): number {
+  if (!Number.isFinite(pOH)) throw new Error('pOH must be finite')
   return PH_MODEL_25C.pKw - pOH
 }
 
@@ -171,6 +192,15 @@ export interface StrongAcidOptions {
 export interface StrongBaseOptions {
   formula?: string
   hydroxideCount?: number
+}
+
+export interface StrongSpeciesResolution {
+  identity: string
+  identitySource: 'recognized-formula' | 'explicit-ion-count'
+  ion: 'H+' | 'OH-'
+  stoichiometricFactor: number
+  effectiveIonFactor: number | null
+  secondDissociationKa: number | null
 }
 
 const STRONG_ACID_PROTON_COUNTS: Record<string, number> = {
@@ -207,50 +237,148 @@ function normalizeFormula(formula: string): string {
     '₈': '8',
     '₉': '9',
   }
-  return formula
+  const normalized = formula
     .replace(/\s+/g, '')
     .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, (match) => subscriptMap[match] ?? match)
+
+  if (!/^[A-Za-z0-9()]+$/.test(normalized)) {
+    throw new Error('Chemical formulas must use ASCII element symbols, digits, and parentheses')
+  }
+
+  return normalized
 }
 
 function solveWithWaterAutoIonization(addedConcentration: number, kw: number): number {
-  const value = Math.max(addedConcentration, 0)
-  return 0.5 * (value + Math.sqrt(value * value + 4 * kw))
+  if (!Number.isFinite(addedConcentration) || addedConcentration < 0) {
+    throw new Error('Added ion concentration must be finite and non-negative')
+  }
+  // Algebraically equivalent to 0.5 × (c + sqrt(c² + 4Kw)), but this
+  // arrangement avoids overflowing c² for large finite concentrations.
+  const half = addedConcentration / 2
+  const result = half + Math.hypot(half, Math.sqrt(kw))
+  if (!Number.isFinite(result) || result <= 0) {
+    throw new Error('Ion concentration is outside the positive finite representable range')
+  }
+  return result
 }
 
-function calculateStrongAcidHydrogen(
+function requirePositiveIntegerFactor(value: number, label: string): number {
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive finite integer`)
+  }
+  return value
+}
+
+function resolveStrongAcidHydrogen(
   concentration: number,
   options?: StrongAcidOptions
-): number {
-  if (concentration <= 0) return 0
-  if (options?.protonCount !== undefined) {
-    return concentration * Math.max(options.protonCount, 0)
+): { addedConcentration: number; resolved: StrongSpeciesResolution } {
+  const normalized = options?.formula !== undefined ? normalizeFormula(options.formula) : ''
+  const explicitCount = options?.protonCount
+
+  if (!normalized && explicitCount === undefined) {
+    throw new Error('A recognized strong-acid formula or an explicit proton_count is required')
   }
 
-  const normalized = options?.formula ? normalizeFormula(options.formula) : ''
-  if (normalized && STRONG_ACID_SECOND_DISSOCIATION_KA[normalized]) {
-    const Ka2 = STRONG_ACID_SECOND_DISSOCIATION_KA[normalized]
-    const b = concentration + Ka2
-    const discriminant = b * b + 4 * Ka2 * concentration
-    const x = (-b + Math.sqrt(discriminant)) / 2
-    return concentration + Math.max(0, x)
+  if (explicitCount !== undefined) requirePositiveIntegerFactor(explicitCount, 'proton_count')
+
+  if (normalized) {
+    const formulaCount = STRONG_ACID_PROTON_COUNTS[normalized]
+    if (formulaCount === undefined) {
+      throw new Error(`"${options?.formula}" is not a recognized strong acid`)
+    }
+    if (explicitCount !== undefined && explicitCount !== formulaCount) {
+      throw new Error(`proton_count (${explicitCount}) does not match ${normalized}; expected ${formulaCount}`)
+    }
+
+    let addedConcentration = concentration * formulaCount
+    const secondDissociationKa = STRONG_ACID_SECOND_DISSOCIATION_KA[normalized] ?? null
+    if (secondDissociationKa !== null && concentration > 0) {
+      const Ka2 = secondDissociationKa
+      const b = concentration + Ka2
+      const discriminant = b * b + 4 * Ka2 * concentration
+      const x = (-b + Math.sqrt(discriminant)) / 2
+      addedConcentration = concentration + Math.max(0, x)
+    }
+    if (!Number.isFinite(addedConcentration)) throw new Error('Strong-acid ion concentration is not finite')
+    return {
+      addedConcentration,
+      resolved: {
+        identity: normalized,
+        identitySource: 'recognized-formula',
+        ion: 'H+',
+        stoichiometricFactor: formulaCount,
+        effectiveIonFactor: concentration > 0 ? addedConcentration / concentration : null,
+        secondDissociationKa,
+      },
+    }
   }
 
-  const protonCount = normalized ? STRONG_ACID_PROTON_COUNTS[normalized] ?? 1 : 1
-  return concentration * protonCount
+  const protonCount = requirePositiveIntegerFactor(explicitCount as number, 'proton_count')
+  const addedConcentration = concentration * protonCount
+  if (!Number.isFinite(addedConcentration)) throw new Error('Strong-acid ion concentration is not finite')
+  return {
+    addedConcentration,
+    resolved: {
+      identity: `generic strong acid (${protonCount} H+ per formula unit)`,
+      identitySource: 'explicit-ion-count',
+      ion: 'H+',
+      stoichiometricFactor: protonCount,
+      effectiveIonFactor: protonCount,
+      secondDissociationKa: null,
+    },
+  }
 }
 
-function calculateStrongBaseHydroxide(
+function resolveStrongBaseHydroxide(
   concentration: number,
   options?: StrongBaseOptions
-): number {
-  if (concentration <= 0) return 0
-  if (options?.hydroxideCount !== undefined) {
-    return concentration * Math.max(options.hydroxideCount, 0)
+): { addedConcentration: number; resolved: StrongSpeciesResolution } {
+  const normalized = options?.formula !== undefined ? normalizeFormula(options.formula) : ''
+  const explicitCount = options?.hydroxideCount
+
+  if (!normalized && explicitCount === undefined) {
+    throw new Error('A recognized strong-base formula or an explicit hydroxide_count is required')
+  }
+  if (explicitCount !== undefined) requirePositiveIntegerFactor(explicitCount, 'hydroxide_count')
+
+  if (normalized) {
+    const formulaCount = STRONG_BASE_HYDROXIDE_COUNTS[normalized]
+    if (formulaCount === undefined) {
+      throw new Error(`"${options?.formula}" is not a recognized strong base`)
+    }
+    if (explicitCount !== undefined && explicitCount !== formulaCount) {
+      throw new Error(`hydroxide_count (${explicitCount}) does not match ${normalized}; expected ${formulaCount}`)
+    }
+    const addedConcentration = concentration * formulaCount
+    if (!Number.isFinite(addedConcentration)) throw new Error('Strong-base ion concentration is not finite')
+    return {
+      addedConcentration,
+      resolved: {
+        identity: normalized,
+        identitySource: 'recognized-formula',
+        ion: 'OH-',
+        stoichiometricFactor: formulaCount,
+        effectiveIonFactor: formulaCount,
+        secondDissociationKa: null,
+      },
+    }
   }
 
-  const normalized = options?.formula ? normalizeFormula(options.formula) : ''
-  const hydroxideCount = normalized ? STRONG_BASE_HYDROXIDE_COUNTS[normalized] ?? 1 : 1
-  return concentration * hydroxideCount
+  const hydroxideCount = requirePositiveIntegerFactor(explicitCount as number, 'hydroxide_count')
+  const addedConcentration = concentration * hydroxideCount
+  if (!Number.isFinite(addedConcentration)) throw new Error('Strong-base ion concentration is not finite')
+  return {
+    addedConcentration,
+    resolved: {
+      identity: `generic strong base (${hydroxideCount} OH- per formula unit)`,
+      identitySource: 'explicit-ion-count',
+      ion: 'OH-',
+      stoichiometricFactor: hydroxideCount,
+      effectiveIonFactor: hydroxideCount,
+      secondDissociationKa: null,
+    },
+  }
 }
 
 /**
@@ -264,18 +392,19 @@ export function calculateStrongAcidPH(
   pOH: number
   H_concentration: number
   OH_concentration: number
+  resolved: StrongSpeciesResolution
 } {
   if (!Number.isFinite(concentration) || concentration < 0) {
     throw new Error('Concentration must be a finite, non-negative number')
   }
 
-  const strongHydrogen = calculateStrongAcidHydrogen(concentration, options)
-  const H_concentration = solveWithWaterAutoIonization(strongHydrogen, KW_25C)
+  const { addedConcentration, resolved } = resolveStrongAcidHydrogen(concentration, options)
+  const H_concentration = solveWithWaterAutoIonization(addedConcentration, KW_25C)
   const pH = calculatePH(H_concentration)
   const OH_concentration = KW_25C / H_concentration
   const pOH = calculatePOH(OH_concentration)
 
-  return { pH, pOH, H_concentration, OH_concentration }
+  return { pH, pOH, H_concentration, OH_concentration, resolved }
 }
 
 /**
@@ -289,18 +418,19 @@ export function calculateStrongBasePH(
   pOH: number
   H_concentration: number
   OH_concentration: number
+  resolved: StrongSpeciesResolution
 } {
   if (!Number.isFinite(concentration) || concentration < 0) {
     throw new Error('Concentration must be a finite, non-negative number')
   }
 
-  const strongHydroxide = calculateStrongBaseHydroxide(concentration, options)
-  const OH_concentration = solveWithWaterAutoIonization(strongHydroxide, KW_25C)
+  const { addedConcentration, resolved } = resolveStrongBaseHydroxide(concentration, options)
+  const OH_concentration = solveWithWaterAutoIonization(addedConcentration, KW_25C)
   const pOH = calculatePOH(OH_concentration)
   const H_concentration = KW_25C / OH_concentration
   const pH = calculatePH(H_concentration)
 
-  return { pH, pOH, H_concentration, OH_concentration }
+  return { pH, pOH, H_concentration, OH_concentration, resolved }
 }
 
 /**
@@ -317,6 +447,12 @@ export function calculateWeakAcidPH(
   method?: 'approximation' | 'quadratic'
   warning?: string
 } {
+  if (!Number.isFinite(concentration) || concentration <= 0) {
+    throw new Error('Concentration must be a positive, finite number')
+  }
+  if (!Number.isFinite(Ka) || Ka <= 0) {
+    throw new Error('Ka must be a positive, finite number')
+  }
   // HA ⇌ H+ + A-
   // Ka = [H+][A-]/[HA]
   // Assuming x = [H+] = [A-]
@@ -379,6 +515,12 @@ export function calculateWeakBasePH(
   method?: 'approximation' | 'quadratic'
   warning?: string
 } {
+  if (!Number.isFinite(concentration) || concentration <= 0) {
+    throw new Error('Concentration must be a positive, finite number')
+  }
+  if (!Number.isFinite(Kb) || Kb <= 0) {
+    throw new Error('Kb must be a positive, finite number')
+  }
   // B + H2O ⇌ BH+ + OH-
   // Kb = [BH+][OH-]/[B]
   // Assuming x = [OH-] = [BH+]
@@ -445,8 +587,17 @@ export function hendersonHasselbalch(
   acidConcentration: number,
   baseConcentration: number
 ): number {
+  if (!Number.isFinite(pKa)) throw new Error('pKa must be finite')
+  if (!Number.isFinite(acidConcentration) || acidConcentration <= 0) {
+    throw new Error('Acid concentration must be a positive, finite number')
+  }
+  if (!Number.isFinite(baseConcentration) || baseConcentration <= 0) {
+    throw new Error('Base concentration must be a positive, finite number')
+  }
   // pH = pKa + log([A-]/[HA])
-  return pKa + Math.log10(baseConcentration / acidConcentration)
+  const result = pKa + Math.log10(baseConcentration / acidConcentration)
+  if (!Number.isFinite(result)) throw new Error('Buffer pH is outside the finite representable range')
+  return result
 }
 
 /**
@@ -486,53 +637,70 @@ export interface DilutionResult {
 export function calculateDilution(input: DilutionInput): DilutionResult {
   const { M1, V1, M2, V2 } = input
 
+  const supplied = [M1, V1, M2, V2].filter(value => value !== undefined)
+  if (supplied.length !== 3) {
+    throw new Error('Need exactly 3 of 4 parameters (M1, V1, M2, V2)')
+  }
+  for (const [label, value] of Object.entries({ M1, V1, M2, V2 })) {
+    if (value !== undefined && (!Number.isFinite(value) || value <= 0)) {
+      throw new Error(`${label} must be a positive, finite number`)
+    }
+  }
+
+  const checked = (result: DilutionResult): DilutionResult => {
+    if (Object.values(result).some(value => !Number.isFinite(value))) {
+      throw new Error('Dilution result is outside the finite representable range')
+    }
+    return result
+  }
+
   // Solve for missing variable
   if (M1 !== undefined && V1 !== undefined && M2 !== undefined && V2 === undefined) {
     const finalV2 = (M1 * V1) / M2
-    return {
+    return checked({
       M1,
       V1,
       M2,
       V2: finalV2,
       volumeToAdd: finalV2 - V1,
       dilutionFactor: M1 / M2,
-    }
+    })
   }
 
   if (M1 !== undefined && V1 !== undefined && M2 === undefined && V2 !== undefined) {
     const finalM2 = (M1 * V1) / V2
-    return {
+    return checked({
       M1,
       V1,
       M2: finalM2,
       V2,
       volumeToAdd: V2 - V1,
       dilutionFactor: M1 / finalM2,
-    }
+    })
   }
 
   if (M1 !== undefined && V1 === undefined && M2 !== undefined && V2 !== undefined) {
     const finalV1 = (M2 * V2) / M1
-    return {
+    return checked({
       M1,
       V1: finalV1,
       M2,
       V2,
       volumeToAdd: V2 - finalV1,
       dilutionFactor: M1 / M2,
-    }
+    })
   }
 
   if (M1 === undefined && V1 !== undefined && M2 !== undefined && V2 !== undefined) {
     const finalM1 = (M2 * V2) / V1
-    return {
+    return checked({
       M1: finalM1,
       V1,
       M2,
       V2,
       volumeToAdd: V2 - V1,
       dilutionFactor: finalM1 / M2,
-    }
+    })
   }
 
   throw new Error('Need exactly 3 of 4 parameters (M1, V1, M2, V2)')
@@ -687,6 +855,9 @@ export type PHResult = {
   H_concentration?: number
   OH_concentration?: number
   percentIonization?: number
+  method?: 'approximation' | 'quadratic'
+  warning?: string
+  resolved?: StrongSpeciesResolution
 }
 
 /**

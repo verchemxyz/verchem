@@ -1277,7 +1277,7 @@ export default function QuantumChemistryPage() {
           <Link href="/tools/equation-balancer" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
             Equation Balancer {'\u2192'}
           </Link>
-          <Link href="/tools/ph-calculator" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
+          <Link href="/solutions" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">
             pH Calculator {'\u2192'}
           </Link>
           <Link href="/tools/periodic-table" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]">

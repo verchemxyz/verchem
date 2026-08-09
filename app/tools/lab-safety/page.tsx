@@ -1155,7 +1155,7 @@ export default function LabSafetyPage() {
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
-            href="/tools/ph-calculator"
+            href="/solutions"
             className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 font-medium text-foreground hover:bg-muted transition-colors min-h-[44px]"
           >
             pH Calculator

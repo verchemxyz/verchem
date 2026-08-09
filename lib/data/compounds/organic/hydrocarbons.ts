@@ -18,16 +18,24 @@ function hydrocarbonState(carbonCount: number): Compound['physicalState'] {
   return 'solid'
 }
 
+function reviewedStateHazards(physicalState: Compound['physicalState']): string[] | undefined {
+  // H220 is the UNECE GHS statement for an extremely flammable GAS. The old
+  // series generator copied it onto every homolog, including liquids. Do not
+  // invent a liquid category without substance-specific flash-point evidence.
+  return physicalState === 'gas' ? ['H220'] : undefined
+}
+
 const alkaneData: Array<Omit<Compound, 'molarMass'>> = alkaneNames.map((name, index) => {
   const carbon = index + 1
   const formula = hydrocarbonFormula('alkane', carbon)
+  const physicalState = hydrocarbonState(carbon)
   return {
     id: `${name}`,
     name: name.charAt(0).toUpperCase() + name.slice(1),
     formula,
     category: 'hydrocarbon',
-    physicalState: hydrocarbonState(carbon),
-    hazards: ['H220'],
+    physicalState,
+    hazards: reviewedStateHazards(physicalState),
     uses: ['fuel', 'chemical feedstock'],
   }
 })
@@ -35,13 +43,14 @@ const alkaneData: Array<Omit<Compound, 'molarMass'>> = alkaneNames.map((name, in
 const alkeneData: Array<Omit<Compound, 'molarMass'>> = alkeneNames.map((name, index) => {
   const carbon = index + 2
   const formula = hydrocarbonFormula('alkene', carbon)
+  const physicalState = hydrocarbonState(carbon)
   return {
     id: `${name}`,
     name: name.charAt(0).toUpperCase() + name.slice(1),
     formula,
     category: 'hydrocarbon',
-    physicalState: hydrocarbonState(carbon),
-    hazards: ['H220'],
+    physicalState,
+    hazards: reviewedStateHazards(physicalState),
     uses: ['polymer feedstock', 'chemical synthesis'],
   }
 })
@@ -49,13 +58,14 @@ const alkeneData: Array<Omit<Compound, 'molarMass'>> = alkeneNames.map((name, in
 const alkyneData: Array<Omit<Compound, 'molarMass'>> = alkyneNames.map((name, index) => {
   const carbon = index + 2
   const formula = hydrocarbonFormula('alkyne', carbon)
+  const physicalState = hydrocarbonState(carbon)
   return {
     id: `${name}`,
     name: name.charAt(0).toUpperCase() + name.slice(1),
     formula,
     category: 'hydrocarbon',
-    physicalState: hydrocarbonState(carbon),
-    hazards: ['H220'],
+    physicalState,
+    hazards: reviewedStateHazards(physicalState),
     uses: ['welding', 'chemical synthesis'],
   }
 })

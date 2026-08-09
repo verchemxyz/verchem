@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 import { COMMON_COMPOUNDS } from '@/lib/data/compounds';
+import { hasApplicableMolarMass, type MolarMassBasis } from '@/lib/data/compounds/types';
 
 // Simplified compound response
 interface CompoundResponse {
@@ -20,6 +21,7 @@ interface CompoundResponse {
   name: string;
   formula: string;
   molecularMass: number | null;
+  molarMassBasis: MolarMassBasis;
   casNumber: string | null;
   category: string;
   physicalProperties: {
@@ -37,7 +39,8 @@ function formatCompound(compound: typeof COMMON_COMPOUNDS[0]): CompoundResponse 
     id: compound.id,
     name: compound.name,
     formula: compound.formula,
-    molecularMass: compound.molarMass ?? compound.molecularMass ?? null,
+    molecularMass: hasApplicableMolarMass(compound) ? compound.molarMass : null,
+    molarMassBasis: compound.molarMassBasis ?? 'not-applicable',
     casNumber: compound.casNumber || compound.cas || null,
     category: compound.category,
     physicalProperties: {

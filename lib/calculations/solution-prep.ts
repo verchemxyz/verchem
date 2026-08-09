@@ -251,11 +251,19 @@ export function solveDilution(input: DilutionInput): DilutionResult {
     throw new Error('Exactly one value must be left blank to solve.')
   }
 
-  // Validate provided values are positive
-  if (c1 !== undefined && c1 < 0) throw new Error('C1 must be non-negative.')
-  if (v1 !== undefined && v1 < 0) throw new Error('V1 must be non-negative.')
-  if (c2 !== undefined && c2 < 0) throw new Error('C2 must be non-negative.')
-  if (v2 !== undefined && v2 < 0) throw new Error('V2 must be non-negative.')
+  for (const [label, value] of Object.entries({ C1: c1, V1: v1, C2: c2, V2: v2 })) {
+    if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+      throw new Error(`${label} must be a non-negative, finite number.`)
+    }
+  }
+
+  const checked = (result: DilutionResult): DilutionResult => {
+    const numericValues = [result.c1, result.v1, result.c2, result.v2]
+    if (numericValues.some(value => !Number.isFinite(value) || value < 0)) {
+      throw new Error('Dilution result is outside the non-negative finite representable range.')
+    }
+    return result
+  }
 
   const solvedFor = missing[0]
 
@@ -263,22 +271,22 @@ export function solveDilution(input: DilutionInput): DilutionResult {
     case 'c1': {
       if (v1 === 0) throw new Error('V1 cannot be zero when solving for C1.')
       const result = (c2! * v2!) / v1!
-      return { c1: result, v1: v1!, c2: c2!, v2: v2!, solvedFor }
+      return checked({ c1: result, v1: v1!, c2: c2!, v2: v2!, solvedFor })
     }
     case 'v1': {
       if (c1 === 0) throw new Error('C1 cannot be zero when solving for V1.')
       const result = (c2! * v2!) / c1!
-      return { c1: c1!, v1: result, c2: c2!, v2: v2!, solvedFor }
+      return checked({ c1: c1!, v1: result, c2: c2!, v2: v2!, solvedFor })
     }
     case 'c2': {
       if (v2 === 0) throw new Error('V2 cannot be zero when solving for C2.')
       const result = (c1! * v1!) / v2!
-      return { c1: c1!, v1: v1!, c2: result, v2: v2!, solvedFor }
+      return checked({ c1: c1!, v1: v1!, c2: result, v2: v2!, solvedFor })
     }
     case 'v2': {
       if (c2 === 0) throw new Error('C2 cannot be zero when solving for V2.')
       const result = (c1! * v1!) / c2!
-      return { c1: c1!, v1: v1!, c2: c2!, v2: result, solvedFor }
+      return checked({ c1: c1!, v1: v1!, c2: c2!, v2: result, solvedFor })
     }
     default:
       throw new Error('Unexpected solve-for variable.')
@@ -363,6 +371,13 @@ export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
     solvent,
     isNeatMaterial ? 'Solvent field (use "none" for neat material)' : 'Solvent identity',
   )
+  const solventIsNone = normalizedSolvent.toLocaleLowerCase('en') === 'none'
+  if (isNeatMaterial && !solventIsNone) {
+    throw new Error('A neat-material target requires solvent to be explicitly declared as "none".')
+  }
+  if (!isNeatMaterial && solventIsNone) {
+    throw new Error('A dilution workflow requires the actual solvent identity; "none" is allowed only for neat material.')
+  }
   if (!Number.isFinite(preparationTemperatureC) || preparationTemperatureC <= -273.15) {
     throw new Error('Preparation temperature must be a finite value above absolute zero.')
   }
@@ -620,13 +635,18 @@ export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
 export function calculateSerialDilution(input: SerialDilutionInput): SerialDilutionResult {
   const { initialConc, dilutionFactor, numDilutions, transferVolume } = input
 
-  if (initialConc <= 0) throw new Error('Initial concentration must be positive.')
-  if (dilutionFactor <= 1) throw new Error('Dilution factor must be greater than 1.')
-  if (numDilutions < 1 || numDilutions > 50) throw new Error('Number of dilutions must be between 1 and 50.')
-  if (transferVolume <= 0) throw new Error('Transfer volume must be positive.')
+  if (!Number.isFinite(initialConc) || initialConc <= 0) throw new Error('Initial concentration must be positive and finite.')
+  if (!Number.isFinite(dilutionFactor) || dilutionFactor <= 1) throw new Error('Dilution factor must be finite and greater than 1.')
+  if (!Number.isSafeInteger(numDilutions) || numDilutions < 1 || numDilutions > 50) {
+    throw new Error('Number of dilutions must be a whole integer between 1 and 50.')
+  }
+  if (!Number.isFinite(transferVolume) || transferVolume <= 0) throw new Error('Transfer volume must be positive and finite.')
 
   const diluentVolume = transferVolume * (dilutionFactor - 1)
   const totalVolume = transferVolume + diluentVolume
+  if (!Number.isFinite(diluentVolume) || !Number.isFinite(totalVolume)) {
+    throw new Error('Serial-dilution volumes are outside the finite representable range.')
+  }
 
   const steps: SerialDilutionStep[] = []
 
@@ -643,6 +663,9 @@ export function calculateSerialDilution(input: SerialDilutionInput): SerialDilut
 
   for (let i = 1; i <= numDilutions; i++) {
     currentConc = currentConc / dilutionFactor
+    if (!Number.isFinite(currentConc) || currentConc <= 0) {
+      throw new Error('Serial-dilution concentration is outside the positive finite representable range.')
+    }
     steps.push({
       step: i,
       concentration: currentConc,

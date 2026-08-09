@@ -26,7 +26,7 @@ const STATIC_ASSETS = [
 const CACHE_ON_VISIT = [
   '/tools/equation-balancer',
   '/tools/stoichiometry',
-  '/tools/ph-calculator',
+  '/solutions',
   '/tools/gas-laws',
   '/tools/molar-mass',
   '/tools/solution-prep',

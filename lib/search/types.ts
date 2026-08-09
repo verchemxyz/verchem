@@ -104,7 +104,8 @@ export interface CompoundSearchData {
   id: string
   name: string
   formula: string
-  molecularMass: number
+  molecularMass: number | null
+  molarMassBasis?: 'formula' | 'repeat-unit' | 'mixture-average' | 'not-applicable'
   pKa?: number
   pKb?: number
   smiles?: string

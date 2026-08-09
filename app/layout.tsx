@@ -19,6 +19,7 @@ import {
   VerChemSoftwareApplicationSchema,
   VerChemOrganizationSchema
 } from "@/components/seo/JsonLd";
+import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
 import "./globals.css";
 import "./accessibility.css";
 import "./tutorials.css";
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     default: "VerChem — Verified Chemistry Workbench",
     template: "%s | VerChem"
   },
-  description: "Deterministic chemistry calculators with HMAC-signed results. 118 NIST-validated elements, interactive periodic table, 3D molecular viewer, stoichiometry, pH, gas laws. Free.",
+  description: "Deterministic chemistry calculators with HMAC-signed results. An interactive 118-element table citing IUPAC and NIST references, 3D molecular viewer, stoichiometry, pH, and gas laws. Free.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -137,8 +138,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
 
         {/* Global SEO Schemas for AI Discoverability (GEO) */}
-        <VerChemGlobalFAQSchema />
-        <VerChemSoftwareApplicationSchema />
+        <VerChemGlobalFAQSchema compoundCount={COMPOUND_STATISTICS.totalCompounds} />
+        <VerChemSoftwareApplicationSchema compoundCount={COMPOUND_STATISTICS.totalCompounds} />
         <VerChemOrganizationSchema />
       </head>
       
