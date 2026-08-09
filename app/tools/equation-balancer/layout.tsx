@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Chemical Equation Balancer - Free Online Calculator | VerChem',
-  description: 'Balance any chemical equation instantly with our free online chemical equation balancer. Supports all reaction types including redox, combustion, and synthesis. Perfect for students and chemists.',
+  description: 'Balance molecular chemical equations with a free online balancer. Handles synthesis, decomposition, combustion, replacement and redox reactions written in molecular form. Every result is checked for atom conservation.',
   keywords: [
     'chemical equation balancer',
     'balance chemical equation',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Chemical Equation Balancer - Free Online Calculator',
-    description: 'Balance any chemical equation instantly. Free, accurate, and easy to use. Perfect for chemistry students and professionals.',
+    description: 'Balance molecular chemical equations instantly. Free, atom-conservation checked, and easy to use.',
     type: 'website',
     url: 'https://verchem.xyz/tools/equation-balancer',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Chemical Equation Balancer - Free Online Calculator',
-    description: 'Balance any chemical equation instantly. Free, accurate, and easy to use.',
+    description: 'Balance molecular chemical equations instantly. Free and atom-conservation checked.',
   },
   alternates: {
     canonical: 'https://verchem.xyz/tools/equation-balancer',

@@ -271,7 +271,7 @@ const weakBaseTests = [
   { name: '0.1 M Methylamine', conc: 0.1, Kb: 4.4e-4, expectedPH: 11.82 },
 
   // Pyridine C5H5N, Kb = 1.7e-9
-  { name: '0.1 M Pyridine', conc: 0.1, Kb: 1.7e-9, expectedPH: 8.61 },
+  { name: '0.1 M Pyridine', conc: 0.1, Kb: 1.7e-9, expectedPH: 9.12 },
 ]
 
 weakBaseTests.forEach(({ name, conc, Kb, expectedPH }) => {

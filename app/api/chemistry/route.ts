@@ -14,9 +14,12 @@
  */
 
 import { NextResponse } from 'next/server';
-import { PUBLIC_API_LIMIT } from '@/lib/api/public-rate-limit';
+import { PUBLIC_API_LIMIT, publicApiRateLimit } from '@/lib/api/public-rate-limit';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = publicApiRateLimit(request, 'index');
+  if (limited) return limited;
+
   return NextResponse.json({
     name: 'VerChem Chemistry API',
     version: '1.0.0',

@@ -5,8 +5,32 @@
 import { BalancedEquation } from '../types/chemistry'
 import { PERIODIC_TABLE } from '../data/periodic-table'
 
-/** Real element symbols, so a made-up token like "Xx" cannot be balanced. */
-const KNOWN_ELEMENTS: ReadonlySet<string> = new Set(PERIODIC_TABLE.map((e) => e.symbol))
+/**
+ * Real element symbols, so a made-up token like "Xx" cannot be balanced.
+ * D and T are the conventional hydrogen-isotope symbols; they are conserved
+ * separately from H, which is what isotope-labelled equations require.
+ */
+const KNOWN_ELEMENTS: ReadonlySet<string> = new Set([
+  ...PERIODIC_TABLE.map((e) => e.symbol),
+  'D',
+  'T',
+])
+
+/**
+ * Detects a species-level charge. A "+" that starts a new species is a
+ * separator ("H2 + O2", "H2+O2"); a "+" hanging off a token is a charge
+ * ("H+", "Fe3+"). Unicode superscripts and "^" are always charges.
+ *
+ * This must run BEFORE the equation is split on "+", otherwise the charge is
+ * silently consumed as a separator and "H+ -> H" balances.
+ */
+function hasCharge(side: string): boolean {
+  const cleaned = side.replace(/\((?:aq|s|l|g)\)/gi, '')
+  if (/[⁺⁻^]/.test(cleaned)) return true
+  if (/[A-Za-z0-9)]\+(?!\s*[A-Z(])/.test(cleaned)) return true
+  if (/[A-Za-z0-9)]-(?!>)/.test(cleaned)) return true
+  return false
+}
 
 interface Fraction {
   num: number
@@ -52,39 +76,59 @@ function parseFormula(formula: string): Record<string, number> {
   }
 
   const elements: Record<string, number> = {}
+  const original = formula
 
   // Remove states (s), (l), (g), (aq)
   formula = formula.replace(/\([slgaq]+\)/g, '')
 
-  // Charged species are NOT supported: the element regex reads "Cr3+" as three
-  // chromium atoms and "Cr2O7^2-" as an extra subscript, then reports the
-  // result as balanced. Refusing is the only honest option until half-reaction
-  // balancing with charge conservation exists.
-  if (/[+\-^]/.test(formula)) {
+  // Defence in depth — parseEquation rejects charges before splitting, but a
+  // direct caller must not get "Cr3+" read as three chromium atoms.
+  if (/[+\-^⁺⁻]/.test(formula)) {
     throw new Error(
-      `Ionic species with charges are not supported: "${formula}". Write the equation in molecular form (e.g. KMnO4 + HCl instead of MnO4- + H+).`
+      `Ionic species with charges are not supported: "${original}". Write the equation in molecular form (e.g. KMnO4 + HCl instead of MnO4- + H+).`
     )
   }
 
   // Handle parentheses: Ca(OH)2 -> expand to CaO2H2
   formula = expandParentheses(formula)
 
-  // Match element and number pattern: H2, C, O3
-  const regex = /([A-Z][a-z]?)(\d*)/g
-  let match
+  if (formula.length === 0) {
+    throw new Error('Empty chemical formula')
+  }
 
-  while ((match = regex.exec(formula)) !== null) {
-    const element = match[1]
-    const count = match[2] ? parseInt(match[2]) : 1
+  // STRICT tokenisation. The previous global-regex scan skipped any character
+  // it could not match, so "Ca(OH2" parsed as CaOH2 and "abc" parsed as the
+  // empty set — both then "balanced". Every character must now be consumed by
+  // an element+subscript token.
+  const token = /([A-Z][a-z]?)(\d*)/y
+  let pos = 0
 
-    if (element) {
-      // Balancing a symbol that is not an element produces a confidently wrong
-      // "balanced" equation, so reject it rather than conserving a fiction.
-      if (!KNOWN_ELEMENTS.has(element)) {
-        throw new Error(`Unknown element symbol: "${element}"`)
-      }
-      elements[element] = (elements[element] || 0) + count
+  while (pos < formula.length) {
+    token.lastIndex = pos
+    const match = token.exec(formula)
+
+    if (!match) {
+      throw new Error(`Cannot parse formula: "${original}"`)
     }
+
+    const element = match[1]
+    if (!KNOWN_ELEMENTS.has(element)) {
+      throw new Error(`Unknown element symbol: "${element}" in "${original}"`)
+    }
+
+    let count = 1
+    if (match[2]) {
+      if (!/^[1-9]\d*$/.test(match[2])) {
+        throw new Error(`Invalid subscript "${match[2]}" in "${original}"`)
+      }
+      count = parseInt(match[2], 10)
+      if (!Number.isSafeInteger(count) || count > MAX_SUBSCRIPT) {
+        throw new Error(`Subscript out of range in "${original}"`)
+      }
+    }
+
+    elements[element] = (elements[element] || 0) + count
+    pos = token.lastIndex
   }
 
   return elements
@@ -182,6 +226,16 @@ function parseEquation(equation: string): { reactants: string[]; products: strin
 
   if (parts.length !== 2) {
     throw new Error('Invalid equation format. Use format: A + B -> C + D')
+  }
+
+  // Charges must be caught here: splitting on "+" would otherwise turn
+  // "H+ -> H" into "H -> H" and balance it.
+  for (const side of parts) {
+    if (hasCharge(side)) {
+      throw new Error(
+        'Ionic species with charges are not supported. Write the equation in molecular form (e.g. KMnO4 + HCl instead of MnO4- + H+).'
+      )
+    }
   }
 
   const reactants = parts[0]
@@ -707,25 +761,17 @@ export function identifyReactionType(equation: string): string {
   try {
     const { reactants, products } = parseEquation(equation)
 
-    // Check for redox indicators
-    const isRedox = detectRedoxReaction(reactants, products)
-    if (isRedox) {
-      // More specific redox types
-      if (
-        reactants.some(r => r.includes('O2')) &&
-        products.some(p => p.includes('CO2')) &&
-        products.some(p => p.includes('H2O'))
-      ) {
-        return 'combustion'
-      }
-      return 'redox'
-    }
+    // Structural pattern first, electron-transfer last. Many reactions are
+    // legitimately both (H2 + O2 -> H2O is a synthesis AND a redox); textbooks
+    // name them by the pattern, so the more specific structural label wins and
+    // 'redox' is the fallback for reactions with no clearer pattern.
 
-    // Combustion: hydrocarbon + O2 -> CO2 + H2O
+    // Combustion: fuel + O2 -> CO2 + H2O. Compare whole species, not
+    // substrings — "CO2".includes("O2") was matching the oxygen test.
     if (
-      reactants.some(r => r.includes('O2')) &&
-      products.some(p => p.includes('CO2')) &&
-      products.some(p => p.includes('H2O'))
+      reactants.some(r => r === 'O2') &&
+      products.some(p => p === 'CO2') &&
+      products.some(p => p === 'H2O')
     ) {
       return 'combustion'
     }
@@ -763,6 +809,11 @@ export function identifyReactionType(equation: string): string {
       return 'double-replacement'
     }
 
+    // No structural pattern matched — fall back to electron transfer.
+    if (detectRedoxReaction(reactants, products)) {
+      return 'redox'
+    }
+
     return 'unknown'
   } catch {
     return 'unknown'
@@ -773,42 +824,38 @@ export function identifyReactionType(equation: string): string {
  * Detect if reaction involves oxidation-reduction
  */
 function detectRedoxReaction(reactants: string[], products: string[]): boolean {
-  // Common redox indicators
-  const redoxIndicators = [
-    'O2', 'H2', 'Cl2', 'F2', 'Br2', 'I2', // Diatomic elements
-    'MnO4', 'Cr2O7', 'CrO4', // Common oxidizing agents
-    'Fe', 'Cu', 'Zn', 'Al', 'Mg', 'Na', 'K', // Active metals
-  ]
-
-  const allCompounds = [...reactants, ...products]
-
-  // Check for diatomic elements or common redox species
-  for (const compound of allCompounds) {
-    for (const indicator of redoxIndicators) {
-      if (compound.includes(indicator)) {
-        return true
-      }
-    }
+  // The old version substring-matched a list of "indicators", so NaOH counted
+  // as sodium metal and CO2 counted as O2 — nearly everything came back redox.
+  //
+  // Use the one signal that is unambiguous without computing full oxidation
+  // states: a species made of a single element is in its elemental form
+  // (oxidation state 0). If that element is bound in a compound on the other
+  // side, its oxidation state must have changed.
+  const isFreeElement = (species: string): string | null => {
+    const elements = Object.keys(parseFormula(species))
+    return elements.length === 1 ? elements[0] : null
   }
 
-  // Check for change in oxidation state (simplified)
-  // If same element appears in different compounds with different partners, likely redox
-  const reactantElements = new Set<string>()
-  const productElements = new Set<string>()
-
-  reactants.forEach(r => {
-    Object.keys(parseFormula(r)).forEach(el => reactantElements.add(el))
-  })
-  products.forEach(p => {
-    Object.keys(parseFormula(p)).forEach(el => productElements.add(el))
-  })
-
-  // If element appears alone on one side but combined on other, likely redox
-  for (const r of reactants) {
-    const elements = Object.keys(parseFormula(r))
-    if (elements.length === 1 && elements[0] !== 'H' && elements[0] !== 'O') {
-      return true
+  const boundElements = (side: string[]): Set<string> => {
+    const bound = new Set<string>()
+    for (const species of side) {
+      const elements = Object.keys(parseFormula(species))
+      if (elements.length > 1) elements.forEach((el) => bound.add(el))
     }
+    return bound
+  }
+
+  const boundInProducts = boundElements(products)
+  const boundInReactants = boundElements(reactants)
+
+  for (const species of reactants) {
+    const element = isFreeElement(species)
+    if (element && boundInProducts.has(element)) return true
+  }
+
+  for (const species of products) {
+    const element = isFreeElement(species)
+    if (element && boundInReactants.has(element)) return true
   }
 
   return false

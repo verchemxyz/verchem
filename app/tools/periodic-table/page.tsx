@@ -73,7 +73,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: 'NIST/IUPAC Data',
-    description: 'Certified atomic masses and properties from official sources'
+    description: 'Atomic weights from IUPAC 2021; other properties from NIST and the CRC Handbook'
   },
   {
     icon: Search,
@@ -115,7 +115,7 @@ export default function PeriodicTablePage() {
     <>
       <PeriodicTableSchema />
       <CalcShell
-        eyebrow="NIST/IUPAC certified data"
+        eyebrow="IUPAC 2021 atomic weights · NIST/CRC properties"
         title="Interactive Periodic Table"
         subtitle="A preview of VerChem's periodic table — NIST/IUPAC data, electron configurations and properties. Open the full interactive table to browse all 118 elements."
         backHref="/tools"
@@ -128,7 +128,7 @@ export default function PeriodicTablePage() {
             <CheckCircle className="h-4 w-4 text-success-strong" /> 118 Elements
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success-strong" /> NIST Certified
+            <CheckCircle className="h-4 w-4 text-success-strong" /> IUPAC 2021 weights
           </span>
           <span className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-success-strong" /> Interactive
@@ -309,7 +309,7 @@ export default function PeriodicTablePage() {
               },
               {
                 q: 'What data sources do you use?',
-                a: 'Our periodic table uses official NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) certified data for atomic masses and other properties.'
+                a: 'Standard atomic weights come from IUPAC (2021 table). Other physical properties are taken from NIST and the CRC Handbook of Chemistry and Physics. VerChem cites those sources; it is not certified by them.'
               },
               {
                 q: 'How many elements are there?',
@@ -321,7 +321,7 @@ export default function PeriodicTablePage() {
               },
               {
                 q: 'Can I use this for schoolwork?',
-                a: 'Absolutely! Our periodic table is perfect for students. It includes all the information typically needed for chemistry classes, with NIST-certified accuracy for homework and exams.'
+                a: 'Yes. It includes the properties typically needed for chemistry coursework, with atomic weights taken from the IUPAC 2021 standard table.'
               }
             ].map((faq, i) => (
               <div

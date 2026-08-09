@@ -257,7 +257,7 @@ test('As T → ∞, k → A', () => {
 test('Enzyme catalysis: lower Ea (25 kJ/mol)', () => {
   const result = arrheniusEquation(1e8, 25000, 310.15) // 37°C
   // Lower Ea means faster reaction
-  expect(result.k).toBeGreaterThan(1e4) // k should be large
+  expect(result.k).toBeGreaterThan(1e3) // Arrhenius gives 6.16e3 here
 })
 
 console.log('')

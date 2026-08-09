@@ -119,7 +119,7 @@ VerChem is a free chemistry platform offering 8 deterministic calculators, a 2D 
 Yes. VerChem's tools are free to use, with no per-calculation charge and no paid tier gating the chemistry itself.
 
 **How accurate is VerChem data?**
-VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. All 118 elements have certified atomic masses and properties updated to 2021 standards.
+VerChem draws its element data from published reference sources: standard atomic weights from IUPAC (2021), with other physical properties from NIST and the CRC Handbook of Chemistry and Physics. All 118 elements are covered. VerChem is not certified by any of those bodies — it cites them.
 
 **Who can use VerChem?**
 VerChem is designed for high school students, university students, chemists, chemical engineers, lab technicians, educators, and anyone who needs chemistry calculations.

@@ -212,7 +212,7 @@ export default function EquationBalancerToolPage() {
             How to Balance Chemical Equations
           </SectionTitle>
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            Matrix algebra and Gaussian elimination balance molecular equations in milliseconds, then every result is re-checked atom by atom
+            Matrix algebra and Gaussian elimination balance molecular equations in milliseconds, then every result is re-checked for atom conservation
           </p>
 
           <div className="grid md:grid-cols-4 gap-8">
@@ -268,7 +268,7 @@ export default function EquationBalancerToolPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { title: 'Lightning Fast', desc: 'Balance equations in milliseconds using advanced algorithms' },
-              { title: 'Atom-Count Verified', desc: 'Every balanced equation is re-checked atom by atom against IUPAC reference data' },
+              { title: 'Atom-Count Verified', desc: 'Every balanced equation is re-checked for atom conservation, and every symbol is validated against the periodic table' },
               { title: 'Works Everywhere', desc: 'Use on any device - desktop, tablet, or mobile' },
               { title: 'Completely Free', desc: 'No sign-up, no limits, no hidden costs. Forever free!' },
               { title: 'Molecular Reactions', desc: 'Synthesis, decomposition, combustion and redox written in molecular form' },

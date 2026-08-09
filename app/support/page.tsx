@@ -16,20 +16,20 @@ const supportTiers = [
     name: 'Lunch',
     amount: 10,
     description: 'Help us power through with a proper meal',
-    popular: true,
+    popular: false,
   },
   {
     id: 'feature',
     name: 'Feature Sponsor',
     amount: 25,
-    description: 'Your name in our credits as a feature sponsor',
+    description: 'Support a specific area of the work',
     popular: false,
   },
   {
     id: 'patron',
     name: 'Patron',
     amount: 50,
-    description: 'Become a patron and shape our roadmap',
+    description: 'The largest one-time contribution',
     popular: false,
   },
 ];
@@ -73,7 +73,7 @@ export default function SupportPage() {
 
   return (
     <CalcShell
-      eyebrow="100% goes to development"
+      eyebrow="Optional — everything is already free"
       title="Support VerChem"
       subtitle="VerChem is free for everyone. Your support helps us build new features, maintain servers, and keep chemistry education accessible. No pressure, no guilt — just gratitude."
       backHref="/"
@@ -194,7 +194,7 @@ export default function SupportPage() {
 
           <div className="p-5 rounded-md border border-border bg-muted">
             <h3 className="font-bold mb-2 text-foreground">Where does my money go?</h3>
-            <p className="text-muted-foreground">100% goes to development: servers, new features, data validation, and keeping the platform running. No fancy offices here!</p>
+            <p className="text-muted-foreground">Into running and maintaining VerChem: hosting, storage, reference-data upkeep and engine validation. Payment processing takes its own cut before the money reaches us — we don&apos;t control that part.</p>
           </div>
 
           <div className="p-5 rounded-md border border-border bg-muted">

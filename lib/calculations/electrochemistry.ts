@@ -377,7 +377,9 @@ export const EXAMPLE_CELLS = [
  * Get standard reduction potential
  */
 export function getStandardPotential(halfCell: string): number | null {
-  return STANDARD_REDUCTION_POTENTIALS[halfCell]?.E0 || null
+  // `|| null` swallowed the standard hydrogen electrode, whose E0 is exactly
+  // 0.0 V — the reference every other potential is quoted against.
+  return STANDARD_REDUCTION_POTENTIALS[halfCell]?.E0 ?? null
 }
 
 /**

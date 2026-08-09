@@ -320,9 +320,11 @@ test('1 atm, 10 L, 273 K → 2 atm, 546 K: V2 = 10 L', () => {
   expect(result.V2).toBeCloseTo(10, 0.01)
 })
 
-test('1 atm, 22.4 L, 273 K → V2 = 44.8 L, 546 K: P2 = 0.5 atm', () => {
+test('1 atm, 22.4 L, 273 K → V2 = 44.8 L, 546 K: P2 = 1 atm (V and T both double)', () => {
   const result = combinedGasLaw({ P1: 1, V1: 22.4, T1: 273, V2: 44.8, T2: 546 })
-  expect(result.P2).toBeCloseTo(0.5, 0.01)
+  // P2 = P1V1T2/(T1V2) = (1 x 22.4 x 546)/(273 x 44.8) = 1 atm.
+  // Doubling volume halves the pressure; doubling temperature doubles it back.
+  expect(result.P2).toBeCloseTo(1, 0.01)
 })
 
 console.log('')
