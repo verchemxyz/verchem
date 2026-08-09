@@ -270,8 +270,14 @@ function StockPrepCalculator() {
   const [vol, setVol] = useState('')
   const [mm, setMm] = useState('')
   const [unit, setUnit] = useState<ConcentrationUnit>('mol/L')
+  const [density, setDensity] = useState('')
+  const [eqFactor, setEqFactor] = useState('')
   const [result, setResult] = useState<StockPrepResult | null>(null)
   const [error, setError] = useState('')
+
+  // These two inputs only matter for the units whose result depends on them.
+  const needsDensity = unit === 'pct_ww'
+  const needsEqFactor = unit === 'N'
 
   const handleCalculate = useCallback(() => {
     setError('')
@@ -285,18 +291,34 @@ function StockPrepCalculator() {
     if (isNaN(vVal)) { setError('Volume is not a valid number.'); return }
     if (isNaN(mVal)) { setError('Molar mass is not a valid number.'); return }
 
+    let solutionDensity: number | undefined
+    if (needsDensity && density.trim() !== '') {
+      const dVal = parseFloat(density)
+      if (isNaN(dVal)) { setError('Solution density is not a valid number.'); return }
+      solutionDensity = dVal
+    }
+
+    let equivalentsFactor: number | undefined
+    if (needsEqFactor && eqFactor.trim() !== '') {
+      const eVal = parseFloat(eqFactor)
+      if (isNaN(eVal)) { setError('Equivalents factor is not a valid number.'); return }
+      equivalentsFactor = eVal
+    }
+
     try {
       const res = calculateStockPrep({
         targetConc: cVal,
         targetVolume: vVal,
         molarMass: mVal,
         unit,
+        solutionDensity,
+        equivalentsFactor,
       })
       setResult(res)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Calculation error')
     }
-  }, [conc, vol, mm, unit])
+  }, [conc, vol, mm, unit, density, eqFactor, needsDensity, needsEqFactor])
 
   const loadExample = useCallback((ex: typeof STOCK_EXAMPLES[0]) => {
     setConc(ex.conc)
@@ -312,7 +334,7 @@ function StockPrepCalculator() {
       <div>
         <h3 className="text-xl font-bold text-foreground mb-1">Stock Solution Preparation</h3>
         <p className="text-sm text-muted-foreground">
-          Calculate how much solute to weigh for a desired solution.
+          Calculate how much solute to take for a desired solution — as a mass to weigh, or a volume to measure.
         </p>
       </div>
 
@@ -359,6 +381,22 @@ function StockPrepCalculator() {
         </div>
         <InputField label="Target Volume (L)" value={vol} onChange={setVol} placeholder="e.g. 1" />
         <InputField label="Molar Mass (g/mol)" value={mm} onChange={setMm} placeholder="e.g. 58.44" />
+        {needsDensity && (
+          <InputField
+            label="Solution Density (g/mL) — optional"
+            value={density}
+            onChange={setDensity}
+            placeholder="leave blank to assume 1 g/mL"
+          />
+        )}
+        {needsEqFactor && (
+          <InputField
+            label="Equivalents Factor — optional"
+            value={eqFactor}
+            onChange={setEqFactor}
+            placeholder="H₂SO₄ = 2, H₃PO₄ = 3; blank assumes 1"
+          />
+        )}
       </div>
 
       <Button onClick={handleCalculate} className="w-full sm:w-auto">
@@ -370,19 +408,35 @@ function StockPrepCalculator() {
       {result && (
         <ResultCard>
           <div className="text-center mb-4">
-            <p className="text-sm text-muted-foreground">Mass of solute needed</p>
-            <p className="text-4xl font-bold text-primary-600 font-mono">
-              {formatSci(result.massNeeded)}
-              <span className="text-lg text-muted-foreground ml-2">
-                {unit === 'pct_vv' ? 'mL' : 'g'}
-              </span>
+            <p className="text-sm text-muted-foreground">
+              {result.measureBy === 'mass' ? 'Mass of solute to weigh' : 'Volume of liquid solute to measure'}
             </p>
+            <p className="text-4xl font-bold text-primary-600 font-mono">
+              {formatSci(result.amount)}
+              <span className="text-lg text-muted-foreground ml-2">{result.amountUnit}</span>
+            </p>
+            {result.measureBy === 'volume' && (
+              <p className="mt-2 text-xs font-semibold text-warning-strong">
+                Measure this volume — do not weigh it.
+              </p>
+            )}
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-sm font-semibold text-foreground mb-2">Step-by-step</p>
             <div className="space-y-1">
               {result.steps.map((step, i) => (
-                <p key={i} className={`text-sm ${step === '' ? 'h-2' : step.startsWith('Preparation') || step.startsWith('Note:') ? 'text-primary-600 font-medium' : 'text-muted-foreground'}`}>
+                <p
+                  key={i}
+                  className={`text-sm ${
+                    step === ''
+                      ? 'h-2'
+                      : step.startsWith('Assumptions') || step.startsWith('•')
+                        ? 'text-warning-strong font-medium'
+                        : step.startsWith('Preparation') || step.startsWith('Note:')
+                          ? 'text-primary-600 font-medium'
+                          : 'text-muted-foreground'
+                  }`}
+                >
                   {step}
                 </p>
               ))}

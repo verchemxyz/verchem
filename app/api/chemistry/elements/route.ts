@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table';
 
 // Simplified element response
@@ -51,6 +52,9 @@ function formatElement(element: typeof PERIODIC_TABLE[0]): ElementResponse {
 }
 
 export async function GET(request: NextRequest) {
+  const limited = publicApiRateLimit(request, 'elements');
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
   const symbol = searchParams.get('symbol');
   const number = searchParams.get('number');

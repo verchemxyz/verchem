@@ -161,7 +161,7 @@ const PROBLEMS: Problem[] = [
     difficulty: 'hard',
     question: 'A mixture contains 2.0 g of H₂ and 8.0 g of O₂ in a 10.0 L container at 27°C. What is the total pressure?\n(R = 0.0821 L·atm/mol·K, M_H₂ = 2 g/mol, M_O₂ = 32 g/mol)',
     hints: ["Use Dalton's Law of Partial Pressures", 'Calculate moles of each gas', 'Find total moles, then use PV = nRT'],
-    answer: '2.71 atm',
+    answer: '3.08 atm',
     solution: [
       'mol H₂ = 2.0 g / 2 g/mol = 1.0 mol',
       'mol O₂ = 8.0 g / 32 g/mol = 0.25 mol',

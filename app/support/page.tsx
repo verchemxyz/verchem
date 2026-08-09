@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { CalcShell, Card, SectionTitle } from '@/components/lab';
 
@@ -35,39 +34,31 @@ const supportTiers = [
   },
 ];
 
-const recentSupporters = [
-  { name: 'Anonymous Chemist', amount: 10, message: 'Great tool for my students!' },
-  { name: 'Dr. Sarah', amount: 25, message: 'Love the NIST validation!' },
-  { name: 'Chemistry Club MIT', amount: 50, message: 'Keep up the amazing work!' },
-];
-
-const milestones = [
+// What support pays for. Deliberately no money raised / goal figures: there is
+// no ledger behind them, and a progress bar nobody can audit is a claim we
+// cannot back.
+const fundingAreas = [
   {
-    target: 500,
-    current: 127,
-    title: '3D Orbital Visualizer',
-    description: 'Interactive 3D electron orbital animations',
+    title: 'Reference data upkeep',
+    description: 'Keeping 118 elements and 417 compounds aligned with current NIST/IUPAC editions.',
   },
   {
-    target: 1000,
-    current: 127,
-    title: 'Mobile App',
-    description: 'Native iOS & Android apps for chemistry on-the-go',
+    title: 'Engine validation',
+    description: 'Test vectors, independent cross-checks, and stating the assumptions behind every calculation.',
   },
   {
-    target: 2500,
-    current: 127,
-    title: 'AI Chemistry Tutor Pro',
-    description: 'Advanced AI tutoring with video explanations',
+    title: 'Running costs',
+    description: 'Hosting, storage, and the compute behind structure search and signed results.',
   },
 ];
 
 export default function SupportPage() {
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
-  const [customAmount, setCustomAmount] = useState('');
-  const [isCustom, setIsCustom] = useState(false);
 
-  const handleSupport = (amount: number, tierId?: string) => {
+  // Each tier maps to a fixed-price Stripe Payment Link. There is deliberately
+  // no custom-amount path: the links are fixed-price, so any custom figure
+  // would charge something other than what the button promised.
+  const handleSupport = (tierId: string) => {
     // Stripe Payment Links - PRODUCTION (from Stripe Dashboard 12 Dec 2025)
     const stripeLinks: Record<string, string> = {
       coffee: 'https://buy.stripe.com/9B6eVceFOg6z4Ctehm3cc0k',
@@ -76,12 +67,8 @@ export default function SupportPage() {
       patron: 'https://buy.stripe.com/14A28q0OYaMfd8Z4GM3cc0n',
     };
 
-    if (tierId && stripeLinks[tierId]) {
-      window.open(stripeLinks[tierId], '_blank');
-    } else {
-      // For custom amounts, redirect to patron link as default
-      window.open(stripeLinks.patron, '_blank');
-    }
+    const link = stripeLinks[tierId];
+    if (link) window.open(link, '_blank');
   };
 
   return (
@@ -97,16 +84,16 @@ export default function SupportPage() {
       <Card className="p-6">
         <div className="grid grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-foreground font-mono">10K+</div>
-            <div className="text-sm text-muted-foreground">Students helped</div>
-          </div>
-          <div className="text-center">
             <div className="text-3xl font-bold text-foreground font-mono">118</div>
-            <div className="text-sm text-muted-foreground">Elements</div>
+            <div className="text-sm text-muted-foreground">Elements (NIST/IUPAC)</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-foreground font-mono">14</div>
-            <div className="text-sm text-muted-foreground">Free tools</div>
+            <div className="text-3xl font-bold text-foreground font-mono">417</div>
+            <div className="text-sm text-muted-foreground">Compounds</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-foreground font-mono">$0</div>
+            <div className="text-sm text-muted-foreground">Cost to use</div>
           </div>
         </div>
       </Card>
@@ -119,10 +106,7 @@ export default function SupportPage() {
           {supportTiers.map((tier) => (
             <button
               key={tier.id}
-              onClick={() => {
-                setSelectedTier(tier.id);
-                setIsCustom(false);
-              }}
+              onClick={() => setSelectedTier(tier.id)}
               className={`relative p-6 rounded-md border text-left transition-colors
                 ${selectedTier === tier.id
                   ? 'border-primary-500 bg-muted'
@@ -154,60 +138,21 @@ export default function SupportPage() {
           ))}
         </div>
 
-        {/* Custom Amount */}
-        <div className="max-w-md mx-auto mb-8">
-          <button
-            onClick={() => {
-              setIsCustom(true);
-              setSelectedTier(null);
-            }}
-            className={`w-full p-4 rounded-md border transition-colors ${
-              isCustom
-                ? 'border-primary-500 bg-muted'
-                : 'border-border hover:bg-muted'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-4">
-              <span className="font-medium text-foreground">Custom amount</span>
-              {isCustom && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-foreground">$</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    placeholder="Any amount"
-                    aria-label="Custom support amount in dollars"
-                    className="input-premium w-32"
-                  />
-                </div>
-              )}
-            </div>
-          </button>
-        </div>
-
         {/* Support Button */}
         <div className="text-center">
           <button
             onClick={() => {
-              const amount = isCustom
-                ? parseInt(customAmount) || 0
-                : supportTiers.find(t => t.id === selectedTier)?.amount || 0;
-              if (amount > 0) {
-                handleSupport(amount, isCustom ? undefined : selectedTier || undefined);
-              }
+              if (selectedTier) handleSupport(selectedTier);
             }}
-            disabled={!selectedTier && (!isCustom || !customAmount)}
+            disabled={!selectedTier}
             className={`inline-flex items-center justify-center rounded-md font-bold text-lg px-12 py-4 min-h-[44px] transition-colors ${
-              (selectedTier || (isCustom && customAmount))
+              selectedTier
                 ? 'bg-primary-500 text-primary-foreground hover:bg-primary-600'
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
             }`}
           >
-            {selectedTier || (isCustom && customAmount)
-              ? `Support with $${isCustom ? customAmount : supportTiers.find(t => t.id === selectedTier)?.amount}`
+            {selectedTier
+              ? `Support with $${supportTiers.find(t => t.id === selectedTier)?.amount}`
               : 'Select an amount'}
           </button>
 
@@ -220,67 +165,20 @@ export default function SupportPage() {
         </div>
       </Card>
 
-      {/* Funding Goals */}
+      {/* Where support goes */}
       <Card className="p-6">
-        <SectionTitle className="text-center mb-2">What we&apos;re building</SectionTitle>
-        <p className="text-center text-muted-foreground mb-8">Your support directly funds these features</p>
+        <SectionTitle className="text-center mb-2">Where support goes</SectionTitle>
+        <p className="text-center text-muted-foreground mb-8">
+          No fundraising totals here — we don&apos;t publish a figure we can&apos;t let you audit.
+        </p>
 
         <div className="space-y-4">
-          {milestones.map((milestone, index) => {
-            const progress = Math.min((milestone.current / milestone.target) * 100, 100);
-            return (
-              <div key={index} className="p-5 rounded-md border border-border bg-muted">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-foreground">{milestone.title}</h3>
-                  <span className="text-sm font-medium text-muted-foreground font-mono">
-                    ${milestone.current} / ${milestone.target}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">{milestone.description}</p>
-                <div className="h-2 bg-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* Recent Supporters */}
-      <Card className="p-6">
-        <SectionTitle className="text-center mb-2">Recent supporters</SectionTitle>
-        <p className="text-center text-muted-foreground mb-8">Thank you for believing in us</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {recentSupporters.map((supporter, index) => (
-            <div key={index} className="p-5 rounded-md border border-border bg-muted">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-md border border-border bg-card flex items-center justify-center text-foreground font-bold">
-                  {supporter.name.charAt(0)}
-                </div>
-                <div>
-                  <div className="font-medium text-foreground">{supporter.name}</div>
-                  <div className="text-sm text-primary-600 font-semibold font-mono">${supporter.amount}</div>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground italic">&ldquo;{supporter.message}&rdquo;</p>
+          {fundingAreas.map((area) => (
+            <div key={area.title} className="p-5 rounded-md border border-border bg-muted">
+              <h3 className="font-bold text-foreground mb-1">{area.title}</h3>
+              <p className="text-sm text-muted-foreground">{area.description}</p>
             </div>
           ))}
-        </div>
-
-        <div className="text-center mt-8">
-          <Link
-            href="/supporters"
-            className="text-primary-600 hover:text-primary-500 font-medium inline-flex items-center gap-2"
-          >
-            View all supporters
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
         </div>
       </Card>
 
@@ -301,7 +199,7 @@ export default function SupportPage() {
 
           <div className="p-5 rounded-md border border-border bg-muted">
             <h3 className="font-bold mb-2 text-foreground">Do I get anything special?</h3>
-            <p className="text-muted-foreground">All supporters get listed on our supporters page (if you want). $25+ sponsors get special recognition. But honestly, the best reward is knowing you helped thousands of students learn chemistry.</p>
+            <p className="text-muted-foreground">No — and that&apos;s deliberate. Every feature is already free for everyone, so support buys no tier, badge or unlock. It just keeps the work going.</p>
           </div>
 
           <div className="p-5 rounded-md border border-border bg-muted">

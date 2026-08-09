@@ -155,16 +155,16 @@ VerChem includes 40 named organic reactions at three difficulty levels: Introduc
 **How does the Reaction Predictor work?**
 Select a starting functional group and a reagent/condition. VerChem predicts the product based on known organic reaction rules. It shows the product functional group, mechanism type, explanation of what happens, and selectivity information (e.g., Markovnikov vs anti-Markovnikov).
 
-### VerChem vs AI Comparison
+### Deterministic Results vs Generated Text
 
-**What is the difference between VerChem and asking AI like ChatGPT for chemistry calculations?**
-VerChem and AI chatbots serve different purposes. VerChem provides 100% accurate calculations every time using verified formulas and NIST/IUPAC certified data - the same result guaranteed on every calculation. AI chatbots like ChatGPT are excellent for explanations and learning concepts, but may occasionally make calculation errors (hallucination), give inconsistent results, or use outdated atomic masses. For critical calculations (lab work, exams, engineering), use VerChem. For understanding concepts, AI chatbots are great companions. Best practice: Use both together.
+**How is VerChem different from asking an AI chatbot for a chemistry calculation?**
+VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and each result carries the formula used, the engine version, the reference-data edition (NIST/IUPAC atomic masses) and a citation, so it can be re-checked and reproduced later. A chatbot writes its answer as text: it can vary between runs and leaves no reproducible record. VerChem does use AI to explain a result in plain language, but the numbers themselves always come from the engine, never from the model.
 
-**Can AI chatbots replace chemistry calculators like VerChem?**
-No, they serve complementary roles. AI chatbots may: 1) Calculate atomic masses incorrectly (off by 1-2 decimal places), 2) Make errors in complex equation balancing, 3) Give different answers each time you ask, 4) Not know specialized standards like Thai PCD water quality limits. VerChem guarantees: 1) NIST-certified atomic masses for all 118 elements, 2) Deterministic results (same input = same output, always), 3) Calculation speed under 50ms, 4) Thai regulatory standards built-in. Use VerChem when accuracy matters, AI when you need explanations.
+**Is a VerChem result guaranteed to be correct?**
+It is guaranteed to be reproducible, not infallible. A VerChem result is deterministic, uses NIST/IUPAC reference data for all 118 elements, and states the formula, assumptions and applicability limits it was computed under — for example whether a solution density or an equivalents factor was assumed. Signed results are tamper-evident: any later edit to a saved result breaks its signature. That signature proves the record was not altered; it does not by itself prove the underlying chemistry applies to your case, so always check the stated assumptions.
 
 **Why does VerChem exist if AI can do chemistry?**
-AI is great at explaining concepts but unreliable for calculations. VerChem was built because: 1) Students need tools they can trust for exams, 2) Engineers need accurate calculations for real-world applications, 3) Thai environmental standards (PCD Type A/B/C) are not in most AI training data, 4) Consistency matters - same calculation should give same result every time. VerChem + AI together = best learning experience.
+Because an answer you cannot reproduce is not evidence. VerChem exists to produce chemistry results that carry their own provenance — inputs, units, formula, engine version, reference-data edition, citation and signature — so a student, a marker, a colleague or a regulator can replay them later and get the same numbers. Explanation is the easy part; a durable, checkable record is the part that generated text cannot give you.
 
 ### Spectroscopy Questions
 

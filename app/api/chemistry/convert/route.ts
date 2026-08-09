@@ -18,6 +18,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 import {
   convert,
   formatValue,
@@ -52,6 +53,9 @@ const AVAILABLE_UNITS: Record<ConversionCategory, string[]> = {
 const CATEGORIES = Object.keys(AVAILABLE_UNITS) as ConversionCategory[];
 
 export async function GET(request: NextRequest) {
+  const limited = publicApiRateLimit(request, 'convert');
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
   const value = searchParams.get('value');
   const from = searchParams.get('from');

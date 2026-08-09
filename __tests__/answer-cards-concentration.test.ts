@@ -216,7 +216,10 @@ describe('calculate_stock_prep', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     const engineResult = calculateStockPrep({ targetConc: 1, targetVolume: 0.5, molarMass: 58.44, unit: 'mol/L' })
-    expect(result.value.mass_needed_g).toBeCloseTo(engineResult.massNeeded, 10)
+    // The adapter may only report a mass when the engine actually produced one.
+    expect(engineResult.measureBy).toBe('mass')
+    expect(engineResult.amountUnit).toBe('g')
+    expect(result.value.mass_needed_g).toBeCloseTo(engineResult.amount, 10)
   })
 
   test('pct_vv rejected (yields volume not mass — not verifiable)', () => {

@@ -225,7 +225,7 @@ export default function Home() {
           <ToolCard
             href="/lewis"
             title="Lewis Structures"
-            description="Generate Lewis dot structures with formal charge analysis and resonance forms."
+            description="Generate Lewis dot structures with valence-electron accounting and formal charge analysis."
             icon={<AtomIcon />}
           />
           <ToolCard
@@ -282,7 +282,7 @@ export default function Home() {
                 <h3 className="font-semibold text-foreground">AI explains</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                AI only narrates around the signed numbers — it never generates the result itself. If the explanation drifts, the signature still validates the math.
+                AI only narrates around the signed numbers — it never generates the result itself. The signature covers the engine result and the explanation together, so any later edit to either one shows up.
               </p>
             </div>
           </div>

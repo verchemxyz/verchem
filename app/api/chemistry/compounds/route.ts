@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 import { COMMON_COMPOUNDS } from '@/lib/data/compounds';
 
 // Simplified compound response
@@ -53,6 +54,9 @@ function formatCompound(compound: typeof COMMON_COMPOUNDS[0]): CompoundResponse 
 }
 
 export async function GET(request: NextRequest) {
+  const limited = publicApiRateLimit(request, 'compounds');
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
   const category = searchParams.get('category');

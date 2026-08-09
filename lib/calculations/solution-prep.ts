@@ -39,10 +39,33 @@ export interface StockPrepInput {
   targetVolume: number
   molarMass: number
   unit: ConcentrationUnit
+  /**
+   * Solution density in g/mL. Needed for an exact %w/w result. When omitted the
+   * engine falls back to the dilute-aqueous approximation (1 g/mL) and records
+   * that in `assumptions`.
+   */
+  solutionDensity?: number
+  /**
+   * Equivalents per mole of solute (H2SO4 = 2, H3PO4 = 3, ...). Needed for an
+   * exact normality result. When omitted the engine assumes 1 and records it.
+   */
+  equivalentsFactor?: number
 }
 
 export interface StockPrepResult {
-  massNeeded: number
+  /**
+   * How much solute to take. This is NOT always a mass — %v/v yields a VOLUME of
+   * liquid solute. Always read it together with `amountUnit` / `measureBy`.
+   */
+  amount: number
+  amountUnit: 'g' | 'mL'
+  /** How the amount is measured out at the bench. */
+  measureBy: 'mass' | 'volume'
+  /**
+   * Assumptions the caller must accept for this number to hold. Empty when the
+   * result follows from the inputs alone.
+   */
+  assumptions: string[]
   steps: string[]
 }
 
@@ -198,32 +221,41 @@ export function solveDilution(input: DilutionInput): DilutionResult {
  * For % w/v: mass = C (g/100mL) * V (L) * 10
  */
 export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
-  const { targetConc, targetVolume, molarMass, unit } = input
+  const { targetConc, targetVolume, molarMass, unit, solutionDensity, equivalentsFactor } = input
 
   if (targetConc <= 0) throw new Error('Target concentration must be positive.')
   if (targetVolume <= 0) throw new Error('Target volume must be positive.')
   if (molarMass <= 0) throw new Error('Molar mass must be positive.')
+  if (solutionDensity !== undefined && !(solutionDensity > 0)) {
+    throw new Error('Solution density must be positive.')
+  }
+  if (equivalentsFactor !== undefined && !(equivalentsFactor > 0)) {
+    throw new Error('Equivalents factor must be positive.')
+  }
 
-  let massNeeded: number // grams
+  let amount: number
+  let amountUnit: 'g' | 'mL' = 'g'
+  let measureBy: 'mass' | 'volume' = 'mass'
+  const assumptions: string[] = []
   const steps: string[] = []
 
   switch (unit) {
     case 'mol/L': {
       // mass = M * C * V
       const moles = targetConc * targetVolume
-      massNeeded = moles * molarMass
+      amount = moles * molarMass
       steps.push(
         `Calculate moles needed: ${targetConc} mol/L \u00D7 ${targetVolume} L = ${formatNum(moles)} mol`
       )
       steps.push(
-        `Calculate mass: ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(amount)} g`
       )
       break
     }
     case 'mmol/L': {
       const molesPerL = targetConc / 1000
       const moles = molesPerL * targetVolume
-      massNeeded = moles * molarMass
+      amount = moles * molarMass
       steps.push(
         `Convert to mol/L: ${targetConc} mmol/L = ${formatNum(molesPerL)} mol/L`
       )
@@ -231,87 +263,114 @@ export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
         `Calculate moles: ${formatNum(molesPerL)} mol/L \u00D7 ${targetVolume} L = ${formatNum(moles)} mol`
       )
       steps.push(
-        `Calculate mass: ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(amount)} g`
       )
       break
     }
     case 'g/L': {
-      massNeeded = targetConc * targetVolume
+      amount = targetConc * targetVolume
       steps.push(
-        `Calculate mass: ${targetConc} g/L \u00D7 ${targetVolume} L = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${targetConc} g/L \u00D7 ${targetVolume} L = ${formatNum(amount)} g`
       )
       break
     }
     case 'mg/L':
     case 'ppm': {
-      massNeeded = (targetConc * targetVolume) / 1000
+      amount = (targetConc * targetVolume) / 1000
       steps.push(
-        `Calculate mass: ${targetConc} mg/L \u00D7 ${targetVolume} L = ${formatNum(targetConc * targetVolume)} mg = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${targetConc} mg/L \u00D7 ${targetVolume} L = ${formatNum(targetConc * targetVolume)} mg = ${formatNum(amount)} g`
       )
       break
     }
     case 'ug/L':
     case 'ppb': {
-      massNeeded = (targetConc * targetVolume) / 1e6
+      amount = (targetConc * targetVolume) / 1e6
       steps.push(
-        `Calculate mass: ${targetConc} \u00B5g/L \u00D7 ${targetVolume} L = ${formatNum(targetConc * targetVolume)} \u00B5g = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${targetConc} \u00B5g/L \u00D7 ${targetVolume} L = ${formatNum(targetConc * targetVolume)} \u00B5g = ${formatNum(amount)} g`
       )
       break
     }
     case 'pct_wv': {
       // % w/v = g per 100 mL = g per 0.1 L => g = (%w/v) * V(L) * 10
-      massNeeded = targetConc * targetVolume * 10
+      amount = targetConc * targetVolume * 10
       steps.push(
         `% w/v means ${targetConc} g per 100 mL`
       )
       steps.push(
-        `Calculate mass: ${targetConc} g/100mL \u00D7 ${targetVolume} L \u00D7 1000 mL/L \u00D7 (1/100) = ${formatNum(massNeeded)} g`
+        `Calculate mass: ${targetConc} g/100mL \u00D7 ${targetVolume} L \u00D7 1000 mL/L \u00D7 (1/100) = ${formatNum(amount)} g`
       )
       break
     }
     case 'pct_ww': {
-      // % w/w requires density to get solution mass; approximate with water density = 1 g/mL
-      massNeeded = targetConc * targetVolume * 10 // approximate: 1 L ~ 1000 g solution
+      // % w/w is grams of solute per 100 g of SOLUTION, so the solution mass \u2014
+      // and therefore the solution density \u2014 is required. Without it, fall back
+      // to the dilute-aqueous approximation and say so.
+      const density = solutionDensity ?? 1
+      const solutionMass = targetVolume * 1000 * density // g
+      amount = (targetConc / 100) * solutionMass
       steps.push(
-        `% w/w means ${targetConc} g per 100 g of solution`
+        `% w/w means ${targetConc} g of solute per 100 g of solution`
       )
+      if (solutionDensity === undefined) {
+        assumptions.push(
+          'Solution density assumed to be 1 g/mL (dilute aqueous solution). Supply the measured density for a concentrated or non-aqueous solution.'
+        )
+        steps.push(
+          `Assumed solution density 1 g/mL \u2192 solution mass = ${targetVolume} L \u00D7 1000 mL/L \u00D7 1 g/mL = ${formatNum(solutionMass)} g`
+        )
+      } else {
+        steps.push(
+          `Solution mass = ${targetVolume} L \u00D7 1000 mL/L \u00D7 ${density} g/mL = ${formatNum(solutionMass)} g`
+        )
+      }
       steps.push(
-        `Approximation (density \u2248 1 g/mL): ${targetConc} g/100g \u00D7 ${targetVolume} L \u00D7 1000 g/L \u00D7 (1/100) = ${formatNum(massNeeded)} g`
+        `Mass of solute = (${targetConc}/100) \u00D7 ${formatNum(solutionMass)} g = ${formatNum(amount)} g`
       )
       break
     }
     case 'pct_vv': {
-      // % v/v = mL per 100 mL; mass depends on density of solute
-      // Return the volume needed instead, note in steps
-      const volumeNeeded = targetConc * targetVolume * 10 // mL
-      massNeeded = volumeNeeded // placeholder: mL of liquid solute
+      // % v/v is mL of liquid solute per 100 mL of solution. The result is a
+      // VOLUME \u2014 it must never be handed to the bench as a mass.
+      amount = targetConc * targetVolume * 10 // mL
+      amountUnit = 'mL'
+      measureBy = 'volume'
       steps.push(
-        `% v/v means ${targetConc} mL per 100 mL of solution`
+        `% v/v means ${targetConc} mL of liquid solute per 100 mL of solution`
       )
       steps.push(
-        `Volume of solute needed: ${targetConc} mL/100mL \u00D7 ${targetVolume * 1000} mL = ${formatNum(volumeNeeded)} mL`
+        `Volume of solute = ${targetConc} mL/100mL \u00D7 ${formatNum(targetVolume * 1000)} mL = ${formatNum(amount)} mL`
       )
       steps.push(
-        `Note: Result is in mL of liquid solute, not grams (multiply by solute density to get mass).`
+        `Note: this is a VOLUME of liquid solute, not a mass \u2014 measure it, do not weigh it. Multiply by the solute density to convert to grams.`
       )
       break
     }
     case 'N': {
-      // Normality = Molarity * equivalents; mass = N * V / eq * M
-      // Without equivalents factor, assume 1
-      const moles = targetConc * targetVolume // eq * L; assume eq factor = 1
-      massNeeded = moles * molarMass
+      // Normality (eq/L) -> moles requires the equivalents factor of the solute.
+      const eqFactor = equivalentsFactor ?? 1
+      const equivalents = targetConc * targetVolume // eq
+      const moles = equivalents / eqFactor
+      amount = moles * molarMass
       steps.push(
         `Normality = Molarity \u00D7 equivalents factor`
       )
       steps.push(
-        `Assuming equivalents factor = 1: moles = ${targetConc} N \u00D7 ${targetVolume} L = ${formatNum(moles)} mol`
+        `Equivalents = ${targetConc} N \u00D7 ${targetVolume} L = ${formatNum(equivalents)} eq`
       )
+      if (equivalentsFactor === undefined) {
+        assumptions.push(
+          'Equivalents factor assumed to be 1. Supply the solute\u2019s actual factor (H\u2082SO\u2084 = 2, H\u2083PO\u2084 = 3, ...) \u2014 the mass scales inversely with it.'
+        )
+        steps.push(
+          `Assumed equivalents factor 1 \u2192 moles = ${formatNum(moles)} mol`
+        )
+      } else {
+        steps.push(
+          `Moles = ${formatNum(equivalents)} eq \u00F7 ${eqFactor} eq/mol = ${formatNum(moles)} mol`
+        )
+      }
       steps.push(
-        `Mass = ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(massNeeded)} g`
-      )
-      steps.push(
-        `Adjust if your compound has a different equivalents factor (e.g., H\u2082SO\u2084 = 2, H\u2083PO\u2084 = 3).`
+        `Mass = ${formatNum(moles)} mol \u00D7 ${molarMass} g/mol = ${formatNum(amount)} g`
       )
       break
     }
@@ -319,16 +378,32 @@ export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
       throw new Error(`Unsupported unit: ${unit}`)
   }
 
-  // Add preparation instructions
+  // Add preparation instructions. These MUST follow `measureBy` — handing a
+  // volume to someone standing at a balance is a real bench error.
   steps.push('')
   steps.push('Preparation steps:')
-  steps.push(`1. Weigh ${formatNum(massNeeded)} g of solute on an analytical balance.`)
-  steps.push(`2. Transfer the solute to a ${formatVolume(targetVolume)} volumetric flask.`)
-  steps.push(`3. Add distilled water to about 75% of the target volume and dissolve completely.`)
-  steps.push(`4. Fill to the ${formatVolume(targetVolume)} mark with distilled water.`)
-  steps.push(`5. Mix thoroughly by inverting several times.`)
+  if (measureBy === 'mass') {
+    steps.push(`1. Weigh ${formatNum(amount)} g of solute on an analytical balance.`)
+    steps.push(`2. Transfer the solute to a ${formatVolume(targetVolume)} volumetric flask.`)
+    steps.push(`3. Add distilled water to about 75% of the target volume and dissolve completely.`)
+    steps.push(`4. Fill to the ${formatVolume(targetVolume)} mark with distilled water.`)
+    steps.push(`5. Mix thoroughly by inverting several times.`)
+  } else {
+    steps.push(`1. Add solvent to roughly half the target volume in a ${formatVolume(targetVolume)} volumetric flask.`)
+    steps.push(`2. Measure ${formatNum(amount)} mL of the liquid solute with a volumetric pipette — do NOT weigh it.`)
+    steps.push(`3. Transfer the solute into the flask and swirl to mix.`)
+    steps.push(`4. Fill to the ${formatVolume(targetVolume)} mark with solvent.`)
+    steps.push(`5. Mix thoroughly by inverting several times.`)
+    steps.push(`Note: solute and solvent volumes are not additive (mixing can contract the total), which is why %v/v is made up to the final mark rather than by adding ${formatNum(amount)} mL to ${formatVolume(targetVolume)} of solvent.`)
+  }
 
-  return { massNeeded, steps }
+  if (assumptions.length > 0) {
+    steps.push('')
+    steps.push('Assumptions:')
+    assumptions.forEach((a) => steps.push(`• ${a}`))
+  }
+
+  return { amount, amountUnit, measureBy, assumptions, steps }
 }
 
 // ============================================

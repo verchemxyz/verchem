@@ -268,7 +268,7 @@ export default function EquationBalancerToolPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { title: 'Lightning Fast', desc: 'Balance equations in milliseconds using advanced algorithms' },
-              { title: '100% Accurate', desc: 'Verified against IUPAC standards with atom count verification' },
+              { title: 'Atom-Count Verified', desc: 'Every balanced equation is re-checked atom by atom against IUPAC reference data' },
               { title: 'Works Everywhere', desc: 'Use on any device - desktop, tablet, or mobile' },
               { title: 'Completely Free', desc: 'No sign-up, no limits, no hidden costs. Forever free!' },
               { title: 'All Reaction Types', desc: 'Handles synthesis, combustion, redox, and complex reactions' },

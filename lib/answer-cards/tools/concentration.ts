@@ -320,8 +320,14 @@ const calculate_stock_prep: VerifiedTool = {
       // Engine requires molarMass > 0 even for mass-based units that ignore it.
       const safeMolarMass = molarMass !== undefined && molarMass > 0 ? molarMass : 1
       const result = calculateStockPrep({ targetConc, targetVolume, molarMass: safeMolarMass, unit: unit as ConcentrationUnit })
+      // Defence in depth: STOCK_PREP_UNITS already excludes every unit that
+      // yields a volume or carries a hidden assumption, but never sign a value
+      // under a `_g` key without confirming the engine actually returned grams.
+      if (result.measureBy !== 'mass' || result.amountUnit !== 'g' || result.assumptions.length > 0) {
+        return err(`Unit "${unit}" does not yield a deterministic mass — refusing to report it as one.`)
+      }
       return finalizeResult({
-        mass_needed_g: result.massNeeded,
+        mass_needed_g: result.amount,
         unit,
         steps: result.steps,
       })

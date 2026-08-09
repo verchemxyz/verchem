@@ -476,21 +476,21 @@ export function VerChemGlobalFAQSchema() {
           text: 'Mass (g) = Moles × Molar Mass (g/mol). For example, 2 moles of water: 2 mol × 18.015 g/mol = 36.03 g. To convert grams to moles, divide: Moles = Mass / Molar Mass.'
         }
       },
-      // VerChem vs AI Comparison
+      // How VerChem differs from a language model answering the same question
       {
         '@type': 'Question',
-        name: 'What is the difference between VerChem and asking AI like ChatGPT for chemistry calculations?',
+        name: 'How is VerChem different from asking an AI chatbot for a chemistry calculation?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem and AI chatbots serve different purposes. VerChem provides 100% accurate calculations every time using verified formulas and NIST/IUPAC certified data - the same result guaranteed on every calculation. AI chatbots like ChatGPT are excellent for explanations and learning concepts, but may occasionally make calculation errors (hallucination), give inconsistent results, or use outdated atomic masses. For critical calculations (lab work, exams, engineering), use VerChem. For understanding concepts and getting explanations, AI chatbots are great companions. Best practice: Use both together - VerChem for accurate calculations, AI for deeper understanding.'
+          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and each result carries the formula used, the engine version, the reference-data edition (NIST/IUPAC atomic masses) and a citation, so it can be re-checked and reproduced later. A chatbot writes its answer as text: it can vary between runs and leaves no reproducible record. VerChem does use AI to explain a result in plain language, but the numbers themselves always come from the engine, never from the model.'
         }
       },
       {
         '@type': 'Question',
-        name: 'Can AI chatbots replace chemistry calculators like VerChem?',
+        name: 'Is a VerChem result guaranteed to be correct?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'No, they serve complementary roles. AI chatbots may: 1) Calculate atomic masses incorrectly (off by 1-2 decimal places), 2) Make errors in complex equation balancing, 3) Give different answers each time you ask, 4) Not know specialized standards like Thai PCD water quality limits. VerChem guarantees: 1) NIST-certified atomic masses for all 118 elements, 2) Deterministic results (same input = same output, always), 3) Calculation speed under 50ms, 4) Thai regulatory standards built-in. Use VerChem when accuracy matters, AI when you need explanations or learning support.'
+          text: 'It is guaranteed to be reproducible, not infallible. A VerChem result is deterministic (identical inputs always give identical output), uses NIST/IUPAC reference data for all 118 elements, and states the formula, assumptions and applicability limits it was computed under — for example, whether a solution density or an equivalents factor was assumed. Signed results are tamper-evident: any later edit to a saved result breaks its signature. That signature proves the record was not altered; it does not by itself prove the underlying chemistry applies to your case, so always check the stated assumptions against your own system.'
         }
       }
     ]

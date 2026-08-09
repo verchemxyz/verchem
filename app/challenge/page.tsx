@@ -158,21 +158,6 @@ const QUESTIONS: Question[] = [
   },
 ]
 
-interface LeaderboardEntry {
-  name: string
-  score: number
-  streak: number
-  time: string
-}
-
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { name: 'ChemMaster99', score: 2450, streak: 12, time: '2:15' },
-  { name: 'ReactionKing', score: 2100, streak: 8, time: '2:45' },
-  { name: 'MoleCalculator', score: 1950, streak: 7, time: '3:00' },
-  { name: 'pH_Wizard', score: 1800, streak: 6, time: '3:20' },
-  { name: 'PeriodicPro', score: 1650, streak: 5, time: '3:45' },
-]
-
 export default function ChemistryChallengePage() {
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready')
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -344,40 +329,6 @@ export default function ChemistryChallengePage() {
             ))}
           </div>
 
-          {/* Leaderboard Preview */}
-          <Card className="p-6">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              Today&apos;s Top Scores
-            </h2>
-            <div className="space-y-3">
-              {MOCK_LEADERBOARD.slice(0, 5).map((entry, i) => (
-                <div
-                  key={entry.name}
-                  className="flex items-center justify-between p-3 rounded-md bg-muted border border-border"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono text-sm ${
-                      i === 0 ? 'bg-primary-500 text-primary-foreground' :
-                      i < 3 ? 'bg-primary-500/20 text-primary-700' :
-                      'bg-card border border-border text-muted-foreground'
-                    }`}>
-                      {i + 1}
-                    </span>
-                    <span className="text-foreground font-medium">{entry.name}</span>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-muted-foreground text-sm font-mono">{entry.time}</span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Flame className="h-4 w-4" aria-hidden="true" />
-                      {entry.streak}
-                    </span>
-                    <span className="text-foreground font-bold font-mono">{entry.score}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
         </>
       )}
 

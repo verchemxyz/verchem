@@ -8,7 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table';
+import { expandParentheses } from '@/lib/calculations/equation-balancer';
 
 // Parse chemical formula and calculate molar mass
 function parseMolarMass(formula: string): {
@@ -20,18 +22,24 @@ function parseMolarMass(formula: string): {
     return null;
   }
 
-  // Clean the formula
-  const cleanFormula = formula.trim();
-  if (!cleanFormula) {
+  // Clean the formula. Cap the length before any expansion: nested groups can
+  // multiply out, so bound the input rather than the intermediate.
+  const trimmed = formula.trim();
+  if (!trimmed || trimmed.length > 200) {
     return null;
   }
 
-  // Reject formulas with characters we can't handle correctly
-  if (/[()]/.test(cleanFormula)) {
-    return null; // Parenthesized formulas like Ca(OH)2 not supported by this simple API
+  // Only element symbols, digits and balanced groups are accepted.
+  if (!/^[A-Za-z0-9()]+$/.test(trimmed)) {
+    return null;
   }
 
-  // Validate formula only contains element symbols and digits
+  // Expand groups like Ca(OH)2 -> CaO2H2 using the same routine the equation
+  // balancer uses, so the API and the app agree on what a formula means.
+  const cleanFormula = expandParentheses(trimmed);
+
+  // After expansion nothing but symbols and digits may remain (this also
+  // rejects unbalanced parentheses, which expansion leaves behind).
   if (!/^([A-Z][a-z]?\d*)+$/.test(cleanFormula)) {
     return null;
   }
@@ -101,6 +109,9 @@ function parseMolarMass(formula: string): {
 }
 
 export async function GET(request: NextRequest) {
+  const limited = publicApiRateLimit(request, 'molar-mass');
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
   const formula = searchParams.get('formula');
 
@@ -133,7 +144,7 @@ export async function GET(request: NextRequest) {
       {
         error: 'Invalid formula or unknown element',
         formula,
-        hint: 'Use standard element symbols without parentheses (e.g., H2O, NaCl, H2SO4). Parenthesized formulas like Ca(OH)2 are not supported — use CaO2H2 instead.',
+        hint: 'Use standard element symbols, optionally with balanced groups (e.g., H2O, NaCl, H2SO4, Ca(OH)2, Al2(SO4)3). Check for an unknown symbol or an unclosed parenthesis.',
       },
       { status: 400 }
     );
@@ -142,7 +153,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
       success: true,
-      formula: result.formula,
+      formula: formula.trim(),
+      // Groups expanded, so Ca(OH)2 reports the CaO2H2 the composition is keyed on.
+      expandedFormula: result.formula,
       molarMass: {
         value: result.mass,
         unit: 'g/mol',

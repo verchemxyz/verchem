@@ -117,7 +117,7 @@ export default function PeriodicTablePage() {
       <CalcShell
         eyebrow="NIST/IUPAC certified data"
         title="Interactive Periodic Table"
-        subtitle="Explore all 118 elements with detailed properties, electron configurations, and more. The most comprehensive free periodic table online."
+        subtitle="A preview of VerChem's periodic table — NIST/IUPAC data, electron configurations and properties. Open the full interactive table to browse all 118 elements."
         backHref="/tools"
         backLabel="All tools"
         maxWidth="6xl"

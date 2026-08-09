@@ -11,6 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
 
 // Water ion product at 25°C
 const Kw = 1e-14;
@@ -119,6 +120,9 @@ function formatScientific(value: number): string {
 }
 
 export async function GET(request: NextRequest) {
+  const limited = publicApiRateLimit(request, 'ph');
+  if (limited) return limited;
+
   const searchParams = request.nextUrl.searchParams;
   const hParam = searchParams.get('h');
   const ohParam = searchParams.get('oh');

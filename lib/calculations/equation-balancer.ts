@@ -75,7 +75,7 @@ function parseFormula(formula: string): Record<string, number> {
  * Expand parentheses in chemical formula
  * Ca(OH)2 -> CaO2H2
  */
-function expandParentheses(formula: string): string {
+export function expandParentheses(formula: string): string {
   const regex = /\(([^)]+)\)(\d*)/g
 
   while (regex.test(formula)) {
