@@ -42,7 +42,7 @@ export default function SupportersPage() {
       <Card className="p-8">
         <SectionTitle className="mb-3">What your support pays for</SectionTitle>
         <ul className="space-y-3 text-muted-foreground">
-          <li>Keeping 118 elements and 417 compounds aligned with current NIST/IUPAC editions.</li>
+          <li>Keeping 118 elements and 1,300+ compounds aligned with current NIST/IUPAC editions.</li>
           <li>Validating the calculation engines and documenting what each one assumes.</li>
           <li>Hosting, storage, and the compute behind structure search and signed results.</li>
         </ul>

@@ -120,7 +120,7 @@ describe('%w/w declares its density assumption', () => {
       () => calculateStockPrep({
         targetConc: 10, targetVolume: 1, molarMass: 1, unit: 'pct_ww', solutionDensity: 0,
       }),
-      /density must be positive/i
+      /density must be a positive, finite number/i
     )
   })
 })
@@ -146,7 +146,7 @@ describe('normality declares its equivalents assumption', () => {
       () => calculateStockPrep({
         targetConc: 1, targetVolume: 1, molarMass: 98.08, unit: 'N', equivalentsFactor: -1,
       }),
-      /equivalents factor must be positive/i
+      /equivalents factor must be a positive, finite number/i
     )
   })
 })
@@ -156,6 +156,56 @@ describe('input guards', () => {
     assert.throws(() => calculateStockPrep({ targetConc: 0, targetVolume: 1, molarMass: 1, unit: 'g/L' }))
     assert.throws(() => calculateStockPrep({ targetConc: 1, targetVolume: 0, molarMass: 1, unit: 'g/L' }))
     assert.throws(() => calculateStockPrep({ targetConc: 1, targetVolume: 1, molarMass: 0, unit: 'g/L' }))
+  })
+
+  test('rejects non-finite inputs rather than turning them into bench instructions', () => {
+    assert.throws(
+      () => calculateStockPrep({ targetConc: Infinity, targetVolume: 1, molarMass: 1, unit: 'pct_vv' }),
+      /finite/i
+    )
+    assert.throws(
+      () => calculateStockPrep({ targetConc: 1, targetVolume: NaN, molarMass: 1, unit: 'g/L' }),
+      /finite/i
+    )
+  })
+
+  test('a percentage above 100% is impossible and must be rejected', () => {
+    for (const unit of ['pct_vv', 'pct_ww', 'pct_wv'] as const) {
+      assert.throws(
+        () => calculateStockPrep({ targetConc: 120, targetVolume: 1, molarMass: 46.07, unit }),
+        /cannot exceed 100%/i,
+        `${unit} should reject 120%`
+      )
+    }
+  })
+
+  test('100% exactly is still allowed (neat liquid)', () => {
+    const r = calculateStockPrep({ targetConc: 100, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
+    closeTo(r.amount, 1000, 6)
+  })
+})
+
+describe('volume procedure fits the flask', () => {
+  test('REGRESSION: a high %v/v never charges more solvent than the flask can hold', () => {
+    // 80% v/v in 1 L needs 800 mL of solute; a fixed "half the flask" first
+    // charge would put 500 + 800 mL into a 1 L flask.
+    const r = calculateStockPrep({ targetConc: 80, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
+    closeTo(r.amount, 800, 6)
+
+    const step1 = r.steps.find((s) => s.startsWith('1.')) as string
+    const initial = Number(step1.replace(/,/g, '').match(/([\d.]+)\s*mL/)?.[1])
+    assert.ok(Number.isFinite(initial), `could not read the initial solvent charge from: ${step1}`)
+    assert.ok(
+      initial + r.amount <= 1000,
+      `initial solvent ${initial} mL + solute ${r.amount} mL overflows a 1000 mL flask`
+    )
+  })
+
+  test('a dilute %v/v still starts from a sensible solvent charge', () => {
+    const r = calculateStockPrep({ targetConc: 5, targetVolume: 1, molarMass: 46.07, unit: 'pct_vv' })
+    const step1 = r.steps.find((s) => s.startsWith('1.')) as string
+    const initial = Number(step1.replace(/,/g, '').match(/([\d.]+)\s*mL/)?.[1])
+    assert.ok(initial > 0 && initial + r.amount <= 1000)
   })
 })
 

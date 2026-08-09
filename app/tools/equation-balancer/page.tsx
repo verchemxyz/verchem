@@ -52,7 +52,7 @@ export default function EquationBalancerToolPage() {
       <CalcShell
         eyebrow="Free online tool · no sign-up required"
         title="Chemical Equation Balancer"
-        subtitle="Balance any chemical equation instantly. Perfect for students, teachers, and chemists. 100% free, unlimited use."
+        subtitle="Balance molecular chemical equations instantly. Perfect for students, teachers, and chemists. Free, no sign-up, unlimited use."
         backHref="/tools"
         backLabel="All tools"
         maxWidth="6xl"
@@ -212,7 +212,7 @@ export default function EquationBalancerToolPage() {
             How to Balance Chemical Equations
           </SectionTitle>
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
-            Our advanced algorithm uses matrix algebra and Gaussian elimination to balance any chemical equation in milliseconds
+            Matrix algebra and Gaussian elimination balance molecular equations in milliseconds, then every result is re-checked atom by atom
           </p>
 
           <div className="grid md:grid-cols-4 gap-8">
@@ -271,7 +271,7 @@ export default function EquationBalancerToolPage() {
               { title: 'Atom-Count Verified', desc: 'Every balanced equation is re-checked atom by atom against IUPAC reference data' },
               { title: 'Works Everywhere', desc: 'Use on any device - desktop, tablet, or mobile' },
               { title: 'Completely Free', desc: 'No sign-up, no limits, no hidden costs. Forever free!' },
-              { title: 'All Reaction Types', desc: 'Handles synthesis, combustion, redox, and complex reactions' },
+              { title: 'Molecular Reactions', desc: 'Synthesis, decomposition, combustion and redox written in molecular form' },
               { title: 'Educational', desc: 'Shows step-by-step breakdown for learning' },
             ].map((f, i) => (
               <div key={i} className="p-6 bg-muted border border-border rounded-lg">
@@ -292,9 +292,9 @@ export default function EquationBalancerToolPage() {
             {[
               { q: 'How do I balance a chemical equation?', a: 'Simply enter your unbalanced equation using the format "Reactants -> Products" (e.g., H2 + O2 -> H2O). Use element symbols with subscripts as numbers (H2O, not H₂O). Our calculator will instantly provide the balanced equation with correct coefficients.' },
               { q: 'What is a balanced chemical equation?', a: 'A balanced chemical equation has equal numbers of each type of atom on both sides of the reaction arrow. This follows the Law of Conservation of Mass - matter cannot be created or destroyed in a chemical reaction.' },
-              { q: 'Can this balance complex redox equations?', a: 'Yes! Our advanced algorithm can handle complex redox equations including those involving permanganate (MnO4⁻), dichromate (Cr2O7²⁻), and other challenging species. We support coefficients up to 20.' },
+              { q: 'Can this balance redox equations?', a: 'Yes, when they are written in molecular form — for example KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2 balances correctly. Ionic half-equations carrying charges (MnO4\u207B, Cr2O7\u00B2\u207B, Fe\u00B3\u207A) are rejected rather than guessed at, because balancing them correctly requires charge conservation, which this engine does not do yet. Coefficients up to 20 are supported.' },
               { q: 'Is this calculator free to use?', a: 'Absolutely! VerChem Equation Balancer is 100% free with no usage limits. No sign-up required. Use it as many times as you need for homework, exams, or research.' },
-              { q: 'How accurate is this equation balancer?', a: 'Our balancer uses matrix algebra (Gaussian elimination) combined with optimized search algorithms. Every result includes atom count verification to ensure 100% accuracy.' },
+              { q: 'How is a balanced result checked?', a: 'The balancer uses matrix algebra (Gaussian elimination) with an optimised search, then verifies atom conservation on both sides and validates every symbol against the periodic table. A result that fails either check is reported as unbalanced rather than returned as an answer.' },
             ].map((faq, i) => (
               <details key={i} className="group bg-muted rounded-lg border border-border overflow-hidden">
                 <summary className="p-6 cursor-pointer text-foreground font-semibold hover:text-primary-600 transition-colors flex items-center justify-between">

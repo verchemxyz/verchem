@@ -3,6 +3,10 @@
 // Updated: Nov 2025 - Improved algorithm with higher coefficient limits and redox support
 
 import { BalancedEquation } from '../types/chemistry'
+import { PERIODIC_TABLE } from '../data/periodic-table'
+
+/** Real element symbols, so a made-up token like "Xx" cannot be balanced. */
+const KNOWN_ELEMENTS: ReadonlySet<string> = new Set(PERIODIC_TABLE.map((e) => e.symbol))
 
 interface Fraction {
   num: number
@@ -52,6 +56,16 @@ function parseFormula(formula: string): Record<string, number> {
   // Remove states (s), (l), (g), (aq)
   formula = formula.replace(/\([slgaq]+\)/g, '')
 
+  // Charged species are NOT supported: the element regex reads "Cr3+" as three
+  // chromium atoms and "Cr2O7^2-" as an extra subscript, then reports the
+  // result as balanced. Refusing is the only honest option until half-reaction
+  // balancing with charge conservation exists.
+  if (/[+\-^]/.test(formula)) {
+    throw new Error(
+      `Ionic species with charges are not supported: "${formula}". Write the equation in molecular form (e.g. KMnO4 + HCl instead of MnO4- + H+).`
+    )
+  }
+
   // Handle parentheses: Ca(OH)2 -> expand to CaO2H2
   formula = expandParentheses(formula)
 
@@ -64,6 +78,11 @@ function parseFormula(formula: string): Record<string, number> {
     const count = match[2] ? parseInt(match[2]) : 1
 
     if (element) {
+      // Balancing a symbol that is not an element produces a confidently wrong
+      // "balanced" equation, so reject it rather than conserving a fiction.
+      if (!KNOWN_ELEMENTS.has(element)) {
+        throw new Error(`Unknown element symbol: "${element}"`)
+      }
       elements[element] = (elements[element] || 0) + count
     }
   }
@@ -75,21 +94,70 @@ function parseFormula(formula: string): Record<string, number> {
  * Expand parentheses in chemical formula
  * Ca(OH)2 -> CaO2H2
  */
-export function expandParentheses(formula: string): string {
-  const regex = /\(([^)]+)\)(\d*)/g
+/** Largest subscript we will produce; keeps multiplication in exact-integer range. */
+const MAX_SUBSCRIPT = 1_000_000
 
-  while (regex.test(formula)) {
-    formula = formula.replace(regex, (match, group, multiplier) => {
-      const mult = multiplier ? parseInt(multiplier) : 1
-      const expanded = group.replace(/([A-Z][a-z]?)(\d*)/g, (m: string, el: string, count: string) => {
-        const c = count ? parseInt(count) : 1
-        return el + (c * mult)
+/**
+ * Expand parenthesised groups: Ca(OH)2 -> CaO2H2.
+ *
+ * Uses an explicit stack rather than repeated regex replacement, because the
+ * regex form matched the INNERMOST group first and then re-matched the partly
+ * expanded text, which multiplied nested atoms by the wrong factor —
+ * K4(Fe(CN)6) came out as K4Fe6C6N6 instead of K4Fe1C6N6.
+ *
+ * Unbalanced input is returned unchanged; callers reject it via their
+ * element-symbol validation rather than getting a silently mangled formula.
+ */
+export function expandParentheses(formula: string): string {
+  const stack: string[] = ['']
+  let i = 0
+
+  while (i < formula.length) {
+    const ch = formula[i]
+
+    if (ch === '(') {
+      stack.push('')
+      i++
+      continue
+    }
+
+    if (ch === ')') {
+      // Closing without a matching opener — leave the input for the caller to reject.
+      if (stack.length === 1) return formula
+
+      const group = stack.pop() as string
+      i++
+
+      let digits = ''
+      while (i < formula.length && formula[i] >= '0' && formula[i] <= '9') {
+        digits += formula[i]
+        i++
+      }
+
+      const multiplier = digits ? parseInt(digits, 10) : 1
+      if (!Number.isSafeInteger(multiplier) || multiplier > MAX_SUBSCRIPT) return formula
+
+      let overflowed = false
+      const expanded = group.replace(/([A-Z][a-z]?)(\d*)/g, (_m, el: string, count: string) => {
+        const c = count ? parseInt(count, 10) : 1
+        const total = c * multiplier
+        if (!Number.isSafeInteger(total) || total > MAX_SUBSCRIPT) overflowed = true
+        return el + total
       })
-      return expanded
-    })
+      if (overflowed) return formula
+
+      stack[stack.length - 1] += expanded
+      continue
+    }
+
+    stack[stack.length - 1] += ch
+    i++
   }
 
-  return formula
+  // Unclosed group — again, hand the original back for validation to reject.
+  if (stack.length !== 1) return formula
+
+  return stack[0]
 }
 
 function sanitizeCompound(compound: string): string {

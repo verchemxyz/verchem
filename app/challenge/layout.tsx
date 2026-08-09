@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Chemistry Challenge - Test Your Chemistry Knowledge | VerChem',
-  description: 'Challenge yourself with chemistry problems! Solve equations, calculate molar mass, and test your chemistry knowledge. Daily challenges with leaderboards.',
+  description: 'Challenge yourself with chemistry problems: balance equations, calculate molar mass, and test your knowledge against the clock.',
   keywords: [
     'chemistry challenge',
     'chemistry quiz',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Chemistry Challenge - Test Your Chemistry Knowledge',
-    description: 'Daily chemistry challenges. Compete with others and climb the leaderboard!',
+    description: 'Timed chemistry challenges. Race the clock and build a streak.',
     type: 'website',
     url: 'https://verchem.xyz/challenge',
     images: [

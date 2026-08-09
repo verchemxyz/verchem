@@ -91,7 +91,7 @@ export function EquationBalancerSchema() {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'Chemical Equation Balancer',
-      description: 'Free online tool to balance any chemical equation instantly. Supports redox, combustion, and synthesis reactions.',
+      description: 'Free online tool to balance molecular chemical equations. Supports redox, combustion, synthesis and decomposition reactions written in molecular form.',
       url: 'https://verchem.xyz/tools/equation-balancer',
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'All',
@@ -100,11 +100,8 @@ export function EquationBalancerSchema() {
         price: '0',
         priceCurrency: 'USD'
       },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: '4.9',
-        ratingCount: '1250'
-      }
+      // No aggregateRating: we have no review system, so any figure here would
+      // be fabricated review data published as structured data.
     },
     {
       '@context': 'https://schema.org',
@@ -382,7 +379,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'What is VerChem?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem is a free, professional-grade chemistry platform offering 8 chemistry calculators, 3 environmental engineering tools, an interactive periodic table with all 118 elements (NIST/IUPAC certified), and a database of 1,000+ compounds. Built for students, chemists, and engineers.'
+          text: 'VerChem is a free chemistry platform offering deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,300+ compounds. Built for students, chemists, and engineers.'
         }
       },
       {
@@ -390,7 +387,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'Is VerChem free to use?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes! All VerChem features are completely free for AIVerID members. We follow a "Free First" strategy to make world-class chemistry tools accessible to everyone worldwide.'
+          text: 'Yes. The chemistry tools are free to use, with no per-calculation charge and no paid tier gating the chemistry itself.'
         }
       },
       {
@@ -423,7 +420,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'How do I balance a chemical equation?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Enter your unbalanced equation (e.g., H2 + O2 -> H2O) into the Equation Balancer. It uses algebraic matrix methods to find the smallest whole-number coefficients. The balanced result: 2H2 + O2 -> 2H2O. Works for redox, combustion, and synthesis reactions.'
+          text: 'Enter your unbalanced equation (e.g., H2 + O2 -> H2O) into the Equation Balancer. It uses algebraic matrix methods to find the smallest whole-number coefficients. The balanced result: 2H2 + O2 -> 2H2O. Works for redox, combustion, synthesis and decomposition reactions written in molecular form; ionic half-equations with charges are not supported.'
         }
       },
       {
@@ -482,7 +479,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'How is VerChem different from asking an AI chatbot for a chemistry calculation?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and each result carries the formula used, the engine version, the reference-data edition (NIST/IUPAC atomic masses) and a citation, so it can be re-checked and reproduced later. A chatbot writes its answer as text: it can vary between runs and leaves no reproducible record. VerChem does use AI to explain a result in plain language, but the numbers themselves always come from the engine, never from the model.'
+          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and a saved result records the exact inputs it was given, which engine computed it, a textbook citation, and a signature covering all of it — so it can be re-run and compared later. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check. VerChem does use AI to explain a result in plain language; the explanation is signed alongside the engine output, so any later edit to either shows up.'
         }
       },
       {
@@ -490,7 +487,7 @@ export function VerChemGlobalFAQSchema() {
         name: 'Is a VerChem result guaranteed to be correct?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'It is guaranteed to be reproducible, not infallible. A VerChem result is deterministic (identical inputs always give identical output), uses NIST/IUPAC reference data for all 118 elements, and states the formula, assumptions and applicability limits it was computed under — for example, whether a solution density or an equivalents factor was assumed. Signed results are tamper-evident: any later edit to a saved result breaks its signature. That signature proves the record was not altered; it does not by itself prove the underlying chemistry applies to your case, so always check the stated assumptions against your own system.'
+          text: 'It is reproducible, not infallible. A VerChem result is deterministic — identical inputs always give identical output — and uses NIST/IUPAC reference data for the elements. Where a calculation depends on something you did not supply, such as a solution density or an equivalents factor, the tool states the assumption it used instead of hiding it. Signed results are tamper-evident: any later edit breaks the signature. That signature proves the record was not altered; it does not prove the underlying chemistry applies to your situation, so always check the stated assumptions against your own system.'
         }
       }
     ]
@@ -516,7 +513,7 @@ export function VerChemSoftwareApplicationSchema() {
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     url: 'https://verchem.xyz',
-    description: 'Free professional-grade chemistry platform with 8 calculators, interactive periodic table (118 elements), 3D molecular viewer, and 1,000+ compounds database. NIST/IUPAC certified data.',
+    description: 'Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements) and a 1,300+ compound database. NIST/IUPAC reference data.',
     offers: [
       {
         '@type': 'Offer',

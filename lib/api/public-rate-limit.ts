@@ -22,8 +22,11 @@ export const PUBLIC_API_LIMIT = {
 /**
  * Returns a 429 response when the caller is over budget, or `null` to proceed.
  */
-export function publicApiRateLimit(request: Request, endpoint: string): NextResponse | null {
-  const result = checkRateLimit(`public-api:${endpoint}:${getClientId(request)}`, PUBLIC_API_LIMIT)
+export function publicApiRateLimit(request: Request, _endpoint: string): NextResponse | null {
+  // One budget across the whole public API, NOT one per route — keying by
+  // endpoint would quietly grant 60 x (number of routes) and contradict the
+  // documented figure. `_endpoint` is kept for call-site readability only.
+  const result = checkRateLimit(`public-api:${getClientId(request)}`, PUBLIC_API_LIMIT)
   if (result.success) return null
 
   const retryAfter = Math.max(1, result.retryAfter ?? Math.ceil((result.resetTime - Date.now()) / 1000))

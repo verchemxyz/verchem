@@ -270,7 +270,7 @@ export default function Home() {
                 <h3 className="font-semibold text-foreground">HMAC signs</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Each result is sealed with an HMAC-SHA256 signature bound to the calculation inputs, engine version, and timestamp. Tamper-evident by design.
+                Each result is sealed with an HMAC-SHA256 signature covering the calculation inputs, the engine that produced them, the explanation and the timestamp. Tamper-evident by design.
               </p>
             </div>
 
@@ -292,8 +292,8 @@ export default function Home() {
             {[
               { value: "118", label: "Elements (NIST)" },
               { value: "24+", label: "Deterministic tools" },
-              { value: "50+", label: "Compounds" },
-              { value: "0", label: "Hallucinated results" },
+              { value: "1,300+", label: "Compounds" },
+              { value: "61", label: "Signed engines" },
             ].map((stat) => (
               <div key={stat.label} className="border border-border rounded-lg bg-card p-4 text-center">
                 <div className="text-2xl font-bold text-foreground font-sans">{stat.value}</div>

@@ -6,7 +6,7 @@
 
 VerChem is a chemistry education platform designed for students, chemists, and educators. It provides free access to all 118 elements from the periodic table, powerful calculators for chemistry calculations, and validated data from authoritative sources like NIST and IUPAC.
 
-Built with Next.js 15 and TypeScript, VerChem offers production-quality tools that are both educational and practical. All features are free for AIVerID members, following a "Free First" strategy to make world-class chemistry tools accessible to everyone.
+Built with Next.js 16 and TypeScript, VerChem offers production-quality tools that are both educational and practical. Its tools are free to use, with no per-calculation charge and no paid tier gating the chemistry itself.
 
 ## Core Features
 
@@ -28,7 +28,7 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 - **Electrochemistry Calculator**: Redox potentials, galvanic cells, Nernst equation
 
 ### Chemical Database
-- **1,000+ Compounds**: Common chemicals with properties
+- **1,300+ Compounds**: Common chemicals with properties
 - **Safety Data**: GHS hazard codes, flash points, handling precautions
 - **Physical Properties**: Boiling point, melting point, density, solubility
 
@@ -60,7 +60,7 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 
 ## Technical Stack
 
-- **Frontend**: Next.js 15.1, React 19, TypeScript 5.7
+- **Frontend**: Next.js 16, React 19, TypeScript 5.9
 - **Styling**: Tailwind CSS 4
 - **Deployment**: Vercel
 - **Database**: Supabase (PostgreSQL)
@@ -69,7 +69,7 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 
 ## Pricing
 
-- **Free Tier**: All features free for AIVerID members
+- **Free**: Chemistry tools free to use, no per-calculation charge
 - **Donation-based**: Support development via Stripe ($3, $10, $25, $50)
 - **Future Plans**: Student ($19.99/year), Professional ($49.99/year)
 
@@ -113,10 +113,10 @@ Built with Next.js 15 and TypeScript, VerChem offers production-quality tools th
 ### General Questions
 
 **What is VerChem?**
-VerChem is a free, professional-grade chemistry education platform offering 8 chemistry calculators, an interactive periodic table with all 118 elements (NIST/IUPAC certified), 3D molecular viewer, and a database of 1,000+ compounds. Built for students, chemists, and educators.
+VerChem is a free chemistry platform offering 8 deterministic calculators, a 2D structure editor with substructure and similarity search, spectroscopy and lab-safety references, an interactive periodic table with all 118 elements (NIST/IUPAC), and a database of 1,300+ compounds. Built for students, chemists, and educators.
 
 **Is VerChem free to use?**
-Yes! All VerChem features are completely free for AIVerID members. We follow a "Free First" strategy to make world-class chemistry tools accessible to everyone worldwide.
+Yes. VerChem's tools are free to use, with no per-calculation charge and no paid tier gating the chemistry itself.
 
 **How accurate is VerChem data?**
 VerChem uses NIST (National Institute of Standards and Technology) and IUPAC (International Union of Pure and Applied Chemistry) as authoritative data sources. All 118 elements have certified atomic masses and properties updated to 2021 standards.
@@ -158,13 +158,13 @@ Select a starting functional group and a reagent/condition. VerChem predicts the
 ### Deterministic Results vs Generated Text
 
 **How is VerChem different from asking an AI chatbot for a chemistry calculation?**
-VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and each result carries the formula used, the engine version, the reference-data edition (NIST/IUPAC atomic masses) and a citation, so it can be re-checked and reproduced later. A chatbot writes its answer as text: it can vary between runs and leaves no reproducible record. VerChem does use AI to explain a result in plain language, but the numbers themselves always come from the engine, never from the model.
+VerChem computes with deterministic engines rather than a language model. The same input always produces the same output, and a saved result records the exact inputs it was given, which engine computed it, a textbook citation, and a signature covering all of it — so it can be re-run and compared later. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check. VerChem does use AI to explain a result in plain language; the explanation is signed alongside the engine output, so any later edit to either shows up.
 
 **Is a VerChem result guaranteed to be correct?**
-It is guaranteed to be reproducible, not infallible. A VerChem result is deterministic, uses NIST/IUPAC reference data for all 118 elements, and states the formula, assumptions and applicability limits it was computed under — for example whether a solution density or an equivalents factor was assumed. Signed results are tamper-evident: any later edit to a saved result breaks its signature. That signature proves the record was not altered; it does not by itself prove the underlying chemistry applies to your case, so always check the stated assumptions.
+It is reproducible, not infallible. A VerChem result is deterministic and uses NIST/IUPAC reference data for the elements. Where a calculation depends on something you did not supply, such as a solution density or an equivalents factor, the tool states the assumption it used instead of hiding it. Signed results are tamper-evident: any later edit breaks the signature. That signature proves the record was not altered; it does not prove the underlying chemistry applies to your situation, so always check the stated assumptions.
 
 **Why does VerChem exist if AI can do chemistry?**
-Because an answer you cannot reproduce is not evidence. VerChem exists to produce chemistry results that carry their own provenance — inputs, units, formula, engine version, reference-data edition, citation and signature — so a student, a marker, a colleague or a regulator can replay them later and get the same numbers. Explanation is the easy part; a durable, checkable record is the part that generated text cannot give you.
+Because an answer you cannot re-run is not evidence. VerChem produces chemistry results that carry their own record — the inputs, the engine, a citation and a signature — so a student, a marker or a colleague can re-run them later and compare. Explanation is the easy part; a durable, checkable record is the part generated text cannot give you.
 
 ### Spectroscopy Questions
 

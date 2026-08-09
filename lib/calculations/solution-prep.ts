@@ -223,14 +223,26 @@ export function solveDilution(input: DilutionInput): DilutionResult {
 export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
   const { targetConc, targetVolume, molarMass, unit, solutionDensity, equivalentsFactor } = input
 
-  if (targetConc <= 0) throw new Error('Target concentration must be positive.')
-  if (targetVolume <= 0) throw new Error('Target volume must be positive.')
-  if (molarMass <= 0) throw new Error('Molar mass must be positive.')
-  if (solutionDensity !== undefined && !(solutionDensity > 0)) {
-    throw new Error('Solution density must be positive.')
+  // Finiteness first: Infinity/NaN would otherwise flow into a bench instruction.
+  if (!Number.isFinite(targetConc) || targetConc <= 0) {
+    throw new Error('Target concentration must be a positive, finite number.')
   }
-  if (equivalentsFactor !== undefined && !(equivalentsFactor > 0)) {
-    throw new Error('Equivalents factor must be positive.')
+  if (!Number.isFinite(targetVolume) || targetVolume <= 0) {
+    throw new Error('Target volume must be a positive, finite number.')
+  }
+  if (!Number.isFinite(molarMass) || molarMass <= 0) {
+    throw new Error('Molar mass must be a positive, finite number.')
+  }
+  if (solutionDensity !== undefined && (!Number.isFinite(solutionDensity) || solutionDensity <= 0)) {
+    throw new Error('Solution density must be a positive, finite number.')
+  }
+  if (equivalentsFactor !== undefined && (!Number.isFinite(equivalentsFactor) || equivalentsFactor <= 0)) {
+    throw new Error('Equivalents factor must be a positive, finite number.')
+  }
+  // Percentage units are bounded by definition. Without this, 120% v/v happily
+  // produces "measure 1200 mL into a 1 L flask".
+  if ((unit === 'pct_vv' || unit === 'pct_ww' || unit === 'pct_wv') && targetConc > 100) {
+    throw new Error('A percentage concentration cannot exceed 100%.')
   }
 
   let amount: number
@@ -389,12 +401,19 @@ export function calculateStockPrep(input: StockPrepInput): StockPrepResult {
     steps.push(`4. Fill to the ${formatVolume(targetVolume)} mark with distilled water.`)
     steps.push(`5. Mix thoroughly by inverting several times.`)
   } else {
-    steps.push(`1. Add solvent to roughly half the target volume in a ${formatVolume(targetVolume)} volumetric flask.`)
+    // The starting solvent charge must leave room for the solute, otherwise a
+    // high-percentage recipe overflows the flask ("add 500 mL, then add 800 mL
+    // to a 1 L flask"). Keep ~20% of the remaining headroom free for mixing.
+    const targetMl = targetVolume * 1000
+    const initialSolventMl = Math.max(0, Math.min(targetMl * 0.5, (targetMl - amount) * 0.8))
+
+    steps.push(`1. Add about ${formatNum(initialSolventMl)} mL of solvent to a ${formatVolume(targetVolume)} volumetric flask.`)
     steps.push(`2. Measure ${formatNum(amount)} mL of the liquid solute with a volumetric pipette — do NOT weigh it.`)
     steps.push(`3. Transfer the solute into the flask and swirl to mix.`)
     steps.push(`4. Fill to the ${formatVolume(targetVolume)} mark with solvent.`)
     steps.push(`5. Mix thoroughly by inverting several times.`)
     steps.push(`Note: solute and solvent volumes are not additive (mixing can contract the total), which is why %v/v is made up to the final mark rather than by adding ${formatNum(amount)} mL to ${formatVolume(targetVolume)} of solvent.`)
+    steps.push(`Safety: if the solute is a concentrated acid, always add acid to solvent — never the reverse — and let the mixture cool before making up to the mark.`)
   }
 
   if (assumptions.length > 0) {

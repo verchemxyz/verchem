@@ -297,7 +297,7 @@ export default function PeriodicTablePage() {
 
       {/* Footnote */}
       <p className="text-center text-xs text-muted-foreground">
-        Data validated against NIST and PubChem databases.
+        Atomic masses and properties compiled from NIST/IUPAC 2021 standard values.
       </p>
     </CalcShell>
   )
