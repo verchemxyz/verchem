@@ -1,6 +1,6 @@
 import 'server-only'
 
-import type { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { checkRateLimit, getClientId } from '@/lib/rate-limit'
 import { publicApiJson } from '@/lib/api/public-contract'
 
@@ -27,6 +27,30 @@ export function publicApiRateLimit(request: Request, _endpoint: string): NextRes
   // One budget across the whole public API, NOT one per route — keying by
   // endpoint would quietly grant 60 x (number of routes) and contradict the
   // documented figure. `_endpoint` is kept for call-site readability only.
+  const result = checkRateLimit(`public-api:${getClientId(request)}`, PUBLIC_API_LIMIT)
+  if (result.success) return null
+
+  const retryAfter = Math.max(1, result.retryAfter ?? Math.ceil((result.resetTime - Date.now()) / 1000))
+  return NextResponse.json(
+    {
+      error: 'Rate limit exceeded',
+      limit: `${PUBLIC_API_LIMIT.maxRequests} requests per minute`,
+      retryAfter,
+    },
+    {
+      status: 429,
+      headers: {
+        'Retry-After': String(retryAfter),
+        'X-RateLimit-Limit': String(PUBLIC_API_LIMIT.maxRequests),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.ceil(result.resetTime / 1000)),
+      },
+    }
+  )
+}
+
+/** v2 keeps its version envelope even when rate limiting short-circuits. */
+export function publicApiV2RateLimit(request: Request, _endpoint: string): NextResponse | null {
   const result = checkRateLimit(`public-api:${getClientId(request)}`, PUBLIC_API_LIMIT)
   if (result.success) return null
 

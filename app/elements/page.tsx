@@ -7,7 +7,7 @@ import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
 
 // Static metadata for SEO
 export const metadata: Metadata = {
-  title: 'Periodic Table of Elements - All 118 Elements | VerChem',
+  title: { absolute: 'Periodic Table of Elements - All 118 Elements | VerChem' },
   description: 'Periodic table covering all 118 chemical elements. Browse standard atomic weights, electron configurations, and selected physical properties; optional property coverage varies by element.',
   keywords: [
     'periodic table',

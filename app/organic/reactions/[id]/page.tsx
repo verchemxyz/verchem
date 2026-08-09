@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
   const reaction = getReactionById(id)
-  if (!reaction) return { title: 'Reaction Not Found | VerChem' }
+  if (!reaction) return { title: { absolute: 'Reaction Not Found | VerChem' } }
 
   return {
     title: `${reaction.name} — Mechanism, Examples & Key Points`,

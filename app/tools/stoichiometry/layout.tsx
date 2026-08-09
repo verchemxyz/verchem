@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Stoichiometry Calculator - Free Mass, Mole, Limiting Reagent | VerChem',
+  title: { absolute: 'Stoichiometry Calculator - Free Mass, Mole, Limiting Reagent | VerChem' },
   description: 'Calculate stoichiometry problems instantly. Mass to mole, mole to mass, limiting reagent, percent yield, and more. Free online stoichiometry calculator for chemistry.',
   keywords: [
     'stoichiometry calculator',

@@ -40,6 +40,17 @@ import {
   SESSION_SIG_COOKIE,
   clearSessionCookies,
 } from '@/lib/auth/cookie-config'
+import { applyPublicApiVersionHeaders } from '@/lib/api/public-contract'
+
+function publicRouteResponse(pathname: string): NextResponse {
+  const response = NextResponse.next()
+  if (pathname === '/api/chemistry/v2' || pathname.startsWith('/api/chemistry/v2/')) {
+    // The proxy runs before route resolution, so framework-generated 404/405/500
+    // responses carry the same v2 headers as application JSON responses.
+    applyPublicApiVersionHeaders(response.headers)
+  }
+  return response
+}
 
 // Verify session signature using HMAC-SHA256
 async function verifySessionSignature(value: string, signature: string): Promise<boolean> {
@@ -146,7 +157,7 @@ export async function proxy(request: NextRequest) {
 
   // Skip public routes and static files
   if (isPublicRoute(pathname)) {
-    return NextResponse.next()
+    return publicRouteResponse(pathname)
   }
 
   // Skip static files

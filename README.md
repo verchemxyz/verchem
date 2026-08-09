@@ -12,7 +12,7 @@
 ### 🧪 Professional Calculators (8)
 - **Equation Balancer** - Auto-balance with reaction type identification
 - **Stoichiometry** - 8 modes (molecular mass, limiting reagent, yields)
-- **Solutions & pH** - 7 modes with visual pH scale
+- **Solutions & pH** - 11 modes with visual pH scale
 - **Gas Laws** - 9 modes (Ideal, Boyle's, Charles's, Van der Waals)
 - **Thermodynamics** - ΔH, ΔS, ΔG with equilibrium
 - **Chemical Kinetics** - Rate laws, half-life, Arrhenius

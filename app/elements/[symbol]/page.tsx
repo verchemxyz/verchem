@@ -19,14 +19,14 @@ export async function generateMetadata({ params }: { params: Promise<{ symbol: s
   )
 
   if (!element) {
-    return { title: 'Element Not Found | VerChem' }
+    return { title: { absolute: 'Element Not Found | VerChem' } }
   }
 
   const title = `${element.name} (${element.symbol}) - Atomic Properties & Data | VerChem`
   const description = `${element.name} (${element.symbol}): Atomic number ${element.atomicNumber}, mass ${element.atomicMass.toFixed(4)} amu. ${formatCategory(element.category)}. Electron configuration: ${element.electronConfiguration}. Properties, discovery, and more.`
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       element.name,

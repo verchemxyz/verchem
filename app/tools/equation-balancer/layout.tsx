@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Chemical Equation Balancer - Free Online Calculator | VerChem',
+  title: { absolute: 'Chemical Equation Balancer - Free Online Calculator | VerChem' },
   description: 'Balance molecular chemical equations with a free online balancer. Handles synthesis, decomposition, combustion, replacement and redox reactions written in molecular form. Every result is checked for atom conservation.',
   keywords: [
     'chemical equation balancer',

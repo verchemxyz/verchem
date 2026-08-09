@@ -1,15 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function ServiceWorkerRegistration() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+  const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
+  const reloadOnControllerChange = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return;
     }
+
+    let disposed = false;
+    let reloading = false;
+
+    const handleControllerChange = () => {
+      if (!reloadOnControllerChange.current || reloading) return;
+      reloading = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
     const registerSW = async () => {
       try {
@@ -17,6 +29,7 @@ export function ServiceWorkerRegistration() {
           scope: '/',
         });
 
+        if (disposed) return;
         console.log('[PWA] Service Worker registered:', registration.scope);
 
         // Check for updates periodically
@@ -29,7 +42,7 @@ export function ServiceWorkerRegistration() {
               // New update available
               console.log('[PWA] New version available!');
               setUpdateAvailable(true);
-              setWaitingWorker(newWorker);
+              setWaitingWorker(registration.waiting ?? newWorker);
             }
           });
         });
@@ -45,26 +58,30 @@ export function ServiceWorkerRegistration() {
     };
 
     // Register on load
+    const handleLoad = () => {
+      void registerSW();
+    };
+
     if (document.readyState === 'complete') {
-      registerSW();
+      void registerSW();
     } else {
-      window.addEventListener('load', registerSW);
-      return () => window.removeEventListener('load', registerSW);
+      window.addEventListener('load', handleLoad);
     }
+
+    return () => {
+      disposed = true;
+      window.removeEventListener('load', handleLoad);
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+    };
   }, []);
 
   const handleUpdate = () => {
     if (!waitingWorker) return;
 
     // Tell waiting service worker to take over
+    reloadOnControllerChange.current = true;
+    setIsApplyingUpdate(true);
     waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-
-    // Reload the page when the new service worker takes over
-    waitingWorker.addEventListener('statechange', (e) => {
-      if ((e.target as ServiceWorker).state === 'activated') {
-        window.location.reload();
-      }
-    });
   };
 
   if (!updateAvailable) {
@@ -89,9 +106,10 @@ export function ServiceWorkerRegistration() {
       <div className="flex gap-2 mt-3">
         <button
           onClick={handleUpdate}
-          className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors"
+          disabled={isApplyingUpdate}
+          className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors disabled:cursor-wait disabled:opacity-60"
         >
-          Update Now
+          {isApplyingUpdate ? 'Updating…' : 'Update Now'}
         </button>
         <button
           onClick={() => setUpdateAvailable(false)}

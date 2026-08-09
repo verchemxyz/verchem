@@ -33,33 +33,11 @@ import {
   type DilutionResult,
 } from '@/lib/calculations/solutions'
 import { parseRequiredFiniteNumber } from '@/lib/numeric-input'
-
-type CalculatorMode =
-  | 'molarity'
-  | 'strong-acid-ph'
-  | 'strong-base-ph'
-  | 'weak-acid-ph'
-  | 'weak-base-ph'
-  | 'buffer-ph'
-  | 'dilution'
-  | 'convert-from-ph'
-  | 'convert-from-poh'
-  | 'convert-from-h'
-  | 'convert-from-oh'
-
-const MODES: { id: CalculatorMode; label: string }[] = [
-  { id: 'molarity', label: 'Molarity (M)' },
-  { id: 'strong-acid-ph', label: 'Strong Acid pH' },
-  { id: 'strong-base-ph', label: 'Strong Base pH' },
-  { id: 'weak-acid-ph', label: 'Weak Acid pH' },
-  { id: 'weak-base-ph', label: 'Weak Base pH' },
-  { id: 'buffer-ph', label: 'Buffer pH' },
-  { id: 'dilution', label: 'Dilution (M₁V₁=M₂V₂)' },
-  { id: 'convert-from-ph', label: 'Convert from pH' },
-  { id: 'convert-from-poh', label: 'Convert from pOH' },
-  { id: 'convert-from-h', label: 'Convert from [H⁺]' },
-  { id: 'convert-from-oh', label: 'Convert from [OH⁻]' },
-]
+import {
+  SOLUTION_MODES,
+  SOLUTIONS_MODE_COUNT,
+  type CalculatorMode,
+} from '@/lib/config/solutions'
 
 export default function SolutionsPage() {
   const [mode, setMode] = useState<CalculatorMode>('strong-acid-ph')
@@ -395,7 +373,7 @@ export default function SolutionsPage() {
     <>
       <PHCalculatorSchema />
       <CalcShell
-        eyebrow="Solutions & pH · 11 calculation modes"
+        eyebrow={`Solutions & pH · ${SOLUTIONS_MODE_COUNT} calculation modes`}
         title="Solutions & pH"
         subtitle="Molarity, acid-base equilibria, dilution, and four-way pH conversion with one declared model."
         backHref="/"
@@ -405,7 +383,7 @@ export default function SolutionsPage() {
       <Card className="p-6">
         <SectionTitle className="mb-4">Select calculator mode</SectionTitle>
         <ModeGrid>
-          {MODES.map((m) => (
+          {SOLUTION_MODES.map((m) => (
             <ModeButton
               key={m.id}
               active={mode === m.id}

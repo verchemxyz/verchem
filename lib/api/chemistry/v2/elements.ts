@@ -1,17 +1,18 @@
 /**
  * VerChem Chemistry API - Elements Database
  *
- * GET /api/chemistry/elements - Get all elements
- * GET /api/chemistry/elements?symbol=Na - Get specific element
- * GET /api/chemistry/elements?number=11 - Get by atomic number
- * GET /api/chemistry/elements?category=alkali-metal - Filter by category
+ * GET /api/chemistry/v2/elements - Get all elements
+ * GET /api/chemistry/v2/elements?symbol=Na - Get specific element
+ * GET /api/chemistry/v2/elements?number=11 - Get by atomic number
+ * GET /api/chemistry/v2/elements?category=alkali-metal - Filter by category
  *
  * Created: 2026-01-29
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { publicApiRateLimit } from '@/lib/api/public-rate-limit';
+import { NextRequest } from 'next/server';
+import { publicApiV2RateLimit } from '@/lib/api/public-rate-limit';
+import { publicApiJson } from '@/lib/api/public-contract';
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table';
 
 // Simplified element response
@@ -52,7 +53,7 @@ function formatElement(element: typeof PERIODIC_TABLE[0]): ElementResponse {
 }
 
 export async function GET(request: NextRequest) {
-  const limited = publicApiRateLimit(request, 'elements');
+  const limited = publicApiV2RateLimit(request, 'elements');
   if (limited) return limited;
 
   const searchParams = request.nextUrl.searchParams;
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (!element) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: 'Element not found',
           symbol,
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    return publicApiJson(
       {
         success: true,
         element: formatElement(element),
@@ -87,7 +88,6 @@ export async function GET(request: NextRequest) {
       {
         headers: {
           'Cache-Control': 'public, max-age=86400',
-          'X-API-Version': '1.0.0',
         },
       }
     );
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
   if (number) {
     const atomicNumber = parseInt(number, 10);
     if (isNaN(atomicNumber) || atomicNumber < 1 || atomicNumber > 118) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: 'Invalid atomic number',
           hint: 'Atomic number must be between 1 and 118',
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     const element = PERIODIC_TABLE.find((e) => e.atomicNumber === atomicNumber);
 
     if (!element) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: 'Element not found',
           atomicNumber,
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    return publicApiJson(
       {
         success: true,
         element: formatElement(element),
@@ -127,7 +127,6 @@ export async function GET(request: NextRequest) {
       {
         headers: {
           'Cache-Control': 'public, max-age=86400',
-          'X-API-Version': '1.0.0',
         },
       }
     );
@@ -143,7 +142,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (filteredElements.length === 0) {
-      return NextResponse.json(
+      return publicApiJson(
         {
           error: 'No elements found in category',
           category,
@@ -160,7 +159,7 @@ export async function GET(request: NextRequest) {
   if (limit !== null && limit !== '') {
     const parsedLimit = Number(limit);
     if (!Number.isInteger(parsedLimit) || parsedLimit < 1) {
-      return NextResponse.json(
+      return publicApiJson(
         { error: 'Invalid limit - must be a positive integer' },
         { status: 400 }
       );
@@ -168,7 +167,7 @@ export async function GET(request: NextRequest) {
     maxLimit = Math.min(parsedLimit, 118);
   }
 
-  return NextResponse.json(
+  return publicApiJson(
     {
       success: true,
       count: Math.min(filteredElements.length, maxLimit),
@@ -180,7 +179,6 @@ export async function GET(request: NextRequest) {
     {
       headers: {
         'Cache-Control': 'public, max-age=86400',
-        'X-API-Version': '1.0.0',
       },
     }
   );

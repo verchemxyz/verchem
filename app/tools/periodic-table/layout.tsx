@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Interactive Periodic Table - Free Online Element Database | VerChem',
+  title: { absolute: 'Interactive Periodic Table - Free Online Element Database | VerChem' },
   description: 'Explore all 118 elements with an interactive periodic table. Standard atomic weights are based on IUPAC 2021; selected properties cite NIST and CRC references.',
   keywords: [
     'periodic table',

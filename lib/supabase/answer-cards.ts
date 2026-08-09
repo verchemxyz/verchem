@@ -28,6 +28,10 @@ import {
   type EngineReplayAssessment,
   type EngineReplayStatus,
 } from '@/lib/answer-cards/replay'
+import {
+  ANSWER_CARD_PAGE_SIZE,
+  type AnswerCardPage,
+} from '@/lib/answer-cards/list-pagination'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -183,30 +187,39 @@ export async function createAnswerCard(
   return data as { id: string; created_at: string }
 }
 
-export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerCardSummary[]> {
+export async function listAnswerCardsByUser(
+  aiverid_id: string,
+  page: number
+): Promise<AnswerCardPage<AnswerCardSummary>> {
   const supabase = getSupabase()
+  const from = page * ANSWER_CARD_PAGE_SIZE
+  // Supabase ranges are inclusive. Fetch one extra row only to determine
+  // whether another page exists; replay is limited to the returned page.
+  const to = from + ANSWER_CARD_PAGE_SIZE
 
   const { data, error } = await supabase
     .from('answer_cards')
     .select('id, question, status, is_public, created_at, signed_payload, signature')
     .eq('aiverid_id', aiverid_id)
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (error) {
     console.error('listAnswerCardsByUser error:', error)
     throw new Error('Database error while listing answer cards')
   }
 
-  const rows = (data ?? []) as Array<
+  const rowsWithLookahead = (data ?? []) as Array<
     Pick<AnswerCardRow, 'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'>
   >
+  const rows = rowsWithLookahead.slice(0, ANSWER_CARD_PAGE_SIZE)
 
   // Re-verify each row AND derive question/status from the SIGNED payload — not
   // the denormalized columns. Otherwise tampering only `status` (to 'verified')
   // without touching signed_payload/signature would keep signatureValid true and
   // the list would show a forged Verified badge. The signed_payload is verified
   // but NOT returned to the client (keeps the list light).
-  return Promise.all(
+  const cards = await Promise.all(
     rows.map(async (r) => {
       const signatureValid = await verifyCanonicalSignature(r.signed_payload, r.signature)
       let question = r.question
@@ -241,6 +254,13 @@ export async function listAnswerCardsByUser(aiverid_id: string): Promise<AnswerC
       }
     })
   )
+
+  return {
+    cards,
+    page,
+    pageSize: ANSWER_CARD_PAGE_SIZE,
+    hasMore: rowsWithLookahead.length > ANSWER_CARD_PAGE_SIZE,
+  }
 }
 
 export async function getAnswerCardForUser(

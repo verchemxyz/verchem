@@ -13,6 +13,7 @@
  */
 
 import type { Calculator, SubscriptionTier } from '@/lib/vercal/types'
+import { SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 
 /**
  * All VerChem Calculators
@@ -65,7 +66,7 @@ export const VERCHEM_CALCULATORS: Calculator[] = [
   {
     id: 'solutions-ph',
     name: 'Solutions & pH Calculator',
-    description: '7 modes: Molarity, pH, weak acid/base, buffers, dilution',
+    description: `${SOLUTIONS_MODE_COUNT} modes: molarity, strong/weak acid and base pH, buffers, dilution, and four-way pH conversion`,
     tier: 'free',
     path: '/calculators/solutions',
     icon: '🧪',

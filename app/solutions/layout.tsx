@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
+import { SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 
 export const metadata: Metadata = {
-  title: 'Solutions & pH Calculator | VerChem',
-  description: 'Eleven deterministic molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with explicit ideal-dilute 25 °C model scope.',
+  title: { absolute: 'Solutions & pH Calculator | VerChem' },
+  description: `${SOLUTIONS_MODE_COUNT} deterministic molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with explicit ideal-dilute 25 °C model scope.`,
   keywords: [
     'pH calculator',
     'pOH calculator',
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Solutions & pH Calculator | VerChem',
-    description: 'Eleven molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with declared model scope.',
+    description: `${SOLUTIONS_MODE_COUNT} molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with declared model scope.`,
     type: 'website',
     url: 'https://verchem.xyz/solutions',
     images: [
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Solutions & pH Calculator | VerChem',
-    description: 'Eleven molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with declared model scope.',
+    description: `${SOLUTIONS_MODE_COUNT} molarity, aqueous pH, pOH, ion-concentration, buffer, and dilution modes with declared model scope.`,
   },
 }
 

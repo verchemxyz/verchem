@@ -37,7 +37,7 @@ const loadPublicCard = cache(async (id: string) => {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
   const loaded = await loadPublicCard(id)
-  if (!loaded) return { title: 'Signed Answer — VerChem' }
+  if (!loaded) return { title: { absolute: 'Signed Answer | VerChem' } }
 
   const q = loaded.card.question.slice(0, 110)
   const isCurrent = isCurrentlyVerifiedAnswer(
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? 'A chemistry answer whose signature is intact and whose current deterministic engines reproduce the signed result.'
     : 'A chemistry answer with explicit signature-integrity, calculation, and current-engine replay status.'
   return {
-    title: `${q} — ${isCurrent ? 'Verified' : 'Signed'} Chemistry Answer | VerChem`,
+    title: { absolute: `${q} — ${isCurrent ? 'Verified' : 'Signed'} Chemistry Answer | VerChem` },
     description: desc,
     openGraph: { title: q, description: desc, type: 'article' },
     twitter: { card: 'summary', title: q, description: desc },

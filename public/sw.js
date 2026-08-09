@@ -18,29 +18,60 @@ const STATIC_ASSETS = [
   '/calculators',
   '/tools',
   '/compounds',
+  '/solutions',
   '/manifest.json',
   '/logo.png',
   '/offline.html',
 ];
+
+/**
+ * Populate the new cache before any legacy cache is removed. Network content
+ * wins; an older cached response is used only as an offline migration fallback.
+ * Throwing when neither exists keeps the current worker active and its cache
+ * intact instead of activating a worker with incomplete offline coverage.
+ */
+async function warmStaticAssets() {
+  const cache = await caches.open(STATIC_CACHE);
+
+  await Promise.all(STATIC_ASSETS.map(async (asset) => {
+    const request = new Request(new URL(asset, self.location.origin).toString(), {
+      cache: 'reload',
+    });
+
+    if (await cache.match(request)) return;
+
+    try {
+      const response = await fetch(request);
+      if (!response.ok) {
+        throw new Error(`Failed to warm ${asset}: HTTP ${response.status}`);
+      }
+      await cache.put(request, response);
+      return;
+    } catch (networkError) {
+      const migrated = await caches.match(request);
+      if (!migrated) throw networkError;
+      await cache.put(request, migrated.clone());
+    }
+  }));
+}
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing Service Worker...');
 
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
+    warmStaticAssets()
       .then(() => {
         console.log('[SW] Static assets cached successfully');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('[SW] Error caching static assets:', error);
       })
   );
+});
+
+// Updated workers wait until the UI explicitly asks them to activate.
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
+  }
 });
 
 // Activate event - clean up old caches
@@ -48,13 +79,17 @@ self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...');
 
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
+    (async () => {
+      // Required routes (including /solutions) must exist in v2 before any v1
+      // cache can be removed. This also repairs an interrupted partial warm.
+      await warmStaticAssets();
+
+      const cacheNames = await caches.keys();
         // Remove pre-consolidation route responses even from a same-version
         // cache. This prevents the old standalone pH implementation from
         // surviving now that the URL serves the shared /solutions component
         // through a partially completed service-worker update.
-        return Promise.all(
+      await Promise.all(
           cacheNames.map((cacheName) =>
             caches.open(cacheName).then((cache) =>
               Promise.all(
@@ -65,11 +100,10 @@ self.addEventListener('activate', (event) => {
             )
           )
         );
-      })
-      .then(() => caches.keys())
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames
+
+      const warmedCacheNames = await caches.keys();
+      await Promise.all(
+          warmedCacheNames
             .filter((cacheName) => {
               return cacheName.startsWith('verchem-') &&
                      cacheName !== STATIC_CACHE &&
@@ -80,11 +114,10 @@ self.addEventListener('activate', (event) => {
               return caches.delete(cacheName);
             })
         );
-      })
-      .then(() => {
-        console.log('[SW] Old caches cleaned up');
-        return self.clients.claim();
-      })
+
+      console.log('[SW] Old caches cleaned up');
+      await self.clients.claim();
+    })()
   );
 });
 

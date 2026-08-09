@@ -1,4 +1,6 @@
-# VerChem - World-Class Chemistry Platform
+import { SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
+
+export const LLMS_TEXT = `# VerChem - World-Class Chemistry Platform
 
 > Free deterministic chemistry tools with published references and explicit model scope
 
@@ -21,7 +23,7 @@ Built with Next.js 16 and TypeScript, VerChem offers production-quality tools th
 - **Molar Mass Calculator**: Calculate molecular weight from formula (H2SO4, NaCl, C6H12O6)
 - **Chemical Equation Balancer**: Auto-balance reactions using algebraic methods
 - **Stoichiometry Calculator**: 8 modes - mass-mole conversions, limiting reagent, percent yield
-- **pH Calculator**: 7 modes - strong/weak acids and bases, buffers, visual pH scale
+- **pH Calculator**: ${SOLUTIONS_MODE_COUNT} modes - molarity, strong/weak acids and bases, buffers, dilution, and four-way pH conversion
 - **Gas Laws Calculator**: 9 modes - Ideal Gas Law (PV=nRT), Boyle's, Charles's, Van der Waals
 - **Thermodynamics Calculator**: Enthalpy (dH), entropy (dS), Gibbs free energy (dG)
 - **Chemical Kinetics Calculator**: Rate laws, half-life, Arrhenius equation
@@ -222,3 +224,5 @@ VerChem is part of the Ver* ecosystem (VerHoro, VerGolf, VerVote, etc.), built w
 *Last updated: February 2026*
 *Version: 3.0*
 *VerChem - Making Chemistry Accessible*
+`
+

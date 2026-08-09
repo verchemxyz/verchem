@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { CalcShell, SectionTitle } from '@/components/lab'
 
 export const metadata: Metadata = {
-  title: 'All Tools | VerChem',
+  title: { absolute: 'All Tools | VerChem' },
   description:
     'Free chemistry tools: calculators, periodic table, organic chemistry, spectroscopy (IR/NMR/MS), lab safety, nuclear & quantum chemistry, solution prep, and more.',
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Gas Laws Calculator - Ideal Gas, Boyle\'s, Charles\'s Law | VerChem',
+  title: { absolute: 'Gas Laws Calculator - Ideal Gas, Boyle\'s, Charles\'s Law | VerChem' },
   description: 'Calculate gas properties using Ideal Gas Law, Boyle\'s Law, Charles\'s Law, Gay-Lussac\'s Law, Combined Gas Law, and more. Free online gas law calculator for chemistry.',
   keywords: [
     'gas law calculator',

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { CalcShell } from '@/components/lab'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — VerChem',
+  title: { absolute: 'Terms of Service | VerChem' },
   description:
     'The terms that govern your use of VerChem — its chemistry tools, accounts, AI Verified Answer Cards, and voluntary donations.',
   alternates: { canonical: 'https://verchem.xyz/terms' },

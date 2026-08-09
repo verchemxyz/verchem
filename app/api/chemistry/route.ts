@@ -13,30 +13,18 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
+import { NextResponse } from 'next/server';
 import { PUBLIC_API_LIMIT, publicApiRateLimit } from '@/lib/api/public-rate-limit';
-import { PUBLIC_API_VERSION, publicApiJson } from '@/lib/api/public-contract';
 
 export async function GET(request: Request) {
   const limited = publicApiRateLimit(request, 'index');
   if (limited) return limited;
 
-  return publicApiJson({
+  return NextResponse.json({
     name: 'VerChem Chemistry API',
-    version: PUBLIC_API_VERSION,
+    version: '1.0.0',
     description: 'Free chemistry calculations and data API',
-    documentation: 'This endpoint is the migration contract and route index for the current public API.',
-    contract: {
-      majorVersion: 2,
-      versioning: 'The existing unversioned /api/chemistry/* paths now serve the declared v2 contract. Read apiVersion and X-API-Version on every response.',
-      migrationFrom: '1.x',
-      breakingChanges: [
-        'All endpoints can return HTTP 429 with Retry-After when the best-effort public limit is exceeded.',
-        'Compound molecularMass can be null and is paired with molarMassBasis.',
-        'Compound responses expose safetyDataStatus so empty hazards never imply safety.',
-        'Molar-mass responses include expandedFormula when grouped formulae are normalized.',
-        'Every success and error body includes apiVersion; every response includes X-API-Version and X-API-Migration.',
-      ],
-    },
+    documentation: 'This endpoint is the documentation — every available route is listed below.',
     endpoints: {
       '/api/chemistry': {
         method: 'GET',
@@ -49,11 +37,6 @@ export async function GET(request: Request) {
           formula: 'Chemical formula (e.g., H2O, NaCl, C6H12O6)',
         },
         example: '/api/chemistry/molar-mass?formula=H2O',
-        responseSchema: {
-          formula: 'string (submitted formula)',
-          expandedFormula: 'string (normalized formula used for composition)',
-          molarMass: '{ value: number, unit: "g/mol", formatted: string }',
-        },
       },
       '/api/chemistry/elements': {
         method: 'GET',
@@ -71,13 +54,6 @@ export async function GET(request: Request) {
           category: 'Filter by category',
         },
         example: '/api/chemistry/compounds?q=water',
-        responseSchema: {
-          molecularMass: 'number | null',
-          molarMassBasis: 'formula | repeat-unit | mixture-average | not-applicable',
-          safetyDataStatus: 'curated-partial | not-curated',
-          hazards: 'string[]',
-          ghs: 'string[]',
-        },
       },
       '/api/chemistry/convert': {
         method: 'GET',
@@ -92,14 +68,11 @@ export async function GET(request: Request) {
       },
       '/api/chemistry/ph': {
         method: 'GET',
-        description: 'Resolve pH, pOH, [H+], and [OH-] from exactly one supplied value',
+        description: 'Calculate pH from concentration or pOH',
         params: {
           h: 'H+ concentration (mol/L)',
           oh: 'OH- concentration (mol/L)',
-          ph: 'pH value',
           poh: 'pOH value',
-          temperature_c: 'Optional; this engine accepts only 25',
-          activity_model: 'Optional; this engine accepts only concentration-as-activity',
         },
         example: '/api/chemistry/ph?h=0.001',
       },
@@ -118,6 +91,7 @@ export async function GET(request: Request) {
   }, {
     headers: {
       'Cache-Control': 'public, max-age=3600',
+      'X-API-Version': '1.0.0',
     },
   });
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 
 interface WebApplicationSchema {
   '@context': string
@@ -405,7 +406,7 @@ export function VerChemGlobalFAQSchema({ compoundCount }: { compoundCount: numbe
         name: 'What calculators does VerChem offer?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (7 modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus interactive tools: 3D Molecular Viewer, Lewis Structures, VSEPR Geometry, and a table covering all 118 elements.'
+          text: `VerChem offers 8 chemistry calculators: Molar Mass, Equation Balancer, Stoichiometry (8 modes), pH Calculator (${SOLUTIONS_MODE_COUNT} modes), Gas Laws (9 modes including Van der Waals), Thermodynamics, Chemical Kinetics, and Electrochemistry. Plus interactive tools: 3D Molecular Viewer, Lewis Structures, VSEPR Geometry, and a table covering all 118 elements.`
         }
       },
       {
@@ -528,7 +529,7 @@ export function VerChemSoftwareApplicationSchema({ compoundCount }: { compoundCo
       'Molar Mass Calculator',
       'Chemical Equation Balancer',
       'Stoichiometry Calculator (8 modes)',
-      'pH Calculator (7 modes)',
+      `pH Calculator (${SOLUTIONS_MODE_COUNT} modes)`,
       'Gas Laws Calculator (9 modes)',
       'Thermodynamics Calculator',
       'Chemical Kinetics Calculator',

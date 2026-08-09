@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const compound = COMPREHENSIVE_COMPOUNDS.find((c) => c.id === slug)
 
   if (!compound) {
-    return { title: 'Compound Not Found | VerChem' }
+    return { title: { absolute: 'Compound Not Found | VerChem' } }
   }
 
   const title = `${compound.name} (${compound.formula}) - Chemical Record | VerChem`
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = `${compound.name}${compound.nameThai ? ` (${compound.nameThai})` : ''}: ${compound.formula}${massDescription}${compound.casNumber ? `, CAS ${compound.casNumber}` : ''}${detailsDescription}.`
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       compound.name,

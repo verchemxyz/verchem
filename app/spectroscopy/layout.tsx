@@ -1,10 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: {
-    template: '%s | Spectroscopy | VerChem',
-    default: 'Spectroscopy Tools | VerChem',
-  },
+  title: { absolute: 'Spectroscopy Tools | VerChem' },
   description:
     'IR, NMR, and Mass Spectrometry analysis tools for chemistry students and professionals. Identify functional groups, interpret chemical shifts, and analyze fragmentation patterns.',
   keywords: [

@@ -17,6 +17,7 @@ import { verifyCardSignature, toSignablePayload } from '@/lib/answer-cards/signa
 import { parseSubmittedCard } from '@/lib/answer-cards/validate-card'
 import { createAnswerCard, listAnswerCardsByUser } from '@/lib/supabase/answer-cards'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { parseAnswerCardPage } from '@/lib/answer-cards/list-pagination'
 
 // Generous per-user daily cap so a valid signed card can't be saved thousands
 // of times to bloat the table. (Saving requires a real generate call first.)
@@ -86,15 +87,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await verifySession()
     if (!session?.userId || session.userId === 'anonymous') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const cards = await listAnswerCardsByUser(session.userId)
-    return NextResponse.json(cards)
+    const page = parseAnswerCardPage(request.nextUrl.searchParams.get('page'))
+    if (page === null) {
+      return NextResponse.json(
+        { error: 'Invalid page - must be a non-negative integer' },
+        { status: 400 }
+      )
+    }
+
+    const result = await listAnswerCardsByUser(session.userId, page)
+    return NextResponse.json(result)
   } catch (err: unknown) {
     console.error('GET /api/answer-cards error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

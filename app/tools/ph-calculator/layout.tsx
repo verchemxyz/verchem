@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'pH Calculator | VerChem',
+  title: { absolute: 'pH Calculator | VerChem' },
   description: 'Legacy URL for the canonical VerChem Solutions & pH calculator.',
   keywords: [
     'pH calculator',

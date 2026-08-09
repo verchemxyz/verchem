@@ -8,7 +8,7 @@ Successfully expanded VerChem's compound database from 25 to 1,311 comprehensive
 ### 1. Database Expansion (25 → 1,311 Compounds)
 - **Total Compounds**: 1,311 chemical compounds
 - **Categories Covered**: 20+ major chemical categories
-- **Data Completeness**: 100% with all required fields
+- **Core identity-field coverage**: 100% for id, name, formula representation, category, and physical state; optional physical-property, safety, and reference fields vary by record
 
 ### 2. Chemical Categories Implemented
 

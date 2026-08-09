@@ -5,7 +5,7 @@ import { FUNCTIONAL_GROUPS } from '@/lib/data/organic/functional-groups'
 import { NAMED_REACTIONS, REACTION_STATISTICS } from '@/lib/data/organic/named-reactions'
 
 export const metadata: Metadata = {
-  title: 'Organic Chemistry Tools | VerChem',
+  title: { absolute: 'Organic Chemistry Tools | VerChem' },
   description:
     'Free organic chemistry study tools: 22 functional groups, 40 named reactions with mechanisms, reaction predictor, and interactive reference guides.',
   keywords: [

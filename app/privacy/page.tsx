@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { CalcShell } from '@/components/lab'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — VerChem',
+  title: { absolute: 'Privacy Policy | VerChem' },
   description:
     'How VerChem collects, uses, and protects your information across its chemistry tools, accounts, and AI Verified Answer Cards.',
   alternates: { canonical: 'https://verchem.xyz/privacy' },

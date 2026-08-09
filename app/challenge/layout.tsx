@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Chemistry Challenge - Test Your Chemistry Knowledge | VerChem',
+  title: { absolute: 'Chemistry Challenge - Test Your Chemistry Knowledge | VerChem' },
   description: 'Challenge yourself with chemistry problems: balance equations, calculate molar mass, and test your knowledge against the clock.',
   keywords: [
     'chemistry challenge',

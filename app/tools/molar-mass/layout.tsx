@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Molar Mass Calculator - Free Online Molecular Weight Calculator | VerChem',
+  title: { absolute: 'Molar Mass Calculator - Free Online Molecular Weight Calculator | VerChem' },
   description: 'Calculate molar mass for supported molecular formulas with an element breakdown and standard atomic weights based on the IUPAC 2021 table.',
   keywords: [
     'molar mass calculator',
