@@ -176,16 +176,6 @@ export default function SolutionsPage() {
           const kaValue = parseRequiredFiniteNumber(ka, 'Ka', { minExclusive: 0 })
           const result = calculateWeakAcidPH(conc, kaValue)
           setPhResult(result)
-          const equilibriumSteps = result.method === 'approximation'
-            ? [
-                `The estimated ionization is ${result.percentIonization.toFixed(2)}%, so the 5% approximation is used.`,
-                `x ≈ √(Ka × C)`,
-                `x = √(${kaValue.toExponential(2)} × ${conc})`,
-              ]
-            : [
-                `The 5% approximation is not valid; solve x² + Kax - KaC = 0.`,
-                `x = (-Ka + √(Ka² + 4KaC)) / 2`,
-              ]
           setSteps([
             `Weak Acid: Ka = ${kaValue.toExponential(2)}`,
             ``,
@@ -193,18 +183,21 @@ export default function SolutionsPage() {
             `  Concentration = ${conc} M`,
             `  Ka = ${kaValue.toExponential(2)}`,
             ``,
-            `ICE Table: HA ⇌ H⁺ + A⁻`,
-            `Initial:  ${conc}    0      0`,
-            `Change:   -x        +x     +x`,
-            `Equil:    ${conc}-x  x      x`,
+            `Full equilibrium: HA ⇌ H⁺ + A⁻ plus H₂O ⇌ H⁺ + OH⁻`,
             ``,
+            `Mass balance: [HA] + [A⁻] = C`,
+            `Electroneutrality: [H⁺] = [A⁻] + [OH⁻]`,
             `Ka = [H⁺][A⁻] / [HA]`,
-            `Ka = x² / (${conc} - x)`,
+            `Kw = [H⁺][OH⁻] = ${PH_MODEL_25C.kw.toExponential(1)}`,
             ``,
-            ...equilibriumSteps,
-            `x = [H⁺] = ${result.H_concentration.toExponential(3)} M`,
+            `Solve [H⁺]³ + Ka[H⁺]² - (Kw + KaC)[H⁺] - KaKw = 0`,
+            `[H⁺] = ${result.H_concentration.toExponential(3)} M`,
+            `[OH⁻] = ${result.OH_concentration.toExponential(3)} M`,
+            `Ionization = ${result.percentIonization.toFixed(2)}%`,
             ``,
             `pH = -log₁₀[H⁺] = ${result.pH.toFixed(2)}`,
+            ``,
+            `Applicability: monoprotic aqueous ideal-dilute model, 25 °C, 0 < C ≤ ${result.applicability.concentrationRangeM.maxInclusive} M.`,
             ``,
             `Classification: ${getPhLabel(result.pH)}`,
           ])
@@ -216,16 +209,6 @@ export default function SolutionsPage() {
           const kbValue = parseRequiredFiniteNumber(kb, 'Kb', { minExclusive: 0 })
           const result = calculateWeakBasePH(conc, kbValue)
           setPhResult(result)
-          const equilibriumSteps = result.method === 'approximation'
-            ? [
-                `The estimated ionization is ${result.percentIonization.toFixed(2)}%, so the 5% approximation is used.`,
-                `x ≈ √(Kb × C)`,
-                `x = √(${kbValue.toExponential(2)} × ${conc})`,
-              ]
-            : [
-                `The 5% approximation is not valid; solve x² + Kbx - KbC = 0.`,
-                `x = (-Kb + √(Kb² + 4KbC)) / 2`,
-              ]
           setSteps([
             `Weak Base: Kb = ${kbValue.toExponential(2)}`,
             ``,
@@ -233,19 +216,22 @@ export default function SolutionsPage() {
             `  Concentration = ${conc} M`,
             `  Kb = ${kbValue.toExponential(2)}`,
             ``,
-            `ICE Table: B + H₂O ⇌ BH⁺ + OH⁻`,
-            `Initial:  ${conc}              0      0`,
-            `Change:   -x                   +x     +x`,
-            `Equil:    ${conc}-x            x      x`,
+            `Full equilibrium: B + H₂O ⇌ BH⁺ + OH⁻ plus H₂O ⇌ H⁺ + OH⁻`,
             ``,
+            `Mass balance: [B] + [BH⁺] = C`,
+            `Electroneutrality: [OH⁻] = [BH⁺] + [H⁺]`,
             `Kb = [BH⁺][OH⁻] / [B]`,
-            `Kb = x² / (${conc} - x)`,
+            `Kw = [H⁺][OH⁻] = ${PH_MODEL_25C.kw.toExponential(1)}`,
             ``,
-            ...equilibriumSteps,
-            `x = [OH⁻] = ${result.OH_concentration.toExponential(3)} M`,
+            `Solve [OH⁻]³ + Kb[OH⁻]² - (Kw + KbC)[OH⁻] - KbKw = 0`,
+            `[OH⁻] = ${result.OH_concentration.toExponential(3)} M`,
+            `[H⁺] = ${result.H_concentration.toExponential(3)} M`,
+            `Ionization = ${result.percentIonization.toFixed(2)}%`,
             ``,
             `pOH = -log₁₀[OH⁻] = ${result.pOH.toFixed(2)}`,
             `pH = ${PH_MODEL_25C.pKw.toFixed(2)} - pOH = ${result.pH.toFixed(2)}`,
+            ``,
+            `Applicability: monoprotic aqueous ideal-dilute model, 25 °C, 0 < C ≤ ${result.applicability.concentrationRangeM.maxInclusive} M.`,
             ``,
             `Classification: ${getPhLabel(result.pH)}`,
           ])
@@ -765,7 +751,12 @@ export default function SolutionsPage() {
                 )}
                 {phResult.method && (
                   <p className="mt-3 text-center text-sm text-muted-foreground">
-                    Equilibrium method: {phResult.method === 'quadratic' ? 'quadratic solution' : '5% approximation'}
+                    Equilibrium method: full mass-balance + electroneutrality + Kw solution
+                  </p>
+                )}
+                {phResult.applicability && (
+                  <p className="mt-2 text-center text-sm text-muted-foreground">
+                    Model: {phResult.applicability.regime} aqueous, monoprotic, {phResult.applicability.temperatureC} °C; Kw = {phResult.applicability.kw.toExponential(1)}; 0 &lt; C ≤ {phResult.applicability.concentrationRangeM.maxInclusive} M.
                   </p>
                 )}
                 {phResult.warning && (

@@ -17,7 +17,12 @@
 
 import assert from 'node:assert/strict'
 
-import { expandParentheses, balanceEquation } from '@/lib/calculations/equation-balancer'
+import {
+  MAX_SUBSCRIPT,
+  balanceEquation,
+  expandParentheses,
+  parseFormula,
+} from '@/lib/calculations/equation-balancer'
 
 type TestFn = () => void | Promise<void>
 type TestCase = { name: string; fn: TestFn }
@@ -58,6 +63,21 @@ describe('expandParentheses', () => {
   test('refuses to produce absurd subscripts rather than losing precision', () => {
     const huge = expandParentheses('(H9007199254740993)2')
     assert.equal(huge, '(H9007199254740993)2', 'an unsafe count must be left unexpanded')
+  })
+})
+
+describe('parseFormula — strict count contract', () => {
+  test('aggregates repeated element symbols', () => {
+    assert.deepEqual(parseFormula('CH3COOH'), { C: 2, H: 4, O: 2 })
+  })
+
+  test('rejects unsafe, oversized, and oversized aggregate counts', () => {
+    assert.throws(() => parseFormula('H9007199254740993'), /subscript out of range/i)
+    assert.throws(() => parseFormula(`H${MAX_SUBSCRIPT + 1}`), /subscript out of range/i)
+    assert.throws(
+      () => parseFormula(`H${MAX_SUBSCRIPT}H1`),
+      /aggregate atom count out of range/i
+    )
   })
 })
 

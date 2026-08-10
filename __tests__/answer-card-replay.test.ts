@@ -7,6 +7,7 @@ import { CURRENT_ENGINE_VERSIONS } from '@/lib/answer-cards/engine-versions'
 import { signCard, verifyCardSignature } from '@/lib/answer-cards/signature'
 import { ALL_TOOLS, TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
 import type { SignablePayload, ToolCall } from '@/lib/answer-cards/types'
+import { PH_MODEL_25C } from '@/lib/calculations/solutions'
 
 function payloadFor(call: ToolCall, version = 'w3-v2'): SignablePayload {
   return {
@@ -91,6 +92,46 @@ async function run(): Promise<void> {
   const currentSignature = await signCard(currentPayload)
   const forgedVersion = payloadFor({ ...currentCall, engine_version: '999.0.0' })
   assert.equal(await verifyCardSignature(forgedVersion, currentSignature), false)
+
+  // R9 regression: 2.0.0 omitted Kw from weak-acid equilibrium, so a signed
+  // 1e-8 M acetic-acid card claimed pH > 7. Its signature remains authentic,
+  // but replay against 2.0.1 must label the scientific result corrected.
+  const weakAcidTool = TOOL_BY_NAME.get('calculate_weak_acid_ph')
+  assert.ok(weakAcidTool)
+  assert.equal(weakAcidTool.engineVersion, '2.0.1')
+  const historicalWeakAcidCall: ToolCall = {
+    name: weakAcidTool.name,
+    engine: weakAcidTool.engine,
+    engine_version: '2.0.0',
+    input: { concentration: 1e-8, Ka: 1.74e-5 },
+    result: {
+      ok: true,
+      value: {
+        pH: 8.000249379636504,
+        H_concentration: 9.99425946997998e-9,
+        percent_ionization: 99.9425946997998,
+        method: 'quadratic',
+        warning: 'Significant ionization (99.9%) - used quadratic formula for accuracy',
+        Kw: 1e-14,
+        model: PH_MODEL_25C,
+      },
+    },
+    citation: weakAcidTool.citation,
+  }
+  const historicalWeakAcidPayload = payloadFor(historicalWeakAcidCall, 'w3-v2')
+  const historicalWeakAcidSignature = await signCard(historicalWeakAcidPayload)
+  assert.equal(
+    await verifyCardSignature(historicalWeakAcidPayload, historicalWeakAcidSignature),
+    true
+  )
+  const weakAcidReplay = assessEngineReplay([historicalWeakAcidCall])
+  assert.equal(weakAcidReplay.status, 'corrected')
+  assert.equal(weakAcidReplay.currentEngineAgrees, false)
+  assert.equal(isCurrentlyVerifiedAnswer('verified', true, weakAcidReplay), false)
+
+  const weakBaseTool = TOOL_BY_NAME.get('calculate_weak_base_ph')
+  assert.ok(weakBaseTool)
+  assert.equal(weakBaseTool.engineVersion, '2.0.1')
 
   assert.equal(ALL_TOOLS.length, 61)
   assert.equal(Object.keys(CURRENT_ENGINE_VERSIONS).length, ALL_TOOLS.length)

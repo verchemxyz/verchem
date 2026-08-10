@@ -94,13 +94,14 @@ export async function GET(request: NextRequest) {
   }
 
   // Get specific element by atomic number
-  if (number) {
-    const atomicNumber = parseInt(number, 10);
-    if (isNaN(atomicNumber) || atomicNumber < 1 || atomicNumber > 118) {
+  if (number !== null) {
+    const atomicNumber = Number(number);
+    if (!/^[1-9]\d*$/.test(number) || !Number.isInteger(atomicNumber) || atomicNumber > 118) {
       return publicApiJson(
         {
           error: 'Invalid atomic number',
-          hint: 'Atomic number must be between 1 and 118',
+          value: number,
+          hint: 'Atomic number must be a whole-number string from 1 to 118 with no decimal point or extra characters',
         },
         { status: 400 }
       );

@@ -11,7 +11,13 @@ import { NextRequest } from 'next/server';
 import { publicApiV2RateLimit } from '@/lib/api/public-rate-limit';
 import { publicApiJson } from '@/lib/api/public-contract';
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table';
-import { expandParentheses } from '@/lib/calculations/equation-balancer';
+import {
+  MAX_SUBSCRIPT,
+  expandParentheses,
+  parseFormula,
+} from '@/lib/calculations/equation-balancer';
+
+const ELEMENT_BY_SYMBOL = new Map(PERIODIC_TABLE.map((element) => [element.symbol, element]));
 
 // Parse chemical formula and calculate molar mass
 function parseMolarMass(formula: string): {
@@ -30,52 +36,29 @@ function parseMolarMass(formula: string): {
     return null;
   }
 
-  // Only element symbols, digits and balanced groups are accepted.
-  if (!/^[A-Za-z0-9()]+$/.test(trimmed)) {
+  let elementCounts: Record<string, number>;
+  try {
+    // This is the equation engine's strict, full-consumption parser. It rejects
+    // unknown symbols, unbalanced groups, zero/leading-zero subscripts, unsafe
+    // integers, and counts above MAX_SUBSCRIPT before any mass arithmetic.
+    elementCounts = parseFormula(trimmed);
+  } catch {
     return null;
   }
 
-  // Expand groups like Ca(OH)2 -> CaO2H2 using the same routine the equation
-  // balancer uses, so the API and the app agree on what a formula means.
   const cleanFormula = expandParentheses(trimmed);
-
-  // After expansion nothing but symbols and digits may remain (this also
-  // rejects unbalanced parentheses, which expansion leaves behind).
-  if (!/^([A-Z][a-z]?\d*)+$/.test(cleanFormula)) {
-    return null;
-  }
-
-  // Parse formula using regex
-  // Matches: Element symbol (1-2 letters, first uppercase) followed by optional number
-  const regex = /([A-Z][a-z]?)(\d*)/g;
-  const matches = [...cleanFormula.matchAll(regex)];
-
-  if (matches.length === 0) {
-    return null;
-  }
-
-  // Verify the parsed tokens reconstruct the full formula
-  const reconstructed = matches.map(m => m[0]).join('');
-  if (reconstructed !== cleanFormula) {
-    return null;
-  }
 
   const composition: Array<{ element: string; count: number; mass: number; percentage: number }> = [];
   let totalMass = 0;
 
-  for (const match of matches) {
-    const symbol = match[1];
-    const count = match[2] ? parseInt(match[2], 10) : 1;
-
-    if (!symbol) continue;
-    // Reject zero / leading-zero counts (e.g. "H0", "H00", "H02"): a count of 0
-    // yields mass 0 and a NaN% composition, which must never be returned as valid.
-    if (match[2] && !/^[1-9]\d*$/.test(match[2])) {
+  // parseFormula aggregates repeated symbols, so CH3COOH produces one row per
+  // element (C2, H4, O2) rather than duplicate C/H/O rows.
+  for (const [symbol, count] of Object.entries(elementCounts)) {
+    if (!Number.isSafeInteger(count) || count < 1 || count > MAX_SUBSCRIPT) {
       return null;
     }
 
-    // Find element in periodic table
-    const element = PERIODIC_TABLE.find((e) => e.symbol === symbol);
+    const element = ELEMENT_BY_SYMBOL.get(symbol);
     if (!element) {
       return null; // Unknown element
     }
@@ -143,9 +126,9 @@ export async function GET(request: NextRequest) {
   if (!result) {
     return publicApiJson(
       {
-        error: 'Invalid formula or unknown element',
+        error: 'Invalid formula, unknown element, or subscript out of range',
         formula,
-        hint: 'Use standard element symbols, optionally with balanced groups (e.g., H2O, NaCl, H2SO4, Ca(OH)2, Al2(SO4)3). Check for an unknown symbol or an unclosed parenthesis.',
+        hint: `Use standard element symbols and balanced groups. Every subscript and aggregate element count must be an integer from 1 to ${MAX_SUBSCRIPT.toLocaleString('en-US')}.`,
       },
       { status: 400 }
     );

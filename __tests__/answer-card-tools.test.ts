@@ -19,6 +19,7 @@ import {
   hendersonHasselbalch,
   calculateDilution,
   PH_MODEL_25C,
+  WEAK_ELECTROLYTE_MODEL_25C,
 } from '@/lib/calculations/solutions'
 import {
   idealGasLaw,
@@ -206,8 +207,10 @@ describe('pH tools route to real engines', () => {
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration as number, 10)
     expect(result.value.percent_ionization).toBeCloseTo(engineResult.percentIonization as number, 10)
+    expect(result.value.method).toBe('full-equilibrium')
     expect(result.value.Kw).toBe(1e-14)
     expect(result.value.model).toEqual(PH_MODEL_25C)
+    expect(result.value.applicability).toEqual(WEAK_ELECTROLYTE_MODEL_25C)
   })
 
   test('calculate_weak_acid_ph resolves known acid by formula', () => {
@@ -253,8 +256,40 @@ describe('pH tools route to real engines', () => {
     const engineResult = calculateWeakBasePH(0.1, 1.8e-5)
     expect(result.value.pH).toBeCloseTo(engineResult.pH, 10)
     expect(result.value.pOH).toBeCloseTo(engineResult.pOH, 10)
+    expect(result.value.H_concentration).toBeCloseTo(engineResult.H_concentration, 10)
+    expect(result.value.method).toBe('full-equilibrium')
     expect(result.value.Kw).toBe(1e-14)
     expect(result.value.model).toEqual(PH_MODEL_25C)
+    expect(result.value.applicability).toEqual(WEAK_ELECTROLYTE_MODEL_25C)
+  })
+
+  test('weak pH signed paths include Kw at dilution limit and never cross neutral', () => {
+    const acidTool = TOOL_BY_NAME.get('calculate_weak_acid_ph')!
+    const baseTool = TOOL_BY_NAME.get('calculate_weak_base_ph')!
+    const acid = acidTool.execute({ concentration: 1e-8, Ka: 1.74e-5 })
+    const base = baseTool.execute({ concentration: 1e-8, Kb: 1.8e-5 })
+    expect(acid.ok).toBe(true)
+    expect(base.ok).toBe(true)
+    if (!acid.ok || !base.ok) return
+    expect(acid.value.pH).toBeCloseTo(6.978424518170207, 10)
+    expect(base.value.pH).toBeCloseTo(7.021579795578955, 10)
+    expect((acid.value.pH as number) < 7).toBe(true)
+    expect((base.value.pH as number) > 7).toBe(true)
+  })
+
+  test('weak pH signed paths reject concentrations outside ideal-dilute applicability', () => {
+    const acidTool = TOOL_BY_NAME.get('calculate_weak_acid_ph')!
+    const baseTool = TOOL_BY_NAME.get('calculate_weak_base_ph')!
+    const acid = acidTool.execute({ concentration: 0.5, Ka: 1.74e-5 })
+    const base = baseTool.execute({ concentration: 0, Kb: 1.8e-5 })
+    const polyprotic = acidTool.execute({ concentration: 0.01, acid_name: 'carbonic acid' })
+    expect(acid.ok).toBe(false)
+    expect(base.ok).toBe(false)
+    expect(polyprotic.ok).toBe(false)
+    if (acid.ok || base.ok || polyprotic.ok) return
+    expect(acid.error?.includes('activity-corrected')).toBe(true)
+    expect(base.error?.toLowerCase().includes('positive')).toBe(true)
+    expect(polyprotic.error?.includes('single-monoprotic')).toBe(true)
   })
 
   test('calculate_buffer_ph matches engine', () => {

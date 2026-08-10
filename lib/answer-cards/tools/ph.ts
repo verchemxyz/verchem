@@ -16,6 +16,7 @@ import {
   calculateDilution,
   ACID_KA_VALUES,
   PH_MODEL_25C,
+  WEAK_ELECTROLYTE_MODEL_25C,
   assertSupportedPHModelScope,
 } from '@/lib/calculations/solutions'
 
@@ -83,6 +84,13 @@ const ACID_NAME_ALIASES: Record<string, string> = {
   'nitric acid': 'HNO3',
 }
 
+const SUPPORTED_MONOPROTIC_WEAK_ACIDS: ReadonlySet<string> = new Set([
+  'CH3COOH',
+  'HF',
+  'HNO2',
+  'NH4+',
+])
+
 const calculate_strong_acid_ph: VerifiedTool = {
   name: 'calculate_strong_acid_ph',
   description: 'Calculate model pH, pOH, and ion concentrations for a strong acid in an ideal-dilute aqueous solution at exactly 25 °C. Reject other temperatures or activity-corrected questions.',
@@ -129,12 +137,12 @@ const calculate_strong_acid_ph: VerifiedTool = {
 
 const calculate_weak_acid_ph: VerifiedTool = {
   name: 'calculate_weak_acid_ph',
-  description: 'Calculate model pH and percent ionization for a weak acid in an ideal-dilute aqueous solution at exactly 25 °C. Ka must apply to that temperature; reject non-ideal or other-temperature questions.',
+  description: 'Solve the full mass-balance, electroneutrality, Ka, and Kw equilibrium for one monoprotic weak acid in an ideal-dilute aqueous solution at exactly 25 °C. Supports 0 < C <= 0.1 M and rejects activity-corrected, concentrated, polyprotic, common-ion, or other-temperature questions.',
   input_schema: {
     type: 'object',
     properties: {
-      concentration: { type: 'number', description: 'Molar concentration of the weak acid (M)' },
-      Ka: { type: 'number', description: 'Acid dissociation constant' },
+      concentration: { type: 'number', exclusiveMinimum: 0, maximum: WEAK_ELECTROLYTE_MODEL_25C.concentrationRangeM.maxInclusive, description: 'Analytical molar concentration of the weak acid (0 < C <= 0.1 M)' },
+      Ka: { type: 'number', exclusiveMinimum: 0, maximum: WEAK_ELECTROLYTE_MODEL_25C.equilibriumConstantRange.maxInclusive, description: 'Monoprotic acid dissociation constant at 25 °C (0 < Ka <= 1)' },
       acid_name: { type: 'string', description: 'Optional common name (e.g., acetic acid, CH3COOH)' },
       ...PH_MODEL_INPUT_PROPERTIES,
     },
@@ -144,30 +152,32 @@ const calculate_weak_acid_ph: VerifiedTool = {
   engine: 'weak-acid-pH',
   execute: (input) => {
     const concentration = readFiniteNumber(input.concentration)
-    if (concentration === undefined || concentration < 0) {
-      return err('Concentration must be a non-negative finite number')
+    if (concentration === undefined || concentration <= 0) {
+      return err('Concentration must be a positive finite number')
     }
     const scopeError = validatePHModelScope(input)
     if (scopeError) return scopeError
 
+    let resolvedAcidKey: string | undefined
+    if (typeof input.acid_name === 'string') {
+      const acidName = input.acid_name.toLowerCase().trim()
+      const aliasKey = ACID_NAME_ALIASES[acidName]
+      resolvedAcidKey = aliasKey ?? Object.keys(ACID_KA_VALUES).find(
+        (k) => k.toLowerCase() === acidName
+      )
+      if (!resolvedAcidKey) {
+        return err(`Unknown weak-acid name or formula: "${input.acid_name}". For an explicitly monoprotic species, provide Ka without acid_name.`)
+      }
+      if (!SUPPORTED_MONOPROTIC_WEAK_ACIDS.has(resolvedAcidKey)) {
+        return err(`"${input.acid_name}" is outside the single-monoprotic weak-acid model; provide a supported species-specific equilibrium model.`)
+      }
+    }
+
     let Ka: number | undefined
     if (typeof input.Ka === 'number' && Number.isFinite(input.Ka) && input.Ka > 0) {
       Ka = input.Ka
-    } else if (typeof input.acid_name === 'string') {
-      const acidName = input.acid_name.toLowerCase().trim()
-      // Try alias map first
-      const aliasKey = ACID_NAME_ALIASES[acidName]
-      if (aliasKey) {
-        Ka = ACID_KA_VALUES[aliasKey as keyof typeof ACID_KA_VALUES]
-      } else {
-        // Try direct formula match (case-insensitive)
-        const directKey = Object.keys(ACID_KA_VALUES).find(
-          (k) => k.toLowerCase() === acidName
-        )
-        if (directKey) {
-          Ka = ACID_KA_VALUES[directKey as keyof typeof ACID_KA_VALUES]
-        }
-      }
+    } else if (resolvedAcidKey) {
+      Ka = ACID_KA_VALUES[resolvedAcidKey as keyof typeof ACID_KA_VALUES]
     }
 
     if (Ka === undefined || Ka <= 0) {
@@ -178,12 +188,14 @@ const calculate_weak_acid_ph: VerifiedTool = {
       const result = calculateWeakAcidPH(concentration, Ka)
       return finalizeResult({
         pH: result.pH,
+        pOH: result.pOH,
         H_concentration: result.H_concentration,
+        OH_concentration: result.OH_concentration,
         percent_ionization: result.percentIonization,
         method: result.method,
-        warning: result.warning,
         Kw: PH_MODEL_25C.kw,
         model: PH_MODEL_25C,
+        applicability: result.applicability,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak acid pH calculation failed')
@@ -237,12 +249,12 @@ const calculate_strong_base_ph: VerifiedTool = {
 
 const calculate_weak_base_ph: VerifiedTool = {
   name: 'calculate_weak_base_ph',
-  description: 'Calculate model pH and percent ionization for a weak base in an ideal-dilute aqueous solution at exactly 25 °C. Kb must apply to that temperature; reject non-ideal or other-temperature questions.',
+  description: 'Solve the full mass-balance, electroneutrality, Kb, and Kw equilibrium for one monoprotic weak base in an ideal-dilute aqueous solution at exactly 25 °C. Supports 0 < C <= 0.1 M and rejects activity-corrected, concentrated, common-ion, or other-temperature questions.',
   input_schema: {
     type: 'object',
     properties: {
-      concentration: { type: 'number', description: 'Molar concentration of the weak base (M)' },
-      Kb: { type: 'number', description: 'Base dissociation constant' },
+      concentration: { type: 'number', exclusiveMinimum: 0, maximum: WEAK_ELECTROLYTE_MODEL_25C.concentrationRangeM.maxInclusive, description: 'Analytical molar concentration of the weak base (0 < C <= 0.1 M)' },
+      Kb: { type: 'number', exclusiveMinimum: 0, maximum: WEAK_ELECTROLYTE_MODEL_25C.equilibriumConstantRange.maxInclusive, description: 'Monoprotic base dissociation constant at 25 °C (0 < Kb <= 1)' },
       ...PH_MODEL_INPUT_PROPERTIES,
     },
     required: ['concentration', 'Kb'],
@@ -252,8 +264,8 @@ const calculate_weak_base_ph: VerifiedTool = {
   execute: (input) => {
     const concentration = readFiniteNumber(input.concentration)
     const Kb = readFiniteNumber(input.Kb)
-    if (concentration === undefined || concentration < 0) {
-      return err('Concentration must be a non-negative finite number')
+    if (concentration === undefined || concentration <= 0) {
+      return err('Concentration must be a positive finite number')
     }
     if (Kb === undefined || Kb <= 0) {
       return err('Kb must be a positive finite number')
@@ -265,12 +277,13 @@ const calculate_weak_base_ph: VerifiedTool = {
       return finalizeResult({
         pH: result.pH,
         pOH: result.pOH,
+        H_concentration: result.H_concentration,
         OH_concentration: result.OH_concentration,
         percent_ionization: result.percentIonization,
         method: result.method,
-        warning: result.warning,
         Kw: PH_MODEL_25C.kw,
         model: PH_MODEL_25C,
+        applicability: result.applicability,
       })
     } catch (e) {
       return err(e instanceof Error ? e.message : 'Weak base pH calculation failed')

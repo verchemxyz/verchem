@@ -65,11 +65,14 @@ const OXIDATION_STATES: Record<string, number[]> = {
 // SECURITY: Max input length to prevent ReDoS attacks (Dec 2025 - 4-AI Audit)
 const MAX_FORMULA_LENGTH = 500
 
+/** Largest subscript/count we accept; keeps all atom arithmetic exact. */
+export const MAX_SUBSCRIPT = 1_000_000
+
 /**
  * Parse chemical formula to extract element counts
  * Examples: "H2O" -> {H: 2, O: 1}, "Ca(OH)2" -> {Ca: 1, O: 2, H: 2}
  */
-function parseFormula(formula: string): Record<string, number> {
+export function parseFormula(formula: string): Record<string, number> {
   // SECURITY: Limit input size to prevent ReDoS
   if (formula.length > MAX_FORMULA_LENGTH) {
     throw new Error(`Formula too long (max ${MAX_FORMULA_LENGTH} characters)`)
@@ -142,7 +145,11 @@ function parseFormula(formula: string): Record<string, number> {
       }
     }
 
-    elements[element] = (elements[element] || 0) + count
+    const aggregateCount = (elements[element] || 0) + count
+    if (!Number.isSafeInteger(aggregateCount) || aggregateCount > MAX_SUBSCRIPT) {
+      throw new Error(`Aggregate atom count out of range for "${element}" in "${original}"`)
+    }
+    elements[element] = aggregateCount
     pos = token.lastIndex
   }
 
@@ -153,9 +160,6 @@ function parseFormula(formula: string): Record<string, number> {
  * Expand parentheses in chemical formula
  * Ca(OH)2 -> CaO2H2
  */
-/** Largest subscript we will produce; keeps multiplication in exact-integer range. */
-const MAX_SUBSCRIPT = 1_000_000
-
 /**
  * Expand parenthesised groups: Ca(OH)2 -> CaO2H2.
  *

@@ -138,7 +138,7 @@ Enter your unbalanced equation (e.g., H2 + O2 -> H2O) into the Equation Balancer
 The Ideal Gas Law is PV = nRT, where P = pressure, V = volume, n = moles of gas, R = gas constant (8.314 J/mol*K or 0.0821 L*atm/mol*K), and T = temperature in Kelvin.
 
 **How do I calculate pH from concentration?**
-In VerChem's declared ideal-dilute aqueous model at 25 °C, hydrogen-ion concentration is used as an activity approximation, Kw = 1.0×10^-14, and pH + pOH = 14.00. Strong-acid/base calculations require a recognized formula or an explicit ion factor; weak-acid/base results report whether the 5% approximation or quadratic solution was used.
+In VerChem's declared ideal-dilute aqueous model at 25 °C, hydrogen-ion concentration is used as an activity approximation, Kw = 1.0×10^-14, and pH + pOH = 14.00. Strong-acid/base calculations require a recognized formula or an explicit ion factor. Monoprotic weak-acid/base calculations solve the full mass-balance, electroneutrality, and Kw equilibrium for 0 < C <= 0.1 M; concentrated or activity-corrected cases are rejected.
 
 **What is a limiting reagent?**
 A limiting reagent is the reactant completely consumed first in a chemical reaction, determining the maximum amount of product that can form. VerChem identifies limiting reagents and calculates theoretical yield, actual yield, and percent yield.
@@ -225,4 +225,3 @@ VerChem is part of the Ver* ecosystem (VerHoro, VerGolf, VerVote, etc.), built w
 *Version: 3.0*
 *VerChem - Making Chemistry Accessible*
 `
-

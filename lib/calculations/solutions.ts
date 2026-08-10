@@ -35,6 +35,33 @@ export const PH_MODEL_25C = {
 export const KW_25C = PH_MODEL_25C.kw
 export const NEUTRAL_PH = PH_MODEL_25C.neutralPH
 
+/**
+ * Applicability guardrail for the full weak-electrolyte equilibrium solver.
+ *
+ * This is an educational concentration-as-activity model, not an activity-
+ * corrected thermodynamic model. Above 0.1 M, callers must supply an explicit
+ * activity model instead of silently extending the ideal-dilute assumption.
+ */
+export const WEAK_ELECTROLYTE_MODEL_25C = {
+  id: 'aqueous-ideal-dilute-monoprotic-25C',
+  regime: 'ideal-dilute',
+  solvent: PH_MODEL_25C.solvent,
+  temperatureC: PH_MODEL_25C.temperatureC,
+  kw: PH_MODEL_25C.kw,
+  activityModel: PH_MODEL_25C.activityModel,
+  analyteScope: 'single monoprotic weak acid or weak base without a common ion or competing equilibrium',
+  concentrationRangeM: {
+    minExclusive: 0,
+    maxInclusive: 0.1,
+  },
+  equilibriumConstantRange: {
+    minExclusive: 0,
+    maxInclusive: 1,
+  },
+} as const
+
+export type WeakElectrolyteApplicability = typeof WEAK_ELECTROLYTE_MODEL_25C
+
 export function assertSupportedPHModelScope(
   temperatureC: number = PH_MODEL_25C.temperatureC,
   activityModel: string = PH_MODEL_25C.activityModel
@@ -499,137 +526,187 @@ export function calculateStrongBasePH(
   return { pH, pOH, H_concentration, OH_concentration, resolved }
 }
 
+const ROOT_RELATIVE_TOLERANCE = 32 * Number.EPSILON
+
 /**
- * Weak acid pH calculation (using Ka)
- * Uses approximation for weak acids (Ka << C), or quadratic formula for stronger weak acids
+ * Solve the full monoprotic weak-electrolyte equilibrium for the primary ion:
+ * H+ for HA, or OH- for B.
+ *
+ * Mass balance + electroneutrality + Kw give
+ *   x^3 + Kx^2 - (Kw + KC)x - KKw = 0.
+ * The polynomial is scaled by sqrt(Kw), then solved with safeguarded Newton
+ * iterations and a bisection fallback. The physical root is bracketed between
+ * pure-water ion concentration and C + sqrt(Kw).
  */
+function solveMonoproticWeakElectrolyteIon(
+  concentration: number,
+  equilibriumConstant: number,
+  constantLabel: 'Ka' | 'Kb'
+): number {
+  const { maxInclusive: maxConcentration } = WEAK_ELECTROLYTE_MODEL_25C.concentrationRangeM
+  if (!Number.isFinite(concentration) || concentration <= 0) {
+    throw new Error('Concentration must be a positive, finite number')
+  }
+  if (concentration > maxConcentration) {
+    throw new Error(
+      `Concentration ${concentration} M is outside this ideal-dilute model (0 < C <= ${maxConcentration} M); use an activity-corrected model.`
+    )
+  }
+
+  const { maxInclusive: maxEquilibriumConstant } = WEAK_ELECTROLYTE_MODEL_25C.equilibriumConstantRange
+  if (!Number.isFinite(equilibriumConstant) || equilibriumConstant <= 0) {
+    throw new Error(`${constantLabel} must be a positive, finite number`)
+  }
+  if (equilibriumConstant > maxEquilibriumConstant) {
+    throw new Error(
+      `${constantLabel} = ${equilibriumConstant} is outside the monoprotic weak-electrolyte model (0 < ${constantLabel} <= ${maxEquilibriumConstant}); use the appropriate strong-electrolyte model.`
+    )
+  }
+
+  const waterIon = Math.sqrt(KW_25C)
+  const scaledConcentration = concentration / waterIon
+  const scaledConstant = equilibriumConstant / waterIon
+
+  // y = x/sqrt(Kw): y^3 + ky^2 - (1 + kc)y - k = 0.
+  const polynomial = (y: number): number =>
+    y * y * y + scaledConstant * y * y -
+    (1 + scaledConstant * scaledConcentration) * y - scaledConstant
+  const derivative = (y: number): number =>
+    3 * y * y + 2 * scaledConstant * y -
+    (1 + scaledConstant * scaledConcentration)
+  const residualScale = (y: number): number =>
+    Math.abs(y * y * y) +
+    Math.abs(scaledConstant * y * y) +
+    Math.abs((1 + scaledConstant * scaledConcentration) * y) +
+    Math.abs(scaledConstant)
+
+  let lower = 1
+  let upper = Math.max(2, 1 + scaledConcentration)
+  let upperResidual = polynomial(upper)
+  for (let expansion = 0; upperResidual <= 0 && expansion < 64; expansion += 1) {
+    upper *= 2
+    upperResidual = polynomial(upper)
+  }
+  if (!Number.isFinite(upperResidual) || upperResidual <= 0) {
+    throw new Error('Unable to bracket the weak-electrolyte equilibrium root')
+  }
+
+  // Stable positive quadratic root supplies a close Newton starting point;
+  // hypot adds the pure-water contribution without an approximation branch.
+  const product = scaledConstant * scaledConcentration
+  const quadraticIon = product === 0
+    ? 0
+    : (2 * product) /
+      (scaledConstant + Math.hypot(scaledConstant, 2 * Math.sqrt(product)))
+  let estimate = Math.min(upper, Math.max(lower, Math.hypot(1, quadraticIon)))
+
+  for (let iteration = 0; iteration < 24; iteration += 1) {
+    const residual = polynomial(estimate)
+    if (
+      Number.isFinite(residual) &&
+      Math.abs(residual) <= ROOT_RELATIVE_TOLERANCE * Math.max(1, residualScale(estimate))
+    ) {
+      return estimate * waterIon
+    }
+
+    if (residual > 0) upper = estimate
+    else lower = estimate
+
+    const slope = derivative(estimate)
+    const candidate = estimate - residual / slope
+    if (!Number.isFinite(candidate) || slope <= 0 || candidate <= lower || candidate >= upper) {
+      break
+    }
+    estimate = candidate
+  }
+
+  // Guaranteed convergence fallback inside the physical bracket.
+  for (let iteration = 0; iteration < 128; iteration += 1) {
+    const midpoint = lower + (upper - lower) / 2
+    const residual = polynomial(midpoint)
+    if (residual > 0) upper = midpoint
+    else lower = midpoint
+
+    if (
+      upper - lower <=
+      ROOT_RELATIVE_TOLERANCE * Math.max(1, Math.abs(midpoint))
+    ) {
+      const ionConcentration = (lower + (upper - lower) / 2) * waterIon
+      if (Number.isFinite(ionConcentration) && ionConcentration > 0) {
+        return ionConcentration
+      }
+      break
+    }
+  }
+
+  throw new Error('Weak-electrolyte equilibrium solver did not converge')
+}
+
+/** Full monoprotic weak-acid equilibrium including water autoionization. */
 export function calculateWeakAcidPH(
   concentration: number,
   Ka: number
 ): {
   pH: number
+  pOH: number
   H_concentration: number
+  OH_concentration: number
   percentIonization: number
-  method?: 'approximation' | 'quadratic'
-  warning?: string
+  method: 'full-equilibrium'
+  applicability: WeakElectrolyteApplicability
 } {
-  if (!Number.isFinite(concentration) || concentration <= 0) {
-    throw new Error('Concentration must be a positive, finite number')
-  }
-  if (!Number.isFinite(Ka) || Ka <= 0) {
-    throw new Error('Ka must be a positive, finite number')
-  }
-  // HA ⇌ H+ + A-
-  // Ka = [H+][A-]/[HA]
-  // Assuming x = [H+] = [A-]
-
-  // First, try approximation: Ka ≈ x²/C (valid when ionization < 5%)
-  const x_approx = Math.sqrt(Ka * concentration)
-  const percentIonization_approx = (x_approx / concentration) * 100
-
-  // Check if approximation is valid (5% rule)
-  if (percentIonization_approx <= 5) {
-    // Approximation is valid
-    const pH = calculatePH(x_approx)
-    return {
-      pH,
-      H_concentration: x_approx,
-      percentIonization: percentIonization_approx,
-      method: 'approximation'
-    }
-  }
-
-  // Approximation invalid, use quadratic formula
-  // Ka = x²/(C-x)
-  // Ka(C-x) = x²
-  // KaC - Kax = x²
-  // x² + Kax - KaC = 0
-  // Using quadratic formula: x = (-b ± √(b²-4ac)) / 2a
-  // where a=1, b=Ka, c=-Ka*C
-
-  const a = 1
-  const b = Ka
-  const c = -Ka * concentration
-
-  const discriminant = b * b - 4 * a * c
-  const x_accurate = (-b + Math.sqrt(discriminant)) / (2 * a)
-
-  const pH = calculatePH(x_accurate)
-  const percentIonization = (x_accurate / concentration) * 100
+  const H_concentration = solveMonoproticWeakElectrolyteIon(concentration, Ka, 'Ka')
+  const OH_concentration = KW_25C / H_concentration
+  const conjugateBaseConcentration = Math.min(
+    concentration,
+    Math.max(0, H_concentration - OH_concentration)
+  )
+  const pH = calculatePH(H_concentration)
+  const pOH = calculatePOH(OH_concentration)
+  const percentIonization = (conjugateBaseConcentration / concentration) * 100
 
   return {
     pH,
-    H_concentration: x_accurate,
+    pOH,
+    H_concentration,
+    OH_concentration,
     percentIonization,
-    method: 'quadratic',
-    warning: `Significant ionization (${percentIonization.toFixed(1)}%) - used quadratic formula for accuracy`
+    method: 'full-equilibrium',
+    applicability: WEAK_ELECTROLYTE_MODEL_25C,
   }
 }
 
-/**
- * Weak base pH calculation (using Kb)
- * Uses approximation for weak bases (Kb << C), or quadratic formula for stronger weak bases
- */
+/** Full monoprotic weak-base equilibrium including water autoionization. */
 export function calculateWeakBasePH(
   concentration: number,
   Kb: number
 ): {
   pH: number
   pOH: number
+  H_concentration: number
   OH_concentration: number
   percentIonization: number
-  method?: 'approximation' | 'quadratic'
-  warning?: string
+  method: 'full-equilibrium'
+  applicability: WeakElectrolyteApplicability
 } {
-  if (!Number.isFinite(concentration) || concentration <= 0) {
-    throw new Error('Concentration must be a positive, finite number')
-  }
-  if (!Number.isFinite(Kb) || Kb <= 0) {
-    throw new Error('Kb must be a positive, finite number')
-  }
-  // B + H2O ⇌ BH+ + OH-
-  // Kb = [BH+][OH-]/[B]
-  // Assuming x = [OH-] = [BH+]
-
-  // First, try approximation: Kb ≈ x²/C (valid when ionization < 5%)
-  const x_approx = Math.sqrt(Kb * concentration)
-  const percentIonization_approx = (x_approx / concentration) * 100
-
-  // Check if approximation is valid (5% rule)
-  if (percentIonization_approx <= 5) {
-    // Approximation is valid
-    const pOH = calculatePOH(x_approx)
-    const pH = PH_MODEL_25C.pKw - pOH
-    return {
-      pH,
-      pOH,
-      OH_concentration: x_approx,
-      percentIonization: percentIonization_approx,
-      method: 'approximation'
-    }
-  }
-
-  // Approximation invalid, use quadratic formula
-  // Kb = x²/(C-x)
-  // x² + Kbx - KbC = 0
-  const a = 1
-  const b = Kb
-  const c = -Kb * concentration
-
-  const discriminant = b * b - 4 * a * c
-  const x_accurate = (-b + Math.sqrt(discriminant)) / (2 * a)
-
-  const pOH = calculatePOH(x_accurate)
-  const pH = PH_MODEL_25C.pKw - pOH
-  const percentIonization = (x_accurate / concentration) * 100
+  const OH_concentration = solveMonoproticWeakElectrolyteIon(concentration, Kb, 'Kb')
+  const H_concentration = KW_25C / OH_concentration
+  const conjugateAcidConcentration = Math.min(
+    concentration,
+    Math.max(0, OH_concentration - H_concentration)
+  )
+  const pOH = calculatePOH(OH_concentration)
+  const pH = calculatePH(H_concentration)
+  const percentIonization = (conjugateAcidConcentration / concentration) * 100
 
   return {
     pH,
     pOH,
-    OH_concentration: x_accurate,
+    H_concentration,
+    OH_concentration,
     percentIonization,
-    method: 'quadratic',
-    warning: `Significant ionization (${percentIonization.toFixed(1)}%) - used quadratic formula for accuracy`
+    method: 'full-equilibrium',
+    applicability: WEAK_ELECTROLYTE_MODEL_25C,
   }
 }
 
@@ -921,7 +998,8 @@ export type PHResult = {
   H_concentration?: number
   OH_concentration?: number
   percentIonization?: number
-  method?: 'approximation' | 'quadratic'
+  method?: 'full-equilibrium'
+  applicability?: WeakElectrolyteApplicability
   warning?: string
   resolved?: StrongSpeciesResolution
 }

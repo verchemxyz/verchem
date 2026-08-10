@@ -11,12 +11,13 @@
 export type EngineSemanticVersion = `${number}.${number}.${number}`
 
 const STAGE0_REPLAY_EPOCH: EngineSemanticVersion = '2.0.0'
+const FULL_WEAK_EQUILIBRIUM_RELEASE: EngineSemanticVersion = '2.0.1'
 
 export const CURRENT_ENGINE_VERSIONS = {
   'strong-acid-pH': STAGE0_REPLAY_EPOCH,
-  'weak-acid-pH': STAGE0_REPLAY_EPOCH,
+  'weak-acid-pH': FULL_WEAK_EQUILIBRIUM_RELEASE,
   'strong-base-pH': STAGE0_REPLAY_EPOCH,
-  'weak-base-pH': STAGE0_REPLAY_EPOCH,
+  'weak-base-pH': FULL_WEAK_EQUILIBRIUM_RELEASE,
   'buffer-pH': STAGE0_REPLAY_EPOCH,
   dilution: STAGE0_REPLAY_EPOCH,
   'ideal-gas': STAGE0_REPLAY_EPOCH,
