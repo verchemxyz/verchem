@@ -468,6 +468,243 @@ async function stagedEntrySnapshots(staging: MemoryCache): Promise<Array<{
   }))
 }
 
+async function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => reject(new Error(`Timed out: ${label}`)), 2_000)
+  })
+
+  try {
+    return await Promise.race([promise, timeoutPromise])
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout)
+  }
+}
+
+async function verifyRecoveryRetryCannotOverwriteFreshNetworkWrite(): Promise<void> {
+  await withTimeout((async () => {
+    const caches = new MemoryCacheStorage()
+    const staging = await caches.open(STAGING_CACHE)
+    await staging.put(stagingKey('/logo.png'), new Response('staged-old'))
+
+    const currentStatic = await caches.open(`${CURRENT_VERSION}-static`)
+    const originalPut = currentStatic.put.bind(currentStatic)
+    let stagedPutAttempts = 0
+    let freshPutAttempts = 0
+
+    let markFirstRecoveryPutStarted: () => void = () => undefined
+    const firstRecoveryPutStarted = new Promise<void>((resolvePromise) => {
+      markFirstRecoveryPutStarted = resolvePromise
+    })
+    let rejectFirstRecovery: () => void = () => undefined
+    const firstRecoveryFailureGate = new Promise<void>((resolvePromise) => {
+      rejectFirstRecovery = resolvePromise
+    })
+
+    let markFreshPutStarted: () => void = () => undefined
+    const freshPutStarted = new Promise<void>((resolvePromise) => {
+      markFreshPutStarted = resolvePromise
+    })
+    let releaseFreshPut: () => void = () => undefined
+    const freshPutGate = new Promise<void>((resolvePromise) => {
+      releaseFreshPut = resolvePromise
+    })
+    let markFreshPutStored: () => void = () => undefined
+    const freshPutStored = new Promise<void>((resolvePromise) => {
+      markFreshPutStored = resolvePromise
+    })
+
+    let releaseRetryStagedPut: () => void = () => undefined
+    const retryStagedPutGate = new Promise<void>((resolvePromise) => {
+      releaseRetryStagedPut = resolvePromise
+    })
+
+    currentStatic.put = async (input, response) => {
+      const body = await response.clone().text()
+      if (body === 'staged-old') {
+        stagedPutAttempts += 1
+        if (stagedPutAttempts === 1) {
+          markFirstRecoveryPutStarted()
+          await firstRecoveryFailureGate
+          throw new Error('transient CacheStorage failure')
+        }
+
+        // Without writer serialization, recovery P2 reaches this put while
+        // fresh writer B is paused after its earlier missing-key check.
+        await retryStagedPutGate
+      } else if (body === 'network-fresh-B') {
+        freshPutAttempts += 1
+        markFreshPutStarted()
+        await freshPutGate
+      }
+
+      await originalPut(input, response)
+      if (body === 'network-fresh-B') markFreshPutStored()
+    }
+
+    let markNetworkRefreshStarted: () => void = () => undefined
+    const networkRefreshStarted = new Promise<void>((resolvePromise) => {
+      markNetworkRefreshStarted = resolvePromise
+    })
+    const worker = createWorkerHarness(caches, CURRENT_VERSION, async (input) => {
+      const pathname = new URL(requestUrl(input)).pathname
+      if (pathname === '/logo.png') {
+        markNetworkRefreshStarted()
+        return new Response('network-fresh-B')
+      }
+      return new Response('recovery-trigger')
+    })
+
+    // P1 starts publishing staged A. The cache failure is held until the
+    // stale-while-revalidate fetch has started network writer B, so B observes
+    // P1 as the active recovery exactly as it does in the production race.
+    const firstFetchOutcome = worker.dispatchFetch(assetRequest('/logo.png')).then(
+      () => undefined,
+      (error: unknown) => error
+    )
+    await Promise.all([firstRecoveryPutStarted, networkRefreshStarted])
+    await new Promise<void>((resolvePromise) => setImmediate(resolvePromise))
+    rejectFirstRecovery()
+
+    // B is now inside its canonical write. Trigger P2 with an API fetch so the
+    // second recovery overlaps B without launching another canonical writer.
+    await freshPutStarted
+    let observeRetryStagingRead = true
+    let markRetryStagingRead: () => void = () => undefined
+    const retryStagingRead = new Promise<void>((resolvePromise) => {
+      markRetryStagingRead = resolvePromise
+    })
+    const originalStagingMatch = staging.match.bind(staging)
+    staging.match = async (input) => {
+      const response = await originalStagingMatch(input)
+      if (observeRetryStagingRead && requestUrl(input) === stagingKey('/logo.png')) {
+        observeRetryStagingRead = false
+        markRetryStagingRead()
+      }
+      return response
+    }
+
+    const retryFetch = worker.dispatchFetch(assetRequest('/api/recover', ''))
+    await retryStagingRead
+    await new Promise<void>((resolvePromise) => setImmediate(resolvePromise))
+    assert.ok((await caches.keys()).includes(STAGING_CACHE), 'in-flight recovery must retain staging')
+
+    // In the broken implementation P2 is already paused in its stale put. In
+    // the serialized implementation P2 is queued behind B and cannot perform
+    // the canonical match until B has stored the fresh response.
+    releaseFreshPut()
+    await freshPutStored
+    releaseRetryStagedPut()
+
+    const [firstFailure] = await Promise.all([firstFetchOutcome, retryFetch])
+    assert.match(String(firstFailure), /transient CacheStorage failure/)
+    assert.equal(freshPutAttempts, 1, 'the harness must execute network writer B exactly once')
+    assert.equal(
+      await (await currentStatic.match('/logo.png'))?.text(),
+      'network-fresh-B',
+      'fresh network writer B must win after an overlapping failed recovery and retry'
+    )
+    assert.equal(
+      stagedPutAttempts,
+      1,
+      'P2 must observe B under the lock instead of attempting a stale canonical put'
+    )
+    assert.equal(
+      (await caches.keys()).includes(STAGING_CACHE),
+      false,
+      'completed recovery must delete its staging journal'
+    )
+  })(), 'recovery retry / network writer serialization')
+}
+
+async function verifyFreshNetworkWriteWinsWhenRecoveryLocksFirst(): Promise<void> {
+  await withTimeout((async () => {
+    const caches = new MemoryCacheStorage()
+    const staging = await caches.open(STAGING_CACHE)
+    await staging.put(stagingKey('/logo.png'), new Response('staged-old'))
+
+    const currentStatic = await caches.open(`${CURRENT_VERSION}-static`)
+    const originalPut = currentStatic.put.bind(currentStatic)
+    let stagedPutAttempts = 0
+    let freshPutAttempts = 0
+
+    let markRetryPutStarted: () => void = () => undefined
+    const retryPutStarted = new Promise<void>((resolvePromise) => {
+      markRetryPutStarted = resolvePromise
+    })
+    let releaseRetryPut: () => void = () => undefined
+    const retryPutGate = new Promise<void>((resolvePromise) => {
+      releaseRetryPut = resolvePromise
+    })
+    let markFreshPutStored: () => void = () => undefined
+    const freshPutStored = new Promise<void>((resolvePromise) => {
+      markFreshPutStored = resolvePromise
+    })
+
+    currentStatic.put = async (input, response) => {
+      const body = await response.clone().text()
+      if (body === 'staged-old') {
+        stagedPutAttempts += 1
+        if (stagedPutAttempts === 1) throw new Error('transient CacheStorage failure')
+        markRetryPutStarted()
+        await retryPutGate
+      } else if (body === 'network-fresh-B') {
+        freshPutAttempts += 1
+      }
+
+      await originalPut(input, response)
+      if (body === 'network-fresh-B') markFreshPutStored()
+    }
+
+    let markNetworkRefreshStarted: () => void = () => undefined
+    const networkRefreshStarted = new Promise<void>((resolvePromise) => {
+      markNetworkRefreshStarted = resolvePromise
+    })
+    const worker = createWorkerHarness(caches, CURRENT_VERSION, async (input) => {
+      const pathname = new URL(requestUrl(input)).pathname
+      if (pathname === '/logo.png') {
+        markNetworkRefreshStarted()
+        return new Response('network-fresh-B')
+      }
+      return new Response('recovery-trigger')
+    })
+
+    // Leave staged A behind with the same transient P1 failure as the reported
+    // race, then let P2 acquire the canonical lock before writer B is queued.
+    await assert.rejects(
+      worker.dispatchFetch(assetRequest('/api/first-recovery', '')),
+      /transient CacheStorage failure/
+    )
+    assert.ok((await caches.keys()).includes(STAGING_CACHE), 'failed P1 must retain staging')
+
+    const retryFetch = worker.dispatchFetch(assetRequest('/api/retry-recovery', ''))
+    await retryPutStarted
+
+    const refreshFetch = worker.dispatchFetch(assetRequest('/logo.png'))
+    await networkRefreshStarted
+    await new Promise<void>((resolvePromise) => setImmediate(resolvePromise))
+    assert.ok((await caches.keys()).includes(STAGING_CACHE), 'blocked P2 must retain staging')
+
+    // P2 publishes A and releases its per-key lock; queued writer B must then
+    // overwrite A with fresh bytes before the test is allowed to finish.
+    releaseRetryPut()
+    await Promise.all([retryFetch, refreshFetch, freshPutStored])
+
+    assert.equal(stagedPutAttempts, 2, 'the harness must execute failed P1 and successful P2')
+    assert.equal(freshPutAttempts, 1, 'the harness must execute queued network writer B once')
+    assert.equal(
+      await (await currentStatic.match('/logo.png'))?.text(),
+      'network-fresh-B',
+      'a fresh writer queued behind recovery must overwrite staged bytes'
+    )
+    assert.equal(
+      (await caches.keys()).includes(STAGING_CACHE),
+      false,
+      'successful P2 must delete its completed staging journal'
+    )
+  })(), 'recovery-first / network writer serialization')
+}
+
 async function verifyInterruptedPublishRecoversLazily(): Promise<void> {
   const caches = new MemoryCacheStorage()
   const legacy = await caches.open('verchem-v1.0.0-dynamic')
@@ -792,6 +1029,8 @@ async function run(): Promise<void> {
   await verifyActivationRetiresOnlyAfterClaim()
   await verifyWaitingInstallIsAdditive()
   await verifyFailedInstallIsIdempotent()
+  await verifyRecoveryRetryCannotOverwriteFreshNetworkWrite()
+  await verifyFreshNetworkWriteWinsWhenRecoveryLocksFirst()
   await verifyInterruptedPublishRecoversLazily()
   await verifyLazyRecoveryIsSingleFlight()
   await verifyProductionWorkerCannotReadStaging()

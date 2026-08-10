@@ -169,21 +169,24 @@ async function matchCurrentThenLegacy(request, preferDynamic = false) {
 
 let stagingRecoveryPromise = null;
 let stagingRecoveryComplete = false;
+let canonicalWriteQueue = Promise.resolve();
+
+/**
+ * Serialize every worker-owned canonical mutation. A rejected writer must not
+ * poison the queue: its caller still receives the rejection, while the next
+ * writer can acquire the lock and continue recovery.
+ */
+function serializeCanonicalWrite(operation) {
+  const result = canonicalWriteQueue.then(operation);
+  canonicalWriteQueue = result.catch(() => undefined);
+  return result;
+}
 
 async function putInCurrentCache(cacheName, request, response) {
-  // A network refresh that overlaps recovery must land last. Otherwise a
-  // staged response could overwrite fresher bytes between match() and put().
-  const activeRecovery = stagingRecoveryPromise;
-  if (activeRecovery) {
-    try {
-      await activeRecovery;
-    } catch {
-      // Keep the fresh network response writable. The retained staging cache
-      // lets a later fetch retry any keys the failed recovery still lacks.
-    }
-  }
-  await (await caches.open(cacheName)).put(request, response);
-  await retireLegacyEntry(request);
+  await serializeCanonicalWrite(async () => {
+    await (await caches.open(cacheName)).put(request, response);
+    await retireLegacyEntry(request);
+  });
 }
 
 /**
@@ -298,17 +301,18 @@ async function publishStagedAssets() {
   // Existing canonical entries always win, including background refreshes.
   for (let index = 0; index < stagedRequests.length; index += 1) {
     const sourceRequest = sourceRequests[index];
-    if (await current.match(sourceRequest)) continue;
-
     const stagedRequest = stagedRequests[index];
     const response = await staging.match(stagedRequest);
     if (!response) throw new Error(`Missing staged response: ${stagedRequest.url}`);
 
-    // Re-check after reading staging in case another cache write completed at
-    // that await boundary. Worker-owned network writes also wait for recovery.
-    if (!(await current.match(sourceRequest))) {
-      await current.put(sourceRequest, response);
-    }
+    // The missing check and staged put are one critical section. Whichever
+    // writer enters first is safe: recovery skips an earlier fresh write, or a
+    // later fresh write overwrites the staged bytes after recovery releases.
+    await serializeCanonicalWrite(async () => {
+      if (!(await current.match(sourceRequest))) {
+        await current.put(sourceRequest, response);
+      }
+    });
   }
 
   for (const sourceRequest of sourceRequests) {
@@ -561,8 +565,9 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'CACHE_URLS') {
     const urlsToCache = event.data.urls || [];
     event.waitUntil(
-      caches.open(DYNAMIC_CACHE).then((cache) => {
-        return cache.addAll(urlsToCache);
+      serializeCanonicalWrite(async () => {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        await cache.addAll(urlsToCache);
       })
     );
   }
