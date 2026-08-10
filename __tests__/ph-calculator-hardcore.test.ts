@@ -393,6 +393,37 @@ test('weak base full equilibrium matches independent references from 1e-2 to 1e-
   }
 })
 
+test('percent ionization comes from mass action, not ion-difference cancellation', () => {
+  // Fraction ionized is exactly Ka/(Ka + [H+]) (acid) and Kb/(Kb + [OH-])
+  // (base). The former [H+]-[OH-] derivation cancels catastrophically near
+  // pH 7 and reported 0% for extremely dilute, strongly ionized analytes.
+  const extremeAcid = calculateWeakAcidPH(1e-21, 1)
+  expect(extremeAcid.pH).toBeCloseTo(7, 1e-6)
+  expect(extremeAcid.percentIonization).toBeGreaterThan(99.9999)
+  expect(extremeAcid.percentIonization).toBeLessThan(100.0000001)
+
+  const extremeAcid20 = calculateWeakAcidPH(1e-20, 1)
+  expect(extremeAcid20.percentIonization).toBeGreaterThan(99.9999)
+
+  const extremeBase = calculateWeakBasePH(1e-21, 1)
+  expect(extremeBase.pH).toBeCloseTo(7, 1e-6)
+  expect(extremeBase.percentIonization).toBeGreaterThan(99.9999)
+
+  // K comparable to Kw: nearly nothing ionizes beyond water's own background.
+  const nearKwAcid = calculateWeakAcidPH(1e-2, 1e-13)
+  expect(nearKwAcid.percentIonization).toBeGreaterThan(0)
+  expect(nearKwAcid.percentIonization).toBeLessThan(0.001)
+
+  // Classic check: 0.1 M acetic acid ionizes ~1.31%.
+  const classic = calculateWeakAcidPH(0.1, 1.74e-5)
+  expect(classic.percentIonization).toBeCloseTo(1.3104, 1e-3)
+
+  // Very dilute weak acid is almost fully ionized even though pH is near 7.
+  const dilute = calculateWeakAcidPH(1e-8, 1.74e-5)
+  expect(dilute.percentIonization).toBeGreaterThan(99)
+  expect(dilute.percentIonization).toBeLessThan(100)
+})
+
 test('diluting a weak acid approaches pH 7 monotonically from below', () => {
   const values = weakAcidFullEquilibriumReferences.map(({ concentration }) =>
     calculateWeakAcidPH(concentration, 1.74e-5).pH

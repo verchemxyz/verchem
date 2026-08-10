@@ -657,13 +657,11 @@ export function calculateWeakAcidPH(
 } {
   const H_concentration = solveMonoproticWeakElectrolyteIon(concentration, Ka, 'Ka')
   const OH_concentration = KW_25C / H_concentration
-  const conjugateBaseConcentration = Math.min(
-    concentration,
-    Math.max(0, H_concentration - OH_concentration)
-  )
   const pH = calculatePH(H_concentration)
   const pOH = calculatePOH(OH_concentration)
-  const percentIonization = (conjugateBaseConcentration / concentration) * 100
+  // Mass action gives the ionized fraction [A-]/C = Ka/(Ka + [H+]) exactly;
+  // deriving [A-] from [H+] - [OH-] cancels catastrophically near pH 7.
+  const percentIonization = (Ka / (Ka + H_concentration)) * 100
 
   return {
     pH,
@@ -691,13 +689,11 @@ export function calculateWeakBasePH(
 } {
   const OH_concentration = solveMonoproticWeakElectrolyteIon(concentration, Kb, 'Kb')
   const H_concentration = KW_25C / OH_concentration
-  const conjugateAcidConcentration = Math.min(
-    concentration,
-    Math.max(0, OH_concentration - H_concentration)
-  )
   const pOH = calculatePOH(OH_concentration)
   const pH = calculatePH(H_concentration)
-  const percentIonization = (conjugateAcidConcentration / concentration) * 100
+  // Mass action gives the protonated fraction [BH+]/C = Kb/(Kb + [OH-])
+  // exactly; deriving it from [OH-] - [H+] cancels catastrophically near pH 7.
+  const percentIonization = (Kb / (Kb + OH_concentration)) * 100
 
   return {
     pH,
