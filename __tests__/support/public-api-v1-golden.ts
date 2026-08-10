@@ -56,13 +56,16 @@ export async function snapshot(response: Response): Promise<ResponseSnapshot> {
   }
 }
 
-async function frameworkMethodNotAllowed(getIndex: GetWithoutRequest): Promise<Response> {
+export async function frameworkMethodNotAllowed(
+  getIndex: GetWithoutRequest,
+  requestValue = request('/api/chemistry', 'POST')
+): Promise<Response> {
   const methods = autoImplementMethods({
     GET: () => getIndex(),
   })
   const post = methods.POST
   if (!post) throw new Error('Next.js did not create the POST method table entry')
-  return post(request('/api/chemistry', 'POST'))
+  return post(requestValue)
 }
 
 async function forcedConversionFailure(getConvert: GetWithRequest): Promise<Response> {

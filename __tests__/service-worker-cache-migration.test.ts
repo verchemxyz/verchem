@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import vm from 'node:vm'
 
 const ORIGIN = 'https://verchem.xyz'
 const CURRENT_VERSION = 'verchem-v2.0.3'
+const STAGING_CACHE = `${CURRENT_VERSION}-staging`
+const STAGING_URL_PATH = `/.verchem-sw-staging/${CURRENT_VERSION}`
 const STATIC_ASSETS = [
   '/',
   '/periodic-table',
@@ -17,6 +20,18 @@ const STATIC_ASSETS = [
   '/logo.png',
   '/offline.html',
 ] as const
+const STATIC_HTML_ROUTES = [
+  '/',
+  '/periodic-table',
+  '/calculators',
+  '/tools',
+  '/compounds',
+  '/solutions',
+  '/tools/ph-calculator',
+  '/offline.html',
+] as const
+const SHARED_CHUNK = '/_next/static/chunks/app-shell-shared.js'
+const SHARED_STYLESHEET = '/_next/static/css/app-shell.css'
 
 interface RequestLike {
   url: string
@@ -45,6 +60,10 @@ class MemoryCache {
 
   async delete(input: string | RequestLike): Promise<boolean> {
     return this.entries.delete(requestUrl(input))
+  }
+
+  async keys(): Promise<Request[]> {
+    return [...this.entries.keys()].map((url) => new Request(url))
   }
 
   async addAll(urls: string[]): Promise<void> {
@@ -101,6 +120,13 @@ async function cacheSnapshot(cache: MemoryCache): Promise<CacheEntrySnapshot[]> 
 }
 
 const serviceWorkerSource = readFileSync(resolve(process.cwd(), 'public/sw.js'), 'utf8')
+// Byte-exact production worker captured from git SHA 22dbdfa (no provenance
+// comment is added to the fixture itself because that would change its bytes).
+const productionWorkerSource = readFileSync(
+  resolve(process.cwd(), '__tests__/fixtures/service-worker-v1.0.0-22dbdfa.js'),
+  'utf8'
+)
+const PRODUCTION_WORKER_SHA256 = '793557ec5e54b5bcfa4b49dd20722f67875eda08af698bfc0800fb0ff0701f53'
 
 function workerSourceFor(cacheVersion: string): string {
   assert.match(
@@ -126,7 +152,8 @@ function createWorkerHarness(
   caches: MemoryCacheStorage,
   cacheVersion: string,
   fetchImplementation: FetchImplementation,
-  onClaim?: () => void | Promise<void>
+  onClaim?: () => void | Promise<void>,
+  source = workerSourceFor(cacheVersion)
 ): WorkerHarness {
   const handlers = new Map<string, EventHandler[]>()
   let claims = 0
@@ -152,7 +179,7 @@ function createWorkerHarness(
     },
   }
 
-  vm.runInNewContext(workerSourceFor(cacheVersion), {
+  vm.runInNewContext(source, {
     self: workerGlobal,
     clients,
     caches,
@@ -200,6 +227,57 @@ function assetRequest(pathname: string, destination = 'image'): RequestLike {
   }
 }
 
+function stagingKey(pathname: string): string {
+  const stagingUrl = new URL(STAGING_URL_PATH, ORIGIN)
+  stagingUrl.searchParams.set('source', new URL(pathname, ORIGIN).toString())
+  return stagingUrl.toString()
+}
+
+function routeChunk(pathname: string): string {
+  const routeName = pathname === '/'
+    ? 'home'
+    : pathname.slice(1).replace(/[^a-z0-9]+/gi, '-')
+  return `/_next/static/chunks/${routeName}.js`
+}
+
+function routeHtml(pathname: string): string {
+  return [
+    '<!doctype html><html><head>',
+    `<link rel="stylesheet" href="${SHARED_STYLESHEET}">`,
+    `<link rel="modulepreload" href='${SHARED_CHUNK}'>`,
+    '</head><body>',
+    `<main data-route="${pathname}">offline-capable</main>`,
+    `<script src="${routeChunk(pathname)}"></script>`,
+    '</body></html>',
+  ].join('')
+}
+
+function nextStaticReferences(html: string): string[] {
+  const matches = html.matchAll(/(?:src|href)=["']([^"']*\/_next\/static\/[^"']+)["']/g)
+  return [...matches].map((match) => new URL(match[1]!, ORIGIN).pathname)
+}
+
+function appShellNetworkResponse(input: string | RequestLike): Response {
+  const url = new URL(requestUrl(input))
+  if (STATIC_HTML_ROUTES.includes(url.pathname as typeof STATIC_HTML_ROUTES[number])) {
+    return new Response(routeHtml(url.pathname), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }
+  if (url.pathname.startsWith('/_next/static/')) {
+    return new Response(`network-asset:${url.pathname}`, {
+      status: 200,
+      headers: {
+        'Content-Type': url.pathname.endsWith('.css')
+          ? 'text/css'
+          : 'application/javascript',
+      },
+    })
+  }
+  return new Response(`network:${url.pathname}`, { status: 200 })
+}
+
 async function verifyActivationRetiresOnlyAfterClaim(): Promise<void> {
   const caches = new MemoryCacheStorage()
   const legacy = await caches.open('verchem-v1.0.0-dynamic')
@@ -221,10 +299,20 @@ async function verifyActivationRetiresOnlyAfterClaim(): Promise<void> {
       await legacy.match('/solutions'),
       'legacy duplicates must remain intact until clients.claim()'
     )
+    assert.ok(
+      await (await caches.open(STAGING_CACHE)).match(stagingKey('/solutions')),
+      'the complete synthetic snapshot must exist before takeover'
+    )
+    assert.equal(
+      await (await caches.open(`${CURRENT_VERSION}-static`)).match('/solutions'),
+      undefined,
+      'canonical keys must not be published before clients.claim()'
+    )
   })
 
   await worker.dispatchExtendable('activate')
   assert.equal(worker.claimCount(), 1)
+  assert.equal((await caches.keys()).includes(STAGING_CACHE), false)
   assert.ok((await caches.keys()).includes('verchem-v1.0.0-dynamic'))
   assert.equal(
     await (await caches.match('/opened-before-upgrade'))?.text(),
@@ -306,12 +394,17 @@ async function verifyWaitingInstallIsAdditive(): Promise<void> {
     'the active worker must keep serving its own version while the update waits'
   )
   assert.equal(
-    await (await (await caches.open(`${CURRENT_VERSION}-static`)).match('/logo.png'))?.text(),
+    await (await (await caches.open(STAGING_CACHE)).match(stagingKey('/logo.png')))?.text(),
     'waiting:/logo.png'
   )
   assert.equal(
-    await (await (await caches.open(`${CURRENT_VERSION}-static`)).match('/solutions'))?.text(),
+    await (await (await caches.open(STAGING_CACHE)).match(stagingKey('/solutions')))?.text(),
     'waiting:/solutions'
+  )
+  assert.equal(
+    (await caches.open(`${CURRENT_VERSION}-static`)).entries.size,
+    0,
+    'install must not expose any canonical request key'
   )
 }
 
@@ -346,8 +439,9 @@ async function verifyFailedInstallIsIdempotent(): Promise<void> {
     'failed install must preserve every active dynamic-cache entry'
   )
 
-  const partial = await caches.open(`${CURRENT_VERSION}-static`)
+  const partial = await caches.open(STAGING_CACHE)
   assert.ok(partial.entries.size > 0 && partial.entries.size < STATIC_ASSETS.length)
+  assert.equal((await caches.open(`${CURRENT_VERSION}-static`)).entries.size, 0)
 
   failCalculators = false
   await worker.dispatchExtendable('install')
@@ -355,6 +449,154 @@ async function verifyFailedInstallIsIdempotent(): Promise<void> {
   assert.deepEqual(await cacheSnapshot(activeStatic), staticBefore)
   assert.deepEqual(await cacheSnapshot(activeDynamic), dynamicBefore)
   assert.equal(worker.claimCount(), 0, 'a successful retry is still additive until activation')
+}
+
+async function verifyProductionWorkerCannotReadStaging(): Promise<void> {
+  assert.equal(
+    createHash('sha256').update(productionWorkerSource).digest('hex'),
+    PRODUCTION_WORKER_SHA256,
+    'the production-worker fixture no longer matches git SHA 22dbdfa byte-for-byte'
+  )
+
+  const caches = new MemoryCacheStorage()
+  const productionStatic = await caches.open('verchem-v1.0.0-static')
+  await productionStatic.put('/offline.html', new Response('production-v1-offline'))
+
+  const productionWorker = createWorkerHarness(
+    caches,
+    'verchem-v1.0.0',
+    async () => { throw new Error('production worker is offline') },
+    undefined,
+    productionWorkerSource
+  )
+
+  let failCalculators = true
+  const replacementWorker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async (input) => {
+      const pathname = new URL(requestUrl(input)).pathname
+      if (failCalculators && pathname === '/calculators') {
+        throw new Error('replacement partial-install failure')
+      }
+      return appShellNetworkResponse(input)
+    }
+  )
+
+  await assert.rejects(
+    replacementWorker.dispatchExtendable('install'),
+    /replacement partial-install failure/
+  )
+  await new Promise<void>((resolvePromise) => setImmediate(resolvePromise))
+  assert.ok(
+    await (await caches.open(STAGING_CACHE)).match(stagingKey('/solutions')),
+    'partial install must reach the synthetic /solutions key for this regression test'
+  )
+  assert.equal(
+    await (await caches.open(`${CURRENT_VERSION}-static`)).match('/solutions'),
+    undefined
+  )
+
+  const partialNavigation = await productionWorker.dispatchFetch({
+    method: 'GET',
+    mode: 'navigate',
+    destination: 'document',
+    url: `${ORIGIN}/solutions`,
+  })
+  assert.equal(
+    await partialNavigation?.text(),
+    'production-v1-offline',
+    'production v1 must not see a partially staged replacement route'
+  )
+
+  failCalculators = false
+  await replacementWorker.dispatchExtendable('install')
+  assert.equal(replacementWorker.claimCount(), 0)
+  const stagedChunk = routeChunk('/solutions')
+  assert.ok(await (await caches.open(STAGING_CACHE)).match(stagingKey(stagedChunk)))
+
+  const waitingNavigation = await productionWorker.dispatchFetch({
+    method: 'GET',
+    mode: 'navigate',
+    destination: 'document',
+    url: `${ORIGIN}/solutions`,
+  })
+  assert.equal(
+    await waitingNavigation?.text(),
+    'production-v1-offline',
+    'production v1 must not see a fully staged worker before takeover'
+  )
+  await assert.rejects(
+    productionWorker.dispatchFetch(assetRequest(stagedChunk, 'script')),
+    /Network request failed/,
+    'production v1 must not serve a new chunk through its global caches.match()'
+  )
+}
+
+async function verifyOfflineRoutesHydrateAfterInstall(): Promise<void> {
+  const caches = new MemoryCacheStorage()
+  const fetchCounts = new Map<string, number>()
+  let offline = false
+  const worker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async (input) => {
+      const pathname = new URL(requestUrl(input)).pathname
+      fetchCounts.set(pathname, (fetchCounts.get(pathname) ?? 0) + 1)
+      if (offline) throw new Error('network is offline')
+      return appShellNetworkResponse(input)
+    },
+    async () => {
+      assert.equal((await caches.open(`${CURRENT_VERSION}-static`)).entries.size, 0)
+      assert.ok((await caches.open(STAGING_CACHE)).entries.size > STATIC_ASSETS.length)
+    }
+  )
+
+  await worker.dispatchExtendable('install')
+  assert.equal(fetchCounts.get(SHARED_CHUNK), 1, 'modulepreload must be deduplicated across routes')
+  assert.equal(fetchCounts.get(SHARED_STYLESHEET), 1, 'stylesheet must be deduplicated across routes')
+
+  offline = true
+  await worker.dispatchExtendable('activate')
+  assert.equal(worker.claimCount(), 1)
+  assert.equal((await caches.keys()).includes(STAGING_CACHE), false)
+
+  const currentStatic = await caches.open(`${CURRENT_VERSION}-static`)
+  for (const route of STATIC_HTML_ROUTES) {
+    for (const reference of [SHARED_STYLESHEET, SHARED_CHUNK, routeChunk(route)]) {
+      assert.ok(
+        await currentStatic.match(reference),
+        `${route} is missing its offline hydration asset ${reference}`
+      )
+    }
+  }
+
+  for (const route of ['/solutions', '/periodic-table']) {
+    const navigation = await worker.dispatchFetch({
+      method: 'GET',
+      mode: 'navigate',
+      destination: 'document',
+      url: `${ORIGIN}${route}`,
+    })
+    assert.ok(navigation, `${route} offline navigation returned no response`)
+    const references = nextStaticReferences(await navigation.text())
+    assert.deepEqual(
+      new Set(references),
+      new Set([SHARED_STYLESHEET, SHARED_CHUNK, routeChunk(route)]),
+      `${route} HTML fixture must contain real Next.js JS/CSS references`
+    )
+
+    for (const reference of references) {
+      const response = await worker.dispatchFetch(
+        assetRequest(reference, reference.endsWith('.css') ? 'style' : 'script')
+      )
+      assert.equal(
+        await response?.text(),
+        `network-asset:${reference}`,
+        `${route} could not hydrate ${reference} from cache while offline`
+      )
+    }
+  }
 }
 
 async function verifyOlderWorkerCannotReadNewerCache(): Promise<void> {
@@ -385,6 +627,8 @@ async function run(): Promise<void> {
   await verifyActivationRetiresOnlyAfterClaim()
   await verifyWaitingInstallIsAdditive()
   await verifyFailedInstallIsIdempotent()
+  await verifyProductionWorkerCannotReadStaging()
+  await verifyOfflineRoutesHydrateAfterInstall()
   await verifyOlderWorkerCannotReadNewerCache()
   console.log('Service-worker cache migration behavioral tests passed')
 }

@@ -9,6 +9,8 @@
 const CACHE_VERSION = 'verchem-v2.0.3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+const STAGING_CACHE = `${CACHE_VERSION}-staging`;
+const STAGING_URL_PATH = `/.verchem-sw-staging/${CACHE_VERSION}`;
 const VERSIONED_CACHE_NAME = /^verchem-v(\d+)\.(\d+)\.(\d+)-(static|dynamic)$/;
 const OFFLINE_ROUTE_ALIASES = {
   '/tools/ph-calculator': '/solutions',
@@ -27,6 +29,17 @@ const STATIC_ASSETS = [
   '/logo.png',
   '/offline.html',
 ];
+
+const STATIC_HTML_ROUTES = new Set([
+  '/',
+  '/periodic-table',
+  '/calculators',
+  '/tools',
+  '/compounds',
+  '/solutions',
+  '/tools/ph-calculator',
+  '/offline.html',
+]);
 
 function cacheDescriptor(cacheName) {
   const match = VERSIONED_CACHE_NAME.exec(cacheName);
@@ -73,6 +86,43 @@ async function legacyCacheNames() {
     .map((candidate) => candidate.cacheName);
 }
 
+function absoluteRequestUrl(request) {
+  return new URL(
+    typeof request === 'string' ? request : request.url,
+    self.location.origin
+  ).toString();
+}
+
+/**
+ * Staging keys are deliberately unrelated to the URL a page will request.
+ * Production v1.0.0 uses global caches.match(request), so changing only the
+ * cache namespace would still expose a partially warmed replacement shell.
+ */
+function stagingRequestFor(request) {
+  const stagingUrl = new URL(STAGING_URL_PATH, self.location.origin);
+  stagingUrl.searchParams.set('source', absoluteRequestUrl(request));
+  return new Request(stagingUrl.toString());
+}
+
+function sourceRequestFromStaging(stagingRequest) {
+  const stagingUrl = new URL(stagingRequest.url);
+  if (stagingUrl.origin !== self.location.origin || stagingUrl.pathname !== STAGING_URL_PATH) {
+    return null;
+  }
+
+  const source = stagingUrl.searchParams.get('source');
+  if (!source) return null;
+
+  const sourceUrl = new URL(source);
+  if (sourceUrl.origin !== self.location.origin) return null;
+  return new Request(sourceUrl.toString());
+}
+
+async function matchStaged(request) {
+  if (!(await caches.keys()).includes(STAGING_CACHE)) return undefined;
+  return (await caches.open(STAGING_CACHE)).match(stagingRequestFor(request));
+}
+
 /**
  * Remove only entries that the current worker can already serve. Other pages
  * opened under an older worker remain available as offline history.
@@ -91,7 +141,9 @@ function currentCacheOrder(preferDynamic) {
 }
 
 async function matchCurrentCaches(request, preferDynamic = false) {
-  return matchCaches(currentCacheOrder(preferDynamic), request);
+  // While activation publishes canonical keys, the complete staging snapshot
+  // must beat any partial/stale canonical cache from an interrupted attempt.
+  return await matchStaged(request) || matchCaches(currentCacheOrder(preferDynamic), request);
 }
 
 /** Read migration history without mutating it (safe while installing/waiting). */
@@ -121,56 +173,116 @@ async function putInCurrentCache(cacheName, request, response) {
 }
 
 /**
- * Install/repair is strictly additive: it may populate only this worker's
- * cache. Network content wins; an older cached response is a read-only offline
+ * Extract only same-origin Next.js build assets from script/link tags. The
+ * restricted prefix keeps arbitrary document links out of the app shell.
+ */
+function nextStaticAssetUrls(html) {
+  const assets = new Set();
+  const tags = html.match(/<(?:script|link)\b[^>]*>/gi) || [];
+
+  for (const tag of tags) {
+    const attribute = /\b(?:src|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i.exec(tag);
+    const reference = attribute?.[1] || attribute?.[2] || attribute?.[3];
+    if (!reference) continue;
+
+    try {
+      const url = new URL(reference.replace(/&amp;/g, '&'), self.location.origin);
+      if (url.origin === self.location.origin && url.pathname.startsWith('/_next/static/')) {
+        assets.add(url.toString());
+      }
+    } catch {
+      // Ignore malformed HTML attributes; the route itself remains cacheable.
+    }
+  }
+
+  return assets;
+}
+
+/**
+ * Install/repair is strictly additive and writes only synthetic staging keys.
+ * Network content wins; an older cached response is a read-only offline
  * migration fallback. Throwing when neither exists keeps the previous worker
- * active without damaging any cache it still needs.
+ * active without exposing a partial replacement through global caches.match().
  */
 async function warmStaticAssets() {
-  const cache = await caches.open(STATIC_CACHE);
+  const cache = await caches.open(STAGING_CACHE);
 
   const warmAsset = async (asset) => {
     const request = new Request(new URL(asset, self.location.origin).toString(), {
       cache: 'reload',
     });
+    const stagingRequest = stagingRequestFor(request);
 
-    if (await cache.match(request)) return;
+    const cached = await cache.match(stagingRequest);
+    if (cached) return cached;
 
+    let response;
     try {
-      const response = await fetch(request);
+      response = await fetch(request);
       if (!response.ok) {
         throw new Error(`Failed to warm ${asset}: HTTP ${response.status}`);
       }
-      await cache.put(request, response);
-      return;
     } catch (networkError) {
       const pathname = new URL(request.url).pathname;
       const alias = OFFLINE_ROUTE_ALIASES[pathname];
       const migrated = await matchCurrentThenLegacyReadOnly(request) ||
         (alias
-          ? await matchCurrentThenLegacyReadOnly(
-              new URL(alias, self.location.origin).toString(),
-              true
+          ? await matchStaged(new URL(alias, self.location.origin).toString()) ||
+            await matchCurrentThenLegacyReadOnly(
+              new URL(alias, self.location.origin).toString(), true
             )
           : undefined);
       if (!migrated) throw networkError;
-      await cache.put(request, migrated.clone());
+      response = migrated;
     }
+
+    await cache.put(stagingRequest, response.clone());
+    return response;
   };
 
   // Warm canonical routes first so an offline alias migrates from the current
   // canonical response, never from an older cache racing the same install.
   const aliases = new Set(Object.keys(OFFLINE_ROUTE_ALIASES));
-  await Promise.all(STATIC_ASSETS.filter((asset) => !aliases.has(asset)).map(warmAsset));
-  await Promise.all(STATIC_ASSETS.filter((asset) => aliases.has(asset)).map(warmAsset));
+  const canonicalAssets = STATIC_ASSETS.filter((asset) => !aliases.has(asset));
+  const aliasAssets = STATIC_ASSETS.filter((asset) => aliases.has(asset));
+  const canonicalResponses = await Promise.all(canonicalAssets.map(warmAsset));
+  const aliasResponses = await Promise.all(aliasAssets.map(warmAsset));
+
+  const nextStaticAssets = new Set();
+  for (const [asset, response] of [
+    ...canonicalAssets.map((asset, index) => [asset, canonicalResponses[index]]),
+    ...aliasAssets.map((asset, index) => [asset, aliasResponses[index]]),
+  ]) {
+    if (!STATIC_HTML_ROUTES.has(asset)) continue;
+    const html = await response.clone().text();
+    for (const reference of nextStaticAssetUrls(html)) nextStaticAssets.add(reference);
+  }
+
+  // A successful install means every precached route has the exact JS/CSS
+  // graph referenced by its HTML, deduplicated across the whole app shell.
+  await Promise.all([...nextStaticAssets].map(warmAsset));
 }
 
-async function retireWarmedLegacyEntries() {
+/** Publish a complete staging snapshot under request-visible canonical keys. */
+async function publishStagedAssets() {
+  const staging = await caches.open(STAGING_CACHE);
   const current = await caches.open(STATIC_CACHE);
-  await Promise.all(STATIC_ASSETS.map(async (asset) => {
-    const request = new Request(new URL(asset, self.location.origin).toString());
-    if (await current.match(request)) await retireLegacyEntry(request);
+  const stagedRequests = await staging.keys();
+
+  const publishedRequests = await Promise.all(stagedRequests.map(async (stagedRequest) => {
+    const sourceRequest = sourceRequestFromStaging(stagedRequest);
+    if (!sourceRequest) throw new Error(`Invalid staging key: ${stagedRequest.url}`);
+
+    const response = await staging.match(stagedRequest);
+    if (!response) throw new Error(`Missing staged response: ${stagedRequest.url}`);
+    await current.put(sourceRequest, response);
+    return sourceRequest;
   }));
+
+  // Delete only after every canonical put succeeds. A failed publication keeps
+  // the synthetic snapshot intact so activation can retry idempotently.
+  await caches.delete(STAGING_CACHE);
+  return publishedRequests;
 }
 
 // Install event - cache static assets
@@ -180,14 +292,15 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     warmStaticAssets()
       .then(() => {
-        console.log('[SW] Static assets cached successfully');
+        console.log('[SW] Static assets staged successfully');
       })
   );
 });
 
-// Activate only after the replacement shell is warm. Claim first, then retire
-// duplicates; the install/waiting phase never mutates an active worker's cache.
-// Non-duplicate legacy pages remain as offline history.
+// Claim before exposing canonical keys: production v1.0.0 searches every cache
+// globally. Once claimed, this worker can serve the complete synthetic snapshot
+// while publication runs. Only then retire duplicate legacy entries; unrelated
+// offline history remains available.
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...');
 
@@ -195,9 +308,10 @@ self.addEventListener('activate', (event) => {
     (async () => {
       // This also repairs an interrupted partial warm.
       await warmStaticAssets();
-      console.log('[SW] Replacement shell ready; legacy offline caches preserved');
+      console.log('[SW] Replacement shell staged; legacy offline caches preserved');
       await self.clients.claim();
-      await retireWarmedLegacyEntries();
+      const publishedRequests = await publishStagedAssets();
+      await Promise.all(publishedRequests.map(retireLegacyEntry));
     })()
   );
 });

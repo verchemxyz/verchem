@@ -24,6 +24,14 @@ const eslintConfig = defineConfig([
         varsIgnorePattern: '^_'
       }]
     }
+  },
+  {
+    // Immutable byte-for-byte production fixture; linting must not require
+    // renaming variables and invalidating its locked SHA-256 provenance.
+    files: ["__tests__/fixtures/service-worker-v1.0.0-22dbdfa.js"],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off'
+    }
   }
 ]);
 

@@ -16,6 +16,7 @@ import {
   signCard,
   verifyCanonicalSignature,
 } from '@/lib/answer-cards/signature'
+import { isValidSignablePayload } from '@/lib/answer-cards/payload-shape'
 import { TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
 import type { SignablePayload, ToolCall } from '@/lib/answer-cards/types'
 
@@ -138,6 +139,102 @@ async function verifySameCardSerializerParity(): Promise<void> {
   }
 }
 
+async function signedRawRow(
+  id: string,
+  rawPayload: unknown,
+  signatureIntact: boolean
+): Promise<LegacyAnswerCardListRow> {
+  const signable = rawPayload as SignablePayload
+  const signed_payload = canonicalPayloadString(signable)
+  const validSignature = await signCard(signable)
+  return {
+    id,
+    question: `Untrusted fallback ${id}`,
+    status: 'verified',
+    is_public: false,
+    created_at: createdAt,
+    signed_payload,
+    signature: signatureIntact ? validSignature : `invalid-${validSignature}`,
+  }
+}
+
+function statusClaimStrength(status: LegacyAnswerCardSummary['status']): number {
+  switch (status) {
+    case 'error': return 0
+    case 'unverified': return 1
+    case 'partial': return 2
+    case 'verified': return 3
+  }
+}
+
+async function verifyInvalidPayloadTrustMatrix(): Promise<void> {
+  const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')
+  assert.ok(tool)
+  const input = { concentration: 0.1, formula: 'HCl' }
+  const currentCall: ToolCall = {
+    name: tool.name,
+    engine: tool.engine,
+    engine_version: tool.engineVersion,
+    input,
+    result: tool.execute(input),
+    citation: tool.citation,
+  }
+  const validPayload = parityPayload(currentCall)
+
+  // Pre-R2 W3 payloads signed only the question/tool input/model metadata; the
+  // current deep validator intentionally rejects this historical schema.
+  const oldSchemaPayload = {
+    question: 'Legacy signed schema',
+    verified: true,
+    tool_calls: [{ name: currentCall.name, input: currentCall.input }],
+    model: 'legacy-model',
+    version: 'w3-v0',
+    issued_at: createdAt,
+  }
+  const missingRegistryPayload = parityPayload({
+    ...currentCall,
+    name: 'retired_engine_not_in_registry',
+  })
+
+  const rows = await Promise.all([
+    signedRawRow('bad-signature-parseable', validPayload, false),
+    signedRawRow('intact-signature-old-schema', oldSchemaPayload, true),
+    signedRawRow('bad-signature-old-schema', oldSchemaPayload, false),
+    signedRawRow('missing-engine-registry', missingRegistryPayload, true),
+  ])
+
+  assert.equal(isValidSignablePayload(JSON.parse(rows[0]!.signed_payload) as unknown), true)
+  assert.equal(isValidSignablePayload(JSON.parse(rows[1]!.signed_payload) as unknown), false)
+  assert.equal(
+    await verifyCanonicalSignature(rows[1]!.signed_payload, rows[1]!.signature),
+    true,
+    'the old-schema payload must have an intact HMAC before shape validation rejects it'
+  )
+
+  const legacy = await summarizeLegacyAnswerCardRows(rows, verifyCanonicalSignature)
+  const paginated = await summarizeReplayAwareAnswerCardRows(rows, verifyCanonicalSignature)
+  assert.deepEqual(
+    paginated.map((card) => card.engineReplayStatus),
+    ['unavailable', 'unavailable', 'unavailable', 'unavailable']
+  )
+
+  const expectedSignatureValidity = [false, false, false, true]
+  for (const [index, row] of rows.entries()) {
+    const legacyCard = legacy[index]!
+    const paginatedCard = paginated[index]!
+    assert.ok(
+      statusClaimStrength(legacyCard.status) <= statusClaimStrength(paginatedCard.status),
+      `${row.id}: legacy status is stronger than the paginated status`
+    )
+    assert.ok(
+      Number(legacyCard.signatureValid) <= Number(paginatedCard.signatureValid),
+      `${row.id}: legacy signatureValid is stronger than the paginated value`
+    )
+    assert.equal(legacyCard.signatureValid, expectedSignatureValidity[index], row.id)
+    assert.equal(paginatedCard.signatureValid, expectedSignatureValidity[index], row.id)
+  }
+}
+
 async function run(): Promise<void> {
   const signedPayload = JSON.stringify({
     question: 'Question from signed payload',
@@ -204,6 +301,7 @@ async function run(): Promise<void> {
   assert.equal('currentEngineAgrees' in legacySummaries[0]!, false)
 
   await verifySameCardSerializerParity()
+  await verifyInvalidPayloadTrustMatrix()
 
   const legacy = await resolveAnswerCardList<LegacyAnswerCardSummary, TestCard>(
     null,

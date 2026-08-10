@@ -83,7 +83,7 @@ export function summarizeLegacyAnswerCardRows(
         status: statusWithoutReplayEvidence(fields.status),
         is_public: row.is_public,
         created_at: row.created_at,
-        signatureValid,
+        signatureValid: signatureValid && fields.payload !== null,
       }
     })
   )

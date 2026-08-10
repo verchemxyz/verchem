@@ -20,6 +20,7 @@ import { GET as getV2MolarMass } from '@/app/api/chemistry/v2/molar-mass/route'
 import { GET as getV2PH } from '@/app/api/chemistry/v2/ph/route'
 import {
   capturePublicApiV1Fixtures,
+  frameworkMethodNotAllowed,
   snapshot,
   type PublicApiV1Handlers,
   type ResponseSnapshot,
@@ -80,8 +81,9 @@ class FrozenDate extends NativeDate {
   }
 }
 
-function request(path: string): NextRequest {
+function request(path: string, method = 'GET'): NextRequest {
   return new NextRequest(`https://verchem.xyz${path}`, {
+    method,
     headers: {
       'user-agent': 'verchem-public-api-golden',
       'x-real-ip': '203.0.113.77',
@@ -225,6 +227,60 @@ async function throughActualProxy(requestValue: NextRequest, handler: PipelineHa
   })
 }
 
+async function verifyGoldenProxyPipeline(): Promise<void> {
+  const cases: Array<{
+    fixtureName: string
+    method: string
+    path: string
+    handler: PipelineHandler
+    normalize?: (fixture: ResponseSnapshot) => ResponseSnapshot
+  }> = [
+    {
+      fixtureName: 'convertOptions',
+      method: 'OPTIONS',
+      path: '/api/chemistry/convert',
+      handler: async () => optionsConvert(),
+    },
+    {
+      fixtureName: 'indexMethodNotAllowed',
+      method: 'POST',
+      path: '/api/chemistry',
+      handler: (requestValue) => frameworkMethodNotAllowed(getIndex, requestValue),
+    },
+    {
+      fixtureName: 'elementsDefaultLimit',
+      method: 'GET',
+      path: '/api/chemistry/elements',
+      handler: getElements,
+    },
+    {
+      fixtureName: 'compoundsDefaultLimit',
+      method: 'GET',
+      path: '/api/chemistry/compounds',
+      handler: getCompounds,
+      normalize: (fixture) => {
+        const normalized = normalizeReviewedDefaultCompoundChanges({
+          compoundsDefaultLimit: fixture,
+        })
+        return normalized.compoundsDefaultLimit!
+      },
+    },
+  ]
+
+  for (const testCase of cases) {
+    const response = await throughActualProxy(
+      request(testCase.path, testCase.method),
+      testCase.handler
+    )
+    const actual = await snapshot(response)
+    assert.deepEqual(
+      testCase.normalize ? testCase.normalize(actual) : actual,
+      golden.fixtures[testCase.fixtureName],
+      `${testCase.method} ${testCase.path} changed through the actual proxy pipeline`
+    )
+  }
+}
+
 async function verifyRateLimitPipeline(): Promise<void> {
   const v2Calls: Array<[string, PipelineHandler]> = [
     ['/api/chemistry/v2', getV2Index],
@@ -304,6 +360,7 @@ async function run(): Promise<void> {
       new Set([200, 400, 404, 405, 500])
     )
     verifyCompoundDiffAllowlist()
+    await verifyGoldenProxyPipeline()
     await verifyRateLimitPipeline()
   } finally {
     globalThis.Date = NativeDate
