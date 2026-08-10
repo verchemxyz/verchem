@@ -20,6 +20,7 @@ import { GET as getV2MolarMass } from '@/app/api/chemistry/v2/molar-mass/route'
 import { GET as getV2PH } from '@/app/api/chemistry/v2/ph/route'
 import {
   capturePublicApiV1Fixtures,
+  snapshot,
   type PublicApiV1Handlers,
   type ResponseSnapshot,
 } from '@/__tests__/support/public-api-v1-golden'
@@ -152,12 +153,76 @@ function verifyCompoundDiffAllowlist(): void {
   assert.equal(zeroToPositiveMass, 4)
 }
 
+function recordValue(value: unknown, label: string): Record<string, unknown> {
+  assert.ok(value && typeof value === 'object' && !Array.isArray(value), `${label} must be an object`)
+  return value as Record<string, unknown>
+}
+
+/** Revert only pre-reviewed scientific corrections before baseline comparison. */
+function normalizeReviewedDefaultCompoundChanges(
+  fixtures: Record<string, ResponseSnapshot>
+): Record<string, ResponseSnapshot> {
+  const normalized = structuredClone(fixtures)
+  const fixture = normalized.compoundsDefaultLimit
+  assert.ok(fixture, 'missing no-limit compounds fixture')
+  const body = recordValue(fixture.body, 'compoundsDefaultLimit.body')
+  const compounds = body.compounds
+  assert.ok(Array.isArray(compounds), 'compoundsDefaultLimit.body.compounds must be an array')
+
+  for (const allowed of compoundDiffAllowlist.changes) {
+    if (allowed.index >= compounds.length) continue
+    const row = recordValue(compounds[allowed.index], `compound ${allowed.index}`)
+    assert.equal(row.id, allowed.id, `default-list position ${allowed.index} moved`)
+
+    for (const [field, change] of Object.entries(allowed.fields) as Array<
+      [AllowedCompoundField, AllowedCompoundFieldChange]
+    >) {
+      assert.deepEqual(
+        row[field],
+        change.current,
+        `${allowed.index}:${allowed.id}.${field} diverged from its reviewed correction`
+      )
+      row[field] = structuredClone(change.baseline)
+    }
+  }
+
+  return normalized
+}
+
+function verifyDefaultLimitFixtures(fixtures: Record<string, ResponseSnapshot>): void {
+  const elementsFixture = fixtures.elementsDefaultLimit
+  assert.ok(elementsFixture, 'missing no-limit elements fixture')
+  const elementsBody = recordValue(elementsFixture.body, 'elementsDefaultLimit.body')
+  assert.equal(elementsBody.count, 118)
+  assert.ok(Array.isArray(elementsBody.elements))
+  assert.equal(elementsBody.elements.length, 118)
+
+  const compoundsFixture = fixtures.compoundsDefaultLimit
+  assert.ok(compoundsFixture, 'missing no-limit compounds fixture')
+  const compoundsBody = recordValue(compoundsFixture.body, 'compoundsDefaultLimit.body')
+  assert.equal(compoundsBody.count, 50)
+  assert.ok(Array.isArray(compoundsBody.compounds))
+  assert.equal(compoundsBody.compounds.length, 50)
+  const filters = recordValue(compoundsBody.filters, 'compoundsDefaultLimit.body.filters')
+  assert.equal(filters.limit, 50)
+}
+
 type PipelineHandler = (request: NextRequest) => Promise<Response>
 
 async function throughActualProxy(requestValue: NextRequest, handler: PipelineHandler): Promise<Response> {
   const proxyResponse = await proxy(requestValue)
   if (proxyResponse.headers.get('x-middleware-next') !== '1') return proxyResponse
-  return handler(requestValue)
+
+  const routeResponse = await handler(requestValue)
+  const headers = new Headers(routeResponse.headers)
+  for (const [name, value] of proxyResponse.headers) {
+    if (name !== 'x-middleware-next') headers.set(name, value)
+  }
+  return new Response(routeResponse.body, {
+    status: routeResponse.status,
+    statusText: routeResponse.statusText,
+    headers,
+  })
 }
 
 async function verifyRateLimitPipeline(): Promise<void> {
@@ -184,15 +249,19 @@ async function verifyRateLimitPipeline(): Promise<void> {
   // The same saturated client must still reach every unversioned endpoint. Run
   // each route beyond the anonymous 100-request quota advertised by the legacy
   // index: cycling only 75 total calls can miss both per-endpoint and proxy caps.
-  const v1Calls: Array<[string, PipelineHandler]> = [
-    ['/api/chemistry', async () => getIndex()],
-    ['/api/chemistry/elements?symbol=Na', getElements],
-    ['/api/chemistry/compounds?id=water', getCompounds],
-    ['/api/chemistry/convert?value=1&from=C&to=F&category=temperature', getConvert],
-    ['/api/chemistry/molar-mass?formula=H2O', getMolarMass],
-    ['/api/chemistry/ph?ph=7', getPH],
+  const v1Calls: Array<[string, PipelineHandler, string]> = [
+    ['/api/chemistry', async () => getIndex(), 'index'],
+    ['/api/chemistry/elements?symbol=Na', getElements, 'elementSodium'],
+    ['/api/chemistry/compounds?id=water', getCompounds, 'compoundWater'],
+    [
+      '/api/chemistry/convert?value=100&from=C&to=F&category=temperature',
+      getConvert,
+      'convertTemperature',
+    ],
+    ['/api/chemistry/molar-mass?formula=H2O', getMolarMass, 'molarMassWater'],
+    ['/api/chemistry/ph?ph=7', getPH, 'phFromPH'],
   ]
-  for (const [path, handler] of v1Calls) {
+  for (const [path, handler, fixtureName] of v1Calls) {
     for (let requestNumber = 1; requestNumber <= 101; requestNumber += 1) {
       const response = await throughActualProxy(request(path), handler)
       assert.notEqual(
@@ -200,6 +269,13 @@ async function verifyRateLimitPipeline(): Promise<void> {
         429,
         `${path} leaked into a limiter on request ${requestNumber}`
       )
+      if (requestNumber === 1) {
+        assert.deepEqual(
+          await snapshot(response),
+          golden.fixtures[fixtureName],
+          `${path} changed status, headers, or body through the actual proxy`
+        )
+      }
     }
   }
 }
@@ -220,7 +296,9 @@ async function run(): Promise<void> {
     }
     const actual = await capturePublicApiV1Fixtures(handlers)
 
-    assert.deepEqual(actual, golden.fixtures)
+    verifyDefaultLimitFixtures(actual)
+    assert.deepEqual(normalizeReviewedDefaultCompoundChanges(actual), golden.fixtures)
+    assert.equal(Object.keys(actual).length, 42)
     assert.deepEqual(
       new Set(Object.values(actual).map((fixture: ResponseSnapshot) => fixture.status)),
       new Set([200, 400, 404, 405, 500])

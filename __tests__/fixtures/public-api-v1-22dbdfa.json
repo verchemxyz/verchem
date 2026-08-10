@@ -84,6 +84,2432 @@
       "headers": {},
       "body": null
     },
+    "elementsDefaultLimit": {
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=86400",
+        "content-type": "application/json",
+        "x-api-version": "1.0.0"
+      },
+      "body": {
+        "success": true,
+        "count": 118,
+        "total": 118,
+        "elements": [
+          {
+            "atomicNumber": 1,
+            "symbol": "H",
+            "name": "Hydrogen",
+            "atomicMass": 1.008,
+            "category": "nonmetal",
+            "group": 1,
+            "period": 1,
+            "electronConfiguration": "1s¹",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              -1,
+              1
+            ],
+            "state": "gas",
+            "meltingPoint": 14.01,
+            "boilingPoint": 20.28,
+            "density": 0.00008988
+          },
+          {
+            "atomicNumber": 2,
+            "symbol": "He",
+            "name": "Helium",
+            "atomicMass": 4.0026,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 1,
+            "electronConfiguration": "1s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              0
+            ],
+            "state": "gas",
+            "meltingPoint": 0.95,
+            "boilingPoint": 4.22,
+            "density": 0.0001785
+          },
+          {
+            "atomicNumber": 3,
+            "symbol": "Li",
+            "name": "Lithium",
+            "atomicMass": 6.94,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 2,
+            "electronConfiguration": "[He] 2s¹",
+            "electronegativity": 0.98,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 453.65,
+            "boilingPoint": 1603,
+            "density": 0.534
+          },
+          {
+            "atomicNumber": 4,
+            "symbol": "Be",
+            "name": "Beryllium",
+            "atomicMass": 9.0122,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 2,
+            "electronConfiguration": "[He] 2s²",
+            "electronegativity": 1.57,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 1560,
+            "boilingPoint": 2742,
+            "density": 1.85
+          },
+          {
+            "atomicNumber": 5,
+            "symbol": "B",
+            "name": "Boron",
+            "atomicMass": 10.81,
+            "category": "metalloid",
+            "group": 13,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p¹",
+            "electronegativity": 2.04,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 2349,
+            "boilingPoint": 4200,
+            "density": 2.34
+          },
+          {
+            "atomicNumber": 6,
+            "symbol": "C",
+            "name": "Carbon",
+            "atomicMass": 12.011,
+            "category": "nonmetal",
+            "group": 14,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p²",
+            "electronegativity": 2.55,
+            "oxidationStates": [
+              -4,
+              -3,
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 3823,
+            "boilingPoint": 4098,
+            "density": 2.267
+          },
+          {
+            "atomicNumber": 7,
+            "symbol": "N",
+            "name": "Nitrogen",
+            "atomicMass": 14.007,
+            "category": "nonmetal",
+            "group": 15,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p³",
+            "electronegativity": 3.04,
+            "oxidationStates": [
+              -3,
+              -2,
+              -1,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "gas",
+            "meltingPoint": 63.15,
+            "boilingPoint": 77.36,
+            "density": 0.0012506
+          },
+          {
+            "atomicNumber": 8,
+            "symbol": "O",
+            "name": "Oxygen",
+            "atomicMass": 15.999,
+            "category": "nonmetal",
+            "group": 16,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p⁴",
+            "electronegativity": 3.44,
+            "oxidationStates": [
+              -2,
+              -1,
+              1,
+              2
+            ],
+            "state": "gas",
+            "meltingPoint": 54.36,
+            "boilingPoint": 90.2,
+            "density": 0.001429
+          },
+          {
+            "atomicNumber": 9,
+            "symbol": "F",
+            "name": "Fluorine",
+            "atomicMass": 18.998,
+            "category": "halogen",
+            "group": 17,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p⁵",
+            "electronegativity": 3.98,
+            "oxidationStates": [
+              -1
+            ],
+            "state": "gas",
+            "meltingPoint": 53.53,
+            "boilingPoint": 85.03,
+            "density": 0.001696
+          },
+          {
+            "atomicNumber": 10,
+            "symbol": "Ne",
+            "name": "Neon",
+            "atomicMass": 20.18,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 2,
+            "electronConfiguration": "[He] 2s² 2p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0
+            ],
+            "state": "gas",
+            "meltingPoint": 24.56,
+            "boilingPoint": 27.07,
+            "density": 0.0008999
+          },
+          {
+            "atomicNumber": 11,
+            "symbol": "Na",
+            "name": "Sodium",
+            "atomicMass": 22.99,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s¹",
+            "electronegativity": 0.93,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 370.95,
+            "boilingPoint": 1156,
+            "density": 0.971
+          },
+          {
+            "atomicNumber": 12,
+            "symbol": "Mg",
+            "name": "Magnesium",
+            "atomicMass": 24.305,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s²",
+            "electronegativity": 1.31,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 923,
+            "boilingPoint": 1363,
+            "density": 1.738
+          },
+          {
+            "atomicNumber": 13,
+            "symbol": "Al",
+            "name": "Aluminum",
+            "atomicMass": 26.982,
+            "category": "post-transition-metal",
+            "group": 13,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p¹",
+            "electronegativity": 1.61,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 933.47,
+            "boilingPoint": 2792,
+            "density": 2.698
+          },
+          {
+            "atomicNumber": 14,
+            "symbol": "Si",
+            "name": "Silicon",
+            "atomicMass": 28.085,
+            "category": "metalloid",
+            "group": 14,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p²",
+            "electronegativity": 1.9,
+            "oxidationStates": [
+              -4,
+              -3,
+              -2,
+              -1,
+              1,
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1687,
+            "boilingPoint": 3538,
+            "density": 2.3296
+          },
+          {
+            "atomicNumber": 15,
+            "symbol": "P",
+            "name": "Phosphorus",
+            "atomicMass": 30.974,
+            "category": "nonmetal",
+            "group": 15,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p³",
+            "electronegativity": 2.19,
+            "oxidationStates": [
+              -3,
+              -2,
+              -1,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 317.3,
+            "boilingPoint": 550,
+            "density": 1.82
+          },
+          {
+            "atomicNumber": 16,
+            "symbol": "S",
+            "name": "Sulfur",
+            "atomicMass": 32.06,
+            "category": "nonmetal",
+            "group": 16,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p⁴",
+            "electronegativity": 2.58,
+            "oxidationStates": [
+              -2,
+              -1,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 388.36,
+            "boilingPoint": 717.87,
+            "density": 2.067
+          },
+          {
+            "atomicNumber": 17,
+            "symbol": "Cl",
+            "name": "Chlorine",
+            "atomicMass": 35.45,
+            "category": "halogen",
+            "group": 17,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p⁵",
+            "electronegativity": 3.16,
+            "oxidationStates": [
+              -1,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "gas",
+            "meltingPoint": 171.6,
+            "boilingPoint": 239.11,
+            "density": 0.003214
+          },
+          {
+            "atomicNumber": 18,
+            "symbol": "Ar",
+            "name": "Argon",
+            "atomicMass": 39.948,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 3,
+            "electronConfiguration": "[Ne] 3s² 3p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0
+            ],
+            "state": "gas",
+            "meltingPoint": 83.8,
+            "boilingPoint": 87.3,
+            "density": 0.0017837
+          },
+          {
+            "atomicNumber": 19,
+            "symbol": "K",
+            "name": "Potassium",
+            "atomicMass": 39.098,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 4,
+            "electronConfiguration": "[Ar] 4s¹",
+            "electronegativity": 0.82,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 336.53,
+            "boilingPoint": 1032,
+            "density": 0.862
+          },
+          {
+            "atomicNumber": 20,
+            "symbol": "Ca",
+            "name": "Calcium",
+            "atomicMass": 40.078,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 4,
+            "electronConfiguration": "[Ar] 4s²",
+            "electronegativity": 1,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 1115,
+            "boilingPoint": 1757,
+            "density": 1.54
+          },
+          {
+            "atomicNumber": 21,
+            "symbol": "Sc",
+            "name": "Scandium",
+            "atomicMass": 44.956,
+            "category": "transition-metal",
+            "group": 3,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹ 4s²",
+            "electronegativity": 1.36,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1814,
+            "boilingPoint": 3109,
+            "density": 2.989
+          },
+          {
+            "atomicNumber": 22,
+            "symbol": "Ti",
+            "name": "Titanium",
+            "atomicMass": 47.867,
+            "category": "transition-metal",
+            "group": 4,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d² 4s²",
+            "electronegativity": 1.54,
+            "oxidationStates": [
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1941,
+            "boilingPoint": 3560,
+            "density": 4.54
+          },
+          {
+            "atomicNumber": 23,
+            "symbol": "V",
+            "name": "Vanadium",
+            "atomicMass": 50.942,
+            "category": "transition-metal",
+            "group": 5,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d³ 4s²",
+            "electronegativity": 1.63,
+            "oxidationStates": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 2183,
+            "boilingPoint": 3680,
+            "density": 6.11
+          },
+          {
+            "atomicNumber": 24,
+            "symbol": "Cr",
+            "name": "Chromium",
+            "atomicMass": 51.996,
+            "category": "transition-metal",
+            "group": 6,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d⁵ 4s¹",
+            "electronegativity": 1.66,
+            "oxidationStates": [
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 2180,
+            "boilingPoint": 2944,
+            "density": 7.15
+          },
+          {
+            "atomicNumber": 25,
+            "symbol": "Mn",
+            "name": "Manganese",
+            "atomicMass": 54.938,
+            "category": "transition-metal",
+            "group": 7,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d⁵ 4s²",
+            "electronegativity": 1.55,
+            "oxidationStates": [
+              -3,
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 1519,
+            "boilingPoint": 2334,
+            "density": 7.44
+          },
+          {
+            "atomicNumber": 26,
+            "symbol": "Fe",
+            "name": "Iron",
+            "atomicMass": 55.845,
+            "category": "transition-metal",
+            "group": 8,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d⁶ 4s²",
+            "electronegativity": 1.83,
+            "oxidationStates": [
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 1811,
+            "boilingPoint": 3134,
+            "density": 7.874
+          },
+          {
+            "atomicNumber": 27,
+            "symbol": "Co",
+            "name": "Cobalt",
+            "atomicMass": 58.933,
+            "category": "transition-metal",
+            "group": 9,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d⁷ 4s²",
+            "electronegativity": 1.88,
+            "oxidationStates": [
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 1768,
+            "boilingPoint": 3200,
+            "density": 8.86
+          },
+          {
+            "atomicNumber": 28,
+            "symbol": "Ni",
+            "name": "Nickel",
+            "atomicMass": 58.693,
+            "category": "transition-metal",
+            "group": 10,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d⁸ 4s²",
+            "electronegativity": 1.91,
+            "oxidationStates": [
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1728,
+            "boilingPoint": 3186,
+            "density": 8.912
+          },
+          {
+            "atomicNumber": 29,
+            "symbol": "Cu",
+            "name": "Copper",
+            "atomicMass": 63.546,
+            "category": "transition-metal",
+            "group": 11,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s¹",
+            "electronegativity": 1.9,
+            "oxidationStates": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1357.77,
+            "boilingPoint": 2835,
+            "density": 8.96
+          },
+          {
+            "atomicNumber": 30,
+            "symbol": "Zn",
+            "name": "Zinc",
+            "atomicMass": 65.38,
+            "category": "transition-metal",
+            "group": 12,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s²",
+            "electronegativity": 1.65,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 692.88,
+            "boilingPoint": 1180,
+            "density": 7.134
+          },
+          {
+            "atomicNumber": 31,
+            "symbol": "Ga",
+            "name": "Gallium",
+            "atomicMass": 69.723,
+            "category": "post-transition-metal",
+            "group": 13,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p¹",
+            "electronegativity": 1.81,
+            "oxidationStates": [
+              1,
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 302.91,
+            "boilingPoint": 2673,
+            "density": 5.907
+          },
+          {
+            "atomicNumber": 32,
+            "symbol": "Ge",
+            "name": "Germanium",
+            "atomicMass": 72.63,
+            "category": "metalloid",
+            "group": 14,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p²",
+            "electronegativity": 2.01,
+            "oxidationStates": [
+              -4,
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1211.4,
+            "boilingPoint": 3106,
+            "density": 5.323
+          },
+          {
+            "atomicNumber": 33,
+            "symbol": "As",
+            "name": "Arsenic",
+            "atomicMass": 74.922,
+            "category": "metalloid",
+            "group": 15,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p³",
+            "electronegativity": 2.18,
+            "oxidationStates": [
+              -3,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 1090,
+            "boilingPoint": 887,
+            "density": 5.776
+          },
+          {
+            "atomicNumber": 34,
+            "symbol": "Se",
+            "name": "Selenium",
+            "atomicMass": 78.971,
+            "category": "nonmetal",
+            "group": 16,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p⁴",
+            "electronegativity": 2.55,
+            "oxidationStates": [
+              -2,
+              2,
+              4,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 493.65,
+            "boilingPoint": 958,
+            "density": 4.809
+          },
+          {
+            "atomicNumber": 35,
+            "symbol": "Br",
+            "name": "Bromine",
+            "atomicMass": 79.904,
+            "category": "halogen",
+            "group": 17,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p⁵",
+            "electronegativity": 2.96,
+            "oxidationStates": [
+              -1,
+              1,
+              3,
+              4,
+              5,
+              7
+            ],
+            "state": "liquid",
+            "meltingPoint": 265.8,
+            "boilingPoint": 332,
+            "density": 3.122
+          },
+          {
+            "atomicNumber": 36,
+            "symbol": "Kr",
+            "name": "Krypton",
+            "atomicMass": 83.798,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 4,
+            "electronConfiguration": "[Ar] 3d¹⁰ 4s² 4p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0,
+              2
+            ],
+            "state": "gas",
+            "meltingPoint": 115.79,
+            "boilingPoint": 119.93,
+            "density": 0.003733
+          },
+          {
+            "atomicNumber": 37,
+            "symbol": "Rb",
+            "name": "Rubidium",
+            "atomicMass": 85.468,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 5,
+            "electronConfiguration": "[Kr] 5s¹",
+            "electronegativity": 0.82,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 312.46,
+            "boilingPoint": 961,
+            "density": 1.532
+          },
+          {
+            "atomicNumber": 38,
+            "symbol": "Sr",
+            "name": "Strontium",
+            "atomicMass": 87.62,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 5,
+            "electronConfiguration": "[Kr] 5s²",
+            "electronegativity": 0.95,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 1050,
+            "boilingPoint": 1655,
+            "density": 2.64
+          },
+          {
+            "atomicNumber": 39,
+            "symbol": "Y",
+            "name": "Yttrium",
+            "atomicMass": 88.906,
+            "category": "transition-metal",
+            "group": 3,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹ 5s²",
+            "electronegativity": 1.22,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1795,
+            "boilingPoint": 3618,
+            "density": 4.469
+          },
+          {
+            "atomicNumber": 40,
+            "symbol": "Zr",
+            "name": "Zirconium",
+            "atomicMass": 91.224,
+            "category": "transition-metal",
+            "group": 4,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d² 5s²",
+            "electronegativity": 1.33,
+            "oxidationStates": [
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 2128,
+            "boilingPoint": 4682,
+            "density": 6.506
+          },
+          {
+            "atomicNumber": 41,
+            "symbol": "Nb",
+            "name": "Niobium",
+            "atomicMass": 92.906,
+            "category": "transition-metal",
+            "group": 5,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d⁴ 5s¹",
+            "electronegativity": 1.6,
+            "oxidationStates": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 2750,
+            "boilingPoint": 5017,
+            "density": 8.57
+          },
+          {
+            "atomicNumber": 42,
+            "symbol": "Mo",
+            "name": "Molybdenum",
+            "atomicMass": 95.95,
+            "category": "transition-metal",
+            "group": 6,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d⁵ 5s¹",
+            "electronegativity": 2.16,
+            "oxidationStates": [
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 2896,
+            "boilingPoint": 4912,
+            "density": 10.22
+          },
+          {
+            "atomicNumber": 43,
+            "symbol": "Tc",
+            "name": "Technetium",
+            "atomicMass": 98,
+            "category": "transition-metal",
+            "group": 7,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d⁵ 5s²",
+            "electronegativity": 1.9,
+            "oxidationStates": [
+              -3,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 2430,
+            "boilingPoint": 4538,
+            "density": 11.5
+          },
+          {
+            "atomicNumber": 44,
+            "symbol": "Ru",
+            "name": "Ruthenium",
+            "atomicMass": 101.07,
+            "category": "transition-metal",
+            "group": 8,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d⁷ 5s¹",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              -2,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "state": "solid",
+            "meltingPoint": 2607,
+            "boilingPoint": 4423,
+            "density": 12.37
+          },
+          {
+            "atomicNumber": 45,
+            "symbol": "Rh",
+            "name": "Rhodium",
+            "atomicMass": 102.91,
+            "category": "transition-metal",
+            "group": 9,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d⁸ 5s¹",
+            "electronegativity": 2.28,
+            "oxidationStates": [
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 2237,
+            "boilingPoint": 3968,
+            "density": 12.41
+          },
+          {
+            "atomicNumber": 46,
+            "symbol": "Pd",
+            "name": "Palladium",
+            "atomicMass": 106.42,
+            "category": "transition-metal",
+            "group": 10,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              0,
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1828.05,
+            "boilingPoint": 3236,
+            "density": 12.02
+          },
+          {
+            "atomicNumber": 47,
+            "symbol": "Ag",
+            "name": "Silver",
+            "atomicMass": 107.87,
+            "category": "transition-metal",
+            "group": 11,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s¹",
+            "electronegativity": 1.93,
+            "oxidationStates": [
+              1,
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1234.93,
+            "boilingPoint": 2435,
+            "density": 10.501
+          },
+          {
+            "atomicNumber": 48,
+            "symbol": "Cd",
+            "name": "Cadmium",
+            "atomicMass": 112.41,
+            "category": "transition-metal",
+            "group": 12,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s²",
+            "electronegativity": 1.69,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 594.22,
+            "boilingPoint": 1040,
+            "density": 8.69
+          },
+          {
+            "atomicNumber": 49,
+            "symbol": "In",
+            "name": "Indium",
+            "atomicMass": 114.82,
+            "category": "post-transition-metal",
+            "group": 13,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p¹",
+            "electronegativity": 1.78,
+            "oxidationStates": [
+              1,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 429.75,
+            "boilingPoint": 2345,
+            "density": 7.31
+          },
+          {
+            "atomicNumber": 50,
+            "symbol": "Sn",
+            "name": "Tin",
+            "atomicMass": 118.71,
+            "category": "post-transition-metal",
+            "group": 14,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p²",
+            "electronegativity": 1.96,
+            "oxidationStates": [
+              -4,
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 505.08,
+            "boilingPoint": 2875,
+            "density": 7.287
+          },
+          {
+            "atomicNumber": 51,
+            "symbol": "Sb",
+            "name": "Antimony",
+            "atomicMass": 121.76,
+            "category": "metalloid",
+            "group": 15,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p³",
+            "electronegativity": 2.05,
+            "oxidationStates": [
+              -3,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 903.78,
+            "boilingPoint": 1860,
+            "density": 6.685
+          },
+          {
+            "atomicNumber": 52,
+            "symbol": "Te",
+            "name": "Tellurium",
+            "atomicMass": 127.6,
+            "category": "metalloid",
+            "group": 16,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p⁴",
+            "electronegativity": 2.1,
+            "oxidationStates": [
+              -2,
+              2,
+              4,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 722.66,
+            "boilingPoint": 1261,
+            "density": 6.232
+          },
+          {
+            "atomicNumber": 53,
+            "symbol": "I",
+            "name": "Iodine",
+            "atomicMass": 126.9,
+            "category": "halogen",
+            "group": 17,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p⁵",
+            "electronegativity": 2.66,
+            "oxidationStates": [
+              -1,
+              1,
+              3,
+              5,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 386.85,
+            "boilingPoint": 457.4,
+            "density": 4.93
+          },
+          {
+            "atomicNumber": 54,
+            "symbol": "Xe",
+            "name": "Xenon",
+            "atomicMass": 131.29,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 5,
+            "electronConfiguration": "[Kr] 4d¹⁰ 5s² 5p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0,
+              2,
+              4,
+              6,
+              8
+            ],
+            "state": "gas",
+            "meltingPoint": 161.36,
+            "boilingPoint": 165.03,
+            "density": 0.005887
+          },
+          {
+            "atomicNumber": 55,
+            "symbol": "Cs",
+            "name": "Cesium",
+            "atomicMass": 132.91,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 6,
+            "electronConfiguration": "[Xe] 6s¹",
+            "electronegativity": 0.79,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 301.59,
+            "boilingPoint": 944,
+            "density": 1.873
+          },
+          {
+            "atomicNumber": 56,
+            "symbol": "Ba",
+            "name": "Barium",
+            "atomicMass": 137.33,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 6,
+            "electronConfiguration": "[Xe] 6s²",
+            "electronegativity": 0.89,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 1000,
+            "boilingPoint": 2170,
+            "density": 3.594
+          },
+          {
+            "atomicNumber": 57,
+            "symbol": "La",
+            "name": "Lanthanum",
+            "atomicMass": 138.91,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 5d¹ 6s²",
+            "electronegativity": 1.1,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1193,
+            "boilingPoint": 3737,
+            "density": 6.145
+          },
+          {
+            "atomicNumber": 58,
+            "symbol": "Ce",
+            "name": "Cerium",
+            "atomicMass": 140.12,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹ 5d¹ 6s²",
+            "electronegativity": 1.12,
+            "oxidationStates": [
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1068,
+            "boilingPoint": 3716,
+            "density": 6.77
+          },
+          {
+            "atomicNumber": 59,
+            "symbol": "Pr",
+            "name": "Praseodymium",
+            "atomicMass": 140.91,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f³ 6s²",
+            "electronegativity": 1.13,
+            "oxidationStates": [
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1208,
+            "boilingPoint": 3793,
+            "density": 6.773
+          },
+          {
+            "atomicNumber": 60,
+            "symbol": "Nd",
+            "name": "Neodymium",
+            "atomicMass": 144.24,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁴ 6s²",
+            "electronegativity": 1.14,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1297,
+            "boilingPoint": 3347,
+            "density": 7.007
+          },
+          {
+            "atomicNumber": 61,
+            "symbol": "Pm",
+            "name": "Promethium",
+            "atomicMass": 145,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁵ 6s²",
+            "electronegativity": 1.13,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1315,
+            "boilingPoint": 3273,
+            "density": 7.26
+          },
+          {
+            "atomicNumber": 62,
+            "symbol": "Sm",
+            "name": "Samarium",
+            "atomicMass": 150.36,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁶ 6s²",
+            "electronegativity": 1.17,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1345,
+            "boilingPoint": 2067,
+            "density": 7.52
+          },
+          {
+            "atomicNumber": 63,
+            "symbol": "Eu",
+            "name": "Europium",
+            "atomicMass": 151.96,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁷ 6s²",
+            "electronegativity": 1.2,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1099,
+            "boilingPoint": 1802,
+            "density": 5.243
+          },
+          {
+            "atomicNumber": 64,
+            "symbol": "Gd",
+            "name": "Gadolinium",
+            "atomicMass": 157.25,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁷ 5d¹ 6s²",
+            "electronegativity": 1.2,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1585,
+            "boilingPoint": 3546,
+            "density": 7.895
+          },
+          {
+            "atomicNumber": 65,
+            "symbol": "Tb",
+            "name": "Terbium",
+            "atomicMass": 158.93,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f⁹ 6s²",
+            "electronegativity": 1.1,
+            "oxidationStates": [
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1629,
+            "boilingPoint": 3503,
+            "density": 8.229
+          },
+          {
+            "atomicNumber": 66,
+            "symbol": "Dy",
+            "name": "Dysprosium",
+            "atomicMass": 162.5,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁰ 6s²",
+            "electronegativity": 1.22,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1680,
+            "boilingPoint": 2840,
+            "density": 8.55
+          },
+          {
+            "atomicNumber": 67,
+            "symbol": "Ho",
+            "name": "Holmium",
+            "atomicMass": 164.93,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹¹ 6s²",
+            "electronegativity": 1.23,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1734,
+            "boilingPoint": 2993,
+            "density": 8.795
+          },
+          {
+            "atomicNumber": 68,
+            "symbol": "Er",
+            "name": "Erbium",
+            "atomicMass": 167.26,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹² 6s²",
+            "electronegativity": 1.24,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1802,
+            "boilingPoint": 3141,
+            "density": 9.066
+          },
+          {
+            "atomicNumber": 69,
+            "symbol": "Tm",
+            "name": "Thulium",
+            "atomicMass": 168.93,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹³ 6s²",
+            "electronegativity": 1.25,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1818,
+            "boilingPoint": 2223,
+            "density": 9.321
+          },
+          {
+            "atomicNumber": 70,
+            "symbol": "Yb",
+            "name": "Ytterbium",
+            "atomicMass": 173.05,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 6s²",
+            "electronegativity": 1.1,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1097,
+            "boilingPoint": 1469,
+            "density": 6.965
+          },
+          {
+            "atomicNumber": 71,
+            "symbol": "Lu",
+            "name": "Lutetium",
+            "atomicMass": 174.97,
+            "category": "lanthanide",
+            "group": null,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹ 6s²",
+            "electronegativity": 1.27,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1925,
+            "boilingPoint": 3675,
+            "density": 9.841
+          },
+          {
+            "atomicNumber": 72,
+            "symbol": "Hf",
+            "name": "Hafnium",
+            "atomicMass": 178.49,
+            "category": "transition-metal",
+            "group": 4,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d² 6s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 2506,
+            "boilingPoint": 4876,
+            "density": 13.31
+          },
+          {
+            "atomicNumber": 73,
+            "symbol": "Ta",
+            "name": "Tantalum",
+            "atomicMass": 180.95,
+            "category": "transition-metal",
+            "group": 5,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d³ 6s²",
+            "electronegativity": 1.5,
+            "oxidationStates": [
+              -1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 3290,
+            "boilingPoint": 5731,
+            "density": 16.654
+          },
+          {
+            "atomicNumber": 74,
+            "symbol": "W",
+            "name": "Tungsten",
+            "atomicMass": 183.84,
+            "category": "transition-metal",
+            "group": 6,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d⁴ 6s²",
+            "electronegativity": 2.36,
+            "oxidationStates": [
+              -2,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 3695,
+            "boilingPoint": 5828,
+            "density": 19.25
+          },
+          {
+            "atomicNumber": 75,
+            "symbol": "Re",
+            "name": "Rhenium",
+            "atomicMass": 186.21,
+            "category": "transition-metal",
+            "group": 7,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d⁵ 6s²",
+            "electronegativity": 1.9,
+            "oxidationStates": [
+              -3,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 3459,
+            "boilingPoint": 5869,
+            "density": 21.02
+          },
+          {
+            "atomicNumber": 76,
+            "symbol": "Os",
+            "name": "Osmium",
+            "atomicMass": 190.23,
+            "category": "transition-metal",
+            "group": 8,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d⁶ 6s²",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              -2,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "state": "solid",
+            "meltingPoint": 3306,
+            "boilingPoint": 5285,
+            "density": 22.59
+          },
+          {
+            "atomicNumber": 77,
+            "symbol": "Ir",
+            "name": "Iridium",
+            "atomicMass": 192.22,
+            "category": "transition-metal",
+            "group": 9,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d⁷ 6s²",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              -3,
+              -1,
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 2719,
+            "boilingPoint": 4701,
+            "density": 22.56
+          },
+          {
+            "atomicNumber": 78,
+            "symbol": "Pt",
+            "name": "Platinum",
+            "atomicMass": 195.08,
+            "category": "transition-metal",
+            "group": 10,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d⁹ 6s¹",
+            "electronegativity": 2.28,
+            "oxidationStates": [
+              0,
+              2,
+              4,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 2041.4,
+            "boilingPoint": 4098,
+            "density": 21.46
+          },
+          {
+            "atomicNumber": 79,
+            "symbol": "Au",
+            "name": "Gold",
+            "atomicMass": 196.97,
+            "category": "transition-metal",
+            "group": 11,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s¹",
+            "electronegativity": 2.54,
+            "oxidationStates": [
+              -1,
+              1,
+              2,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 1337.33,
+            "boilingPoint": 3129,
+            "density": 19.282
+          },
+          {
+            "atomicNumber": 80,
+            "symbol": "Hg",
+            "name": "Mercury",
+            "atomicMass": 200.59,
+            "category": "transition-metal",
+            "group": 12,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s²",
+            "electronegativity": 2,
+            "oxidationStates": [
+              1,
+              2
+            ],
+            "state": "liquid",
+            "meltingPoint": 234.43,
+            "boilingPoint": 629.88,
+            "density": 13.5336
+          },
+          {
+            "atomicNumber": 81,
+            "symbol": "Tl",
+            "name": "Thallium",
+            "atomicMass": 204.38,
+            "category": "post-transition-metal",
+            "group": 13,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹",
+            "electronegativity": 1.62,
+            "oxidationStates": [
+              1,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 577,
+            "boilingPoint": 1746,
+            "density": 11.85
+          },
+          {
+            "atomicNumber": 82,
+            "symbol": "Pb",
+            "name": "Lead",
+            "atomicMass": 207.2,
+            "category": "post-transition-metal",
+            "group": 14,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²",
+            "electronegativity": 1.87,
+            "oxidationStates": [
+              -4,
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 600.61,
+            "boilingPoint": 2022,
+            "density": 11.342
+          },
+          {
+            "atomicNumber": 83,
+            "symbol": "Bi",
+            "name": "Bismuth",
+            "atomicMass": 208.98,
+            "category": "post-transition-metal",
+            "group": 15,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³",
+            "electronegativity": 2.02,
+            "oxidationStates": [
+              -3,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 544.7,
+            "boilingPoint": 1837,
+            "density": 9.807
+          },
+          {
+            "atomicNumber": 84,
+            "symbol": "Po",
+            "name": "Polonium",
+            "atomicMass": 209,
+            "category": "metalloid",
+            "group": 16,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴",
+            "electronegativity": 2,
+            "oxidationStates": [
+              -2,
+              2,
+              4,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 527,
+            "boilingPoint": 1235,
+            "density": 9.196
+          },
+          {
+            "atomicNumber": 85,
+            "symbol": "At",
+            "name": "Astatine",
+            "atomicMass": 210,
+            "category": "halogen",
+            "group": 17,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵",
+            "electronegativity": 2.2,
+            "oxidationStates": [
+              -1,
+              1,
+              3,
+              5,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 575,
+            "boilingPoint": 610,
+            "density": 7
+          },
+          {
+            "atomicNumber": 86,
+            "symbol": "Rn",
+            "name": "Radon",
+            "atomicMass": 222,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 6,
+            "electronConfiguration": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0,
+              2
+            ],
+            "state": "gas",
+            "meltingPoint": 202,
+            "boilingPoint": 211.3,
+            "density": 0.00973
+          },
+          {
+            "atomicNumber": 87,
+            "symbol": "Fr",
+            "name": "Francium",
+            "atomicMass": 223,
+            "category": "alkali-metal",
+            "group": 1,
+            "period": 7,
+            "electronConfiguration": "[Rn] 7s¹",
+            "electronegativity": 0.7,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": 300,
+            "boilingPoint": 950,
+            "density": 1.87
+          },
+          {
+            "atomicNumber": 88,
+            "symbol": "Ra",
+            "name": "Radium",
+            "atomicMass": 226,
+            "category": "alkaline-earth-metal",
+            "group": 2,
+            "period": 7,
+            "electronConfiguration": "[Rn] 7s²",
+            "electronegativity": 0.9,
+            "oxidationStates": [
+              2
+            ],
+            "state": "solid",
+            "meltingPoint": 973,
+            "boilingPoint": 2010,
+            "density": 5.5
+          },
+          {
+            "atomicNumber": 89,
+            "symbol": "Ac",
+            "name": "Actinium",
+            "atomicMass": 227,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 6d¹ 7s²",
+            "electronegativity": 1.1,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1323,
+            "boilingPoint": 3471,
+            "density": 10.07
+          },
+          {
+            "atomicNumber": 90,
+            "symbol": "Th",
+            "name": "Thorium",
+            "atomicMass": 232.04,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 6d² 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 2115,
+            "boilingPoint": 5061,
+            "density": 11.72
+          },
+          {
+            "atomicNumber": 91,
+            "symbol": "Pa",
+            "name": "Protactinium",
+            "atomicMass": 231.04,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f² 6d¹ 7s²",
+            "electronegativity": 1.5,
+            "oxidationStates": [
+              3,
+              4,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": 1841,
+            "boilingPoint": 4300,
+            "density": 15.37
+          },
+          {
+            "atomicNumber": 92,
+            "symbol": "U",
+            "name": "Uranium",
+            "atomicMass": 238.03,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f³ 6d¹ 7s²",
+            "electronegativity": 1.38,
+            "oxidationStates": [
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 1405.3,
+            "boilingPoint": 4404,
+            "density": 18.95
+          },
+          {
+            "atomicNumber": 93,
+            "symbol": "Np",
+            "name": "Neptunium",
+            "atomicMass": 237,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f⁴ 6d¹ 7s²",
+            "electronegativity": 1.36,
+            "oxidationStates": [
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 917,
+            "boilingPoint": 4273,
+            "density": 20.45
+          },
+          {
+            "atomicNumber": 94,
+            "symbol": "Pu",
+            "name": "Plutonium",
+            "atomicMass": 244,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f⁶ 7s²",
+            "electronegativity": 1.28,
+            "oxidationStates": [
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": 912.5,
+            "boilingPoint": 3505,
+            "density": 19.84
+          },
+          {
+            "atomicNumber": 95,
+            "symbol": "Am",
+            "name": "Americium",
+            "atomicMass": 243,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f⁷ 7s²",
+            "electronegativity": 1.13,
+            "oxidationStates": [
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": 1449,
+            "boilingPoint": 2880,
+            "density": 13.69
+          },
+          {
+            "atomicNumber": 96,
+            "symbol": "Cm",
+            "name": "Curium",
+            "atomicMass": 247,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f⁷ 6d¹ 7s²",
+            "electronegativity": 1.28,
+            "oxidationStates": [
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1613,
+            "boilingPoint": 3383,
+            "density": 13.51
+          },
+          {
+            "atomicNumber": 97,
+            "symbol": "Bk",
+            "name": "Berkelium",
+            "atomicMass": 247,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f⁹ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1259,
+            "boilingPoint": 2900,
+            "density": 14.79
+          },
+          {
+            "atomicNumber": 98,
+            "symbol": "Cf",
+            "name": "Californium",
+            "atomicMass": 251,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁰ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 1173,
+            "boilingPoint": 1743,
+            "density": 15.1
+          },
+          {
+            "atomicNumber": 99,
+            "symbol": "Es",
+            "name": "Einsteinium",
+            "atomicMass": 252,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹¹ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1133,
+            "boilingPoint": 1269,
+            "density": 8.84
+          },
+          {
+            "atomicNumber": 100,
+            "symbol": "Fm",
+            "name": "Fermium",
+            "atomicMass": 257,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹² 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1800,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 101,
+            "symbol": "Md",
+            "name": "Mendelevium",
+            "atomicMass": 258,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹³ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1100,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 102,
+            "symbol": "No",
+            "name": "Nobelium",
+            "atomicMass": 259,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              2,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1100,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 103,
+            "symbol": "Lr",
+            "name": "Lawrencium",
+            "atomicMass": 262,
+            "category": "actinide",
+            "group": null,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹ 7s²",
+            "electronegativity": 1.3,
+            "oxidationStates": [
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": 1900,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 104,
+            "symbol": "Rf",
+            "name": "Rutherfordium",
+            "atomicMass": 267,
+            "category": "transition-metal",
+            "group": 4,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d² 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": 2400,
+            "boilingPoint": 5800,
+            "density": 23.2
+          },
+          {
+            "atomicNumber": 105,
+            "symbol": "Db",
+            "name": "Dubnium",
+            "atomicMass": 268,
+            "category": "transition-metal",
+            "group": 5,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d³ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 106,
+            "symbol": "Sg",
+            "name": "Seaborgium",
+            "atomicMass": 269,
+            "category": "transition-metal",
+            "group": 6,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁴ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 107,
+            "symbol": "Bh",
+            "name": "Bohrium",
+            "atomicMass": 270,
+            "category": "transition-metal",
+            "group": 7,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁵ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              7
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 108,
+            "symbol": "Hs",
+            "name": "Hassium",
+            "atomicMass": 269,
+            "category": "transition-metal",
+            "group": 8,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁶ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              8
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 109,
+            "symbol": "Mt",
+            "name": "Meitnerium",
+            "atomicMass": 278,
+            "category": "transition-metal",
+            "group": 9,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁷ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              3,
+              4,
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 110,
+            "symbol": "Ds",
+            "name": "Darmstadtium",
+            "atomicMass": 281,
+            "category": "transition-metal",
+            "group": 10,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁸ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              6
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 111,
+            "symbol": "Rg",
+            "name": "Roentgenium",
+            "atomicMass": 282,
+            "category": "transition-metal",
+            "group": 11,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d⁹ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              -1,
+              1,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 112,
+            "symbol": "Cn",
+            "name": "Copernicium",
+            "atomicMass": 285,
+            "category": "transition-metal",
+            "group": 12,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s²",
+            "electronegativity": null,
+            "oxidationStates": [
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 113,
+            "symbol": "Nh",
+            "name": "Nihonium",
+            "atomicMass": 286,
+            "category": "post-transition-metal",
+            "group": 13,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹",
+            "electronegativity": null,
+            "oxidationStates": [
+              1
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 114,
+            "symbol": "Fl",
+            "name": "Flerovium",
+            "atomicMass": 289,
+            "category": "post-transition-metal",
+            "group": 14,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²",
+            "electronegativity": null,
+            "oxidationStates": [
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 115,
+            "symbol": "Mc",
+            "name": "Moscovium",
+            "atomicMass": 290,
+            "category": "post-transition-metal",
+            "group": 15,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³",
+            "electronegativity": null,
+            "oxidationStates": [
+              1,
+              3
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 116,
+            "symbol": "Lv",
+            "name": "Livermorium",
+            "atomicMass": 293,
+            "category": "post-transition-metal",
+            "group": 16,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴",
+            "electronegativity": null,
+            "oxidationStates": [
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 117,
+            "symbol": "Ts",
+            "name": "Tennessine",
+            "atomicMass": 294,
+            "category": "halogen",
+            "group": 17,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵",
+            "electronegativity": null,
+            "oxidationStates": [
+              -1,
+              1,
+              3,
+              5
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": null,
+            "density": null
+          },
+          {
+            "atomicNumber": 118,
+            "symbol": "Og",
+            "name": "Oganesson",
+            "atomicMass": 294,
+            "category": "noble-gas",
+            "group": 18,
+            "period": 7,
+            "electronConfiguration": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶",
+            "electronegativity": null,
+            "oxidationStates": [
+              0,
+              2,
+              4
+            ],
+            "state": "solid",
+            "meltingPoint": null,
+            "boilingPoint": 350,
+            "density": null
+          }
+        ],
+        "categories": [
+          "actinide",
+          "alkali-metal",
+          "alkaline-earth-metal",
+          "halogen",
+          "lanthanide",
+          "metalloid",
+          "noble-gas",
+          "nonmetal",
+          "post-transition-metal",
+          "transition-metal"
+        ],
+        "timestamp": "2026-08-10T00:00:00.000Z"
+      }
+    },
     "elementsList": {
       "status": 200,
       "headers": {
@@ -260,6 +2686,1143 @@
       },
       "body": {
         "error": "Invalid limit - must be a positive integer"
+      }
+    },
+    "compoundsDefaultLimit": {
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=3600",
+        "content-type": "application/json",
+        "x-api-version": "1.0.0"
+      },
+      "body": {
+        "success": true,
+        "count": 50,
+        "total": 1433,
+        "compounds": [
+          {
+            "id": "sulfuric-acid",
+            "name": "Sulfuric Acid",
+            "formula": "H2SO4",
+            "molecularMass": 98.072,
+            "casNumber": "7664-93-9",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": 10,
+              "boilingPoint": 337,
+              "density": 1.84
+            },
+            "hazards": [
+              "H314",
+              "H290"
+            ],
+            "uses": [
+              "fertilizer",
+              "battery acid",
+              "industrial catalyst"
+            ]
+          },
+          {
+            "id": "nitric-acid",
+            "name": "Nitric Acid",
+            "formula": "HNO3",
+            "molecularMass": 63.012,
+            "casNumber": "7697-37-2",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": -42,
+              "boilingPoint": 83,
+              "density": 1.51
+            },
+            "hazards": [
+              "H272",
+              "H314"
+            ],
+            "uses": [
+              "fertilizer",
+              "explosives",
+              "etching"
+            ]
+          },
+          {
+            "id": "hydrochloric-acid",
+            "name": "Hydrochloric Acid",
+            "formula": "HCl",
+            "molecularMass": 36.458,
+            "casNumber": "7647-01-0",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "gas",
+              "meltingPoint": -114,
+              "boilingPoint": -85,
+              "density": 1.49
+            },
+            "hazards": [
+              "H330",
+              "H314"
+            ],
+            "uses": [
+              "metal cleaning",
+              "pH control"
+            ]
+          },
+          {
+            "id": "phosphoric-acid",
+            "name": "Phosphoric Acid",
+            "formula": "H3PO4",
+            "molecularMass": 97.994,
+            "casNumber": "7664-38-2",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": 42,
+              "boilingPoint": 158,
+              "density": 1.68
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "fertilizer",
+              "food additive",
+              "rust removal"
+            ]
+          },
+          {
+            "id": "acetic-acid",
+            "name": "Acetic Acid",
+            "formula": "CH3COOH",
+            "molecularMass": 60.052,
+            "casNumber": "64-19-7",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": 16.6,
+              "boilingPoint": 118,
+              "density": 1.05
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "vinegar",
+              "chemical synthesis"
+            ]
+          },
+          {
+            "id": "carbonic-acid",
+            "name": "Carbonic Acid",
+            "formula": "H2CO3",
+            "molecularMass": 62.024,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "carbonated drinks",
+              "buffer systems"
+            ]
+          },
+          {
+            "id": "boric-acid",
+            "name": "Boric Acid",
+            "formula": "H3BO3",
+            "molecularMass": 61.831,
+            "casNumber": "10043-35-3",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 171,
+              "boilingPoint": null,
+              "density": 1.44
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "antiseptic",
+              "buffer",
+              "insecticide"
+            ]
+          },
+          {
+            "id": "perchloric-acid",
+            "name": "Perchloric Acid",
+            "formula": "HClO4",
+            "molecularMass": 100.454,
+            "casNumber": "7601-90-3",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 203,
+              "density": 1.77
+            },
+            "hazards": [
+              "H271",
+              "H314"
+            ],
+            "uses": [
+              "analytical chemistry",
+              "rocket oxidizer"
+            ]
+          },
+          {
+            "id": "hydrobromic-acid",
+            "name": "Hydrobromic Acid",
+            "formula": "HBr",
+            "molecularMass": 80.912,
+            "casNumber": "10035-10-6",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "gas",
+              "meltingPoint": null,
+              "boilingPoint": -67,
+              "density": null
+            },
+            "hazards": [
+              "H330",
+              "H314"
+            ],
+            "uses": [
+              "bromide production",
+              "catalyst"
+            ]
+          },
+          {
+            "id": "hydroiodic-acid",
+            "name": "Hydroiodic Acid",
+            "formula": "HI",
+            "molecularMass": 127.912,
+            "casNumber": "10034-85-2",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "gas",
+              "meltingPoint": null,
+              "boilingPoint": -35,
+              "density": null
+            },
+            "hazards": [
+              "H330",
+              "H314"
+            ],
+            "uses": [
+              "iodide production",
+              "reducing agent"
+            ]
+          },
+          {
+            "id": "hydrofluoric-acid",
+            "name": "Hydrofluoric Acid",
+            "formula": "HF",
+            "molecularMass": 20.006,
+            "casNumber": "7664-39-3",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "gas",
+              "meltingPoint": null,
+              "boilingPoint": 20,
+              "density": null
+            },
+            "hazards": [
+              "H310",
+              "H330",
+              "H314"
+            ],
+            "uses": [
+              "glass etching",
+              "metal cleaning"
+            ]
+          },
+          {
+            "id": "chloric-acid",
+            "name": "Chloric Acid",
+            "formula": "HClO3",
+            "molecularMass": 84.455,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H272",
+              "H314"
+            ],
+            "uses": [
+              "oxidizer",
+              "laboratory reagent"
+            ]
+          },
+          {
+            "id": "hypochlorous-acid",
+            "name": "Hypochlorous Acid",
+            "formula": "HClO",
+            "molecularMass": 52.457,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H290"
+            ],
+            "uses": [
+              "disinfection",
+              "bleaching"
+            ]
+          },
+          {
+            "id": "sulfurous-acid",
+            "name": "Sulfurous Acid",
+            "formula": "H2SO3",
+            "molecularMass": 82.073,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "preservative",
+              "bleaching"
+            ]
+          },
+          {
+            "id": "nitrous-acid",
+            "name": "Nitrous Acid",
+            "formula": "HNO2",
+            "molecularMass": 47.013,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H290"
+            ],
+            "uses": [
+              "diazotization",
+              "laboratory reagent"
+            ]
+          },
+          {
+            "id": "phosphorous-acid",
+            "name": "Phosphorous Acid",
+            "formula": "H3PO3",
+            "molecularMass": 81.995,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 73,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H318"
+            ],
+            "uses": [
+              "reducing agent",
+              "fertilizer intermediate"
+            ]
+          },
+          {
+            "id": "chromic-acid",
+            "name": "Chromic Acid",
+            "formula": "H2CrO4",
+            "molecularMass": 118.008,
+            "casNumber": null,
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H350",
+              "H314"
+            ],
+            "uses": [
+              "electroplating",
+              "cleaning solutions"
+            ]
+          },
+          {
+            "id": "hydrocyanic-acid",
+            "name": "Hydrocyanic Acid",
+            "formula": "HCN",
+            "molecularMass": 27.026,
+            "casNumber": "74-90-8",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 26,
+              "density": null
+            },
+            "hazards": [
+              "H300",
+              "H330"
+            ],
+            "uses": [
+              "fumigation",
+              "chemical synthesis"
+            ]
+          },
+          {
+            "id": "formic-acid",
+            "name": "Formic Acid",
+            "formula": "HCOOH",
+            "molecularMass": 46.025,
+            "casNumber": "64-18-6",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 101,
+              "density": 1.22
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "textiles",
+              "leather",
+              "preservative"
+            ]
+          },
+          {
+            "id": "oxalic-acid",
+            "name": "Oxalic Acid",
+            "formula": "C2H2O4",
+            "molecularMass": 90.034,
+            "casNumber": "144-62-7",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 189,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H302",
+              "H318"
+            ],
+            "uses": [
+              "rust removal",
+              "bleaching"
+            ]
+          },
+          {
+            "id": "lactic-acid",
+            "name": "Lactic Acid",
+            "formula": "C3H6O3",
+            "molecularMass": 90.078,
+            "casNumber": "50-21-5",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 122,
+              "density": 1.21
+            },
+            "hazards": [],
+            "uses": [
+              "food additive",
+              "biodegradable plastics"
+            ]
+          },
+          {
+            "id": "citric-acid",
+            "name": "Citric Acid",
+            "formula": "C6H8O7",
+            "molecularMass": 192.123,
+            "casNumber": "77-92-9",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 153,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [],
+            "uses": [
+              "food additive",
+              "buffer",
+              "cleaning"
+            ]
+          },
+          {
+            "id": "peracetic-acid",
+            "name": "Peracetic Acid",
+            "formula": "C2H4O3",
+            "molecularMass": 76.051,
+            "casNumber": "79-21-0",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 110,
+              "density": 1.19
+            },
+            "hazards": [
+              "H314",
+              "H242"
+            ],
+            "uses": [
+              "disinfectant",
+              "sterilization"
+            ]
+          },
+          {
+            "id": "periodic-acid",
+            "name": "Periodic Acid",
+            "formula": "HIO4",
+            "molecularMass": 191.908,
+            "casNumber": "10450-60-9",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 130,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H272",
+              "H314"
+            ],
+            "uses": [
+              "oxidizing agent",
+              "carbohydrate analysis"
+            ]
+          },
+          {
+            "id": "arsenic-acid",
+            "name": "Arsenic Acid",
+            "formula": "H3AsO4",
+            "molecularMass": 141.942,
+            "casNumber": "7778-39-4",
+            "category": "acid",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H301",
+              "H373"
+            ],
+            "uses": [
+              "wood preservative",
+              "chemical synthesis"
+            ]
+          },
+          {
+            "id": "sodium-hydroxide",
+            "name": "Sodium Hydroxide",
+            "formula": "NaOH",
+            "molecularMass": 39.997,
+            "casNumber": "1310-73-2",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 318,
+              "boilingPoint": 1388,
+              "density": 2.13
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "soap making",
+              "pH adjustment",
+              "paper production"
+            ]
+          },
+          {
+            "id": "potassium-hydroxide",
+            "name": "Potassium Hydroxide",
+            "formula": "KOH",
+            "molecularMass": 56.105,
+            "casNumber": "1310-58-3",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 360,
+              "boilingPoint": 1327,
+              "density": 2.04
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "battery electrolyte",
+              "biodiesel",
+              "soap making"
+            ]
+          },
+          {
+            "id": "lithium-hydroxide",
+            "name": "Lithium Hydroxide",
+            "formula": "LiOH",
+            "molecularMass": 23.947,
+            "casNumber": "1310-65-2",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 462,
+              "boilingPoint": 925,
+              "density": 1.46
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "CO2 scrubber",
+              "battery precursor"
+            ]
+          },
+          {
+            "id": "calcium-hydroxide",
+            "name": "Calcium Hydroxide",
+            "formula": "Ca(OH)2",
+            "molecularMass": 74.092,
+            "casNumber": "1305-62-0",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 580,
+              "boilingPoint": null,
+              "density": 2.21
+            },
+            "hazards": [
+              "H315",
+              "H318"
+            ],
+            "uses": [
+              "construction",
+              "water treatment"
+            ]
+          },
+          {
+            "id": "barium-hydroxide",
+            "name": "Barium Hydroxide",
+            "formula": "Ba(OH)2",
+            "molecularMass": 171.341,
+            "casNumber": "17194-00-2",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 78,
+              "boilingPoint": null,
+              "density": 2.18
+            },
+            "hazards": [
+              "H302",
+              "H314"
+            ],
+            "uses": [
+              "analytical chemistry",
+              "lubricant additive"
+            ]
+          },
+          {
+            "id": "strontium-hydroxide",
+            "name": "Strontium Hydroxide",
+            "formula": "Sr(OH)2",
+            "molecularMass": 121.634,
+            "casNumber": "18480-07-4",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 375,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H315",
+              "H318"
+            ],
+            "uses": [
+              "plastic stabilizer",
+              "sugar refining"
+            ]
+          },
+          {
+            "id": "magnesium-hydroxide",
+            "name": "Magnesium Hydroxide",
+            "formula": "Mg(OH)2",
+            "molecularMass": 58.319,
+            "casNumber": "1309-42-8",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 350,
+              "boilingPoint": null,
+              "density": 2.36
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "antacid",
+              "flame retardant"
+            ]
+          },
+          {
+            "id": "aluminum-hydroxide",
+            "name": "Aluminum Hydroxide",
+            "formula": "Al(OH)3",
+            "molecularMass": 78.003,
+            "casNumber": "21645-51-2",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 300,
+              "boilingPoint": null,
+              "density": 2.42
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "antacid",
+              "water treatment",
+              "flame retardant"
+            ]
+          },
+          {
+            "id": "ammonium-hydroxide",
+            "name": "Ammonium Hydroxide",
+            "formula": "NH4OH",
+            "molecularMass": 35.046,
+            "casNumber": "1336-21-6",
+            "category": "base",
+            "physicalProperties": {
+              "state": "liquid",
+              "meltingPoint": null,
+              "boilingPoint": 27,
+              "density": null
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "cleaning agent",
+              "fertilizer"
+            ]
+          },
+          {
+            "id": "ammonia",
+            "name": "Ammonia",
+            "formula": "NH3",
+            "molecularMass": 17.031,
+            "casNumber": "7664-41-7",
+            "category": "base",
+            "physicalProperties": {
+              "state": "gas",
+              "meltingPoint": -78,
+              "boilingPoint": -33,
+              "density": 0.00073
+            },
+            "hazards": [
+              "H330",
+              "H314"
+            ],
+            "uses": [
+              "fertilizer",
+              "refrigerant"
+            ]
+          },
+          {
+            "id": "rubidium-hydroxide",
+            "name": "Rubidium Hydroxide",
+            "formula": "RbOH",
+            "molecularMass": 102.475,
+            "casNumber": "1310-82-3",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 301,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "chemical synthesis"
+            ]
+          },
+          {
+            "id": "cesium-hydroxide",
+            "name": "Cesium Hydroxide",
+            "formula": "CsOH",
+            "molecularMass": 149.912,
+            "casNumber": "21351-79-1",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 272,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H314"
+            ],
+            "uses": [
+              "glass etching",
+              "chemical synthesis"
+            ]
+          },
+          {
+            "id": "zinc-hydroxide",
+            "name": "Zinc Hydroxide",
+            "formula": "Zn(OH)2",
+            "molecularMass": 99.394,
+            "casNumber": "20427-58-1",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H315",
+              "H319"
+            ],
+            "uses": [
+              "antiseptic",
+              "rubber processing"
+            ]
+          },
+          {
+            "id": "copper-ii-hydroxide",
+            "name": "Copper(II) Hydroxide",
+            "formula": "Cu(OH)2",
+            "molecularMass": 97.56,
+            "casNumber": "20427-59-2",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H302",
+              "H315",
+              "H319"
+            ],
+            "uses": [
+              "fungicide",
+              "pigments"
+            ]
+          },
+          {
+            "id": "iron-iii-hydroxide",
+            "name": "Iron(III) Hydroxide",
+            "formula": "Fe(OH)3",
+            "molecularMass": 106.866,
+            "casNumber": "20344-49-4",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [],
+            "uses": [
+              "water treatment",
+              "pigments"
+            ]
+          },
+          {
+            "id": "nickel-ii-hydroxide",
+            "name": "Nickel(II) Hydroxide",
+            "formula": "Ni(OH)2",
+            "molecularMass": 92.707,
+            "casNumber": "12054-48-7",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H317",
+              "H351"
+            ],
+            "uses": [
+              "battery electrodes"
+            ]
+          },
+          {
+            "id": "cobalt-ii-hydroxide",
+            "name": "Cobalt(II) Hydroxide",
+            "formula": "Co(OH)2",
+            "molecularMass": 92.947,
+            "casNumber": "21041-93-0",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H317",
+              "H351"
+            ],
+            "uses": [
+              "catalysts",
+              "ceramics"
+            ]
+          },
+          {
+            "id": "strontium-carbonate",
+            "name": "Strontium Carbonate",
+            "formula": "SrCO3",
+            "molecularMass": 147.628,
+            "casNumber": null,
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "pyrotechnics",
+              "ceramics"
+            ]
+          },
+          {
+            "id": "guanidine",
+            "name": "Guanidine",
+            "formula": "CH5N3",
+            "molecularMass": 59.072,
+            "casNumber": "113-00-8",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": null,
+              "boilingPoint": null,
+              "density": null
+            },
+            "hazards": [
+              "H301",
+              "H315"
+            ],
+            "uses": [
+              "analytical reagent",
+              "biochemistry"
+            ]
+          },
+          {
+            "id": "sodium-carbonate",
+            "name": "Sodium Carbonate",
+            "formula": "Na2CO3",
+            "molecularMass": 105.988,
+            "casNumber": "497-19-8",
+            "category": "base",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 851,
+              "boilingPoint": null,
+              "density": 2.54
+            },
+            "hazards": [
+              "H319"
+            ],
+            "uses": [
+              "glass making",
+              "water softening"
+            ]
+          },
+          {
+            "id": "sodium-chloride",
+            "name": "Sodium Chloride",
+            "formula": "NaCl",
+            "molecularMass": 58.44,
+            "casNumber": "7647-14-5",
+            "category": "salt",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 801,
+              "boilingPoint": 1465,
+              "density": 2.16
+            },
+            "hazards": [],
+            "uses": [
+              "food",
+              "de-icing",
+              "chemical feedstock"
+            ]
+          },
+          {
+            "id": "potassium-chloride",
+            "name": "Potassium Chloride",
+            "formula": "KCl",
+            "molecularMass": 74.548,
+            "casNumber": "7447-40-7",
+            "category": "salt",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 770,
+              "boilingPoint": 1420,
+              "density": 1.98
+            },
+            "hazards": [],
+            "uses": [
+              "fertilizer",
+              "food additive"
+            ]
+          },
+          {
+            "id": "lithium-chloride",
+            "name": "Lithium Chloride",
+            "formula": "LiCl",
+            "molecularMass": 42.39,
+            "casNumber": "7447-41-8",
+            "category": "salt",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 605,
+              "boilingPoint": 1382,
+              "density": 2.07
+            },
+            "hazards": [],
+            "uses": [
+              "desiccant",
+              "battery"
+            ]
+          },
+          {
+            "id": "calcium-chloride",
+            "name": "Calcium Chloride",
+            "formula": "CaCl2",
+            "molecularMass": 110.978,
+            "casNumber": "10043-52-4",
+            "category": "salt",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 772,
+              "boilingPoint": null,
+              "density": 2.15
+            },
+            "hazards": [],
+            "uses": [
+              "de-icing",
+              "drying agent"
+            ]
+          },
+          {
+            "id": "magnesium-chloride",
+            "name": "Magnesium Chloride",
+            "formula": "MgCl2",
+            "molecularMass": 95.205,
+            "casNumber": "7786-30-3",
+            "category": "salt",
+            "physicalProperties": {
+              "state": "solid",
+              "meltingPoint": 714,
+              "boilingPoint": null,
+              "density": 2.32
+            },
+            "hazards": [],
+            "uses": [
+              "dust control",
+              "de-icing"
+            ]
+          }
+        ],
+        "categories": [
+          "acid",
+          "alcohol",
+          "aldehyde",
+          "alloy",
+          "amide",
+          "amine",
+          "amino-acid",
+          "anhydride",
+          "aromatic",
+          "base",
+          "carbon",
+          "carboxylic-acid",
+          "ceramic",
+          "complex",
+          "dye",
+          "ester",
+          "ether",
+          "glass",
+          "glycoside",
+          "halogenated-hydrocarbon",
+          "hydrocarbon",
+          "hydroxide",
+          "industrial",
+          "isocyanate",
+          "ketone",
+          "metal",
+          "metalloid",
+          "natural-product",
+          "nitrile",
+          "nucleotide",
+          "other",
+          "oxide",
+          "pharmaceutical",
+          "phenol",
+          "polymer",
+          "polysaccharide",
+          "quinone",
+          "reagent",
+          "salt",
+          "semiconductor",
+          "silicate",
+          "solvent",
+          "sugar",
+          "sulfide",
+          "surfactant",
+          "terpenoid",
+          "vitamin"
+        ],
+        "filters": {
+          "query": null,
+          "category": null,
+          "limit": 50
+        },
+        "timestamp": "2026-08-10T00:00:00.000Z"
       }
     },
     "compoundsList": {

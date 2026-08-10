@@ -6,9 +6,10 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-const CACHE_VERSION = 'verchem-v2.0.2';
+const CACHE_VERSION = 'verchem-v2.0.3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+const VERSIONED_CACHE_NAME = /^verchem-v(\d+)\.(\d+)\.(\d+)-(static|dynamic)$/;
 const OFFLINE_ROUTE_ALIASES = {
   '/tools/ph-calculator': '/solutions',
 };
@@ -27,9 +28,25 @@ const STATIC_ASSETS = [
   '/offline.html',
 ];
 
-function isCurrentCache(cacheName) {
-  return cacheName === STATIC_CACHE || cacheName === DYNAMIC_CACHE;
+function cacheDescriptor(cacheName) {
+  const match = VERSIONED_CACHE_NAME.exec(cacheName);
+  if (!match) return null;
+
+  const release = match.slice(1, 4).map(Number);
+  if (!release.every(Number.isSafeInteger)) return null;
+
+  return { cacheName, release, kind: match[4] };
 }
+
+function compareReleases(left, right) {
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+}
+
+const CURRENT_CACHE_DESCRIPTOR = cacheDescriptor(STATIC_CACHE);
+if (!CURRENT_CACHE_DESCRIPTOR) throw new Error(`Invalid cache version: ${CACHE_VERSION}`);
 
 async function matchCaches(cacheNames, request) {
   for (const cacheName of cacheNames) {
@@ -40,9 +57,20 @@ async function matchCaches(cacheNames, request) {
 }
 
 async function legacyCacheNames() {
-  return (await caches.keys()).filter((cacheName) =>
-    cacheName.startsWith('verchem-') && !isCurrentCache(cacheName)
-  );
+  return (await caches.keys())
+    .map(cacheDescriptor)
+    .filter((candidate) =>
+      candidate && compareReleases(candidate.release, CURRENT_CACHE_DESCRIPTOR.release) < 0
+    )
+    .sort((left, right) => {
+      const releaseOrder = compareReleases(right.release, left.release);
+      if (releaseOrder !== 0) return releaseOrder;
+
+      // Within one release, prefer runtime content over its original shell.
+      if (left.kind !== right.kind) return left.kind === 'dynamic' ? -1 : 1;
+      return left.cacheName.localeCompare(right.cacheName);
+    })
+    .map((candidate) => candidate.cacheName);
 }
 
 /**
@@ -56,16 +84,29 @@ async function retireLegacyEntry(request) {
   }));
 }
 
+function currentCacheOrder(preferDynamic) {
+  return preferDynamic
+    ? [DYNAMIC_CACHE, STATIC_CACHE]
+    : [STATIC_CACHE, DYNAMIC_CACHE];
+}
+
+async function matchCurrentCaches(request, preferDynamic = false) {
+  return matchCaches(currentCacheOrder(preferDynamic), request);
+}
+
+/** Read migration history without mutating it (safe while installing/waiting). */
+async function matchCurrentThenLegacyReadOnly(request, preferDynamic = false) {
+  return await matchCurrentCaches(request, preferDynamic) ||
+    matchCaches(await legacyCacheNames(), request);
+}
+
 /**
  * CacheStorage.match() searches caches in creation order, which lets a v1
  * response beat a warmed v2 response forever. Always search the two current
  * caches explicitly before consulting legacy history.
  */
 async function matchCurrentThenLegacy(request, preferDynamic = false) {
-  const currentOrder = preferDynamic
-    ? [DYNAMIC_CACHE, STATIC_CACHE]
-    : [STATIC_CACHE, DYNAMIC_CACHE];
-  const current = await matchCaches(currentOrder, request);
+  const current = await matchCurrentCaches(request, preferDynamic);
   if (current) {
     await retireLegacyEntry(request);
     return current;
@@ -80,10 +121,10 @@ async function putInCurrentCache(cacheName, request, response) {
 }
 
 /**
- * Populate the new cache before any legacy cache is removed. Network content
- * wins; an older cached response is used only as an offline migration fallback.
- * Throwing when neither exists keeps the current worker active and its cache
- * intact instead of activating a worker with incomplete offline coverage.
+ * Install/repair is strictly additive: it may populate only this worker's
+ * cache. Network content wins; an older cached response is a read-only offline
+ * migration fallback. Throwing when neither exists keeps the previous worker
+ * active without damaging any cache it still needs.
  */
 async function warmStaticAssets() {
   const cache = await caches.open(STATIC_CACHE);
@@ -93,10 +134,7 @@ async function warmStaticAssets() {
       cache: 'reload',
     });
 
-    if (await cache.match(request)) {
-      await retireLegacyEntry(request);
-      return;
-    }
+    if (await cache.match(request)) return;
 
     try {
       const response = await fetch(request);
@@ -104,18 +142,19 @@ async function warmStaticAssets() {
         throw new Error(`Failed to warm ${asset}: HTTP ${response.status}`);
       }
       await cache.put(request, response);
-      await retireLegacyEntry(request);
       return;
     } catch (networkError) {
       const pathname = new URL(request.url).pathname;
       const alias = OFFLINE_ROUTE_ALIASES[pathname];
-      const migrated = await matchCurrentThenLegacy(request) ||
+      const migrated = await matchCurrentThenLegacyReadOnly(request) ||
         (alias
-          ? await matchCurrentThenLegacy(new URL(alias, self.location.origin).toString(), true)
+          ? await matchCurrentThenLegacyReadOnly(
+              new URL(alias, self.location.origin).toString(),
+              true
+            )
           : undefined);
       if (!migrated) throw networkError;
       await cache.put(request, migrated.clone());
-      await retireLegacyEntry(request);
     }
   };
 
@@ -124,6 +163,14 @@ async function warmStaticAssets() {
   const aliases = new Set(Object.keys(OFFLINE_ROUTE_ALIASES));
   await Promise.all(STATIC_ASSETS.filter((asset) => !aliases.has(asset)).map(warmAsset));
   await Promise.all(STATIC_ASSETS.filter((asset) => aliases.has(asset)).map(warmAsset));
+}
+
+async function retireWarmedLegacyEntries() {
+  const current = await caches.open(STATIC_CACHE);
+  await Promise.all(STATIC_ASSETS.map(async (asset) => {
+    const request = new Request(new URL(asset, self.location.origin).toString());
+    if (await current.match(request)) await retireLegacyEntry(request);
+  }));
 }
 
 // Install event - cache static assets
@@ -138,8 +185,9 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate only after the replacement shell is warm. Legacy caches remain as
-// offline history: dynamic pages cannot be reconstructed from a static list.
+// Activate only after the replacement shell is warm. Claim first, then retire
+// duplicates; the install/waiting phase never mutates an active worker's cache.
+// Non-duplicate legacy pages remain as offline history.
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...');
 
@@ -149,6 +197,7 @@ self.addEventListener('activate', (event) => {
       await warmStaticAssets();
       console.log('[SW] Replacement shell ready; legacy offline caches preserved');
       await self.clients.claim();
+      await retireWarmedLegacyEntries();
     })()
   );
 });

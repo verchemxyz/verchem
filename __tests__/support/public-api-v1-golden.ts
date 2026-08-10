@@ -91,6 +91,7 @@ export async function capturePublicApiV1Fixtures(
     index: await snapshot(await handlers.getIndex()),
     indexMethodNotAllowed: await snapshot(await frameworkMethodNotAllowed(handlers.getIndex)),
 
+    elementsDefaultLimit: await snapshot(await handlers.getElements(request('/api/chemistry/elements'))),
     elementsList: await snapshot(await handlers.getElements(request('/api/chemistry/elements?limit=2'))),
     elementSodium: await snapshot(await handlers.getElements(request('/api/chemistry/elements?symbol=Na'))),
     elementLegacyNumberParsing: await snapshot(await handlers.getElements(request('/api/chemistry/elements?number=1abc'))),
@@ -99,6 +100,7 @@ export async function capturePublicApiV1Fixtures(
     elementUnknownCategory: await snapshot(await handlers.getElements(request('/api/chemistry/elements?category=not-real'))),
     elementInvalidLimit: await snapshot(await handlers.getElements(request('/api/chemistry/elements?limit=0'))),
 
+    compoundsDefaultLimit: await snapshot(await handlers.getCompounds(request('/api/chemistry/compounds'))),
     compoundsList: await snapshot(await handlers.getCompounds(request('/api/chemistry/compounds?limit=2'))),
     compoundsSearch: await snapshot(await handlers.getCompounds(request('/api/chemistry/compounds?q=acetone&limit=3'))),
     compoundsCategory: await snapshot(await handlers.getCompounds(request('/api/chemistry/compounds?category=acid&limit=2'))),

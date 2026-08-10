@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 
 import {
   summarizeLegacyAnswerCardRows,
+  summarizeReplayAwareAnswerCardRows,
   type LegacyAnswerCardListRow,
   type LegacyAnswerCardSummary,
 } from '@/lib/answer-cards/legacy-list-serialization'
@@ -10,6 +11,13 @@ import {
   paginateAnswerCardRows,
   parseAnswerCardCursor,
 } from '@/lib/answer-cards/list-pagination'
+import {
+  canonicalPayloadString,
+  signCard,
+  verifyCanonicalSignature,
+} from '@/lib/answer-cards/signature'
+import { TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
+import type { SignablePayload, ToolCall } from '@/lib/answer-cards/types'
 
 interface TestCard {
   id: string
@@ -26,6 +34,109 @@ const cards: TestCard[] = Array.from({ length: 21 }, (_, index) => {
     question: `Card ${ordinal}`,
   }
 })
+
+function parityPayload(call: ToolCall): SignablePayload {
+  return {
+    question: `Parity ${call.engine_version ?? 'no-version'}`,
+    status: 'verified',
+    tool_calls: [call],
+    explanation: 'Signed result for serializer parity.',
+    audit: { clean: true, unmatched: [] },
+    model: 'test-model',
+    version: 'w3-v2',
+    issued_at: createdAt,
+  }
+}
+
+async function signedParityRow(
+  id: string,
+  payload: SignablePayload
+): Promise<LegacyAnswerCardListRow> {
+  return {
+    id,
+    question: 'Untrusted denormalized question',
+    status: 'error',
+    is_public: false,
+    created_at: createdAt,
+    signed_payload: canonicalPayloadString(payload),
+    signature: await signCard(payload),
+  }
+}
+
+async function verifySameCardSerializerParity(): Promise<void> {
+  const tool = TOOL_BY_NAME.get('calculate_strong_acid_ph')
+  assert.ok(tool)
+  const input = { concentration: 0.1, formula: 'HCl' }
+  const currentCall: ToolCall = {
+    name: tool.name,
+    engine: tool.engine,
+    engine_version: tool.engineVersion,
+    input,
+    result: tool.execute(input),
+    citation: tool.citation,
+  }
+  const noVersionCall: ToolCall = { ...currentCall }
+  delete noVersionCall.engine_version
+
+  const rows = await Promise.all([
+    signedParityRow('current', parityPayload(currentCall)),
+    signedParityRow('superseded', parityPayload({
+      ...currentCall,
+      engine_version: '1.0.0',
+    })),
+    signedParityRow('corrected', parityPayload({
+      ...currentCall,
+      result: { ok: true, value: { ...currentCall.result.value, pH: 99 } },
+    })),
+    signedParityRow('no-engine-version', parityPayload(noVersionCall)),
+  ])
+  rows.push({
+    id: 'malformed-payload',
+    question: 'Malformed fallback',
+    status: 'verified',
+    is_public: false,
+    created_at: createdAt,
+    signed_payload: '{',
+    signature: 'invalid-signature',
+  })
+
+  const originalExecute = tool.execute
+  let replayCount = 0
+  tool.execute = (replayInput) => {
+    replayCount += 1
+    return originalExecute(replayInput)
+  }
+
+  try {
+    const legacy = await summarizeLegacyAnswerCardRows(rows, verifyCanonicalSignature)
+    assert.equal(replayCount, 0, 'the unbounded legacy list must never replay engines')
+    const paginated = await summarizeReplayAwareAnswerCardRows(rows, verifyCanonicalSignature)
+    assert.equal(replayCount, 4, 'the bounded serializer must replay each valid card exactly once')
+    assert.deepEqual(
+      paginated.map((card) => card.engineReplayStatus),
+      ['current', 'superseded', 'corrected', 'superseded', 'unavailable']
+    )
+
+    for (const [index, legacyCard] of legacy.entries()) {
+      const paginatedCard = paginated[index]!
+      const legacyClaimsVerified = legacyCard.status === 'verified' && legacyCard.signatureValid
+      const paginatedProvesVerified = paginatedCard.status === 'verified' &&
+        paginatedCard.signatureValid &&
+        paginatedCard.engineReplayStatus === 'current' &&
+        paginatedCard.currentEngineAgrees
+      assert.equal(
+        legacyClaimsVerified && !paginatedProvesVerified,
+        false,
+        `${legacyCard.id}: legacy serializer made a stronger claim than replay`
+      )
+    }
+
+    assert.ok(legacy.every((card) => card.status === 'unverified'))
+    assert.equal(paginated[0]!.engineReplayStatus, 'current')
+  } finally {
+    tool.execute = originalExecute
+  }
+}
 
 async function run(): Promise<void> {
   const signedPayload = JSON.stringify({
@@ -71,7 +182,7 @@ async function run(): Promise<void> {
     {
       id: cards[0]!.id,
       question: 'Question from signed payload',
-      status: 'verified',
+      status: 'unverified',
       is_public: false,
       created_at: createdAt,
       signatureValid: true,
@@ -91,6 +202,8 @@ async function run(): Promise<void> {
   )
   assert.equal('engineReplayStatus' in legacySummaries[0]!, false)
   assert.equal('currentEngineAgrees' in legacySummaries[0]!, false)
+
+  await verifySameCardSerializerParity()
 
   const legacy = await resolveAnswerCardList<LegacyAnswerCardSummary, TestCard>(
     null,

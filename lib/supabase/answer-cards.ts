@@ -26,7 +26,6 @@ import {
   isCurrentlyVerifiedAnswer,
   unavailableEngineReplay,
   type EngineReplayAssessment,
-  type EngineReplayStatus,
 } from '@/lib/answer-cards/replay'
 import {
   ANSWER_CARD_PAGE_SIZE,
@@ -37,8 +36,10 @@ import {
 } from '@/lib/answer-cards/list-pagination'
 import {
   summarizeLegacyAnswerCardRows,
+  summarizeReplayAwareAnswerCardRows,
   type LegacyAnswerCardListRow,
   type LegacyAnswerCardSummary,
+  type ReplayAwareAnswerCardSummary,
 } from '@/lib/answer-cards/legacy-list-serialization'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -65,20 +66,8 @@ interface AnswerCardRow {
   updated_at: string
 }
 
-/** Lightweight row for list views (signature re-verified, payload not returned). */
-export interface AnswerCardSummary {
-  id: string
-  question: string
-  status: CardStatus
-  is_public: boolean
-  created_at: string
-  /** false → row no longer matches its signature; list must not show VERIFIED. */
-  signatureValid: boolean
-  /** Current-engine status is separate from signature integrity. */
-  engineReplayStatus: EngineReplayStatus
-  currentEngineAgrees: boolean
-}
-
+/** Lightweight replay-aware row for cursor list views. */
+export type AnswerCardSummary = ReplayAwareAnswerCardSummary
 
 /** A card reconstructed from storage, with the result of re-verifying its HMAC. */
 export interface LoadedAnswerCard {
@@ -200,49 +189,6 @@ type AnswerCardListRow = Pick<
   'id' | 'question' | 'status' | 'is_public' | 'created_at' | 'signed_payload' | 'signature'
 >
 
-async function summarizeAnswerCardRows(rows: AnswerCardListRow[]): Promise<AnswerCardSummary[]> {
-  // Re-verify each row AND derive question/status from the SIGNED payload — not
-  // the denormalized columns. Otherwise tampering only `status` (to 'verified')
-  // without touching signed_payload/signature would keep signatureValid true and
-  // the list would show a forged Verified badge. The signed_payload is verified
-  // but NOT returned to the client (keeps the list light).
-  return Promise.all(
-    rows.map(async (r) => {
-      const signatureValid = await verifyCanonicalSignature(r.signed_payload, r.signature)
-      let question = r.question
-      let status = r.status
-      let parsed: SignablePayload | null = null
-      try {
-        const raw = JSON.parse(r.signed_payload)
-        if (isValidSignablePayload(raw)) {
-          parsed = raw
-          question = raw.question
-          status = raw.status
-        }
-      } catch {
-        /* keep denormalized columns as a last resort; row shows as tampered */
-      }
-      const engineReplay = parsed && signatureValid
-        ? assessEngineReplay(parsed.tool_calls as ToolCall[])
-        : unavailableEngineReplay(
-            parsed
-              ? 'Replay was not attempted because the payload signature is invalid.'
-              : 'The signed payload is malformed and cannot be replayed.'
-          )
-      return {
-        id: r.id,
-        question,
-        status,
-        is_public: r.is_public,
-        created_at: r.created_at,
-        signatureValid: signatureValid && parsed !== null,
-        engineReplayStatus: engineReplay.status,
-        currentEngineAgrees: engineReplay.currentEngineAgrees,
-      }
-    })
-  )
-}
-
 /** Legacy, unpaginated response used when the client did not explicitly opt in. */
 export async function listAnswerCardsByUser(
   aiverid_id: string
@@ -292,7 +238,10 @@ export async function listAnswerCardPageByUser(
 
   const rowsWithLookahead = (data ?? []) as AnswerCardListRow[]
   const rows = rowsWithLookahead.slice(0, ANSWER_CARD_PAGE_SIZE)
-  const cards = await summarizeAnswerCardRows(rows)
+  const cards = await summarizeReplayAwareAnswerCardRows(
+    rows,
+    verifyCanonicalSignature
+  )
   const hasMore = rowsWithLookahead.length > ANSWER_CARD_PAGE_SIZE
   const last = rows.at(-1)
 
