@@ -15,6 +15,9 @@ async function assertAnonymousPasses(pathname: string): Promise<void> {
 async function run(): Promise<void> {
   await assertAnonymousPasses('/tools/ph-calculator')
   await assertAnonymousPasses('/solutions')
+  // Front-door featured tools must complete anonymously (Stage 0 contract).
+  await assertAnonymousPasses('/draw')
+  await assertAnonymousPasses('/tools/substructure-search')
 
   const protectedResponse = await proxy(new NextRequest('https://verchem.xyz/gas-laws'))
   assert.equal(protectedResponse.status, 307, 'unrelated protected calculators must remain gated')

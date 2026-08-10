@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
+import { COMPOUND_STATISTICS, COMPOUNDS_WITH_SMILES } from '@/lib/data/compounds'
 import { MOLECULES_3D } from '@/lib/data/molecules-3d'
 import { SOLUTION_MODES, SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 import { LLMS_TEXT } from '@/lib/seo/llms'
@@ -78,6 +78,26 @@ assert.deepEqual(
   directLegacyLinkFiles,
   [],
   `direct /molecule-builder links must be removed: ${directLegacyLinkFiles.join(', ')}`
+)
+
+// Front-door structure counts must be derived facts, not hand-typed copy.
+// The search wrapper dedupes by SMILES string, so the user-facing corpus size
+// is the count of distinct SMILES.
+const distinctStructureCount = new Set(COMPOUNDS_WITH_SMILES.map((c) => c.smiles)).size
+assert.match(
+  homePage,
+  new RegExp(`across ${distinctStructureCount} verified structures`),
+  'homepage featured-card copy must match the deduped searchable corpus'
+)
+assert.match(
+  homePage,
+  new RegExp(`"${distinctStructureCount} structures"`),
+  'homepage featured-card detail chip must match the deduped searchable corpus'
+)
+assert.match(
+  toolsHubPage,
+  new RegExp(`Search ${distinctStructureCount} verified structures`),
+  '/tools Structure & Search copy must match the deduped searchable corpus'
 )
 
 assert.match(homePage, /href="\/draw"/)
@@ -200,3 +220,42 @@ for (const titlePath of [
 }
 
 console.log('Content contract tests passed')
+
+/**
+ * Behavioral redirect contracts: execute the real config function and the real
+ * page fallback instead of pattern-matching their source text.
+ */
+async function runBehavioralRedirectContracts(): Promise<void> {
+  const { default: config } = await import('@/next.config')
+  assert.ok(config.redirects, 'next.config must define redirects()')
+  const redirects = await config.redirects()
+  const legacyRedirect = redirects.find((entry) => entry.source === '/molecule-builder')
+  assert.ok(legacyRedirect, 'redirects() must map /molecule-builder')
+  assert.equal(legacyRedirect.destination, '/draw')
+  assert.equal(
+    'permanent' in legacyRedirect ? legacyRedirect.permanent : undefined,
+    true,
+    '/molecule-builder redirect must be permanent (308)'
+  )
+
+  const { default: MoleculeBuilderRedirect } = await import('@/app/molecule-builder/page')
+  let redirectDigest = ''
+  try {
+    MoleculeBuilderRedirect()
+    assert.fail('page fallback must throw the framework redirect')
+  } catch (error) {
+    redirectDigest = (error as { digest?: string }).digest ?? ''
+  }
+  assert.match(redirectDigest, /NEXT_REDIRECT/, `page fallback must issue a framework redirect, got: ${redirectDigest}`)
+  assert.ok(redirectDigest.includes('/draw'), `page fallback must target /draw, got: ${redirectDigest}`)
+  assert.ok(redirectDigest.includes('308'), `page fallback must be permanent (308), got: ${redirectDigest}`)
+}
+
+runBehavioralRedirectContracts()
+  .then(() => {
+    console.log('Behavioral redirect contracts passed')
+  })
+  .catch((error: unknown) => {
+    console.error(error)
+    process.exitCode = 1
+  })
