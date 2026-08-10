@@ -46,6 +46,18 @@ const nextConfig: NextConfig = {
   // Compression
   compress: true,
 
+  // Legacy structure editor: resolve before the auth proxy so old URLs keep
+  // their equity and never bounce signed-out visitors through the login flow.
+  async redirects() {
+    return [
+      {
+        source: '/molecule-builder',
+        destination: '/draw',
+        permanent: true,
+      },
+    ];
+  },
+
   // Headers for security and caching
   async headers() {
     return [

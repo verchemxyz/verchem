@@ -5,8 +5,33 @@ import { CalcShell, SectionTitle } from '@/components/lab'
 export const metadata: Metadata = {
   title: { absolute: 'All Tools | VerChem' },
   description:
-    'Free chemistry tools: calculators, periodic table, organic chemistry, spectroscopy (IR/NMR/MS), lab safety, nuclear & quantum chemistry, solution prep, and more.',
+    'Browser-native chemistry tools for drawing structures, substructure and similarity search, verified calculations, spectroscopy, lab work, and more.',
 }
+
+// ============================================
+// STRUCTURE & SEARCH
+// ============================================
+
+const STRUCTURE_TOOLS = [
+  {
+    href: '/draw',
+    label: 'Structure Editor',
+    description: 'Draw or paste SMILES; export SMILES, MOL, InChI, PNG, and SVG. AIVerID members can save structures to My Molecules.',
+    marker: '01 · Draw',
+  },
+  {
+    href: '/tools/substructure-search',
+    label: 'Substructure Search',
+    description: 'Search 209 verified structures with SMILES/SMARTS substructure matching or Tanimoto similarity.',
+    marker: '02 · Search',
+  },
+  {
+    href: '/account/molecules',
+    label: 'My Molecules',
+    description: 'Open, share, and manage your saved structures. AIVerID sign-in is required.',
+    marker: '03 · Library',
+  },
+] as const
 
 // ============================================
 // CHEMISTRY TOOLS
@@ -17,11 +42,6 @@ const CHEMISTRY_TOOLS = [
     href: '/tools/molar-mass',
     label: 'Molar Mass Calculator',
     description: 'Molar mass with an element-by-element breakdown using standard atomic weights based on IUPAC 2021.',
-  },
-  {
-    href: '/tools/substructure-search',
-    label: 'Substructure Search',
-    description: 'Draw a fragment and find matching records in the RDKit-verified structure-search corpus.',
   },
   {
     href: '/tools/periodic-table',
@@ -134,6 +154,12 @@ const ADVANCED_TOOLS = [
 
 const SECTIONS = [
   {
+    id: 'structure-search',
+    title: 'Structure & Search',
+    blurb: 'Draw once, search verified structures, and keep your work in one browser-native flow',
+    tools: STRUCTURE_TOOLS,
+  },
+  {
     id: 'chemistry',
     title: 'Chemistry Tools',
     blurb: 'Calculators and reference tools for chemistry',
@@ -176,9 +202,9 @@ const SECTIONS = [
 export default function ToolsPage() {
   return (
     <CalcShell
-      eyebrow="VerChem · free chemistry workbench"
+      eyebrow="VerChem · browser-native chemistry workbench"
       title="All Tools"
-      subtitle="Professional tools for chemistry education. All free, all world-class quality."
+      subtitle="Draw structures, search verified records, and run focused chemistry tools without leaving the browser."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"
@@ -198,8 +224,21 @@ export default function ToolsPage() {
 
       {/* Sections */}
       {SECTIONS.map((section) => (
-        <section key={section.id} id={section.id} className="scroll-mt-24">
+        <section
+          key={section.id}
+          id={section.id}
+          className={`scroll-mt-24 ${
+            section.id === 'structure-search'
+              ? 'rounded-lg border border-border bg-calibration-grid p-5 sm:p-6'
+              : ''
+          }`}
+        >
           <div className="mb-6">
+            {section.id === 'structure-search' && (
+              <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Front-door workflow
+              </div>
+            )}
             <SectionTitle className="text-2xl">{section.title}</SectionTitle>
             <p className="text-sm text-muted-foreground mt-1">{section.blurb}</p>
           </div>
@@ -209,8 +248,18 @@ export default function ToolsPage() {
               <Link
                 key={tool.href}
                 href={tool.href}
-                className="group rounded-lg border border-border bg-card hover:border-primary-500 transition-colors p-5"
+                className={`group relative overflow-hidden rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary-500 ${
+                  section.id === 'structure-search' ? 'min-h-48' : ''
+                }`}
               >
+                {'marker' in tool && (
+                  <>
+                    <div className="absolute inset-x-0 top-0 h-px bg-primary-500" />
+                    <div className="mb-4 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {tool.marker}
+                    </div>
+                  </>
+                )}
                 <h4 className="font-semibold text-foreground group-hover:text-primary-600 transition-colors">
                   {tool.label}
                 </h4>

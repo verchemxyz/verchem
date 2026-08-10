@@ -15,6 +15,22 @@ const DEMO_SIGNATURE = createHmac("sha256", DEMO_PUBLIC_KEY)
   .update(DEMO_PAYLOAD)
   .digest("hex");
 
+const STRUCTURE_WORKFLOW = [
+  { href: "/draw", label: "Draw", description: "Create a structure", number: "01" },
+  {
+    href: "/tools/substructure-search",
+    label: "Search",
+    description: "Match verified records",
+    number: "02",
+  },
+  {
+    href: "/tools/verified-answer",
+    label: "Verify",
+    description: "Issue signed evidence",
+    number: "03",
+  },
+] as const;
+
 export default function Home() {
   const sigPrefix = DEMO_SIGNATURE.slice(0, 4);
   const sigSuffix = DEMO_SIGNATURE.slice(-4);
@@ -132,6 +148,49 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Structure workflow: Draw → Search → Verify */}
+          <nav
+            aria-label="Draw, search, and verify workflow"
+            className="mt-8 max-w-3xl mx-auto rounded-lg border border-border bg-card px-4 py-3 animate-reveal animate-reveal-delay-2"
+          >
+            <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              Structure workflow
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              {STRUCTURE_WORKFLOW.map((step, index) => (
+                <div key={step.href} className="contents">
+                  <Link
+                    href={step.href}
+                    className="group flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted"
+                  >
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {step.number}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground transition-colors group-hover:text-primary-500">
+                        {step.label}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {step.description}
+                      </span>
+                    </span>
+                  </Link>
+                  {index < STRUCTURE_WORKFLOW.length - 1 && (
+                    <svg
+                      className="mx-auto h-4 w-4 shrink-0 rotate-90 text-muted-foreground sm:mx-1 sm:rotate-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </div>
+              ))}
+            </div>
+          </nav>
+
           {/* CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-reveal animate-reveal-delay-3">
             <Link
@@ -180,7 +239,26 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <FeaturedToolCard
+            href="/draw"
+            marker="01 · Draw"
+            title="Structure Editor"
+            description="Draw or paste SMILES, export SMILES · MOL · InChI · PNG · SVG, and save structures to My Molecules with AIVerID."
+            details={["Open formats", "Personal library", "Browser-native"]}
+            icon={<StructureIcon />}
+          />
+          <FeaturedToolCard
+            href="/tools/substructure-search"
+            marker="02 · Search"
+            title="Substructure Search"
+            description="Run SMILES/SMARTS substructure queries or Tanimoto similarity across 209 verified structures."
+            details={["SMILES / SMARTS", "Tanimoto", "209 structures"]}
+            icon={<StructureSearchIcon />}
+          />
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <ToolCard
             href="/periodic-table"
             title="Periodic Table"
@@ -195,15 +273,9 @@ export default function Home() {
           />
           <ToolCard
             href="/3d-viewer"
-            title="3D Molecular Viewer"
-            description="Interactive 3D visualization with CPK coloring, rotation controls, and VSEPR geometry."
+            title="3D Molecule Demo"
+            description="Rotate and inspect 31 built-in molecule models with CPK coloring. This curated demo does not accept user files."
             icon={<CubeIcon />}
-          />
-          <ToolCard
-            href="/molecule-builder"
-            title="Molecule Builder"
-            description="Drag-and-drop atoms with real-time stability validation and 3D preview."
-            icon={<WrenchIcon />}
           />
           <ToolCard
             href="/organic"
@@ -326,7 +398,7 @@ export default function Home() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/periodic-table" className="hover:text-primary-500 transition-colors">Periodic Table</Link></li>
                 <li><Link href="/organic" className="hover:text-primary-500 transition-colors">Organic Chemistry</Link></li>
-                <li><Link href="/molecule-builder" className="hover:text-primary-500 transition-colors">Molecule Builder</Link></li>
+                <li><Link href="/draw" className="hover:text-primary-500 transition-colors">Structure Editor</Link></li>
                 <li><Link href="/calculators" className="hover:text-primary-500 transition-colors">Calculators</Link></li>
               </ul>
             </div>
@@ -362,6 +434,50 @@ export default function Home() {
 }
 
 /* Simple icon components — no external deps, no emoji */
+function FeaturedToolCard({
+  href,
+  marker,
+  title,
+  description,
+  details,
+  icon,
+}: {
+  href: string;
+  marker: string;
+  title: string;
+  description: string;
+  details: readonly string[];
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link href={href} className="group block h-full">
+      <div className="relative h-full overflow-hidden rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary-500/50">
+        <div className="absolute inset-x-0 top-0 h-px bg-primary-500" />
+        <div className="flex items-start justify-between gap-4">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            {marker}
+          </span>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-foreground">
+            {icon}
+          </span>
+        </div>
+        <h3 className="mt-5 text-lg font-semibold text-foreground transition-colors group-hover:text-primary-500">
+          {title}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+        <div className="mt-5 border-t border-border pt-3 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+          {details.join(" · ")}
+        </div>
+        <div className="mt-3 text-sm font-medium text-primary-600">
+          Open tool <span aria-hidden="true">→</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function ToolCard({
   href,
   title,
@@ -418,11 +534,22 @@ function CubeIcon() {
   );
 }
 
-function WrenchIcon() {
+function StructureIcon() {
   return (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 5l5-3 5 3v6l-5 3-5-3V5zM12 14v6m-3 1h6M7 5l5 3 5-3M12 8v6" />
+      <circle cx="7" cy="5" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="5" r="1.25" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="14" r="1.25" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function StructureSearchIcon() {
+  return (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <circle cx="10" cy="10" r="6" strokeWidth={1.5} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.5 14.5L20 20M7.5 8.5l2.5-1.5 2.5 1.5v3L10 13l-2.5-1.5v-3z" />
     </svg>
   );
 }

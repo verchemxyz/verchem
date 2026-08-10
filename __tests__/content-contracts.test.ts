@@ -5,15 +5,22 @@
  */
 
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { COMPOUND_STATISTICS } from '@/lib/data/compounds'
+import { MOLECULES_3D } from '@/lib/data/molecules-3d'
 import { SOLUTION_MODES, SOLUTIONS_MODE_COUNT } from '@/lib/config/solutions'
 import { LLMS_TEXT } from '@/lib/seo/llms'
 
 const root = process.cwd()
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8')
+const collectSourceFiles = (directory: string): string[] =>
+  readdirSync(resolve(root, directory), { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = `${directory}/${entry.name}`
+    if (entry.isDirectory()) return collectSourceFiles(relativePath)
+    return /\.(?:ts|tsx)$/.test(entry.name) ? [relativePath] : []
+  })
 
 const llms = LLMS_TEXT
 const llmsRoute = read('app/llms.txt/route.ts')
@@ -32,17 +39,21 @@ const compoundExpansion = read('COMPOUND_DATABASE_EXPANSION.md')
 const rootLayout = read('app/layout.tsx')
 const calculatorConfig = read('lib/config/calculators.ts')
 const readme = read('README.md')
+const homePage = read('app/page.tsx')
+const toolsHubPage = read('app/tools/page.tsx')
+const moleculeBuilderRedirect = read('app/molecule-builder/page.tsx')
+const nextConfig = read('next.config.ts')
 const publicCredibilityCopy = [
   llms,
   jsonLd,
   layout,
-  read('app/page.tsx'),
+  homePage,
   read('app/periodic-table/page.tsx'),
   read('app/tools/molar-mass/page.tsx'),
   read('app/tools/molar-mass/layout.tsx'),
   read('app/tools/periodic-table/page.tsx'),
   read('app/tools/periodic-table/layout.tsx'),
-  read('app/tools/page.tsx'),
+  toolsHubPage,
   read('app/compounds/page.tsx'),
   elementsIndex,
   pricingModel,
@@ -51,6 +62,41 @@ const publicCredibilityCopy = [
 ].join('\n')
 
 const formattedCompoundCount = COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')
+const molecule3DCount = Object.keys(MOLECULES_3D).length
+
+assert.match(moleculeBuilderRedirect, /permanentRedirect\('\/draw'\)/)
+assert.match(
+  nextConfig,
+  /source: '\/molecule-builder',[\s\S]*?destination: '\/draw',[\s\S]*?permanent: true/,
+  'the permanent redirect must run before the auth proxy'
+)
+const directLegacyLinkPattern = /href\s*(?:=|:)\s*\{?\s*["'`]\/molecule-builder(?:[/?#"'`])/
+const directLegacyLinkFiles = ['app', 'components']
+  .flatMap(collectSourceFiles)
+  .filter((path) => directLegacyLinkPattern.test(read(path)))
+assert.deepEqual(
+  directLegacyLinkFiles,
+  [],
+  `direct /molecule-builder links must be removed: ${directLegacyLinkFiles.join(', ')}`
+)
+
+assert.match(homePage, /href="\/draw"/)
+assert.match(homePage, /href="\/tools\/substructure-search"/)
+assert.match(homePage, /Draw, search, and verify workflow/)
+assert.match(homePage, new RegExp(`${molecule3DCount} built-in molecule models`))
+assert.match(homePage, /does not accept user files/)
+assert.doesNotMatch(homePage, /Interactive 3D visualization/)
+
+assert.match(toolsHubPage, /title: 'Structure & Search'/)
+assert.ok(
+  toolsHubPage.indexOf("title: 'Structure & Search'") < toolsHubPage.indexOf("title: 'Chemistry Tools'"),
+  'Structure & Search must remain the first tools section'
+)
+assert.match(toolsHubPage, /href: '\/draw'/)
+assert.match(toolsHubPage, /href: '\/tools\/substructure-search'/)
+assert.match(toolsHubPage, /href: '\/account\/molecules'/)
+assert.match(toolsHubPage, /AIVerID sign-in is required/)
+assert.doesNotMatch(`${homePage}\n${toolsHubPage}`, /\b(?:Ketcher|RDKit)\b/i)
 
 assert.match(
   llms,
