@@ -141,9 +141,9 @@ function currentCacheOrder(preferDynamic) {
 }
 
 async function matchCurrentCaches(request, preferDynamic = false) {
-  // While activation publishes canonical keys, the complete staging snapshot
-  // must beat any partial/stale canonical cache from an interrupted attempt.
-  return await matchStaged(request) || matchCaches(currentCacheOrder(preferDynamic), request);
+  // Canonical entries may have been refreshed after staging was created. Use
+  // staging only for keys that an interrupted publication has not copied yet.
+  return await matchCaches(currentCacheOrder(preferDynamic), request) || matchStaged(request);
 }
 
 /** Read migration history without mutating it (safe while installing/waiting). */
@@ -167,7 +167,21 @@ async function matchCurrentThenLegacy(request, preferDynamic = false) {
   return matchCaches(await legacyCacheNames(), request);
 }
 
+let stagingRecoveryPromise = null;
+let stagingRecoveryComplete = false;
+
 async function putInCurrentCache(cacheName, request, response) {
+  // A network refresh that overlaps recovery must land last. Otherwise a
+  // staged response could overwrite fresher bytes between match() and put().
+  const activeRecovery = stagingRecoveryPromise;
+  if (activeRecovery) {
+    try {
+      await activeRecovery;
+    } catch {
+      // Keep the fresh network response writable. The retained staging cache
+      // lets a later fetch retry any keys the failed recovery still lacks.
+    }
+  }
   await (await caches.open(cacheName)).put(request, response);
   await retireLegacyEntry(request);
 }
@@ -263,26 +277,68 @@ async function warmStaticAssets() {
   await Promise.all([...nextStaticAssets].map(warmAsset));
 }
 
-/** Publish a complete staging snapshot under request-visible canonical keys. */
+/**
+ * Complete an interrupted publication without replacing canonical responses
+ * that may already have been refreshed. The staging cache is the recovery
+ * journal: it is deleted only after every source key is present canonically.
+ */
 async function publishStagedAssets() {
+  if (!(await caches.keys()).includes(STAGING_CACHE)) return [];
+
   const staging = await caches.open(STAGING_CACHE);
   const current = await caches.open(STATIC_CACHE);
   const stagedRequests = await staging.keys();
-
-  const publishedRequests = await Promise.all(stagedRequests.map(async (stagedRequest) => {
+  const sourceRequests = stagedRequests.map((stagedRequest) => {
     const sourceRequest = sourceRequestFromStaging(stagedRequest);
     if (!sourceRequest) throw new Error(`Invalid staging key: ${stagedRequest.url}`);
+    return sourceRequest;
+  });
 
+  // Publish sequentially so a failed put leaves a deterministic checkpoint.
+  // Existing canonical entries always win, including background refreshes.
+  for (let index = 0; index < stagedRequests.length; index += 1) {
+    const sourceRequest = sourceRequests[index];
+    if (await current.match(sourceRequest)) continue;
+
+    const stagedRequest = stagedRequests[index];
     const response = await staging.match(stagedRequest);
     if (!response) throw new Error(`Missing staged response: ${stagedRequest.url}`);
-    await current.put(sourceRequest, response);
-    return sourceRequest;
-  }));
 
-  // Delete only after every canonical put succeeds. A failed publication keeps
-  // the synthetic snapshot intact so activation can retry idempotently.
+    // Re-check after reading staging in case another cache write completed at
+    // that await boundary. Worker-owned network writes also wait for recovery.
+    if (!(await current.match(sourceRequest))) {
+      await current.put(sourceRequest, response);
+    }
+  }
+
+  for (const sourceRequest of sourceRequests) {
+    if (!(await current.match(sourceRequest))) {
+      throw new Error(`Canonical publication incomplete: ${sourceRequest.url}`);
+    }
+  }
+
+  // A failed publication above keeps the synthetic snapshot intact. Once the
+  // journal is complete, remove it and retire only its legacy duplicates.
   await caches.delete(STAGING_CACHE);
-  return publishedRequests;
+  await Promise.all(sourceRequests.map(retireLegacyEntry));
+  return sourceRequests;
+}
+
+/** Share one idempotent recovery across activate and every concurrent fetch. */
+function recoverStagedAssets() {
+  if (stagingRecoveryComplete) return Promise.resolve([]);
+
+  if (!stagingRecoveryPromise) {
+    stagingRecoveryPromise = publishStagedAssets()
+      .then((sourceRequests) => {
+        stagingRecoveryComplete = true;
+        return sourceRequests;
+      })
+      .finally(() => {
+        stagingRecoveryPromise = null;
+      });
+  }
+  return stagingRecoveryPromise;
 }
 
 // Install event - cache static assets
@@ -310,8 +366,7 @@ self.addEventListener('activate', (event) => {
       await warmStaticAssets();
       console.log('[SW] Replacement shell staged; legacy offline caches preserved');
       await self.clients.claim();
-      const publishedRequests = await publishStagedAssets();
-      await Promise.all(publishedRequests.map(retireLegacyEntry));
+      await recoverStagedAssets();
     })()
   );
 });
@@ -330,6 +385,10 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) {
     return;
   }
+
+  // Activation is not replayed after a worker process is interrupted. Any
+  // owned fetch resumes the staged journal; all concurrent fetches share it.
+  if (!stagingRecoveryComplete) event.waitUntil(recoverStagedAssets());
 
   // Skip API requests (always fetch from network)
   if (url.pathname.startsWith('/api/')) {

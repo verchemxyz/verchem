@@ -202,15 +202,19 @@ function createWorkerHarness(
     },
     async dispatchFetch(request) {
       const responses: Array<Promise<Response | undefined>> = []
+      const pending: Promise<unknown>[] = []
       const event: Record<string, unknown> = {
         request,
+        waitUntil: (promise: Promise<unknown>) => { pending.push(promise) },
         respondWith: (response: Promise<Response | undefined>) => {
           responses.push(response)
         },
       }
       for (const handler of handlers.get('fetch') ?? []) handler(event)
       assert.equal(responses.length, 1, 'GET request must be owned by one fetch handler')
-      return responses[0]
+      const response = await responses[0]
+      await Promise.all(pending)
+      return response
     },
     claimCount: () => claims,
     skipWaitingCount: () => skipWaitingCalls,
@@ -451,6 +455,167 @@ async function verifyFailedInstallIsIdempotent(): Promise<void> {
   assert.equal(worker.claimCount(), 0, 'a successful retry is still additive until activation')
 }
 
+async function stagedEntrySnapshots(staging: MemoryCache): Promise<Array<{
+  sourceUrl: string
+  body: string
+}>> {
+  return Promise.all((await staging.keys()).map(async (stagedRequest) => {
+    const sourceUrl = new URL(stagedRequest.url).searchParams.get('source')
+    assert.ok(sourceUrl, `staging key has no source URL: ${stagedRequest.url}`)
+    const response = await staging.match(stagedRequest)
+    assert.ok(response, `staging key has no response: ${stagedRequest.url}`)
+    return { sourceUrl, body: await response.text() }
+  }))
+}
+
+async function verifyInterruptedPublishRecoversLazily(): Promise<void> {
+  const caches = new MemoryCacheStorage()
+  const legacy = await caches.open('verchem-v1.0.0-dynamic')
+  await legacy.put('/logo.png', new Response('legacy-logo'))
+  await legacy.put('/unrelated-history', new Response('legacy-unrelated'))
+
+  const currentStatic = await caches.open(`${CURRENT_VERSION}-static`)
+  const originalPut = currentStatic.put.bind(currentStatic)
+  const putCounts = new Map<string, number>()
+  let putAttempts = 0
+  let claimed = false
+  currentStatic.put = async (input, response) => {
+    assert.equal(claimed, true, 'canonical publication must start after clients.claim()')
+    const url = requestUrl(input)
+    putCounts.set(url, (putCounts.get(url) ?? 0) + 1)
+    putAttempts += 1
+    if (putAttempts === 2) throw new Error('simulated interrupted canonical publish')
+    await originalPut(input, response)
+  }
+
+  const activatingWorker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async (input) => appShellNetworkResponse(input),
+    () => { claimed = true }
+  )
+  await activatingWorker.dispatchExtendable('install')
+  await assert.rejects(
+    activatingWorker.dispatchExtendable('activate'),
+    /simulated interrupted canonical publish/
+  )
+  assert.equal(activatingWorker.claimCount(), 1, 'publication must fail after clients.claim()')
+  assert.ok((await caches.keys()).includes(STAGING_CACHE), 'failed publication must retain staging')
+
+  const staging = await caches.open(STAGING_CACHE)
+  const stagedEntries = await stagedEntrySnapshots(staging)
+  let missingCanonical: { sourceUrl: string; body: string } | undefined
+  for (const entry of stagedEntries) {
+    if (!(await currentStatic.match(entry.sourceUrl))) {
+      missingCanonical = entry
+      break
+    }
+  }
+  assert.ok(missingCanonical, 'interrupted publication must leave at least one canonical key missing')
+  await legacy.put(missingCanonical.sourceUrl, new Response('legacy-missing-key'))
+
+  const freshLogoUrl = new URL('/logo.png', ORIGIN).toString()
+  await currentStatic.put(freshLogoUrl, new Response('background-refresh:newer-logo'))
+  const logoPutsBeforeRecovery = putCounts.get(freshLogoUrl)
+
+  // A restarted worker does not receive activate again. Its first owned fetch
+  // must both prefer the fresh canonical response and resume the journal.
+  const restartedWorker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async () => { throw new Error('network is offline after restart') }
+  )
+  const response = await restartedWorker.dispatchFetch(assetRequest('/logo.png'))
+  assert.equal(restartedWorker.claimCount(), 0, 'lazy recovery must not depend on activate replay')
+  assert.equal(await response?.text(), 'background-refresh:newer-logo')
+  assert.equal(
+    await (await currentStatic.match(freshLogoUrl))?.text(),
+    'background-refresh:newer-logo',
+    'recovery must not overwrite an existing canonical response'
+  )
+  assert.equal(
+    putCounts.get(freshLogoUrl),
+    logoPutsBeforeRecovery,
+    'recovery must not issue a canonical put for an existing key'
+  )
+  assert.equal(
+    await (await currentStatic.match(missingCanonical.sourceUrl))?.text(),
+    missingCanonical.body,
+    'the next fetch must repair a canonical key missing after interruption'
+  )
+  assert.equal((await caches.keys()).includes(STAGING_CACHE), false)
+  assert.equal(await legacy.match(freshLogoUrl), undefined)
+  assert.equal(await legacy.match(missingCanonical.sourceUrl), undefined)
+  assert.equal(await (await legacy.match('/unrelated-history'))?.text(), 'legacy-unrelated')
+}
+
+async function verifyLazyRecoveryIsSingleFlight(): Promise<void> {
+  const caches = new MemoryCacheStorage()
+  const legacy = await caches.open('verchem-v1.0.0-dynamic')
+  await legacy.put('/logo.png', new Response('legacy-logo'))
+  await legacy.put('/unrelated-history', new Response('legacy-unrelated'))
+
+  const installingWorker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async (input) => appShellNetworkResponse(input)
+  )
+  await installingWorker.dispatchExtendable('install')
+  const staging = await caches.open(STAGING_CACHE)
+  const stagedEntries = await stagedEntrySnapshots(staging)
+
+  const currentStatic = await caches.open(`${CURRENT_VERSION}-static`)
+  const originalPut = currentStatic.put.bind(currentStatic)
+  let canonicalPutAttempts = 0
+  let releaseFirstPut: () => void = () => undefined
+  const firstPutGate = new Promise<void>((resolvePromise) => {
+    releaseFirstPut = resolvePromise
+  })
+  let markFirstPutStarted: () => void = () => undefined
+  const firstPutStarted = new Promise<void>((resolvePromise) => {
+    markFirstPutStarted = resolvePromise
+  })
+  currentStatic.put = async (input, response) => {
+    canonicalPutAttempts += 1
+    if (canonicalPutAttempts === 1) {
+      markFirstPutStarted()
+      await firstPutGate
+    }
+    await originalPut(input, response)
+  }
+
+  const restartedWorker = createWorkerHarness(
+    caches,
+    CURRENT_VERSION,
+    async () => { throw new Error('network is offline during recovery') }
+  )
+  const concurrentFetches = [
+    restartedWorker.dispatchFetch(assetRequest('/logo.png')),
+    restartedWorker.dispatchFetch(assetRequest('/manifest.json')),
+    restartedWorker.dispatchFetch(assetRequest('/offline.html')),
+  ]
+  await firstPutStarted
+  await new Promise<void>((resolvePromise) => setImmediate(resolvePromise))
+  releaseFirstPut()
+  await Promise.all(concurrentFetches)
+
+  assert.equal(
+    canonicalPutAttempts,
+    stagedEntries.length,
+    'concurrent fetches must share one recovery instead of copying staged keys repeatedly'
+  )
+  assert.equal((await caches.keys()).includes(STAGING_CACHE), false)
+  for (const entry of stagedEntries) {
+    assert.equal(
+      await (await currentStatic.match(entry.sourceUrl))?.text(),
+      entry.body,
+      `single-flight recovery corrupted ${entry.sourceUrl}`
+    )
+  }
+  assert.equal(await legacy.match('/logo.png'), undefined)
+  assert.equal(await (await legacy.match('/unrelated-history'))?.text(), 'legacy-unrelated')
+}
+
 async function verifyProductionWorkerCannotReadStaging(): Promise<void> {
   assert.equal(
     createHash('sha256').update(productionWorkerSource).digest('hex'),
@@ -627,6 +792,8 @@ async function run(): Promise<void> {
   await verifyActivationRetiresOnlyAfterClaim()
   await verifyWaitingInstallIsAdditive()
   await verifyFailedInstallIsIdempotent()
+  await verifyInterruptedPublishRecoversLazily()
+  await verifyLazyRecoveryIsSingleFlight()
   await verifyProductionWorkerCannotReadStaging()
   await verifyOfflineRoutesHydrateAfterInstall()
   await verifyOlderWorkerCannotReadNewerCache()
