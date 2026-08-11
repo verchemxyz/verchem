@@ -2,7 +2,7 @@
  * Saved Answer Card single-item API — GET / PATCH / DELETE
  *
  * SECURITY:
- * - GET: owner sees their card; anyone sees a public card (aiverid_id stripped).
+ * - GET: owner sees their card; anyone sees a public card (aiverid stripped).
  *   Private cards 404 for non-owners (existence hidden).
  * - PATCH/DELETE: verifySession + ownership enforced in the data layer (no IDOR).
  * - Every returned card is re-verified server-side (signatureValid) so a row

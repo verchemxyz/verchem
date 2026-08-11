@@ -11,7 +11,7 @@
 
 CREATE TABLE IF NOT EXISTS answer_cards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT NOT NULL,
+  aiverid TEXT NOT NULL,
   question TEXT NOT NULL,                 -- denormalized for listing/search
   status TEXT NOT NULL CHECK (status IN ('verified', 'partial', 'unverified', 'error')),
   signed_payload TEXT NOT NULL,           -- canonical JSON that was signed (source of truth)
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS answer_cards (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_answer_cards_aiverid ON answer_cards(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_answer_cards_aiverid ON answer_cards(aiverid);
 CREATE INDEX IF NOT EXISTS idx_answer_cards_public ON answer_cards(is_public) WHERE is_public = TRUE;
 CREATE INDEX IF NOT EXISTS idx_answer_cards_created_at ON answer_cards(created_at DESC);
 

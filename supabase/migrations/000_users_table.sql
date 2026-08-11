@@ -7,14 +7,14 @@
 -- and all DB access goes through the server's service role).
 --
 -- Code that depends on this (app/oauth/callback/route.ts) only reads/writes:
---   select id, aiverid_id, email, name  where aiverid_id = ?
---   insert { aiverid_id, name, email, avatar_url? }
--- The lookup key is aiverid_id (TEXT). `email` is NOT UNIQUE so an OAuth email
--- collision can never break login; aiverid_id is the real identity key.
+--   select id, aiverid, email, name  where aiverid = ?
+--   insert { aiverid, name, email, avatar_url? }
+-- The lookup key is aiverid (TEXT). `email` is NOT UNIQUE so an OAuth email
+-- collision can never break login; aiverid is the real identity key.
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT UNIQUE NOT NULL,
+  aiverid TEXT UNIQUE NOT NULL,
   email TEXT NOT NULL,
   name TEXT,
   avatar_url TEXT,
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_login TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_aiverid ON users(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_users_aiverid ON users(aiverid);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;

@@ -4,7 +4,7 @@
  * The shareable, viral artifact. Anyone (no login) can open a public card.
  * The signature is RE-VERIFIED server-side here; a card whose stored bytes no
  * longer match its signature renders with a TAMPERED banner instead of a
- * current-verification badge. Owner identity (aiverid_id) is never read.
+ * current-verification badge. Owner identity (aiverid) is never read.
  */
 
 import { cache } from 'react'

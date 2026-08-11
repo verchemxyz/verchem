@@ -5,7 +5,7 @@ import 'server-only'
  *
  * SECURITY:
  * - Uses SUPABASE_SERVICE_ROLE_KEY (server-only, never exposed to client)
- * - All user scoping enforced at app level (where aiverid_id = ...)
+ * - All user scoping enforced at app level (where aiverid = ...)
  * - Must ONLY be imported in API routes or server-side code
  */
 
@@ -25,7 +25,7 @@ function getSupabase() {
 
 export interface Molecule {
   id: string
-  aiverid_id: string
+  aiverid: string
   name: string
   smiles: string
   mol_block: string | null
@@ -39,7 +39,7 @@ export interface Molecule {
 }
 
 export interface CreateMoleculeInput {
-  aiverid_id: string
+  aiverid: string
   name: string
   smiles: string
   mol_block?: string
@@ -100,7 +100,7 @@ export async function createMolecule(input: CreateMoleculeInput): Promise<Molecu
   const { data, error } = await supabase
     .from('molecules')
     .insert({
-      aiverid_id: input.aiverid_id,
+      aiverid: input.aiverid,
       name: input.name,
       smiles: input.smiles,
       mol_block: input.mol_block ?? null,
@@ -121,13 +121,13 @@ export async function createMolecule(input: CreateMoleculeInput): Promise<Molecu
   return data as Molecule
 }
 
-export async function listMoleculesByUser(aiverid_id: string): Promise<Molecule[]> {
+export async function listMoleculesByUser(aiverid: string): Promise<Molecule[]> {
   const supabase = getSupabase()
 
   const { data, error } = await supabase
     .from('molecules')
     .select('*')
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -158,7 +158,7 @@ export async function getMoleculeById(id: string): Promise<Molecule | null> {
 
 export async function getMoleculeForUser(
   id: string,
-  aiverid_id: string
+  aiverid: string
 ): Promise<Molecule | null> {
   const supabase = getSupabase()
 
@@ -166,7 +166,7 @@ export async function getMoleculeForUser(
     .from('molecules')
     .select('*')
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .single()
 
   if (error) {
@@ -180,13 +180,13 @@ export async function getMoleculeForUser(
 
 export async function updateMolecule(
   id: string,
-  aiverid_id: string,
+  aiverid: string,
   input: UpdateMoleculeInput
 ): Promise<Molecule | null> {
   const supabase = getSupabase()
 
   // SECURITY: enforce ownership before update
-  const existing = await getMoleculeForUser(id, aiverid_id)
+  const existing = await getMoleculeForUser(id, aiverid)
   if (!existing) return null
 
   const { data, error } = await supabase
@@ -198,7 +198,7 @@ export async function updateMolecule(
       ...(input.is_public !== undefined && { is_public: input.is_public }),
     })
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .select()
     .single()
 
@@ -210,18 +210,18 @@ export async function updateMolecule(
   return data as Molecule
 }
 
-export async function deleteMolecule(id: string, aiverid_id: string): Promise<boolean> {
+export async function deleteMolecule(id: string, aiverid: string): Promise<boolean> {
   const supabase = getSupabase()
 
   // SECURITY: enforce ownership before delete
-  const existing = await getMoleculeForUser(id, aiverid_id)
+  const existing = await getMoleculeForUser(id, aiverid)
   if (!existing) return false
 
   const { error } = await supabase
     .from('molecules')
     .delete()
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
 
   if (error) {
     console.error('deleteMolecule error:', error)

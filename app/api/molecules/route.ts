@@ -4,7 +4,7 @@
  * SECURITY:
  * - verifySession() required for all operations
  * - Input validation with max length checks
- * - aiverid_id from session (never from client input)
+ * - aiverid from session (never from client input)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     const record = body as Record<string, unknown>
     const molecule = await createMolecule({
-      aiverid_id: session.userId,
+      aiverid: session.userId,
       name: (record.name as string).trim(),
       smiles: (record.smiles as string).trim(),
       mol_block: typeof record.mol_block === 'string' ? record.mol_block : undefined,

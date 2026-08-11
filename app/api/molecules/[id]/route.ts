@@ -3,7 +3,7 @@
  *
  * SECURITY:
  * - verifySession() required
- * - Mutations enforce aiverid_id match (no IDOR)
+ * - Mutations enforce aiverid match (no IDOR)
  * - Input validation with max length checks
  */
 

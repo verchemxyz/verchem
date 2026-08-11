@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS molecules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT NOT NULL,
+  aiverid TEXT NOT NULL,
   name TEXT NOT NULL,
   smiles TEXT NOT NULL,
   mol_block TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS molecules (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_molecules_aiverid ON molecules(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_molecules_aiverid ON molecules(aiverid);
 CREATE INDEX IF NOT EXISTS idx_molecules_inchi_key ON molecules(inchi_key);
 CREATE INDEX IF NOT EXISTS idx_molecules_public ON molecules(is_public) WHERE is_public = TRUE;
 CREATE INDEX IF NOT EXISTS idx_molecules_created_at ON molecules(created_at DESC);

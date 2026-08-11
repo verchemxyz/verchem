@@ -5,11 +5,11 @@ import 'server-only'
  *
  * SECURITY:
  * - Uses SUPABASE_SERVICE_ROLE_KEY (server-only, never exposed to client)
- * - All user scoping enforced at app level (where aiverid_id = ...)
+ * - All user scoping enforced at app level (where aiverid = ...)
  * - Cards are stored with the exact canonical string that was signed; loading
  *   RE-VERIFIES the HMAC so a row tampered directly in the DB surfaces as
  *   `signatureValid: false` instead of silently displaying a VERIFIED badge.
- * - Public view strips aiverid_id (mirrors getPublicMoleculeById).
+ * - Public view strips aiverid (mirrors getPublicMoleculeById).
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -56,7 +56,7 @@ function getSupabase() {
 
 interface AnswerCardRow {
   id: string
-  aiverid_id: string
+  aiverid: string
   question: string
   status: CardStatus
   signed_payload: string
@@ -65,6 +65,8 @@ interface AnswerCardRow {
   created_at: string
   updated_at: string
 }
+
+type AnswerCardDisplayRow = Omit<AnswerCardRow, 'aiverid'>
 
 /** Lightweight replay-aware row for cursor list views. */
 export type AnswerCardSummary = ReplayAwareAnswerCardSummary
@@ -85,7 +87,7 @@ export interface LoadedAnswerCard {
  * truth) and re-verify the signature. The displayed content therefore is
  * exactly what was signed — no divergence from denormalized columns possible.
  */
-export async function rowToVerifiedCard(row: AnswerCardRow): Promise<LoadedAnswerCard> {
+export async function rowToVerifiedCard(row: AnswerCardDisplayRow): Promise<LoadedAnswerCard> {
   const signatureValid = await verifyCanonicalSignature(row.signed_payload, row.signature)
 
   let parsed: SignablePayload | null = null
@@ -147,7 +149,7 @@ export async function rowToVerifiedCard(row: AnswerCardRow): Promise<LoadedAnswe
 }
 
 export interface CreateAnswerCardInput {
-  aiverid_id: string
+  aiverid: string
   card: AnswerCard
   is_public?: boolean
 }
@@ -166,7 +168,7 @@ export async function createAnswerCard(
   const { data, error } = await supabase
     .from('answer_cards')
     .insert({
-      aiverid_id: input.aiverid_id,
+      aiverid: input.aiverid,
       question: input.card.question,
       status: input.card.status,
       signed_payload,
@@ -191,13 +193,13 @@ type AnswerCardListRow = Pick<
 
 /** Legacy, unpaginated response used when the client did not explicitly opt in. */
 export async function listAnswerCardsByUser(
-  aiverid_id: string
+  aiverid: string
 ): Promise<LegacyAnswerCardSummary[]> {
   const supabase = getSupabase()
   const { data, error } = await supabase
     .from('answer_cards')
     .select('id, question, status, is_public, created_at, signed_payload, signature')
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -213,14 +215,14 @@ export async function listAnswerCardsByUser(
 
 /** Mutation-safe keyset pagination ordered by the deterministic tuple. */
 export async function listAnswerCardPageByUser(
-  aiverid_id: string,
+  aiverid: string,
   cursor: AnswerCardCursor | null
 ): Promise<AnswerCardPage<AnswerCardSummary>> {
   const supabase = getSupabase()
   let query = supabase
     .from('answer_cards')
     .select('id, question, status, is_public, created_at, signed_payload, signature')
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
 
   if (cursor) {
     query = query.or(answerCardCursorFilter(cursor))
@@ -257,7 +259,7 @@ export async function listAnswerCardPageByUser(
 
 export async function getAnswerCardForUser(
   id: string,
-  aiverid_id: string
+  aiverid: string
 ): Promise<LoadedAnswerCard | null> {
   const supabase = getSupabase()
 
@@ -265,7 +267,7 @@ export async function getAnswerCardForUser(
     .from('answer_cards')
     .select('*')
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .single()
 
   if (error) {
@@ -296,13 +298,13 @@ export async function getPublicAnswerCardById(id: string): Promise<LoadedAnswerC
     throw new Error('Database error while fetching answer card')
   }
 
-  // aiverid_id intentionally absent from the select → never reaches the client.
-  return rowToVerifiedCard({ ...(data as Omit<AnswerCardRow, 'aiverid_id'>), aiverid_id: '' } as AnswerCardRow)
+  // aiverid intentionally absent from the select → never reaches the client.
+  return rowToVerifiedCard(data as AnswerCardDisplayRow)
 }
 
 export async function setAnswerCardVisibility(
   id: string,
-  aiverid_id: string,
+  aiverid: string,
   is_public: boolean
 ): Promise<LoadedAnswerCard | null> {
   const supabase = getSupabase()
@@ -311,7 +313,7 @@ export async function setAnswerCardVisibility(
     .from('answer_cards')
     .update({ is_public })
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .select('*')
     .single()
 
@@ -324,7 +326,7 @@ export async function setAnswerCardVisibility(
   return rowToVerifiedCard(data as AnswerCardRow)
 }
 
-export async function deleteAnswerCard(id: string, aiverid_id: string): Promise<boolean> {
+export async function deleteAnswerCard(id: string, aiverid: string): Promise<boolean> {
   const supabase = getSupabase()
 
   // Enforce ownership: only delete a row that belongs to this user.
@@ -332,7 +334,7 @@ export async function deleteAnswerCard(id: string, aiverid_id: string): Promise<
     .from('answer_cards')
     .select('id')
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
     .single()
 
   if (fetchError) {
@@ -346,7 +348,7 @@ export async function deleteAnswerCard(id: string, aiverid_id: string): Promise<
     .from('answer_cards')
     .delete()
     .eq('id', id)
-    .eq('aiverid_id', aiverid_id)
+    .eq('aiverid', aiverid)
 
   if (error) {
     console.error('deleteAnswerCard error:', error)

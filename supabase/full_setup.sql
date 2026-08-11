@@ -15,14 +15,14 @@
 -- and all DB access goes through the server's service role).
 --
 -- Code that depends on this (app/oauth/callback/route.ts) only reads/writes:
---   select id, aiverid_id, email, name  where aiverid_id = ?
---   insert { aiverid_id, name, email, avatar_url? }
--- The lookup key is aiverid_id (TEXT). `email` is NOT UNIQUE so an OAuth email
--- collision can never break login; aiverid_id is the real identity key.
+--   select id, aiverid, email, name  where aiverid = ?
+--   insert { aiverid, name, email, avatar_url? }
+-- The lookup key is aiverid (TEXT). `email` is NOT UNIQUE so an OAuth email
+-- collision can never break login; aiverid is the real identity key.
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT UNIQUE NOT NULL,
+  aiverid TEXT UNIQUE NOT NULL,
   email TEXT NOT NULL,
   name TEXT,
   avatar_url TEXT,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
   last_login TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_aiverid ON users(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_users_aiverid ON users(aiverid);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -70,7 +70,7 @@ EXECUTE FUNCTION update_users_updated_at();
 
 CREATE TABLE IF NOT EXISTS molecules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT NOT NULL,
+  aiverid TEXT NOT NULL,
   name TEXT NOT NULL,
   smiles TEXT NOT NULL,
   mol_block TEXT,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS molecules (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_molecules_aiverid ON molecules(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_molecules_aiverid ON molecules(aiverid);
 CREATE INDEX IF NOT EXISTS idx_molecules_inchi_key ON molecules(inchi_key);
 CREATE INDEX IF NOT EXISTS idx_molecules_public ON molecules(is_public) WHERE is_public = TRUE;
 CREATE INDEX IF NOT EXISTS idx_molecules_created_at ON molecules(created_at DESC);
@@ -134,7 +134,7 @@ EXECUTE FUNCTION update_molecules_updated_at();
 
 CREATE TABLE IF NOT EXISTS answer_cards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  aiverid_id TEXT NOT NULL,
+  aiverid TEXT NOT NULL,
   question TEXT NOT NULL,                 -- denormalized for listing/search
   status TEXT NOT NULL CHECK (status IN ('verified', 'partial', 'unverified', 'error')),
   signed_payload TEXT NOT NULL,           -- canonical JSON that was signed (source of truth)
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS answer_cards (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_answer_cards_aiverid ON answer_cards(aiverid_id);
+CREATE INDEX IF NOT EXISTS idx_answer_cards_aiverid ON answer_cards(aiverid);
 CREATE INDEX IF NOT EXISTS idx_answer_cards_public ON answer_cards(is_public) WHERE is_public = TRUE;
 CREATE INDEX IF NOT EXISTS idx_answer_cards_created_at ON answer_cards(created_at DESC);
 

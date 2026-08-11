@@ -10,7 +10,9 @@
  */
 
 import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 import type { SubscriptionTier } from '@/lib/vercal/types'
+import { SESSION_COOKIE, SESSION_SIG_COOKIE } from '@/lib/auth/cookie-config'
 
 export interface VerifiedSession {
   userId: string
@@ -69,8 +71,8 @@ async function verifySessionSignature(value: string, signature: string): Promise
 export async function verifySession(): Promise<VerifiedSession | null> {
   try {
     const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('verchem-session')
-    const signatureCookie = cookieStore.get('verchem-session-sig')
+    const sessionCookie = cookieStore.get(SESSION_COOKIE)
+    const signatureCookie = cookieStore.get(SESSION_SIG_COOKIE)
 
     // Check for session cookie
     if (!sessionCookie?.value) {
@@ -127,6 +129,50 @@ export async function verifySession(): Promise<VerifiedSession | null> {
   }
 }
 
+export interface StoredOAuthTokens {
+  accessToken?: string
+  refreshToken?: string
+}
+
+/**
+ * Read OAuth bearer tokens from a request's signed session cookie for logout.
+ * Invalid, tampered, or legacy token-less sessions return an empty object; the
+ * caller must still clear local cookies.
+ */
+export async function getStoredOAuthTokens(request: NextRequest): Promise<StoredOAuthTokens> {
+  try {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE)
+    const signatureCookie = request.cookies.get(SESSION_SIG_COOKIE)
+    if (!sessionCookie?.value || !signatureCookie?.value) return {}
+
+    if (!await verifySessionSignature(sessionCookie.value, signatureCookie.value)) return {}
+
+    const parsed: unknown = JSON.parse(sessionCookie.value)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
+
+    const oauthTokens = (parsed as Record<string, unknown>).oauth_tokens
+    if (typeof oauthTokens !== 'object' || oauthTokens === null || Array.isArray(oauthTokens)) {
+      return {}
+    }
+
+    const record = oauthTokens as Record<string, unknown>
+    const accessToken = typeof record.access_token === 'string' && record.access_token.length > 0
+      ? record.access_token
+      : undefined
+    const refreshToken = typeof record.refresh_token === 'string' && record.refresh_token.length > 0
+      ? record.refresh_token
+      : undefined
+
+    return {
+      ...(accessToken ? { accessToken } : {}),
+      ...(refreshToken ? { refreshToken } : {}),
+    }
+  } catch (error) {
+    console.error('Failed to read OAuth tokens from session:', error)
+    return {}
+  }
+}
+
 /**
  * Get session without verification (for non-sensitive operations)
  * WARNING: Only use this for UI display, NOT for authorization decisions!
@@ -137,7 +183,7 @@ export async function getSessionUnsafe(): Promise<{
 } | null> {
   try {
     const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get('verchem-session')
+    const sessionCookie = cookieStore.get(SESSION_COOKIE)
 
     if (!sessionCookie) {
       return null

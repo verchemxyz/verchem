@@ -10,6 +10,25 @@ import {
   authIndicatorWriteOptions,
 } from '@/lib/auth/cookie-config'
 
+interface OAuthTokenResponse {
+  access_token: string
+  refresh_token?: string
+}
+
+function parseOAuthTokenResponse(value: unknown): OAuthTokenResponse | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+
+  const record = value as Record<string, unknown>
+  if (typeof record.access_token !== 'string' || record.access_token.length === 0) return null
+
+  return {
+    access_token: record.access_token,
+    ...(typeof record.refresh_token === 'string' && record.refresh_token.length > 0
+      ? { refresh_token: record.refresh_token }
+      : {}),
+  }
+}
+
 function sanitizeRedirectPath(value: string | null): string {
   if (!value) return '/'
   if (!value.startsWith('/')) return '/'
@@ -201,11 +220,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?error=token_exchange_failed', request.url))
     }
 
-    let tokens
+    let tokens: OAuthTokenResponse
     try {
-      tokens = JSON.parse(responseText)
+      const parsedTokens = parseOAuthTokenResponse(JSON.parse(responseText) as unknown)
+      if (!parsedTokens) {
+        throw new Error('Token response is missing a valid access_token')
+      }
+      tokens = parsedTokens
     } catch (e) {
-      console.error('Failed to parse token response as JSON:', e)
+      console.error('Failed to parse OAuth token response:', e)
       return NextResponse.redirect(new URL('/?error=token_exchange_failed', request.url))
     }
 
@@ -247,8 +270,13 @@ export async function GET(request: NextRequest) {
         // Early Bird: Registration date from AIVerID
         registered_at: user.registered_at || user.created_at || null,
       },
-      // Tokens are intentionally NOT stored in cookies (reduce risk + cookie size).
-      // Re-authenticate when the session expires.
+      // Stored only inside the signed, httpOnly session cookie. The public
+      // /api/session response returns `user` + `expires_at`, never oauth_tokens.
+      // Logout needs the exact bearer values to revoke them at the hub.
+      oauth_tokens: {
+        access_token: tokens.access_token,
+        ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
+      },
       expires_at: new Date(Date.now() + sessionTtlSeconds * 1000).toISOString(),
     }
 
@@ -258,8 +286,8 @@ export async function GET(request: NextRequest) {
       try {
         const { data: existingUser, error: dbError } = await supabaseAdmin
           .from('users')
-          .select('id, aiverid_id, email, name')
-          .eq('aiverid_id', aiveridValue)
+          .select('id, aiverid, email, name')
+          .eq('aiverid', aiveridValue)
           .maybeSingle()
 
         if (dbError && dbError.code !== 'PGRST116') {
@@ -278,7 +306,7 @@ export async function GET(request: NextRequest) {
           const emailValue = user.email || `${aiveridValue}@verchem.placeholder`
 
           const newUserData = {
-            aiverid_id: aiveridValue,
+            aiverid: aiveridValue,
             name: user.name || user.username || user.email?.split('@')[0] || 'User',
             email: emailValue,
             // avatar_url is optional - only set if available
@@ -298,7 +326,7 @@ export async function GET(request: NextRequest) {
               message: createError.message,
               hint: createError.hint,
               details: createError.details,
-              userData: { aiverid_id: aiveridValue, email: emailValue }
+              userData: { aiverid: aiveridValue, email: emailValue }
             })
             // Graceful degradation: Continue without DB sync
             // User can still use the app, just won't be saved to DB
