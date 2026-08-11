@@ -5,10 +5,6 @@ import { AccessibilityProvider } from "@/lib/accessibility/context";
 import { SkipLinks } from "@/components/accessibility/skip-links";
 import { EnhancedNavigation } from "@/components/accessibility/enhanced-navigation";
 import { KeyboardShortcutsDialog } from "@/components/accessibility/keyboard-shortcuts-dialog";
-import { TutorialProvider } from "@/lib/tutorials/context";
-import { TutorialOverlay } from "@/components/tutorials/tutorial-overlay";
-import { HelpButton } from "@/components/tutorials/help-button";
-import { HelpSidebar } from "@/components/tutorials/help-sidebar";
 import { Providers } from "./providers";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
 import { ServiceWorkerRegistration, InstallPrompt } from "@/components/pwa/ServiceWorkerRegistration";
@@ -22,7 +18,6 @@ import {
 import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
 import "./globals.css";
 import "./accessibility.css";
-import "./tutorials.css";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -153,67 +148,57 @@ export default function RootLayout({
           enableSystem={true}
         >
           <AccessibilityProvider>
-            <TutorialProvider>
-              <Providers>
-                {/* Skip links for keyboard navigation */}
-                <SkipLinks />
-                
-                {/* Main navigation with accessibility features */}
-                <EnhancedNavigation />
-                
-                {/* Tutorial system components */}
-                <TutorialOverlay />
-                <HelpButton />
-                <HelpSidebar />
-                
-                {/* Main content area with skip link target */}
-                <main 
-                  id="main-content"
-                  className="min-h-screen bg-background text-foreground"
-                  role="main"
-                  aria-label="Main content"
-                  tabIndex={-1}
-                >
-                  {children}
-                </main>
-                
-                {/* Footer with skip link target */}
-                <footer 
-                  id="footer"
-                  className="bg-background border-t border-border"
-                  role="contentinfo"
-                  aria-label="Footer"
-                >
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="text-center text-muted-foreground">
-                      <p className="mb-2">
-                        VerChem — Deterministic calculators plus signed Verified Answer Cards
-                      </p>
-                      <p className="text-sm">
-                        Built with accessibility in mind. Press <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">Ctrl+/</kbd> to view keyboard shortcuts.
-                      </p>
-                      <p className="text-sm mt-1">
-                        Need help? Click the <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">?</kbd> button for tutorials and assistance.
-                      </p>
-                    </div>
+            <Providers>
+              {/* Skip links for keyboard navigation */}
+              <SkipLinks />
+
+              {/* Main navigation with accessibility features */}
+              <EnhancedNavigation />
+
+              {/* Main content area with skip link target */}
+              <main
+                id="main-content"
+                className="min-h-screen bg-background text-foreground"
+                role="main"
+                aria-label="Main content"
+                tabIndex={-1}
+              >
+                {children}
+              </main>
+
+              {/* Footer with skip link target */}
+              <footer
+                id="footer"
+                className="bg-background border-t border-border"
+                role="contentinfo"
+                aria-label="Footer"
+              >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                  <div className="text-center text-muted-foreground">
+                    <p className="mb-2">
+                      VerChem — Deterministic calculators plus signed Verified Answer Cards
+                    </p>
+                    <p className="text-sm">
+                      Built with accessibility in mind. Press <kbd className="px-1 py-0.5 text-xs font-mono border border-border rounded">Ctrl+/</kbd> to view keyboard shortcuts.
+                    </p>
                   </div>
-                </footer>
-                
-                {/* Global keyboard shortcuts dialog */}
-                <KeyboardShortcutsDialog />
+                </div>
+              </footer>
 
-                {/* Login Required Modal - Shows when accessing protected routes */}
-                <LoginRequiredModal />
+              {/* Global keyboard shortcuts dialog */}
+              <KeyboardShortcutsDialog />
 
-                {/* PWA Components */}
-                <ServiceWorkerRegistration />
-                <InstallPrompt />
+              {/* Login Required Modal - Shows when accessing protected routes */}
+              <LoginRequiredModal />
 
-                {/* Vercel Analytics & Speed Insights */}
-                <Analytics />
-                <SpeedInsights />
-              </Providers>
-            </TutorialProvider>
+              {/* PWA Components */}
+              <ServiceWorkerRegistration />
+              <InstallPrompt />
+
+              {/* Vercel Analytics & Speed Insights */}
+              <Analytics />
+              <SpeedInsights />
+            </Providers>
           </AccessibilityProvider>
         </ThemeProvider>
       </body>

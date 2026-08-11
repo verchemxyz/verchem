@@ -58,7 +58,6 @@ const publicCredibilityCopy = [
   elementsIndex,
   pricingModel,
   compoundExpansion,
-  read('lib/utils/citations.ts'),
 ].join('\n')
 
 const formattedCompoundCount = COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')

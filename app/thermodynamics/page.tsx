@@ -3,7 +3,6 @@
 // VerChem - Thermodynamics Calculator Page
 
 import { useState } from 'react'
-import Link from 'next/link'
 import {
   CalcShell,
   Card,
@@ -129,14 +128,6 @@ export default function ThermodynamicsPage() {
       backHref="/"
       backLabel="Home"
       maxWidth="6xl"
-      action={
-        <Link
-          href="/thermodynamics/enhanced-page"
-          className="inline-flex items-center justify-center rounded-md border border-border bg-card text-foreground hover:bg-muted transition-colors text-sm font-medium px-4 py-2 min-h-[44px]"
-        >
-          Enhanced (uncertainty)
-        </Link>
-      }
     >
       {/* Example Reactions */}
       <Card className="p-6">
