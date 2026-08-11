@@ -15,7 +15,13 @@ export interface VerchemPublicJwk {
 
 export interface PublishedVerchemJwk extends VerchemPublicJwk {
   kid: string
-  status: 'active' | 'retired'
+  status: 'active' | 'pending' | 'retired'
+  not_after?: string
+}
+
+export interface PendingVerchemJwk extends VerchemPublicJwk {
+  kid: string
+  status: 'pending'
   not_after?: string
 }
 
@@ -44,10 +50,18 @@ export class SigningKeyConfigurationError extends Error {
 }
 
 /**
- * Key rotation rule: install the new private key as CARD_SIGNING_PRIVATE_KEY,
- * then append the previous PUBLIC JWK here with status "retired". Never remove
- * a retired key: historical cards must remain independently verifiable.
+ * Two-phase key rotation (the JWKS cache TTL is one hour):
+ *
+ * 1. Append the new PUBLIC JWK to PENDING_PUBLIC_KEYS with status "pending",
+ *    deploy, then wait at least the full cache TTL (>= 1 hour).
+ * 2. Switch CARD_SIGNING_PRIVATE_KEY to the new private key, remove its public
+ *    JWK from PENDING_PUBLIC_KEYS, and append the previous PUBLIC JWK to
+ *    RETIRED_PUBLIC_KEYS with status "retired" in the same deploy.
+ *
+ * Never remove a retired key: historical cards must remain independently
+ * verifiable forever. A pending entry contains public material only.
  */
+export const PENDING_PUBLIC_KEYS: readonly PendingVerchemJwk[] = []
 export const RETIRED_PUBLIC_KEYS: readonly RetiredVerchemJwk[] = []
 
 const EPHEMERAL_SOURCE_ID = 'ephemeral-development-key'
@@ -185,58 +199,72 @@ function nodePublicJwk(jwk: VerchemPublicJwk): JsonWebKey {
   return { kty: jwk.kty, crv: jwk.crv, x: jwk.x }
 }
 
-function validateRetiredKey(jwk: RetiredVerchemJwk): VerchemPublicJwk {
+type RotationVerchemJwk = PendingVerchemJwk | RetiredVerchemJwk
+
+function validateRotationKey(jwk: RotationVerchemJwk): VerchemPublicJwk {
   const allowedMembers = new Set(['kty', 'crv', 'x', 'kid', 'status', 'not_after'])
   if (
     Object.keys(jwk).some((member) => !allowedMembers.has(member)) ||
-    jwk.status !== 'retired' ||
+    (jwk.status !== 'pending' && jwk.status !== 'retired') ||
     jwk.kty !== 'OKP' ||
     jwk.crv !== 'Ed25519' ||
     typeof jwk.x !== 'string' ||
     !/^[A-Za-z0-9_-]{43}$/.test(jwk.x) ||
     calculateJwkThumbprint(jwk) !== jwk.kid
   ) {
-    throw new SigningKeyConfigurationError('RETIRED_PUBLIC_KEYS contains an invalid Ed25519 JWK')
+    throw new SigningKeyConfigurationError(
+      'Published rotation keys contain an invalid Ed25519 JWK'
+    )
   }
   const publicJwk = { kty: jwk.kty, crv: jwk.crv, x: jwk.x } as const
   try {
     const publicKey = createPublicKey({ key: nodePublicJwk(publicJwk), format: 'jwk' })
     if (publicKey.asymmetricKeyType !== 'ed25519') throw new Error('Not Ed25519')
   } catch {
-    throw new SigningKeyConfigurationError('RETIRED_PUBLIC_KEYS contains an invalid Ed25519 JWK')
+    throw new SigningKeyConfigurationError(
+      'Published rotation keys contain an invalid Ed25519 JWK'
+    )
   }
   return publicJwk
 }
 
 export function getPublishedPublicKeys(): PublishedVerchemJwk[] {
   const active = getActiveSigningKey()
-  for (const retired of RETIRED_PUBLIC_KEYS) validateRetiredKey(retired)
+  const rotationKeys: readonly RotationVerchemJwk[] = [
+    ...PENDING_PUBLIC_KEYS,
+    ...RETIRED_PUBLIC_KEYS,
+  ]
+  for (const key of rotationKeys) validateRotationKey(key)
 
   return [
     { ...active.publicJwk, kid: active.kid, status: 'active' },
-    ...RETIRED_PUBLIC_KEYS.map((retired) => ({
-      kty: retired.kty,
-      crv: retired.crv,
-      x: retired.x,
-      kid: retired.kid,
-      status: retired.status,
-      ...(retired.not_after === undefined ? {} : { not_after: retired.not_after }),
+    ...rotationKeys.map((key) => ({
+      kty: key.kty,
+      crv: key.crv,
+      x: key.x,
+      kid: key.kid,
+      status: key.status,
+      ...(key.not_after === undefined ? {} : { not_after: key.not_after }),
     })),
   ]
 }
 
-/** Resolve only a currently published active/retired key by its RFC 7638 kid. */
+/** Resolve any currently published active/pending/retired key by its RFC 7638 kid. */
 export function getVerificationKey(kid: string): KeyObject | null {
   const active = getActiveSigningKey()
   if (kid === active.kid) return active.publicKey
 
-  const retired = RETIRED_PUBLIC_KEYS.find((candidate) => candidate.kid === kid)
-  if (!retired) return null
+  const rotationKey =
+    PENDING_PUBLIC_KEYS.find((candidate) => candidate.kid === kid) ??
+    RETIRED_PUBLIC_KEYS.find((candidate) => candidate.kid === kid)
+  if (!rotationKey) return null
 
-  const publicJwk = validateRetiredKey(retired)
+  const publicJwk = validateRotationKey(rotationKey)
   try {
     return createPublicKey({ key: nodePublicJwk(publicJwk), format: 'jwk' })
   } catch {
-    throw new SigningKeyConfigurationError('RETIRED_PUBLIC_KEYS contains an invalid Ed25519 JWK')
+    throw new SigningKeyConfigurationError(
+      'Published rotation keys contain an invalid Ed25519 JWK'
+    )
   }
 }

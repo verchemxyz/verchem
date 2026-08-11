@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     default: "VerChem — Verified Chemistry Workbench",
     template: "%s | VerChem"
   },
-  description: "Free deterministic chemistry calculators plus optional HMAC-signed Verified Answer Cards. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
+  description: "Free deterministic chemistry calculators plus optional Ed25519 JWS-signed Verified Answer Cards that anyone can check against VerChem's published public keys. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
     title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Free deterministic chemistry calculators with optional HMAC-signed Verified Answer Cards.',
+    description: 'Free deterministic chemistry calculators with Ed25519 JWS-signed Verified Answer Cards anyone can check against our public keys.',
     images: [
       {
         url: '/opengraph-image.png',
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Free deterministic chemistry calculators with optional HMAC-signed Verified Answer Cards.',
+    description: 'Free deterministic chemistry calculators with Ed25519 JWS-signed Verified Answer Cards anyone can check against our public keys.',
     images: ['/opengraph-image.png'],
   },
   robots: {

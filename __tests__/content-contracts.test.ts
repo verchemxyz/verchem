@@ -40,6 +40,7 @@ const rootLayout = read('app/layout.tsx')
 const calculatorConfig = read('lib/config/calculators.ts')
 const readme = read('README.md')
 const homePage = read('app/page.tsx')
+const savedCardsPage = read('app/account/cards/page.tsx')
 const toolsHubPage = read('app/tools/page.tsx')
 const moleculeBuilderRedirect = read('app/molecule-builder/page.tsx')
 const nextConfig = read('next.config.ts')
@@ -59,6 +60,7 @@ const publicCredibilityCopy = [
   pricingModel,
   compoundExpansion,
 ].join('\n')
+const answerCardTrustCopy = [llms, jsonLd, layout, homePage, savedCardsPage].join('\n')
 
 const formattedCompoundCount = COMPOUND_STATISTICS.totalCompounds.toLocaleString('en-US')
 const molecule3DCount = Object.keys(MOLECULES_3D).length
@@ -182,6 +184,14 @@ assert.doesNotMatch(
 assert.match(llms, /missing value is rejected rather than guessed/i)
 assert.match(llms, /Signature integrity and current-engine agreement are reported separately/)
 assert.match(jsonLd, /Signature integrity and current-engine agreement are reported separately/)
+assert.match(homePage, /await signCard\(demoPayload\)/)
+assert.match(homePage, /Inspect the signed compact JWS/)
+assert.match(homePage, /\/\.well-known\/verchem-keys\.json/)
+assert.match(answerCardTrustCopy, /Ed25519 compact JWS/)
+assert.match(answerCardTrustCopy, /published public key/i)
+assert.doesNotMatch(answerCardTrustCopy, /\bHMAC\b/i)
+assert.doesNotMatch(answerCardTrustCopy, /\btamper-proof\b/i)
+assert.match(answerCardTrustCopy, /\btamper-evident\b/i)
 const absoluteCompletenessClaim = /(?:100\s*%\s*data\s*completeness|data\s*completeness\s*:?\s*100\s*%)/i
 for (const forbiddenVariant of [
   '100% Data Completeness',

@@ -481,7 +481,7 @@ export function VerChemGlobalFAQSchema({ compoundCount }: { compoundCount: numbe
         name: 'How is VerChem different from asking an AI chatbot for a chemistry calculation?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output. An optional Verified Answer Card records the exact inputs, semantic engine release, output, textbook citation, AI explanation, and a signature covering them so the engine fields can be replayed and compared later. Signature integrity and current-engine agreement are reported separately; cards from replaced releases are marked superseded or corrected instead of current VERIFIED. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check.'
+          text: 'VerChem computes with deterministic engines rather than a language model. The same input always produces the same output. An optional Verified Answer Card records the exact inputs, semantic engine release, output, textbook citation, AI explanation, and an Ed25519 compact JWS covering them so the engine fields can be replayed and compared later. Anyone can verify that JWS independently against VerChem\'s published public key instead of trusting a server-reported validity result. Signature integrity and current-engine agreement are reported separately; cards from replaced releases are marked superseded or corrected instead of current VERIFIED. A chatbot writes its answer as text: it can vary between runs and leaves no record to re-check.'
         }
       },
       {

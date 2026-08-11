@@ -137,7 +137,7 @@ export default function CardsPage() {
     <CalcShell
       eyebrow="Account · Signed cards"
       title="My Signed Cards"
-      subtitle="Saved answer cards with separately reported HMAC integrity and current-engine replay status."
+      subtitle="Saved answer cards with Ed25519 JWS integrity—independently checkable against our published public key—and current-engine replay status."
       backHref="/account"
       backLabel="Account"
       maxWidth="4xl"

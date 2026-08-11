@@ -1,19 +1,36 @@
-import { createHmac } from "node:crypto";
 import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
 import { CURRENT_ENGINE_VERSIONS } from "@/lib/answer-cards/engine-versions";
+import { signCard } from "@/lib/answer-cards/signature";
+import { getActiveSigningKey } from "@/lib/answer-cards/signing-key";
+import type { SignablePayload } from "@/lib/answer-cards/types";
 
-// This hero is explicitly a Verified Answer Card demo, so its signature is a
-// real HMAC-SHA256 over the displayed evidence rather than a stand-in hash.
-// The public demo key is reproducible; live cards use a server-only secret.
-const DEMO_PAYLOAD =
-  `engine=molecular-mass;engine_version=${CURRENT_ENGINE_VERSIONS['molecular-mass']};compound=H2SO4;result=98.072 g/mol;arithmetic=2×1.008 + 32.06 + 4×15.999;source=IUPAC 2021`;
-const DEMO_PUBLIC_KEY = "verchem-public-demo-key";
-const DEMO_SIGNATURE = createHmac("sha256", DEMO_PUBLIC_KEY)
-  .update(DEMO_PAYLOAD)
-  .digest("hex");
+function createDemoPayload(issuedAt: string): SignablePayload {
+  return {
+    question: "What is the molar mass of H2SO4?",
+    status: "verified",
+    tool_calls: [
+      {
+        name: "calculate_molecular_mass",
+        engine: "molecular-mass",
+        engine_version: CURRENT_ENGINE_VERSIONS["molecular-mass"],
+        input: { formula: "H2SO4" },
+        result: {
+          ok: true,
+          value: { formula: "H2SO4", molar_mass: 98.072 },
+        },
+        citation: "IUPAC 2021 standard atomic weights",
+      },
+    ],
+    explanation: "2×1.008 + 32.06 + 4×15.999 = 98.072 g/mol.",
+    audit: { clean: true, unmatched: [] },
+    model: "verchem-static-demo",
+    version: "w3-v2",
+    issued_at: issuedAt,
+  };
+}
 
 const STRUCTURE_WORKFLOW = [
   { href: "/draw", label: "Draw", description: "Create a structure", number: "01" },
@@ -31,10 +48,14 @@ const STRUCTURE_WORKFLOW = [
   },
 ] as const;
 
-export default function Home() {
-  const sigPrefix = DEMO_SIGNATURE.slice(0, 4);
-  const sigSuffix = DEMO_SIGNATURE.slice(-4);
-  const sigDisplay = `vc_hmac_sha256 ${sigPrefix}…${sigSuffix}`;
+export default async function Home() {
+  // Build-time/server rendering uses the same fail-closed Ed25519 key module as
+  // live Answer Cards. Development reuses that module's ephemeral key fallback.
+  const demoPayload = createDemoPayload(new Date().toISOString());
+  const demoJws = await signCard(demoPayload);
+  const { kid } = getActiveSigningKey();
+  const kidDisplay = `${kid.slice(0, 8)}…${kid.slice(-6)}`;
+  const sigDisplay = `JWS · EdDSA/Ed25519 · kid ${kidDisplay}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,7 +78,7 @@ export default function Home() {
               {/* Spectrum strip */}
               <div className="px-5 pt-4 pb-1">
                 <VerificationSpectrum
-                  hash={DEMO_SIGNATURE}
+                  hash={demoJws}
                   height={28}
                   barWidth={2}
                   gap={1}
@@ -109,6 +130,21 @@ export default function Home() {
                     Verified
                   </span>
                 </div>
+
+                <details className="mt-3 border-t border-border pt-3">
+                  <summary className="cursor-pointer text-xs font-medium text-primary-600 hover:text-primary-500">
+                    Inspect the signed compact JWS
+                  </summary>
+                  <code className="mt-2 block max-h-24 overflow-auto break-all rounded bg-muted p-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
+                    {demoJws}
+                  </code>
+                  <a
+                    href="/.well-known/verchem-keys.json"
+                    className="mt-2 inline-flex text-xs text-primary-600 hover:text-primary-500"
+                  >
+                    Verify with VerChem&apos;s published public keys
+                  </a>
+                </details>
               </div>
             </div>
 
@@ -130,7 +166,7 @@ export default function Home() {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 md:gap-10 animate-reveal animate-reveal-delay-2">
             {[
               { label: "Compute", desc: "Deterministic engine", num: "01" },
-              { label: "Sign", desc: "HMAC-SHA256 seal", num: "02" },
+              { label: "Sign", desc: "Ed25519 JWS · public key", num: "02" },
               { label: "Explain", desc: "AI around the numbers", num: "03" },
             ].map((step, i) => (
               <div key={step.label} className="flex items-center gap-3">
@@ -340,10 +376,10 @@ export default function Home() {
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-primary-500 text-primary-foreground text-xs font-bold">
                   2
                 </span>
-                <h3 className="font-semibold text-foreground">HMAC signs</h3>
+                <h3 className="font-semibold text-foreground">Ed25519 JWS signs</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Each Verified Answer Card is sealed with an HMAC-SHA256 signature covering its calculation inputs, engine release, result, explanation, and timestamp. Standard calculator panels are not signed.
+                Each Verified Answer Card is signed as an Ed25519 compact JWS covering its calculation inputs, engine release, result, explanation, and timestamp. Anyone can verify it independently against VerChem&apos;s published public key instead of trusting a server-reported validity result. Standard calculator panels are not signed.
               </p>
             </div>
 
@@ -389,7 +425,7 @@ export default function Home() {
                 <span className="font-bold text-foreground">VerChem</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Deterministic chemistry workbench with optional HMAC-signed Verified Answer Cards and cited reference data.
+                Deterministic chemistry workbench with optional Ed25519 JWS-signed Verified Answer Cards that anyone can check against our published public keys.
               </p>
             </div>
 

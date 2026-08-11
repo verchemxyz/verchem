@@ -3,6 +3,7 @@ import {
   createHash,
   createPrivateKey,
   createPublicKey,
+  generateKeyPairSync,
   sign as signEd25519,
   verify as verifyEd25519,
   type JsonWebKey,
@@ -21,7 +22,9 @@ import {
 import {
   calculateJwkThumbprint,
   getActiveSigningKey,
+  PENDING_PUBLIC_KEYS,
   SigningKeyConfigurationError,
+  type PendingVerchemJwk,
 } from '@/lib/answer-cards/signing-key'
 import type { AnswerCard, SignablePayload } from '@/lib/answer-cards/types'
 import { parseSubmittedCard } from '@/lib/answer-cards/validate-card'
@@ -305,6 +308,73 @@ test('JWKS route publishes only public active material and an independent RFC 76
   assert.equal('d' in jwk, false)
   assert.doesNotMatch(responseText, /PRIVATE KEY|BEGIN PRIVATE|"d"\s*:/u)
   assert.equal(responseText.includes(rfcConfiguredKey), false)
+})
+
+test('pending rotation key is published and accepted for server-side verification', async () => {
+  configureRfcKey()
+  const { privateKey: pendingPrivateKey, publicKey: pendingPublicKey } =
+    generateKeyPairSync('ed25519')
+  const exported = pendingPublicKey.export({ format: 'jwk' })
+  assert.equal(exported.kty, 'OKP')
+  assert.equal(exported.crv, 'Ed25519')
+  assert.equal(typeof exported.x, 'string')
+
+  const pendingPublicJwk = {
+    kty: 'OKP',
+    crv: 'Ed25519',
+    x: exported.x!,
+  } as const
+  const pendingKid = calculateJwkThumbprint(pendingPublicJwk)
+  const pendingFixture: PendingVerchemJwk = {
+    ...pendingPublicJwk,
+    kid: pendingKid,
+    status: 'pending',
+  }
+  const mutablePendingKeys = PENDING_PUBLIC_KEYS as PendingVerchemJwk[]
+  mutablePendingKeys.push(pendingFixture)
+
+  try {
+    const response = getJwks()
+    const responseText = await response.text()
+    const document: unknown = JSON.parse(responseText)
+    assert.ok(typeof document === 'object' && document !== null && !Array.isArray(document))
+    const keys = (document as Record<string, unknown>).keys
+    assert.ok(Array.isArray(keys))
+    assert.equal(keys.length, 2)
+
+    const pending: unknown = keys.find(
+      (candidate: unknown) =>
+        typeof candidate === 'object' &&
+        candidate !== null &&
+        !Array.isArray(candidate) &&
+        (candidate as Record<string, unknown>).status === 'pending'
+    )
+    assert.ok(typeof pending === 'object' && pending !== null && !Array.isArray(pending))
+    const jwk = pending as Record<string, unknown>
+    assert.deepEqual(Object.keys(jwk).sort(), ['crv', 'kid', 'kty', 'status', 'x'])
+    assert.equal(jwk.kty, 'OKP')
+    assert.equal(jwk.crv, 'Ed25519')
+    assert.equal(jwk.x, pendingPublicJwk.x)
+    assert.equal(jwk.kid, pendingKid)
+    assert.equal('d' in jwk, false)
+
+    const independentCanonical = JSON.stringify({ crv: jwk.crv, kty: jwk.kty, x: jwk.x })
+    const independentKid = createHash('sha256')
+      .update(independentCanonical, 'utf8')
+      .digest('base64url')
+    assert.equal(independentKid, pendingKid)
+
+    const signable = payload({ question: 'Card signed immediately after pending activation' })
+    const pendingJws = compactJws(
+      { alg: 'EdDSA', kid: pendingKid, typ: 'verchem-card+jws' },
+      canonicalPayloadString(signable),
+      pendingPrivateKey
+    )
+    assert.equal(await verifyCardSignature(signable, pendingJws), true)
+  } finally {
+    const fixtureIndex = mutablePendingKeys.indexOf(pendingFixture)
+    if (fixtureIndex >= 0) mutablePendingKeys.splice(fixtureIndex, 1)
+  }
 })
 
 test('production missing key throws on use and maps card creation to 503', () => {

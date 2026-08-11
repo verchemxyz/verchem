@@ -7,7 +7,7 @@ import { Card } from "./Card";
  * Replaces the `bg-gradient-to-br ... text-white animate-pulse-premium` card.
  *
  * NOTE: deliberately NOT a "signed/verified" panel — plain deterministic
- * results are not HMAC-signed, so no fake signature/spectrum motif here
+ * results are not Answer Card JWS-signed, so no fake signature/spectrum motif here
  * (verification visuals are reserved for genuinely signed AnswerCards).
  */
 export function ResultPanel({
