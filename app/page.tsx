@@ -2,35 +2,9 @@ import Link from "next/link";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
 import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
-import { CURRENT_ENGINE_VERSIONS } from "@/lib/answer-cards/engine-versions";
 import { signCard } from "@/lib/answer-cards/signature";
 import { getActiveSigningKey } from "@/lib/answer-cards/signing-key";
-import type { SignablePayload } from "@/lib/answer-cards/types";
-
-function createDemoPayload(issuedAt: string): SignablePayload {
-  return {
-    question: "What is the molar mass of H2SO4?",
-    status: "verified",
-    tool_calls: [
-      {
-        name: "calculate_molecular_mass",
-        engine: "molecular-mass",
-        engine_version: CURRENT_ENGINE_VERSIONS["molecular-mass"],
-        input: { formula: "H2SO4" },
-        result: {
-          ok: true,
-          value: { formula: "H2SO4", molar_mass: 98.072 },
-        },
-        citation: "IUPAC 2021 standard atomic weights",
-      },
-    ],
-    explanation: "2×1.008 + 32.06 + 4×15.999 = 98.072 g/mol.",
-    audit: { clean: true, unmatched: [] },
-    model: "verchem-static-demo",
-    version: "w3-v2",
-    issued_at: issuedAt,
-  };
-}
+import { createHomeDemoPayload } from "@/lib/answer-cards/demo-card";
 
 const STRUCTURE_WORKFLOW = [
   { href: "/draw", label: "Draw", description: "Create a structure", number: "01" },
@@ -49,13 +23,16 @@ const STRUCTURE_WORKFLOW = [
 ] as const;
 
 export default async function Home() {
-  // Build-time/server rendering uses the same fail-closed Ed25519 key module as
-  // live Answer Cards. Development reuses that module's ephemeral key fallback.
-  const demoPayload = createDemoPayload(new Date().toISOString());
+  // Build-time/server rendering runs the REAL pipeline: live engine, live
+  // auditor, fail-closed Ed25519 key module — every number shown below comes
+  // from the signed payload. Development reuses the ephemeral key fallback.
+  const demoPayload = createHomeDemoPayload(new Date().toISOString());
   const demoJws = await signCard(demoPayload);
   const { kid } = getActiveSigningKey();
   const kidDisplay = `${kid.slice(0, 8)}…${kid.slice(-6)}`;
   const sigDisplay = `JWS · EdDSA/Ed25519 · kid ${kidDisplay}`;
+  const demoToolCall = demoPayload.tool_calls[0]!;
+  const demoMolarMass = (demoToolCall.result.value as { molar_mass: number }).molar_mass;
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,24 +71,26 @@ export default async function Home() {
                   </div>
                   <div className="flex items-baseline justify-between">
                     <span className="text-xs uppercase tracking-wider text-muted-foreground">Result</span>
-                    <span className="font-mono text-foreground">98.072 g/mol</span>
+                    <span className="font-mono text-foreground">{demoMolarMass} g/mol</span>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Arithmetic</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Engine</span>
                     <span className="font-mono text-muted-foreground text-right text-xs sm:text-sm">
-                      2×1.008 + 32.06 + 4×15.999
+                      {demoToolCall.engine}@{demoToolCall.engine_version}
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Sum</span>
-                    <span className="font-mono text-foreground">= 98.072</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Prose audit</span>
+                    <span className="font-mono text-foreground">
+                      {demoPayload.audit.clean ? "clean" : "flagged"} · {demoPayload.audit.unmatched.length} unmatched
+                    </span>
                   </div>
                 </div>
 
                 {/* Source line — amber accent dot, muted text for WCAG AA */}
                 <div className="mt-3 flex items-center gap-2 border-l-2 border-warning pl-2">
                   <span className="font-mono text-[11px] text-muted-foreground uppercase tracking-wide">
-                    Source: IUPAC 2021 · Engine: molecular-mass@{CURRENT_ENGINE_VERSIONS['molecular-mass']}
+                    Source: {demoToolCall.citation}
                   </span>
                 </div>
 

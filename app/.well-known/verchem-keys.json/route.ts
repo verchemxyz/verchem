@@ -9,7 +9,10 @@ export function GET(): NextResponse {
     { keys: getPublishedPublicKeys() },
     {
       headers: {
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+        // No stale-while-revalidate: the two-phase rotation runbook promises a
+        // new kid becomes visible within max-age; a stale window would let a
+        // cached keyset reject fresh cards long after activation.
+        'Cache-Control': 'public, max-age=3600, must-revalidate',
         'Content-Type': 'application/json',
       },
     }

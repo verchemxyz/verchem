@@ -28,6 +28,9 @@ import {
 } from '@/lib/answer-cards/signing-key'
 import type { AnswerCard, SignablePayload } from '@/lib/answer-cards/types'
 import { parseSubmittedCard } from '@/lib/answer-cards/validate-card'
+import { createHomeDemoPayload } from '@/lib/answer-cards/demo-card'
+import { auditExplanation } from '@/lib/answer-cards/audit'
+import { TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
 
 type TestCase = { name: string; run: () => void | Promise<void> }
 
@@ -123,6 +126,24 @@ function decodeHeader(signature: string): Record<string, unknown> {
   assert.ok(parsed !== null && !Array.isArray(parsed))
   return parsed as Record<string, unknown>
 }
+
+test('homepage demo card is produced by the live pipeline, not hand-written trust metadata', () => {
+  const payload = createHomeDemoPayload('2026-08-11T00:00:00.000Z')
+  const toolCall = payload.tool_calls[0]!
+
+  // Tool call must match a fresh execution of the live engine, version included.
+  const tool = TOOL_BY_NAME.get(toolCall.name)
+  assert.ok(tool, 'demo tool must exist in the live registry')
+  assert.equal(toolCall.engine, tool.engine)
+  assert.equal(toolCall.engine_version, tool.engineVersion)
+  assert.deepEqual(toolCall.result, tool.execute({ ...toolCall.input }))
+
+  // Embedded audit must be the live auditor's verbatim verdict — and clean.
+  const freshAudit = auditExplanation(payload.explanation, payload.tool_calls as never)
+  assert.deepEqual(payload.audit, freshAudit)
+  assert.equal(payload.audit.clean, true)
+  assert.deepEqual(payload.audit.unmatched, [])
+})
 
 test('RFC 8037 Ed25519 signing/validation vector matches node:crypto', () => {
   const [protectedSegment, payloadSegment, signatureSegment] = RFC_8037_JWS.split('.')
@@ -284,7 +305,7 @@ test('JWKS route publishes only public active material and an independent RFC 76
   assert.match(response.headers.get('content-type') ?? '', /^application\/json\b/u)
   assert.equal(
     response.headers.get('cache-control'),
-    'public, max-age=3600, stale-while-revalidate=86400'
+    'public, max-age=3600, must-revalidate'
   )
   assert.ok(typeof document === 'object' && document !== null && !Array.isArray(document))
   const keys = (document as Record<string, unknown>).keys
