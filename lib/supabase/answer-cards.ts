@@ -7,7 +7,7 @@ import 'server-only'
  * - Uses SUPABASE_SERVICE_ROLE_KEY (server-only, never exposed to client)
  * - All user scoping enforced at app level (where aiverid = ...)
  * - Cards are stored with the exact canonical string that was signed; loading
- *   RE-VERIFIES the HMAC so a row tampered directly in the DB surfaces as
+ *   RE-VERIFIES the Ed25519 JWS so a row tampered directly in the DB surfaces as
  *   `signatureValid: false` instead of silently displaying a VERIFIED badge.
  * - Public view strips aiverid (mirrors getPublicMoleculeById).
  */
@@ -71,7 +71,7 @@ type AnswerCardDisplayRow = Omit<AnswerCardRow, 'aiverid'>
 /** Lightweight replay-aware row for cursor list views. */
 export type AnswerCardSummary = ReplayAwareAnswerCardSummary
 
-/** A card reconstructed from storage, with the result of re-verifying its HMAC. */
+/** A card reconstructed from storage, with the result of re-verifying its JWS. */
 export interface LoadedAnswerCard {
   id: string
   card: AnswerCard

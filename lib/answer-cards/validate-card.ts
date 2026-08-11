@@ -1,22 +1,22 @@
 /**
  * Defensive parser for a client-submitted AnswerCard (the /save path).
  *
- * This does NOT establish trust — the HMAC signature does. Its job is to
+ * This does NOT establish trust — Ed25519 verification does. Its job is to
  * (a) bound size so a hostile client can't store megabytes, and (b) guarantee
  * the shape is well-formed enough that toSignablePayload() / canonicalization
  * cannot throw. After parsing, the caller MUST verify card.signature; any
- * tampering with a signed field makes the HMAC fail and the save is rejected.
+ * tampering with a signed field makes the JWS fail and the save is rejected.
  */
 
 import type { AnswerCard, CardStatus, ToolCall, ToolResult } from './types'
 import type { EngineSemanticVersion } from './engine-versions'
+import { isStructurallyValidCardJws } from './signature'
 
 const STATUSES: readonly CardStatus[] = ['verified', 'partial', 'unverified', 'error']
 const MAX_QUESTION = 1000
 const MAX_EXPLANATION = 20_000
 const MAX_TOOL_CALLS = 32
 const MAX_CITATION = 1_000
-const MAX_SIGNATURE = 256
 const MAX_MODEL = 200
 const MAX_VERSION = 50
 const MAX_ISSUED_AT = 64
@@ -94,9 +94,9 @@ export function parseSubmittedCard(body: unknown): AnswerCard | null {
   if (!isStr(model) || model.length === 0 || model.length > MAX_MODEL) return null
   if (!isStr(version) || version.length === 0 || version.length > MAX_VERSION) return null
   if (!isStr(issued_at) || issued_at.length === 0 || issued_at.length > MAX_ISSUED_AT) return null
-  if (!isStr(signature) || signature.length === 0 || signature.length > MAX_SIGNATURE) return null
-  // base64url charset only (the signature is the trust anchor — reject junk early)
-  if (!/^[A-Za-z0-9_-]+$/.test(signature)) return null
+  // Cheap compact-JWS structure/header validation happens before public-key
+  // lookup and Ed25519 verification in the save route.
+  if (!isStr(signature) || !isStructurallyValidCardJws(signature)) return null
 
   if (!isPlainObj(audit) || typeof audit.clean !== 'boolean' || !Array.isArray(audit.unmatched)) return null
   if (audit.unmatched.length > MAX_UNMATCHED_ITEMS) return null

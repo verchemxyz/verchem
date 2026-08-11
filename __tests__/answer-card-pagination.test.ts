@@ -208,7 +208,7 @@ async function verifyInvalidPayloadTrustMatrix(): Promise<void> {
   assert.equal(
     await verifyCanonicalSignature(rows[1]!.signed_payload, rows[1]!.signature),
     true,
-    'the old-schema payload must have an intact HMAC before shape validation rejects it'
+    'the old-schema payload must have an intact JWS before shape validation rejects it'
   )
 
   const legacy = await summarizeLegacyAnswerCardRows(rows, verifyCanonicalSignature)

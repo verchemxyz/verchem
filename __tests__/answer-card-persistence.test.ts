@@ -187,20 +187,10 @@ async function run() {
     assert.equal(parseSubmittedCard(evilInput), null, 'constructor in input must be rejected')
   })
 
-  await test('parseSubmittedCard rejects over-deep / over-long values', () => {
-    const stub = {
-      question: 'q',
-      status: 'verified',
-      tool_calls: [
-        { name: 'n', engine: 'e', input: {}, result: { ok: true, value: {} }, citation: 'c' },
-      ],
-      explanation: 'x',
-      audit: { clean: true, unmatched: [] },
-      model: 'm',
-      version: 'v',
-      issued_at: '2026-01-01T00:00:00.000Z',
-      signature: 'abc',
-    }
+  await test('parseSubmittedCard rejects over-deep / over-long values', async () => {
+    // Start from a structurally valid compact JWS so these assertions exercise
+    // the value bounds rather than short-circuiting on signature syntax.
+    const stub = JSON.parse(JSON.stringify(await makeSignedCard()))
 
     let deep: Record<string, unknown> = { v: 1 }
     for (let i = 0; i < 10; i++) deep = { n: deep }

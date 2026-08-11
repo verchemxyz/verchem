@@ -16,6 +16,7 @@ import Anthropic, {
 } from '@anthropic-ai/sdk'
 import type { AnswerCard, CardStatus, ToolCall, VerifiedTool } from './types'
 import { signCard, toSignablePayload } from './signature'
+import { SigningKeyConfigurationError } from './signing-key'
 import { auditExplanation } from './audit'
 import { ALL_TOOLS, TOOL_BY_NAME, toAnthropicTool } from './tools/registry'
 import { isPlainObject } from './tools/_validate'
@@ -94,6 +95,17 @@ export class AnswerServiceError extends Error {
  */
 export function classifyServiceError(err: unknown): AnswerServiceError {
   if (err instanceof AnswerServiceError) return err
+
+  // Signing is part of the trust boundary: never return an unsigned card when
+  // the production Ed25519 key is missing or malformed.
+  if (err instanceof SigningKeyConfigurationError) {
+    return new AnswerServiceError(
+      'auth',
+      503,
+      'The verification service is temporarily unavailable.',
+      err
+    )
+  }
 
   if (err instanceof RateLimitError) {
     return new AnswerServiceError(
