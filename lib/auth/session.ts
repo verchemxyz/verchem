@@ -13,12 +13,67 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import type { SubscriptionTier } from '@/lib/vercal/types'
 import { SESSION_COOKIE, SESSION_SIG_COOKIE } from '@/lib/auth/cookie-config'
+import { unsealOAuthTokens } from '@/lib/auth/oauth-token-seal'
+import { resolveCanonicalAiverId } from '@/lib/auth/session-identity'
 
 export interface VerifiedSession {
   userId: string
   email?: string
   tier: SubscriptionTier
   expiresAt: Date
+}
+
+const SUBSCRIPTION_TIERS = new Set<SubscriptionTier>([
+  'free',
+  'student',
+  'professional',
+  'enterprise',
+])
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  return value as Record<string, unknown>
+}
+
+function subscriptionTier(user: Record<string, unknown>): SubscriptionTier {
+  const directTier = user.subscription_tier
+  if (typeof directTier === 'string' && SUBSCRIPTION_TIERS.has(directTier as SubscriptionTier)) {
+    return directTier as SubscriptionTier
+  }
+
+  const subscription = asRecord(user.subscription)
+  const nestedTier = subscription?.tier
+  return typeof nestedTier === 'string' && SUBSCRIPTION_TIERS.has(nestedTier as SubscriptionTier)
+    ? nestedTier as SubscriptionTier
+    : 'free'
+}
+
+/** Parse data only after its HMAC has been verified by the caller. */
+export function parseVerifiedSessionPayload(
+  value: unknown,
+  now: Date = new Date()
+): VerifiedSession | null {
+  const session = asRecord(value)
+  const user = asRecord(session?.user)
+  if (!session || !user) return null
+
+  const expiresAtValue = session.expires_at
+  if (typeof expiresAtValue !== 'string') return null
+  const expiresAt = new Date(expiresAtValue)
+  if (Number.isNaN(expiresAt.getTime()) || expiresAt < now) return null
+
+  // Identity Standard v2.2: authorization always resolves aiverid/sub before
+  // the compatibility id alias. db_id is deliberately never a candidate.
+  const userId = resolveCanonicalAiverId(user)
+  if (!userId) return null
+
+  const email = typeof user.email === 'string' ? user.email : undefined
+  return {
+    userId,
+    ...(email ? { email } : {}),
+    tier: subscriptionTier(user),
+    expiresAt,
+  }
 }
 
 /**
@@ -93,36 +148,14 @@ export async function verifySession(): Promise<VerifiedSession | null> {
     }
 
     // Parse session data (only after signature verification!)
-    const sessionData = JSON.parse(sessionCookie.value)
-
-    // Check expiry
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
-      console.info('Session expired')
+    const sessionData: unknown = JSON.parse(sessionCookie.value)
+    const verified = parseVerifiedSessionPayload(sessionData)
+    if (!verified) {
+      console.warn('Verified session has invalid expiry or canonical identity - rejecting')
       return null
     }
 
-    // Extract user data
-    // Handle both subscription_tier (from OAuth) and subscription.tier (legacy)
-    const tier: SubscriptionTier =
-      sessionData.user?.subscription_tier ||
-      sessionData.user?.subscription?.tier ||
-      'free'
-
-    // SECURITY: a verified session MUST carry a stable user identifier. Falling
-    // back to a literal 'anonymous' would collapse every such session into one
-    // shared bucket — cross-user data mixing / IDOR. Reject instead of inventing.
-    const userId = sessionData.user?.sub || sessionData.user?.id || sessionData.user?.aiverid
-    if (typeof userId !== 'string' || userId.trim() === '') {
-      console.warn('Verified session missing a stable user id - rejecting')
-      return null
-    }
-
-    return {
-      userId,
-      email: sessionData.user?.email,
-      tier,
-      expiresAt: new Date(sessionData.expires_at),
-    }
+    return verified
   } catch (error) {
     console.error('Session verification error:', error)
     return null
@@ -150,22 +183,15 @@ export async function getStoredOAuthTokens(request: NextRequest): Promise<Stored
     const parsed: unknown = JSON.parse(sessionCookie.value)
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {}
 
-    const oauthTokens = (parsed as Record<string, unknown>).oauth_tokens
-    if (typeof oauthTokens !== 'object' || oauthTokens === null || Array.isArray(oauthTokens)) {
-      return {}
-    }
+    const sealedTokens = (parsed as Record<string, unknown>).oauth_tokens
+    if (typeof sealedTokens !== 'string') return {}
 
-    const record = oauthTokens as Record<string, unknown>
-    const accessToken = typeof record.access_token === 'string' && record.access_token.length > 0
-      ? record.access_token
-      : undefined
-    const refreshToken = typeof record.refresh_token === 'string' && record.refresh_token.length > 0
-      ? record.refresh_token
-      : undefined
+    const oauthTokens = await unsealOAuthTokens(sealedTokens)
+    if (!oauthTokens) return {}
 
     return {
-      ...(accessToken ? { accessToken } : {}),
-      ...(refreshToken ? { refreshToken } : {}),
+      accessToken: oauthTokens.access_token,
+      ...(oauthTokens.refresh_token ? { refreshToken: oauthTokens.refresh_token } : {}),
     }
   } catch (error) {
     console.error('Failed to read OAuth tokens from session:', error)
@@ -189,21 +215,22 @@ export async function getSessionUnsafe(): Promise<{
       return null
     }
 
-    const sessionData = JSON.parse(sessionCookie.value)
+    const sessionData: unknown = JSON.parse(sessionCookie.value)
+    const sessionRecord = asRecord(sessionData)
+    const user = asRecord(sessionRecord?.user)
+    if (!sessionRecord || !user) return null
 
     // Check expiry
-    if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
+    if (
+      typeof sessionRecord.expires_at === 'string'
+      && new Date(sessionRecord.expires_at) < new Date()
+    ) {
       return null
     }
 
-    const tier: SubscriptionTier =
-      sessionData.user?.subscription_tier ||
-      sessionData.user?.subscription?.tier ||
-      'free'
-
     return {
-      userId: sessionData.user?.sub || sessionData.user?.id || 'anonymous',
-      tier,
+      userId: resolveCanonicalAiverId(user) ?? 'anonymous',
+      tier: subscriptionTier(user),
     }
   } catch {
     return null

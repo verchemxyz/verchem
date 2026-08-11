@@ -14,6 +14,7 @@ import {
   SESSION_COOKIE,
   SESSION_SIG_COOKIE,
 } from '@/lib/auth/cookie-config'
+import { sealOAuthTokens } from '@/lib/auth/oauth-token-seal'
 
 type TestFn = () => Promise<void>
 interface TestCase { name: string; fn: TestFn }
@@ -47,10 +48,10 @@ async function signSession(value: string): Promise<string> {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
 }
 
-async function logoutRequest(tokens?: { access_token?: string; refresh_token?: string }) {
+async function signedLogoutRequest(oauthTokens?: unknown) {
   const session = JSON.stringify({
     user: { id: 'TH-TEST-001', aiverid: 'TH-TEST-001' },
-    ...(tokens ? { oauth_tokens: tokens } : {}),
+    ...(oauthTokens !== undefined ? { oauth_tokens: oauthTokens } : {}),
     expires_at: '2099-01-01T00:00:00.000Z',
   })
   const signature = await signSession(session)
@@ -63,6 +64,11 @@ async function logoutRequest(tokens?: { access_token?: string; refresh_token?: s
       ].join('; '),
     },
   })
+}
+
+async function logoutRequest(tokens?: { access_token: string; refresh_token?: string }) {
+  const sealedTokens = tokens ? await sealOAuthTokens(tokens) : undefined
+  return signedLogoutRequest(sealedTokens)
 }
 
 function fetchUrl(input: string | URL | Request): string {
@@ -178,6 +184,24 @@ test('legacy token-less sessions still clear locally without a hub call', async 
     return Response.json({}, { status: 200 })
   }, async () => {
     const response = await POST(await logoutRequest())
+    assert.equal(calls.length, 0)
+    assert.equal(response.status, 200)
+    assertCookiesCleared(response)
+  })
+})
+
+test('a tampered token seal is treated as token-less and cookies still clear', async () => {
+  const calls: FetchCall[] = []
+  await withMockFetch(async (input, init) => {
+    calls.push({ url: fetchUrl(input), init })
+    return Response.json({}, { status: 200 })
+  }, async () => {
+    const sealed = await sealOAuthTokens({ access_token: 'never-revoked-from-corrupt-blob' })
+    const index = Math.floor(sealed.length / 2)
+    const replacement = sealed[index] === 'A' ? 'B' : 'A'
+    const tampered = `${sealed.slice(0, index)}${replacement}${sealed.slice(index + 1)}`
+    const response = await POST(await signedLogoutRequest(tampered))
+
     assert.equal(calls.length, 0)
     assert.equal(response.status, 200)
     assertCookiesCleared(response)

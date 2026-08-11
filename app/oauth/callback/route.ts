@@ -9,6 +9,12 @@ import {
   sessionWriteOptions,
   authIndicatorWriteOptions,
 } from '@/lib/auth/cookie-config'
+import {
+  applyDatabaseUserSync,
+  createCanonicalSessionUser,
+  resolveCanonicalAiverId,
+} from '@/lib/auth/session-identity'
+import { prepareSessionCookie } from '@/lib/auth/oauth-token-seal'
 
 interface OAuthTokenResponse {
   access_token: string
@@ -248,43 +254,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?error=user_fetch_failed', request.url))
     }
 
-    const user = await userResponse.json()
+    const user: unknown = await userResponse.json()
 
     // Debug: Log user data only in development (avoid PII in production logs)
     if (process.env.NODE_ENV !== 'production') {
       console.log('AIVerID user data:', JSON.stringify(user, null, 2))
     }
 
-    // Get AIVerID value (consistent field name)
-    const aiveridValue = user.aiverid || user.sub || user.id
+    // Identity Standard v2.2: prefer aiverid/sub and keep the opaque value as-is.
+    // The userinfo `id` field is accepted only as a legacy hub alias; a local DB
+    // UUID is never allowed to replace this canonical identity later.
+    const aiveridValue = resolveCanonicalAiverId(user)
+    if (!aiveridValue) {
+      console.error('AIVerID userinfo response is missing a canonical member id')
+      return NextResponse.redirect(new URL('/?error=user_fetch_failed', request.url))
+    }
 
     // Create session data
     const sessionTtlSeconds = SESSION_TTL_SECONDS // 7 days (shared cookie maxAge)
     const sessionData = {
-      user: {
-        id: aiveridValue,
-        aiverid: aiveridValue,
-        name: user.name || user.username || user.email?.split('@')[0] || 'User',
-        email: user.email,
-        subscription_tier: 'free', // Default tier (VerCal ecosystem)
-        // Early Bird: Registration date from AIVerID
-        registered_at: user.registered_at || user.created_at || null,
-      },
-      // Stored only inside the signed, httpOnly session cookie. The public
-      // /api/session response returns `user` + `expires_at`, never oauth_tokens.
-      // Logout needs the exact bearer values to revoke them at the hub.
-      oauth_tokens: {
-        access_token: tokens.access_token,
-        ...(tokens.refresh_token ? { refresh_token: tokens.refresh_token } : {}),
-      },
+      user: createCanonicalSessionUser(user, aiveridValue),
       expires_at: new Date(Date.now() + sessionTtlSeconds * 1000).toISOString(),
     }
 
     // Sync user to Supabase (optional - graceful degradation)
     // Pattern from VerHotel: Don't fail OAuth if Supabase has issues
     if (supabaseAdmin) {
-      try {
-        const { data: existingUser, error: dbError } = await supabaseAdmin
+      const admin = supabaseAdmin
+      sessionData.user = await applyDatabaseUserSync(sessionData.user, async () => {
+        const { data: existingUser, error: dbError } = await admin
           .from('users')
           .select('id, aiverid, email, name')
           .eq('aiverid', aiveridValue)
@@ -303,20 +301,26 @@ export async function GET(request: NextRequest) {
         // If user doesn't exist, create one
         if (!existingUser) {
           // Pattern from VerHotel: Use placeholder if email missing
-          const emailValue = user.email || `${aiveridValue}@verchem.placeholder`
+          const emailValue = sessionData.user.email || `${aiveridValue}@verchem.placeholder`
+          const userRecord = typeof user === 'object' && user !== null && !Array.isArray(user)
+            ? user as Record<string, unknown>
+            : {}
+          const picture = typeof userRecord.picture === 'string' && userRecord.picture.length > 0
+            ? userRecord.picture
+            : null
 
           const newUserData = {
             aiverid: aiveridValue,
-            name: user.name || user.username || user.email?.split('@')[0] || 'User',
+            name: sessionData.user.name,
             email: emailValue,
             // avatar_url is optional - only set if available
-            ...(user.picture && { avatar_url: user.picture }),
+            ...(picture ? { avatar_url: picture } : {}),
           }
 
-          const { data: newUser, error: createError } = await supabaseAdmin
+          const { data: newUser, error: createError } = await admin
             .from('users')
             .insert(newUserData)
-            .select()
+            .select('id, aiverid, email, name')
             .single()
 
           if (createError) {
@@ -331,25 +335,25 @@ export async function GET(request: NextRequest) {
             // Graceful degradation: Continue without DB sync
             // User can still use the app, just won't be saved to DB
             console.info('Continuing OAuth without Supabase sync')
-          } else if (newUser) {
-            // Update session data with DB user
-            sessionData.user = { ...sessionData.user, ...newUser }
+            return null
           }
-        } else {
-          // User exists - update session data
-          sessionData.user = { ...sessionData.user, ...existingUser }
+
+          return newUser
         }
-      } catch (supabaseError) {
+
+        return existingUser
+      }, (supabaseError) => {
         // Catch any unexpected Supabase errors
         console.error('Supabase sync failed:', supabaseError)
         console.info('Continuing OAuth without Supabase sync')
-      }
+      })
     } else {
       console.info('Skipping Supabase sync: admin client not configured')
     }
 
-    // Create session cookie
-    const sessionString = JSON.stringify(sessionData)
+    // Bearer tokens are AES-256-GCM sealed before serialization. The size guard
+    // drops refresh first, then all tokens, without breaking the login session.
+    const { sessionString } = await prepareSessionCookie(sessionData, tokens)
     const signature = await computeSessionSignature(sessionString)
 
     const redirectCookie = cookieStore.get('oauth_redirect')?.value ?? null

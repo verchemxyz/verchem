@@ -27,6 +27,7 @@ export const AUTH_COOKIE = 'verchem-auth'
 
 // 7 days. Shared by the cookie maxAge and the session `expires_at` claim.
 export const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
+export const SESSION_COOKIE_SIZE_LIMIT_BYTES = 3_800
 
 /**
  * Resolve the cookie domain ONCE. Both set and clear read this, so they always
@@ -65,6 +66,25 @@ function baseOptions(maxAge: number): SessionCookieOptions {
 /** Options for SETTING the signed, httpOnly session cookies. */
 export function sessionWriteOptions(): SessionCookieOptions {
   return baseOptions(SESSION_TTL_SECONDS)
+}
+
+/**
+ * Byte size of the actual session Set-Cookie serialization used by Next.js.
+ * Cookie values are URI encoded; measuring raw JSON would undercount it.
+ */
+export function serializedSessionCookieSize(value: string): number {
+  const options = sessionWriteOptions()
+  const sameSite = `${options.sameSite[0].toUpperCase()}${options.sameSite.slice(1)}`
+  const parts = [
+    `${SESSION_COOKIE}=${encodeURIComponent(value)}`,
+    `Path=${options.path}`,
+    `Max-Age=${options.maxAge}`,
+    ...(options.domain ? [`Domain=${options.domain}`] : []),
+    ...(options.httpOnly ? ['HttpOnly'] : []),
+    ...(options.secure ? ['Secure'] : []),
+    `SameSite=${sameSite}`,
+  ]
+  return new TextEncoder().encode(parts.join('; ')).byteLength
 }
 
 /**
