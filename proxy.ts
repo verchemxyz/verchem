@@ -13,24 +13,20 @@
  * - Proxy verifies signature before granting access
  * - SESSION_SECRET is required in production
  *
- * Public routes (no login required):
- * - / (homepage)
- * - /login, /oauth/* (auth routes)
- * - /tools/* (SEO landing pages)
- * - /solutions (public local-only calculator)
- * - /api/* (API routes handle their own auth)
- * - /_next/*, /favicon.ico, etc. (static files)
+ * Public routes (no login required) — 2026-08-11, พี่จ๊อบเคาะ Free tier:
+ * - Every local-compute tool (calculators, periodic table, editors, viewers)
+ * - Reference/browse surfaces (compounds, elements, organic, spectroscopy,
+ *   tutorials, search, practice, challenge)
+ * - /, /login, /oauth/*, /tools/*, /solutions, /api/* (routes own their auth),
+ *   static files
  *
  * Protected routes (login required):
- * - /calculators/*
- * - /stoichiometry, /gas-laws, /thermodynamics, etc.
- * - /periodic-table, /vsepr, /electron-config, /lewis, /3d-viewer
- * - /virtual-lab/*
- * - /practice/*
- * - /challenge
- * - /compounds, /tutorials, /search
+ * - /account/* (personal libraries, card history)
+ * - /preferences
+ * - Saving/mutation always re-verifies AIVerID at the API layer — the proxy
+ *   gate is UX, never the security boundary.
  *
- * Last Updated: 2026-01-09
+ * Last Updated: 2026-08-11
  */
 
 import { NextResponse } from 'next/server'
@@ -88,37 +84,12 @@ async function verifySessionSignature(value: string, signature: string): Promise
   }
 }
 
-// Routes that require authentication
+// Routes that require authentication.
+// 2026-08-11 (พี่จ๊อบเคาะ): local-compute tools and reference data are open to
+// anonymous visitors per the Free tier — growth first. Identity-bound surfaces
+// (saving, libraries, card history under /account and the APIs) stay gated.
 const PROTECTED_ROUTES = [
-  // Calculators
-  '/calculators',
-  '/stoichiometry',
-  '/gas-laws',
-  '/thermodynamics',
-  '/electrochemistry',
-  '/kinetics',
-  '/equation-balancer',
-
-  // Interactive Tools
-  '/periodic-table',
-  '/vsepr',
-  '/electron-config',
-  '/lewis',
-  '/3d-viewer',
-  '/virtual-lab',
-  '/molecule-builder',
-  '/unit-converter',
-
-  // Practice & Challenge
-  '/practice',
-  '/challenge',
-
-  // Reference
-  '/compounds',
-  '/tutorials',
-  '/search',
-
-  // User features
+  '/account',
   '/preferences',
 ]
 
@@ -135,6 +106,35 @@ const PUBLIC_ROUTES = [
   '/robots.txt',
   '/sitemap.xml',
   '/manifest.json',
+
+  // Calculators (local-compute — anonymous)
+  '/calculators',
+  '/stoichiometry',
+  '/gas-laws',
+  '/thermodynamics',
+  '/electrochemistry',
+  '/kinetics',
+  '/equation-balancer',
+
+  // Interactive tools (local-compute — anonymous)
+  '/periodic-table',
+  '/vsepr',
+  '/electron-config',
+  '/lewis',
+  '/3d-viewer',
+  '/virtual-lab',
+  '/unit-converter',
+  '/draw',
+
+  // Practice & reference (anonymous)
+  '/practice',
+  '/challenge',
+  '/compounds',
+  '/elements',
+  '/organic',
+  '/spectroscopy',
+  '/tutorials',
+  '/search',
 ]
 
 // Check if path starts with any protected route
@@ -160,8 +160,11 @@ export async function proxy(request: NextRequest) {
     return publicRouteResponse(pathname)
   }
 
-  // Skip static files
+  // Skip static files — but never inside a protected branch: a dotted segment
+  // like /account/cards/x.json still resolves to a dynamic route, so the auth
+  // gate must run before any static-file shortcut.
   if (
+    !isProtectedRoute(pathname) &&
     pathname.includes('.') &&
     !pathname.endsWith('.html') // Allow .html if needed
   ) {
@@ -228,12 +231,12 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
+     * Match all request paths except _next internals and the favicon. Image
+     * extensions are deliberately NOT excluded here: a blanket suffix rule
+     * would also skip auth for dotted paths under protected branches (e.g.
+     * /account/cards/x.png resolves to a dynamic route, not a static file).
+     * Real static assets return via the in-code skip above instead.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

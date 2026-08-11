@@ -283,11 +283,11 @@ export default function ToolsPage() {
 
       {/* Footer Note */}
       <p className="text-sm text-muted-foreground text-center pt-2">
-        Need the full experience? Browse the protected calculators hub at{' '}
+        Prefer everything in one place? Browse the full calculators hub at{' '}
         <Link href="/calculators" className="text-primary-600 hover:underline">
           /calculators
         </Link>
-        .
+        {' '}— no sign-in needed.
       </p>
     </CalcShell>
   )
