@@ -57,12 +57,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Day 3: tier-based DAILY rate limit (free 20, student 100, professional/enterprise unlimited)
+    // Tier-aware legacy quota. VerChem does not currently sell an upgrade;
+    // never direct users to a non-existent paid plan.
     const rl = checkRateLimit(`answer-card:${session.userId}`, answerCardDailyConfig(session.tier))
     if (!rl.success) {
       return NextResponse.json(
         {
-          error: 'Daily verified-answer limit reached for your plan. Upgrade for a higher daily limit.',
+          error: 'Daily AI answer limit reached. Deterministic signed calculations remain available without AI.',
+          deterministicPath: '/tools/verified-calculation',
           retryAfter: rl.retryAfter,
         },
         {

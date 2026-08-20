@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 function sanitizeRedirectPath(value: string): string {
   if (!value.startsWith('/')) return '/'
@@ -11,6 +12,7 @@ function sanitizeRedirectPath(value: string): string {
 }
 
 export default function OAuthLoginButton() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -36,7 +38,7 @@ export default function OAuthLoginButton() {
         redirectPath = currentUrl.pathname + currentUrl.search
       }
 
-      window.location.href = `/oauth/start?redirect=${encodeURIComponent(redirectPath)}`
+      router.push(`/oauth/start?redirect=${encodeURIComponent(redirectPath)}`)
     } catch (error) {
       console.error('Failed to initiate OAuth:', error)
       setIsLoading(false)

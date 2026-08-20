@@ -1,6 +1,7 @@
 import { auditExplanation } from '@/lib/answer-cards/audit'
 import { TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
 import type { SignablePayload, ToolCall } from '@/lib/answer-cards/types'
+import { ANSWER_CARD_SCHEMA_VERSION, buildProvenanceEnvelope } from '@/lib/answer-cards/provenance'
 
 /**
  * The homepage hero card is a REAL artifact: the tool call runs the live
@@ -48,7 +49,8 @@ export function createHomeDemoPayload(issuedAt: string): SignablePayload {
     explanation,
     audit,
     model: 'verchem-static-demo',
-    version: 'w3-v2',
+    version: ANSWER_CARD_SCHEMA_VERSION,
     issued_at: issuedAt,
+    provenance: buildProvenanceEnvelope([toolCall], 'deterministic'),
   }
 }

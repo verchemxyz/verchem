@@ -90,6 +90,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/tools/verified-calculation`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/verify`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/verified-answer`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
 
     // Organic Chemistry
     {

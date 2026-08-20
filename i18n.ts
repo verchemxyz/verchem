@@ -41,7 +41,7 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
@@ -51,39 +51,11 @@ i18n
 
     interpolation: {
       escapeValue: false,
-      format: (value, format, lng) => {
-        if (format === 'number') {
-          return new Intl.NumberFormat(lng).format(value);
-        }
-        if (format === 'currency') {
-          return new Intl.NumberFormat(lng, { 
-            style: 'currency', 
-            currency: getCurrencyForLocale(lng || 'en') 
-          }).format(value);
-        }
-        if (format === 'date') {
-          return new Intl.DateTimeFormat(lng).format(new Date(value));
-        }
-        return value;
-      }
     },
     
     react: {
       useSuspense: false,
     },
   });
-
-function getCurrencyForLocale(locale: string): string {
-  const currencyMap: Record<string, string> = {
-    'th': 'THB',
-    'zh': 'CNY',
-    'es': 'EUR',
-    'de': 'EUR',
-    'fr': 'EUR',
-    'ja': 'JPY',
-    'en': 'USD',
-  };
-  return currencyMap[locale] || 'USD';
-}
 
 export default i18n;

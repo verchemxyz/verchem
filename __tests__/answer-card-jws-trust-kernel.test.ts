@@ -331,7 +331,7 @@ test('JWKS route publishes only public active material and an independent RFC 76
   assert.equal(responseText.includes(rfcConfiguredKey), false)
 })
 
-test('pending rotation key is published and accepted for server-side verification', async () => {
+test('pending rotation key is published but cannot issue artifacts before activation', async () => {
   configureRfcKey()
   const { privateKey: pendingPrivateKey, publicKey: pendingPublicKey } =
     generateKeyPairSync('ed25519')
@@ -385,13 +385,13 @@ test('pending rotation key is published and accepted for server-side verificatio
       .digest('base64url')
     assert.equal(independentKid, pendingKid)
 
-    const signable = payload({ question: 'Card signed immediately after pending activation' })
+    const signable = payload({ question: 'Card signed before pending-key activation' })
     const pendingJws = compactJws(
       { alg: 'EdDSA', kid: pendingKid, typ: 'verchem-card+jws' },
       canonicalPayloadString(signable),
       pendingPrivateKey
     )
-    assert.equal(await verifyCardSignature(signable, pendingJws), true)
+    assert.equal(await verifyCardSignature(signable, pendingJws), false)
   } finally {
     const fixtureIndex = mutablePendingKeys.indexOf(pendingFixture)
     if (fixtureIndex >= 0) mutablePendingKeys.splice(fixtureIndex, 1)

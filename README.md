@@ -1,181 +1,97 @@
-# VerChem - World-Class Chemistry Platform
+# VerChem
 
-> Professional chemistry calculators and interactive tools. Free, accessible, and production-grade.
+VerChem is a browser-native chemistry workbench for deterministic calculations, chemical reference data, structure editing/search, and portable signed evidence.
 
-[![Build](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)]()
-[![Tests](https://img.shields.io/badge/tests-54%2F54-success)]()
-[![Accuracy](https://img.shields.io/badge/accuracy-80%25-green)]()
+Production: [https://verchem.xyz](https://verchem.xyz)
 
-## 🎯 Features
+## What is included
 
-### 🧪 Professional Calculators (8)
-- **Equation Balancer** - Auto-balance with reaction type identification
-- **Stoichiometry** - 8 modes (molecular mass, limiting reagent, yields)
-- **Solutions & pH** - 11 modes with visual pH scale
-- **Gas Laws** - 9 modes (Ideal, Boyle's, Charles's, Van der Waals)
-- **Thermodynamics** - ΔH, ΔS, ΔG with equilibrium
-- **Chemical Kinetics** - Rate laws, half-life, Arrhenius
-- **Electrochemistry** - Redox, galvanic cells, Nernst
-- **Electron Configuration** - Orbital diagrams, notation
+- Eight calculator families: equation balancing, stoichiometry, solutions and pH, gas laws, thermodynamics, kinetics, electrochemistry, and electron configuration
+- **Solutions & pH** - 11 modes with explicit temperature and activity-model boundaries
+- Records for all 118 elements and 1,311 compound pages generated from the canonical dataset
+- A browser structure editor with SMILES, MOL, InChI, PNG, and SVG export
+- Substructure and similarity search across the verified structure corpus
+- Organic chemistry, spectroscopy reference tools, lab safety, solution preparation, nuclear chemistry, and quantum chemistry
+- A configurable acid/strong-base titration simulation with explicit model scope
+- PWA/offline support for the local workbench
 
-### 🔬 Interactive Tools (6)
-- **Periodic Table** - 118 elements (NIST/IUPAC certified)
-- **3D Molecular Viewer** - Rotatable molecular structures
-- **Lewis Structures** - Electron dot diagrams
-- **VSEPR Geometry** - Molecular shape prediction
-- **Molecule Builder** - Drag & drop with validation
-- **Virtual Lab** - Interactive titration simulator
+Reference data is cited rather than described as certified. Standard atomic weights are based on the IUPAC 2021 table; fundamental physical constants use the project's declared CODATA 2018 edition where applicable.
 
-### 📚 Chemical Database
-- **118 Elements** - Complete data (15+ properties each)
-- **113+ Compounds** - With safety data and uses
-- **80% Validated** - Against NIST/CRC standards
+## Verifiable chemistry workflow
 
-## 🚀 Quick Start
+`/tools/verified-calculation` runs one of the registered deterministic engines without AI or sign-in and creates an Ed25519 compact JWS. New artifacts include:
+
+- exact engine input and output;
+- semantic engine release;
+- citation and reference editions;
+- assumptions and applicability declarations;
+- a SHA-256 provenance hash over the deterministic tool calls.
+
+`/verify` performs independent browser-side checks against `/.well-known/verchem-keys.json`:
+
+1. Ed25519 signature authenticity and RFC 7638 key identity
+2. provenance-hash integrity
+3. replay against the current deterministic engine release
+4. presence of applicability declarations
+
+These are separate claims. An authentic historical artifact is not presented as currently verified when the current engine differs or cannot replay it.
+
+AI-assisted Answer Cards are optional. AI writes narrative around deterministic results; it is not the authority for numeric engine fields.
+
+## Local development
+
+Requirements: Node.js 24.14.1 or newer (see `.nvmrc`) and npm.
 
 ```bash
-# Install
 npm install
-
-# Development
-npm run dev           # Start dev server
-npm run build         # Production build
-npm run start         # Production server
-
-# Testing
-npm run test:calculations  # Run 54 unit tests
-npm run validate           # Validate scientific accuracy
+npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📊 Stats
+The development script uses polling so the large generated compound/element route tree does not exhaust native file watchers.
 
-- **Lines**: 20,000+
-- **Tests**: 54/54 passing (100%)
-- **Build**: ~2.4s
-- **Routes**: 38
-- **TypeScript**: 0 errors
-- **Accuracy**: 80% validated
-
-## 🎓 Perfect For
-
-- 🎓 Students (high school, university)
-- 👨‍🏫 Teachers
-- 🔬 Chemists
-- 🏭 Engineers
-- 🧑‍🔬 Lab technicians
-
-## 🏗️ Tech Stack
-
-- Next.js 15 (App Router, Turbopack)
-- TypeScript 5 (100% coverage)
-- Tailwind CSS 3
-- Headless UI + Lucide Icons
-- Custom test suite (54 tests)
-
-## ✨ Production Quality
-
-✅ **Error Boundaries** - Global + component-level
-✅ **Loading States** - Smooth UX everywhere
-✅ **SEO Optimized** - Open Graph, structured data
-✅ **Performance** - Code splitting, caching, CDN
-✅ **Accessibility** - WCAG 2.1 AA compliant
-✅ **Type Safety** - 100% TypeScript, no `any`
-✅ **Security** - XSS protection, security headers
-✅ **PWA Ready** - Offline support (coming)
-
-## 📚 Documentation
-
-- [CLAUDE.md](./CLAUDE.md) - Complete project docs
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deploy guide
-- [Session Summaries](./SESSION_SUMMARY*.md) - Dev history
-
-## 🧪 Examples
-
-```typescript
-// Equation Balancer
-Input:  "H2 + O2 -> H2O"
-Output: "2H2 + O2 → 2H2O"
-
-// Stoichiometry
-calculateMolecularMass("Ca(OH)2") // 74.09 g/mol
-
-// pH Calculator
-calculateStrongAcidPH(0.01) // pH = 2.0
-
-// Gas Laws
-idealGasLaw({ n: 2, T: 298, V: 10 }) // P = 4.89 atm
-```
-
-## 🚀 Deployment
-
-Deploy to Vercel in 2 minutes:
+## Verification commands
 
 ```bash
-# Push to GitHub
-git push origin main
-
-# Deploy on Vercel
-# 1. Import GitHub repo
-# 2. Click "Deploy"
-# Done!
+npm run lint
+npm test
+npm run build
+npm run build:webpack
+npm run validate
+npm run test:calculations
 ```
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for details.
+The main test command covers calculation engines, units, validation, authentication/session boundaries, public API contracts, structure workflows, offline-cache migration, Answer Card signing/persistence/replay, browser verification, and deterministic artifact issuance.
 
-## 📈 Roadmap
+## Trust-related environment variables
 
-**Phase 1: MVP** ✅ Complete
-- All calculators working
-- Production-grade code
-- 54 tests passing
+- `CARD_SIGNING_PRIVATE_KEY`: base64-encoded Ed25519 PKCS8 PEM. Required in production; signing fails closed when absent.
+- `ANTHROPIC_API_KEY`: optional and used only by the AI-assisted Answer Card route.
+- Supabase and AIVerID variables: required only for account-backed save/share workflows.
 
-**Phase 2: Polish** 🔄 In Progress
-- PWA support
-- Dark mode polish
-- Animations
+Development and tests use an ephemeral signing key when `CARD_SIGNING_PRIVATE_KEY` is absent. Never treat artifacts issued with that ephemeral key as durable production evidence.
 
-**Phase 3: Advanced** 📋 Planned
-- User accounts
-- PDF export
-- Thai language
-- API access
+## Access and payments
 
-## 🤝 Contributing
+All current VerChem features are free. `/support` contains optional fixed-price support links; support does not buy an entitlement or subscription. The legacy subscription checkout endpoint is intentionally disabled until a real paid product, provisioning flow, and entitlement contract exist.
 
-Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md)
+## Technology
 
-```bash
-# Development
-npm run dev         # Hot reload
-npx tsc --noEmit   # Type check
-npm run lint        # Lint
-npm run test        # Test
-npm run build       # Build
-```
+- Next.js 16 App Router
+- React 19 and TypeScript 5
+- Tailwind CSS 4
+- Ketcher for structure editing
+- RDKit WebAssembly for structure operations
+- Supabase for opt-in account storage
+- Ed25519 compact JWS and browser Web Crypto verification
 
-## 📄 License
+## Scientific and privacy boundaries
 
-MIT - see [LICENSE](./LICENSE)
+- Result validity is limited to the signed inputs, units, model scope, and cited conditions.
+- Spectroscopy lookup and 3D built-in models must not be interpreted as experimental confirmation.
+- A deterministic signed artifact is not automatically proof that a model is appropriate for a real sample.
+- Direct signed calculations are not persisted unless the user explicitly saves them.
+- AI-assisted questions are sent to the configured model provider; direct deterministic calculations do not use that provider.
 
-## 🙏 Credits
-
-- NIST - Chemical data
-- CRC Handbook - Constants
-- IUPAC - Standards
-- Next.js Team
-- Tailwind CSS
-
-## 📞 Contact
-
-- **Website**: https://verchem.com
-- **Email**: support@verchem.com
-- **Docs**: [CLAUDE.md](./CLAUDE.md)
-
----
-
-**Built with ❤️ for chemistry students worldwide.**
-
-*From 0 to world-class in 9 hours. AI × Domain Expertise = 10,000x output.*
+Project-specific engineering and verification requirements are documented in [CLAUDE.md](./CLAUDE.md).

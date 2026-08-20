@@ -8,6 +8,7 @@
 import { sign as signEd25519, verify as verifyEd25519 } from 'node:crypto'
 import type { SignablePayload, AnswerCard } from './types'
 import { getActiveSigningKey, getVerificationKey } from './signing-key'
+import { canonicalJsonString } from './canonical-json'
 
 const CARD_JWS_TYPE = 'verchem-card+jws'
 const MAX_CARD_JWS_LENGTH = 256 * 1024
@@ -54,43 +55,8 @@ export function toSignablePayload(card: Omit<AnswerCard, 'signature'>): Signable
     model: card.model,
     version: card.version,
     issued_at: card.issued_at,
+    ...(card.provenance === undefined ? {} : { provenance: card.provenance }),
   }
-}
-
-/**
- * Recursively sort object keys for stable serialization.
- */
-function canonicalize(value: unknown): unknown {
-  if (value === null || typeof value !== 'object') {
-    return value
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(canonicalize)
-  }
-
-  // SECURITY: use a null-prototype accumulator. With a plain `{}`, assigning a
-  // key named "__proto__" hits Object.prototype's setter and mutates the
-  // prototype instead of creating an own property — so JSON.stringify would
-  // OMIT it, and a card with a tampered/injected `__proto__` field would
-  // produce the SAME canonical string (and thus verify). A null-proto object
-  // has no such setter, so "__proto__" / "constructor" become real own keys
-  // and are faithfully serialized. (JSON.parse can create an own "__proto__"
-  // key, so this is a reachable forgery vector.)
-  const sorted: Record<string, unknown> = Object.create(null)
-  const source = value as Record<string, unknown>
-  const keys = Object.keys(source).sort()
-  for (const key of keys) {
-    sorted[key] = canonicalize(source[key])
-  }
-  return sorted
-}
-
-/**
- * Stable JSON stringify using canonicalization.
- */
-function canonicalJSON(value: unknown): string {
-  return JSON.stringify(canonicalize(value))
 }
 
 function base64urlEncode(value: string | Buffer): string {
@@ -179,14 +145,14 @@ export function isStructurallyValidCardJws(compactJws: string): boolean {
  * Storing the canonical string makes verification a pure string operation.
  */
 export function canonicalPayloadString(payload: SignablePayload): string {
-  return canonicalJSON(payload)
+  return canonicalJsonString(payload)
 }
 
 /**
  * Sign the canonical payload string as an Ed25519 compact JWS.
  */
 export async function signCard(payload: SignablePayload): Promise<string> {
-  const canonical = canonicalJSON(payload)
+  const canonical = canonicalJsonString(payload)
   const active = getActiveSigningKey()
   const protectedHeader: CardJwsHeader = {
     alg: 'EdDSA',
@@ -216,7 +182,7 @@ export async function verifyCardSignature(
   payload: SignablePayload,
   signature: string
 ): Promise<boolean> {
-  return verifyCanonicalSignature(canonicalJSON(payload), signature)
+  return verifyCanonicalSignature(canonicalJsonString(payload), signature)
 }
 
 /**

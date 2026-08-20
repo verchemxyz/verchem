@@ -110,6 +110,7 @@ export async function rowToVerifiedCard(row: AnswerCardDisplayRow): Promise<Load
         model: parsed.model,
         version: parsed.version,
         issued_at: parsed.issued_at,
+        ...(parsed.provenance === undefined ? {} : { provenance: parsed.provenance }),
         signature: row.signature,
       }
     : {

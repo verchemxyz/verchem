@@ -7,12 +7,25 @@ import { CalcShell, Card, SectionTitle, Button } from '@/components/lab'
 import {
   simulateTitration,
   EXAMPLE_TITRATIONS,
+  INDICATORS,
+  STRONG_ACIDS,
+  WEAK_ACIDS,
+  STRONG_BASES,
   getIndicatorColor,
   type Acid,
   type Base,
   type Indicator,
   type TitrationResult,
 } from '@/lib/calculations/titration'
+
+const SUPPORTED_ACIDS: Array<Omit<Acid, 'concentration' | 'volume'>> = [
+  ...STRONG_ACIDS,
+  ...WEAK_ACIDS,
+]
+const SUPPORTED_BASES: Array<Omit<Base, 'concentration'>> = STRONG_BASES.map((base) => ({
+  ...base,
+  type: 'strong',
+}))
 
 export default function TitrationLabPage() {
   // Lab state
@@ -23,6 +36,7 @@ export default function TitrationLabPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [result, setResult] = useState<TitrationResult | null>(null)
   const [showResults, setShowResults] = useState(false)
+  const [setupError, setSetupError] = useState<string | null>(null)
 
   // Current pH and color
   const [currentPH, setCurrentPH] = useState(0)
@@ -38,17 +52,23 @@ export default function TitrationLabPage() {
     setIsRunning(false)
     setResult(null)
     setShowResults(false)
+    setSetupError(null)
   }
 
   // Start titration
   const startTitration = () => {
-    const titrationResult = simulateTitration(acid, base, indicator, 0.1)
-    setResult(titrationResult)
-    setVolumeAdded(0)
-    setIsRunning(true)
-    setShowResults(false)
-    setCurrentPH(titrationResult.initialPH)
-    setCurrentColor(getIndicatorColor(indicator, titrationResult.initialPH))
+    setSetupError(null)
+    try {
+      const titrationResult = simulateTitration(acid, base, indicator, 0.1)
+      setResult(titrationResult)
+      setVolumeAdded(0)
+      setIsRunning(true)
+      setShowResults(false)
+      setCurrentPH(titrationResult.initialPH)
+      setCurrentColor(getIndicatorColor(indicator, titrationResult.initialPH))
+    } catch (error: unknown) {
+      setSetupError(error instanceof Error ? error.message : 'This titration setup is invalid')
+    }
   }
 
   // Add titrant (1 mL at a time)
@@ -78,6 +98,7 @@ export default function TitrationLabPage() {
     setIsRunning(false)
     setResult(null)
     setShowResults(false)
+    setSetupError(null)
   }
 
   return (
@@ -104,6 +125,104 @@ export default function TitrationLabPage() {
                 <div className="text-sm text-muted-foreground">{example.description}</div>
               </button>
             ))}
+          </div>
+
+          <div className="mt-6 border-t border-border pt-6">
+            <SectionTitle className="mb-4">Configure a supported setup</SectionTitle>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <label className="text-sm font-medium text-foreground">
+                Analyte acid
+                <select
+                  value={acid.formula}
+                  onChange={(event) => {
+                    const preset = SUPPORTED_ACIDS.find((candidate) => candidate.formula === event.target.value)
+                    if (preset) setAcid({ ...preset, concentration: acid.concentration, volume: acid.volume })
+                  }}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                >
+                  {SUPPORTED_ACIDS.map((candidate) => (
+                    <option key={candidate.formula} value={candidate.formula}>
+                      {candidate.name} ({candidate.formula})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-sm font-medium text-foreground">
+                Acid concentration (M)
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={acid.concentration}
+                  onChange={(event) => setAcid((current) => ({ ...current, concentration: Number(event.target.value) }))}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                />
+              </label>
+
+              <label className="text-sm font-medium text-foreground">
+                Acid volume (mL)
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={acid.volume}
+                  onChange={(event) => setAcid((current) => ({ ...current, volume: Number(event.target.value) }))}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                />
+              </label>
+
+              <label className="text-sm font-medium text-foreground">
+                Strong-base titrant
+                <select
+                  value={base.formula}
+                  onChange={(event) => {
+                    const preset = SUPPORTED_BASES.find((candidate) => candidate.formula === event.target.value)
+                    if (preset) setBase({ ...preset, concentration: base.concentration })
+                  }}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                >
+                  {SUPPORTED_BASES.map((candidate) => (
+                    <option key={candidate.formula} value={candidate.formula}>
+                      {candidate.name} ({candidate.formula})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-sm font-medium text-foreground">
+                Base concentration (M)
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={base.concentration}
+                  onChange={(event) => setBase((current) => ({ ...current, concentration: Number(event.target.value) }))}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                />
+              </label>
+
+              <label className="text-sm font-medium text-foreground">
+                Indicator
+                <select
+                  value={indicator.name}
+                  onChange={(event) => {
+                    const next = INDICATORS.find((candidate) => candidate.name === event.target.value)
+                    if (next) setIndicator(next)
+                  }}
+                  className="mt-1.5 min-h-[44px] w-full rounded-md border border-border bg-background px-3 py-2"
+                >
+                  {INDICATORS.map((candidate) => (
+                    <option key={candidate.name} value={candidate.name}>
+                      {candidate.name} (pH {candidate.transitionRange[0]}–{candidate.transitionRange[1]})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Model scope: strong- or weak-acid analytes titrated with a strong base at the declared concentrations. Activity and measurement-uncertainty corrections are not included.
+            </p>
           </div>
         </Card>
       )}
@@ -210,9 +329,16 @@ export default function TitrationLabPage() {
             <SectionTitle className="mb-4">Controls</SectionTitle>
 
             {!isRunning ? (
-              <Button onClick={startTitration} className="w-full">
-                Start Titration
-              </Button>
+              <div>
+                <Button onClick={startTitration} className="w-full">
+                  Start Titration
+                </Button>
+                {setupError && (
+                  <p role="alert" className="mt-3 text-sm text-destructive-strong">
+                    {setupError}
+                  </p>
+                )}
+              </div>
             ) : (
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
@@ -395,12 +521,12 @@ export default function TitrationLabPage() {
       <Card className="p-6">
         <SectionTitle className="mb-3">How to use</SectionTitle>
         <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-          <li>Select an example titration or set up your own</li>
+          <li>Select an example or configure a supported acid, strong-base titrant, concentration, volume, and indicator</li>
           <li>Click &quot;Start Titration&quot; to begin</li>
           <li>Add titrant using the control buttons (0.1, 1.0, or 5.0 mL)</li>
           <li>Watch the flask color change and pH curve update in real-time</li>
           <li>Look for the equivalence point (marked in red on the graph)</li>
-          <li>Try different indicators to see which works best</li>
+          <li>Reset and compare the available indicators against the calculated equivalence region</li>
         </ol>
       </Card>
     </CalcShell>

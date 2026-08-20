@@ -249,14 +249,15 @@ export function getPublishedPublicKeys(): PublishedVerchemJwk[] {
   ]
 }
 
-/** Resolve any currently published active/pending/retired key by its RFC 7638 kid. */
+/** Resolve only keys authorized to issue artifacts: active or retired. */
 export function getVerificationKey(kid: string): KeyObject | null {
   const active = getActiveSigningKey()
   if (kid === active.kid) return active.publicKey
 
-  const rotationKey =
-    PENDING_PUBLIC_KEYS.find((candidate) => candidate.kid === kid) ??
-    RETIRED_PUBLIC_KEYS.find((candidate) => candidate.kid === kid)
+  // Pending keys are deliberately discoverable before activation so caches
+  // can warm up. Publishing one does not authorize its private counterpart to
+  // issue artifacts; it becomes valid only after promotion to active.
+  const rotationKey = RETIRED_PUBLIC_KEYS.find((candidate) => candidate.kid === kid)
   if (!rotationKey) return null
 
   const publicJwk = validateRotationKey(rotationKey)

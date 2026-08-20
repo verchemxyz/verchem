@@ -474,7 +474,7 @@ test('solutions: pH and [H+] conversions', () => {
 test('solutions: pH throws on non-positive [H+]', () => {
   expectThrows(
     () => calculatePH(0),
-    'H+ concentration must be positive'
+    'H+ concentration must be a positive, finite number'
   )
 })
 
@@ -489,7 +489,7 @@ test('solutions: pOH and [OH-] conversions', () => {
 test('solutions: pOH throws on non-positive [OH-]', () => {
   expectThrows(
     () => calculatePOH(0),
-    'OH- concentration must be positive'
+    'OH- concentration must be a positive, finite number'
   )
 })
 

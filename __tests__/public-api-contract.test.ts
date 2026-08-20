@@ -188,6 +188,33 @@ function normalizeReviewedDefaultCompoundChanges(
     }
   }
 
+  // V8/libm can serialize Math.pow(10, -5) one ULP differently across supported
+  // Node releases. Validate the scientific value, then normalize only that
+  // representational difference before comparing the legacy JSON golden.
+  const phFixture = normalized.phFromPOH
+  if (phFixture) {
+    const phBody = recordValue(phFixture.body, 'phFromPOH.body')
+    const phResult = recordValue(phBody.result, 'phFromPOH.body.result')
+    const ohConcentration = recordValue(
+      phResult.ohConcentration,
+      'phFromPOH.body.result.ohConcentration'
+    )
+    assert.equal(typeof ohConcentration.value, 'number')
+    const expectedOH = 1e-5
+    const actualOH = ohConcentration.value as number
+    assert.ok(
+      Math.abs(actualOH - expectedOH) <= Number.EPSILON * 32 * expectedOH,
+      'pH=9 must produce [OH-] = 1e-5 mol/L within cross-runtime floating-point tolerance'
+    )
+    const goldenPHBody = recordValue(golden.fixtures.phFromPOH.body, 'golden.phFromPOH.body')
+    const goldenPHResult = recordValue(goldenPHBody.result, 'golden.phFromPOH.body.result')
+    const goldenOH = recordValue(
+      goldenPHResult.ohConcentration,
+      'golden.phFromPOH.body.result.ohConcentration'
+    )
+    ohConcentration.value = goldenOH.value
+  }
+
   return normalized
 }
 

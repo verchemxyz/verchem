@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 
 // Dynamically import OAuthLoginButton to avoid SSR issues
 const OAuthLoginButton = dynamic(() => import('./oauth-login-button'), {
@@ -21,6 +22,7 @@ interface User {
 }
 
 const AuthButton = () => {
+  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -66,12 +68,12 @@ const AuthButton = () => {
       document.cookie = 'verchem-auth=; Max-Age=0; Path=/;'
       document.cookie = 'verchem-session=; Max-Age=0; Path=/;'
       document.cookie = 'verchem-session-sig=; Max-Age=0; Path=/;'
-      // Reload page
-      window.location.href = '/'
+      router.replace('/')
+      router.refresh()
     } catch (error) {
       console.error('Logout failed:', error)
-      // Force reload anyway
-      window.location.href = '/'
+      router.replace('/')
+      router.refresh()
     }
   }
 

@@ -7,10 +7,11 @@ import { useState } from 'react'
 import MoleculeViewer3D from '@/components/3d-viewer/MoleculeViewer3D'
 import MoleculeSelector from '@/components/3d-viewer/MoleculeSelector'
 import type { Molecule3D, DisplayStyle, Atom3D } from '@/lib/types/chemistry'
-import { WATER } from '@/lib/data/molecules-3d'
+import { MOLECULES_3D, WATER } from '@/lib/data/molecules-3d'
 import { CalcShell } from '@/components/lab'
 
 export default function Viewer3DPage() {
+  const moleculeCount = Object.keys(MOLECULES_3D).length
   const [selectedMolecule, setSelectedMolecule] = useState<Molecule3D>(WATER)
   const [displayStyle, setDisplayStyle] = useState<DisplayStyle>('ball-stick')
   const [showLabels, setShowLabels] = useState(true)
@@ -23,7 +24,7 @@ export default function Viewer3DPage() {
 
   return (
     <CalcShell
-      eyebrow="Interactive 3D · CPK · 10 molecules"
+      eyebrow={`Interactive 3D · CPK · ${moleculeCount} built-in molecules`}
       title="3D Molecular Viewer"
       subtitle="Interactive 3D visualization with real-time rendering and intuitive controls."
       backHref="/"
@@ -133,7 +134,7 @@ export default function Viewer3DPage() {
                 </li>
                 <li className="flex items-center">
                   <span className="text-success-strong mr-2">✓</span>
-                  10 pre-built molecules
+                  {moleculeCount} built-in molecule models
                 </li>
                 <li className="flex items-center">
                   <span className="text-success-strong mr-2">✓</span>
@@ -167,7 +168,7 @@ export default function Viewer3DPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Molecules:</span>
-                <span className="text-foreground font-mono">10</span>
+                <span className="text-foreground font-mono">{moleculeCount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Display Styles:</span>

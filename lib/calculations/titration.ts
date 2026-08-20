@@ -408,6 +408,22 @@ export function simulateTitration(
   indicator: Indicator,
   stepSize: number = 0.5 // mL increments
 ): TitrationResult {
+  if (!Number.isFinite(acid.concentration) || acid.concentration <= 0) {
+    throw new Error('Acid concentration must be a positive finite number')
+  }
+  if (!Number.isFinite(acid.volume) || acid.volume <= 0) {
+    throw new Error('Acid volume must be a positive finite number')
+  }
+  if (!Number.isFinite(base.concentration) || base.concentration <= 0) {
+    throw new Error('Base concentration must be a positive finite number')
+  }
+  if (!Number.isFinite(stepSize) || stepSize <= 0) {
+    throw new Error('Titration step size must be a positive finite number')
+  }
+  if (base.type !== 'strong') {
+    throw new Error('The current titration model supports strong-base titrants only')
+  }
+
   const steps: string[] = []
   const points: TitrationPoint[] = []
   const acidProtonCount = getAcidProtonCount(acid)
@@ -436,6 +452,10 @@ export function simulateTitration(
   const acidMoles = (acid.concentration * acid.volume) / 1000
   const acidEquivalents = acidMoles * Math.max(acidProtonCount, 1)
   const equivalenceVolume = (acidEquivalents * 1000) / (base.concentration * baseHydroxideCount)
+  const estimatedPointCount = Math.ceil((equivalenceVolume * 2) / stepSize) + 1
+  if (!Number.isFinite(equivalenceVolume) || equivalenceVolume <= 0 || estimatedPointCount > 20_000) {
+    throw new Error('This setup is outside the supported titration volume or resolution range')
+  }
 
   steps.push(`Theoretical Equivalence Point:`)
   steps.push(`  Moles of acid = ${acidMoles.toExponential(4)} mol`)

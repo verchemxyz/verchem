@@ -114,7 +114,9 @@ async function run() {
     assert.equal(card.tool_calls.length, 1)
     assert.equal(card.tool_calls[0].name, 'calculate_strong_acid_ph')
     assert.match(card.tool_calls[0].engine_version ?? '', /^\d+\.\d+\.\d+$/)
-    assert.equal(card.version, 'w3-v2')
+    assert.equal(card.version, 'w3-v3')
+    assert.equal(card.provenance?.computation, 'ai-orchestrated-deterministic')
+    assert.match(card.provenance?.artifact_hash ?? '', /^sha256:[a-f0-9]{64}$/)
     assert.equal(card.tool_calls[0].result.ok, true)
     const pH = card.tool_calls[0].result.value.pH as number
     assert.ok(Math.abs(pH - 1) < 0.01, `expected pH≈1, got ${pH}`)

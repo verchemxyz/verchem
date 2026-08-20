@@ -226,7 +226,7 @@ const molarity = getChemicalTerm('molarity', 'zh'); // Returns "摩尔浓度"
 
 1. Create a new translation file in `public/locales/[language-code]/common.json`
 2. Add the language to the `languages` array in `components/i18n/LanguageProvider.tsx`
-3. Update the `i18n` configuration in `next-i18next.config.js`
+3. Add the locale resource import and mapping in `i18n.ts`
 
 Example for adding Arabic:
 

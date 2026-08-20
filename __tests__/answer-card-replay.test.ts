@@ -44,6 +44,23 @@ async function run(): Promise<void> {
   assert.equal(isCurrentlyVerifiedAnswer('verified', true, currentAssessment), true)
   assert.equal(isCurrentlyVerifiedAnswer('partial', true, currentAssessment), false)
 
+  // Cross-runtime libm differences of a few ULPs are representational noise,
+  // not a scientific correction. Replay must remain portable across engines.
+  assert.equal(currentResult.ok, true)
+  const currentPH = currentResult.value.pH
+  assert.equal(typeof currentPH, 'number')
+  const crossRuntimeCall: ToolCall = {
+    ...currentCall,
+    result: {
+      ...currentResult,
+      value: {
+        ...currentResult.value,
+        pH: (currentPH as number) * (1 + Number.EPSILON * 4),
+      },
+    },
+  }
+  assert.equal(assessEngineReplay([crossRuntimeCall]).status, 'current')
+
   const emptyAssessment = assessEngineReplay([])
   assert.equal(emptyAssessment.status, 'unavailable')
   assert.equal(emptyAssessment.currentEngineAgrees, false)

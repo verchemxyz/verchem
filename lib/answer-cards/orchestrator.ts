@@ -20,6 +20,7 @@ import { SigningKeyConfigurationError } from './signing-key'
 import { auditExplanation } from './audit'
 import { ALL_TOOLS, TOOL_BY_NAME, toAnthropicTool } from './tools/registry'
 import { isPlainObject } from './tools/_validate'
+import { ANSWER_CARD_SCHEMA_VERSION, buildProvenanceEnvelope } from './provenance'
 
 /**
  * Strip input object to only keys defined in the tool's input_schema.properties.
@@ -45,7 +46,6 @@ export function pickSchemaKeys(
 }
 
 const MODEL = 'claude-haiku-4-5-20251001'
-const VERSION = 'w3-v2'
 const MAX_TOKENS = 1500
 const MAX_ROUNDS = 5
 
@@ -388,8 +388,9 @@ export async function askVerified(
     explanation: explanation.trim(),
     audit,
     model: MODEL,
-    version: VERSION,
+    version: ANSWER_CARD_SCHEMA_VERSION,
     issued_at: new Date().toISOString(),
+    provenance: buildProvenanceEnvelope(toolCalls, 'ai-orchestrated-deterministic'),
     signature: '',
   }
 

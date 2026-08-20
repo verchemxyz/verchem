@@ -15,7 +15,7 @@ const STRUCTURE_WORKFLOW = [
     number: "02",
   },
   {
-    href: "/tools/verified-answer",
+    href: "/tools/verified-calculation",
     label: "Verify",
     description: "Issue signed evidence",
     number: "03",
@@ -70,6 +70,12 @@ export default async function Home() {
                     <span className="font-bold text-foreground font-sans">H₂SO₄</span>
                   </div>
                   <div className="flex items-baseline justify-between">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Provenance</span>
+                    <span className="max-w-[13rem] truncate text-right font-mono text-xs text-muted-foreground">
+                      {demoPayload.provenance?.artifact_hash}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between">
                     <span className="text-xs uppercase tracking-wider text-muted-foreground">Result</span>
                     <span className="font-mono text-foreground">{demoMolarMass} g/mol</span>
                   </div>
@@ -117,12 +123,14 @@ export default async function Home() {
                   <code className="mt-2 block max-h-24 overflow-auto break-all rounded bg-muted p-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
                     {demoJws}
                   </code>
-                  <a
-                    href="/.well-known/verchem-keys.json"
-                    className="mt-2 inline-flex text-xs text-primary-600 hover:text-primary-500"
-                  >
-                    Verify with VerChem&apos;s published public keys
-                  </a>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                    <Link href="/verify" className="text-primary-600 hover:text-primary-500">
+                      Verify independently in your browser
+                    </Link>
+                    <a href="/.well-known/verchem-keys.json" className="text-primary-600 hover:text-primary-500">
+                      Inspect the published public key set
+                    </a>
+                  </div>
                 </details>
               </div>
             </div>
@@ -130,7 +138,7 @@ export default async function Home() {
             {/* Verify your own result link */}
             <div className="mt-3 text-center">
               <Link
-                href="/tools/verified-answer"
+                href="/tools/verified-calculation"
                 className="inline-flex items-center gap-1 text-sm text-primary-500 hover:text-primary-600 transition-colors"
               >
                 Verify your own result
@@ -146,7 +154,7 @@ export default async function Home() {
             {[
               { label: "Compute", desc: "Deterministic engine", num: "01" },
               { label: "Sign", desc: "Ed25519 JWS · public key", num: "02" },
-              { label: "Explain", desc: "AI around the numbers", num: "03" },
+              { label: "Verify", desc: "Browser replay · AI optional", num: "03" },
             ].map((step, i) => (
               <div key={step.label} className="flex items-center gap-3">
                 <span className="font-mono text-xs text-muted-foreground">{step.num}</span>

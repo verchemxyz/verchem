@@ -36,19 +36,43 @@ export function isCurrentlyVerifiedAnswer(
     replay.allVersionsCurrent
 }
 
-function canonicalize(value: unknown): unknown {
-  if (value === null || typeof value !== 'object') return value
-  if (Array.isArray(value)) return value.map(canonicalize)
+const FLOAT_REPLAY_ULPS = 32
 
-  const sorted: Record<string, unknown> = Object.create(null)
-  for (const key of Object.keys(value as Record<string, unknown>).sort()) {
-    sorted[key] = canonicalize((value as Record<string, unknown>)[key])
+function finiteNumbersAgree(left: number, right: number): boolean {
+  if (Object.is(left, right)) return true
+  if (!Number.isFinite(left) || !Number.isFinite(right)) return false
+  if (left === 0 || right === 0) return false
+
+  // JavaScript engines may differ by a handful of ULPs for Math.pow/log/exp.
+  // Keep replay portable without accepting a chemically meaningful change.
+  const scale = Math.max(Math.abs(left), Math.abs(right))
+  return Math.abs(left - right) <= Number.EPSILON * FLOAT_REPLAY_ULPS * scale
+}
+
+function jsonValuesAgree(left: unknown, right: unknown): boolean {
+  if (typeof left === 'number' && typeof right === 'number') {
+    return finiteNumbersAgree(left, right)
   }
-  return sorted
+  if (left === null || right === null || typeof left !== 'object' || typeof right !== 'object') {
+    return Object.is(left, right)
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left) && Array.isArray(right) &&
+      left.length === right.length &&
+      left.every((entry, index) => jsonValuesAgree(entry, right[index]))
+  }
+
+  const leftRecord = left as Record<string, unknown>
+  const rightRecord = right as Record<string, unknown>
+  const leftKeys = Object.keys(leftRecord).sort()
+  const rightKeys = Object.keys(rightRecord).sort()
+  return leftKeys.length === rightKeys.length &&
+    leftKeys.every((key, index) => key === rightKeys[index] &&
+      jsonValuesAgree(leftRecord[key], rightRecord[key]))
 }
 
 function resultsAgree(signed: ToolResult, current: ToolResult): boolean {
-  return JSON.stringify(canonicalize(signed)) === JSON.stringify(canonicalize(current))
+  return jsonValuesAgree(signed, current)
 }
 
 function replayOne(call: ToolCall): EngineReplayCheck {

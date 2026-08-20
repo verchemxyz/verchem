@@ -262,6 +262,40 @@ export default function AnswerCardView({ card, signatureValid, engineReplay }: A
         </div>
       )}
 
+      {card.provenance && (
+        <details className="rounded-xl border border-border bg-muted p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-foreground">
+            Provenance envelope
+          </summary>
+          <dl className="mt-4 grid gap-3 text-xs sm:grid-cols-2">
+            <div>
+              <dt className="text-muted-foreground">Artifact hash</dt>
+              <dd className="mt-1 break-all font-mono text-foreground">{card.provenance.artifact_hash}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Computation</dt>
+              <dd className="mt-1 font-mono text-foreground">{card.provenance.computation}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Dataset edition</dt>
+              <dd className="mt-1 font-mono text-foreground">{card.provenance.dataset_edition}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Constants edition</dt>
+              <dd className="mt-1 font-mono text-foreground">{card.provenance.constants_edition}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">Applicability</dt>
+              <dd className="mt-1 text-foreground">{card.provenance.applicability.join(' ')}</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-muted-foreground">Assumptions</dt>
+              <dd className="mt-1 text-foreground">{card.provenance.assumptions.join(' ')}</dd>
+            </div>
+          </dl>
+        </details>
+      )}
+
       {/* Explanation */}
       {card.explanation && (
         <div className="rounded-2xl border border-border bg-card p-6">

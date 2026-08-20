@@ -23,20 +23,7 @@ export const PRODUCT_CONFIG: ProductConfig = {
     'equation-balancer-basic',
     'ideal-gas-law',
   ],
-  paidCalculators: [
-    'stoichiometry-full',
-    'equation-balancer-advanced',
-    'solutions-ph',
-    'gas-laws-full',
-    'thermodynamics',
-    'kinetics',
-    'electrochemistry',
-    'electron-config',
-    'periodic-table',
-    'molecular-viewer',
-    'lewis-structures',
-    'vsepr-geometry',
-  ],
+  paidCalculators: [],
 }
 
 /**
@@ -83,7 +70,7 @@ export const NAV_LINKS = [
   { label: 'Calculators', href: '/calculators' },
   { label: 'Periodic Table', href: '/periodic-table' },
   { label: 'Compounds', href: '/compounds' },
-  { label: 'Pricing', href: '/pricing' },
+  { label: 'Verify', href: '/verify' },
   { label: 'Docs', href: '/docs' },
 ]
 
@@ -93,7 +80,7 @@ export const NAV_LINKS = [
 export const FOOTER_LINKS = {
   product: [
     { label: 'Features', href: '/features' },
-    { label: 'Pricing', href: '/pricing' },
+    { label: 'Support', href: '/support' },
     { label: 'Roadmap', href: '/roadmap' },
   ],
   resources: [

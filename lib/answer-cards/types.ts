@@ -14,6 +14,20 @@ export interface ToolResult {
   error?: string
 }
 
+export interface ProvenanceEnvelope {
+  schema: 'verchem-provenance/v1'
+  /** SHA-256 over canonical JSON of the signed deterministic tool calls. */
+  artifact_hash: `sha256:${string}`
+  dataset_edition: string
+  constants_edition: string
+  unit_schema: 'verchem-explicit-units/v1'
+  engine_registry_edition: string
+  sources: string[]
+  assumptions: string[]
+  applicability: string[]
+  computation: 'deterministic' | 'ai-orchestrated-deterministic'
+}
+
 export interface ToolCall {
   name: string
   engine: string
@@ -48,6 +62,8 @@ export interface AnswerCard {
   model: string
   version: string
   issued_at: string
+  /** Present on w3-v3+ artifacts; omitted on historical cards. */
+  provenance?: ProvenanceEnvelope
   signature: string
 }
 
@@ -68,4 +84,6 @@ export interface SignablePayload {
   model: string
   version: string
   issued_at: string
+  /** Present on w3-v3+ artifacts; omitted on historical cards. */
+  provenance?: ProvenanceEnvelope
 }

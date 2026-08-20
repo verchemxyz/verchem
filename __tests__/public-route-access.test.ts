@@ -44,6 +44,8 @@ async function run(): Promise<void> {
   // Front-door featured tools must complete anonymously (Stage 0 contract).
   await assertAnonymousPasses('/draw')
   await assertAnonymousPasses('/tools/substructure-search')
+  await assertAnonymousPasses('/tools/verified-calculation')
+  await assertAnonymousPasses('/verify')
 
   // 2026-08-11 (พี่จ๊อบเคาะ): every local-compute tool and reference surface is
   // open to anonymous visitors — growth first, Free tier as decided.

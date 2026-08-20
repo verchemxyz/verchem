@@ -58,7 +58,8 @@ export default function AccountPage() {
       router.push('/')
     } catch (err) {
       console.error('Logout error:', err)
-      window.location.href = '/'
+      router.replace('/')
+      router.refresh()
     }
   }
 
@@ -167,15 +168,15 @@ export default function AccountPage() {
         </div>
       </Card>
 
-      {/* Subscription Card */}
+      {/* Access Card */}
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-foreground">Early Bird Member</h3>
+            <h3 className="text-lg font-bold text-foreground">VerChem Member</h3>
             <p className="text-success-strong text-sm font-medium">All features unlocked</p>
             <p className="text-muted-foreground text-sm mt-3 max-w-md">
-              Thank you for being an early adopter. You have lifetime access to all VerChem features.
-              When we launch premium tiers, you&apos;ll receive exclusive Early Bird pricing.
+              VerChem does not currently sell a subscription. Your account keeps signed cards,
+              saved molecules, and private workspace data together while the chemistry tools remain free.
             </p>
           </div>
           <span className="rounded-md border border-success/40 bg-success/10 px-3 py-1 text-sm font-bold text-success-strong shrink-0">

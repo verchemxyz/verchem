@@ -34,6 +34,28 @@ const STRUCTURE_TOOLS = [
 ] as const
 
 // ============================================
+// VERIFIABLE EVIDENCE
+// ============================================
+
+const EVIDENCE_TOOLS = [
+  {
+    href: '/tools/verified-calculation',
+    label: 'Signed Deterministic Calculation',
+    description: 'Run any verified engine and issue an Ed25519-signed, replayable artifact without AI or sign-in.',
+  },
+  {
+    href: '/verify',
+    label: 'Independent Artifact Verifier',
+    description: 'Check signature authenticity, provenance hash, current-engine replay, and applicability locally in your browser.',
+  },
+  {
+    href: '/tools/verified-answer',
+    label: 'AI-Assisted Verified Answer',
+    description: 'Optional AI narrative around deterministic engine results. Sign-in and service availability are required.',
+  },
+] as const
+
+// ============================================
 // CHEMISTRY TOOLS
 // ============================================
 
@@ -158,6 +180,12 @@ const SECTIONS = [
     title: 'Structure & Search',
     blurb: 'Draw once, search verified structures, and keep your work in one browser-native flow',
     tools: STRUCTURE_TOOLS,
+  },
+  {
+    id: 'evidence',
+    title: 'Verifiable Evidence',
+    blurb: 'Portable signed calculations with independent browser verification',
+    tools: EVIDENCE_TOOLS,
   },
   {
     id: 'chemistry',

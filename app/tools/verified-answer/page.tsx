@@ -6,6 +6,7 @@ import { CalcShell, Card } from '@/components/lab'
 import AskBox from '@/components/answer-cards/AskBox'
 import AnswerCardView from '@/components/answer-cards/AnswerCardView'
 import SaveShareControls from '@/components/answer-cards/SaveShareControls'
+import Link from 'next/link'
 
 export default function VerifiedAnswerPage() {
   const [card, setCard] = useState<AnswerCard | null>(null)
@@ -25,7 +26,7 @@ export default function VerifiedAnswerPage() {
       })
 
       if (response.status === 401) {
-        setError('Please log in to use the verified answer feature.')
+        setError('AI-assisted answers require sign-in. Signed deterministic calculations remain available without sign-in.')
         setIsLoading(false)
         return
       }
@@ -37,7 +38,7 @@ export default function VerifiedAnswerPage() {
       }
 
       if (response.status === 503) {
-        setError('AI verification service is temporarily unavailable.')
+        setError('The optional AI narrative service is unavailable. The deterministic signing workflow remains available.')
         setIsLoading(false)
         return
       }
@@ -67,6 +68,23 @@ export default function VerifiedAnswerPage() {
       backLabel="All tools"
       maxWidth="4xl"
     >
+      <Card className="border-primary-500/30 bg-primary-500/5 p-5">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="font-semibold text-foreground">Need a signed calculation, not an AI explanation?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Compute and sign directly with a deterministic engine—no AI or sign-in required.
+            </p>
+          </div>
+          <Link
+            href="/tools/verified-calculation"
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-md bg-primary-500 px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-600"
+          >
+            Open signed calculation
+          </Link>
+        </div>
+      </Card>
+
       {/* Ask Box */}
       <Card className="p-6 sm:p-8">
         <AskBox onSubmit={handleSubmit} isLoading={isLoading} error={error} />
