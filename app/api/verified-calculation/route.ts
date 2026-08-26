@@ -6,6 +6,7 @@ import {
   DirectCalculationError,
 } from '@/lib/answer-cards/deterministic-card'
 import { SigningKeyConfigurationError } from '@/lib/answer-cards/signing-key'
+import { ReleaseManifestMissingError } from '@/lib/answer-cards/release-manifest'
 
 export const runtime = 'nodejs'
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
         { status: error.httpStatus }
       )
     }
-    if (error instanceof SigningKeyConfigurationError) {
+    if (error instanceof SigningKeyConfigurationError || error instanceof ReleaseManifestMissingError) {
       console.error('POST /api/verified-calculation signing configuration error:', error)
       return NextResponse.json(
         { error: 'The signing service is temporarily unavailable.' },

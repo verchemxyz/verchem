@@ -22,6 +22,8 @@ export interface ProvenanceEnvelope {
   constants_edition: string
   unit_schema: 'verchem-explicit-units/v1'
   engine_registry_edition: string
+  /** Required on w3-v4+ cards; binds edition labels to a signed release manifest. */
+  release_manifest_hash?: `sha256:${string}`
   sources: string[]
   assumptions: string[]
   applicability: string[]
@@ -62,7 +64,7 @@ export interface AnswerCard {
   model: string
   version: string
   issued_at: string
-  /** Present on w3-v3+ artifacts; omitted on historical cards. */
+  /** Present on w3-v3+ artifacts; w3-v4 requires release_manifest_hash. */
   provenance?: ProvenanceEnvelope
   signature: string
 }
@@ -84,6 +86,6 @@ export interface SignablePayload {
   model: string
   version: string
   issued_at: string
-  /** Present on w3-v3+ artifacts; omitted on historical cards. */
+  /** Present on w3-v3+ artifacts; w3-v4 requires release_manifest_hash. */
   provenance?: ProvenanceEnvelope
 }

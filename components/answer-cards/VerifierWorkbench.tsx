@@ -179,6 +179,25 @@ export default function VerifierWorkbench() {
                   : 'This historical artifact predates the provenance envelope.'}
             />
             <CheckRow
+              label="Release manifest"
+              state={verification.result.releaseManifest === 'matched_current'
+                ? 'pass'
+                : verification.result.releaseManifest === 'matched_superseded'
+                  ? 'warn'
+                : verification.result.releaseManifest === 'mismatch'
+                  ? 'fail'
+                  : 'warn'}
+              detail={verification.result.releaseManifest === 'matched_current'
+                ? 'Engine and data content hashes at issue time match the published release manifest.'
+                : verification.result.releaseManifest === 'matched_superseded'
+                  ? 'Issued under an earlier published release (engine/data content verified); a newer release is now current.'
+                : verification.result.releaseManifest === 'mismatch'
+                  ? 'The signed card does not match a valid, published release manifest.'
+                  : verification.result.releaseManifest === 'unavailable'
+                    ? 'The published release manifest could not be fetched. This does not change signature authenticity.'
+                    : 'This historical artifact predates release-manifest provenance.'}
+            />
+            <CheckRow
               label="Current engine replay"
               state={verification.replay?.status === 'current' && verification.replay.currentEngineAgrees ? 'pass' : verification.replay?.status === 'corrected' ? 'fail' : 'warn'}
               detail={verification.replay

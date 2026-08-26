@@ -1,11 +1,19 @@
 import { createHash } from 'node:crypto'
 import type { ProvenanceEnvelope, ToolCall } from './types'
 import { canonicalJsonString } from './canonical-json'
+import { getReleaseManifestHash } from './release-manifest'
+export {
+  ENGINE_REGISTRY_EDITION,
+  REFERENCE_CONSTANTS_EDITION,
+  REFERENCE_DATASET_EDITION,
+} from './release-manifest-editions'
+import {
+  ENGINE_REGISTRY_EDITION,
+  REFERENCE_CONSTANTS_EDITION,
+  REFERENCE_DATASET_EDITION,
+} from './release-manifest-editions'
 
-export const ANSWER_CARD_SCHEMA_VERSION = 'w3-v3'
-export const ENGINE_REGISTRY_EDITION = 'verchem-engine-registry/2026-08-20'
-export const REFERENCE_DATASET_EDITION = 'verchem-reference-data/2026-08-20'
-export const REFERENCE_CONSTANTS_EDITION = 'CODATA-2018+IUPAC-2021'
+export const ANSWER_CARD_SCHEMA_VERSION = 'w3-v4'
 
 export function artifactHashMaterial(toolCalls: readonly ToolCall[]): string {
   return canonicalJsonString(toolCalls)
@@ -52,6 +60,7 @@ export function buildProvenanceEnvelope(
     constants_edition: REFERENCE_CONSTANTS_EDITION,
     unit_schema: 'verchem-explicit-units/v1',
     engine_registry_edition: ENGINE_REGISTRY_EDITION,
+    release_manifest_hash: getReleaseManifestHash(),
     sources: unique(toolCalls.map((call) => call.citation)),
     assumptions: assumptions.length > 0
       ? assumptions

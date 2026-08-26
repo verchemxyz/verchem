@@ -7,6 +7,7 @@ const ALLOWED_KEYS = new Set([
   'constants_edition',
   'unit_schema',
   'engine_registry_edition',
+  'release_manifest_hash',
   'sources',
   'assumptions',
   'applicability',
@@ -41,9 +42,19 @@ export function isValidProvenanceEnvelope(value: unknown): value is ProvenanceEn
     isBoundedString(value.constants_edition) &&
     value.unit_schema === 'verchem-explicit-units/v1' &&
     isBoundedString(value.engine_registry_edition) &&
+    (value.release_manifest_hash === undefined ||
+      (typeof value.release_manifest_hash === 'string' && SHA256_HEX.test(value.release_manifest_hash))) &&
     isStringList(value.sources) &&
     isStringList(value.assumptions) &&
     isStringList(value.applicability) &&
     (value.computation === 'deterministic' ||
       value.computation === 'ai-orchestrated-deterministic')
+}
+
+export function hasValidReleaseManifestHash(
+  value: ProvenanceEnvelope | undefined
+): value is ProvenanceEnvelope & { release_manifest_hash: `sha256:${string}` } {
+  return value !== undefined &&
+    typeof value.release_manifest_hash === 'string' &&
+    SHA256_HEX.test(value.release_manifest_hash)
 }
