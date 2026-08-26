@@ -157,6 +157,34 @@ function assertDecision(decision: ReturnType<typeof authorize>): void {
   throw new LabDataError(decision.reason, decision.code === 'forbidden' ? 403 : decision.code === 'conflict' ? 409 : 400)
 }
 
+function assertReviewerRole(member: Member): void {
+  if (member.role === 'owner' || member.role === 'reviewer') return
+  throw new LabDataError('Reviewer role is required.', 403)
+}
+
+function listLimit(value: string | null): number {
+  if (value === null) return 25
+  if (!/^\d{1,2}$/.test(value)) throw new LabDataError('limit must be an integer between 1 and 50.', 400)
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 50) {
+    throw new LabDataError('limit must be an integer between 1 and 50.', 400)
+  }
+  return parsed
+}
+
+function listCursor(value: string | null): string | null {
+  if (value === null) return null
+  if (value.length > 64 || Number.isNaN(Date.parse(value))) {
+    throw new LabDataError('cursor must be a valid record creation timestamp.', 400)
+  }
+  return value
+}
+
+function withoutShareTokenHash(record: PrepRecord): Omit<PrepRecord, 'share_token_hash'> {
+  const { share_token_hash: _shareTokenHash, ...safeRecord } = record
+  return safeRecord
+}
+
 function isTemplateSpec(value: unknown): value is PrepTemplateSpec {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
   const spec = value as Record<string, unknown>
@@ -244,6 +272,41 @@ export async function createOrganizationHandler(request: NextRequest): Promise<N
   }
 }
 
+/** Lists only organizations derived from the caller's live memberships. */
+export async function listOrganizationsHandler(_request: NextRequest): Promise<NextResponse> {
+  try {
+    const deps = dependencies()
+    const session = await deps.verifySession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const limit = deps.rateLimit(`lab-read:${session.userId}`, LAB_READ_LIMIT)
+    if (!limit.success) {
+      return NextResponse.json(
+        { error: 'Lab request limit reached. Please wait before trying again.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter ?? 0) } }
+      )
+    }
+    const repository = deps.repository()
+    const memberships = await repository.getMembership(session.userId)
+    if (memberships.length === 0) {
+      const history = await repository.getMembershipHistoryForAiverid(session.userId)
+      if (history.some((membership) => membership.revoked_at !== null)) {
+        return NextResponse.json({ error: 'Membership has been revoked.' }, { status: 403 })
+      }
+    }
+    const organizations = await repository.getOrganizationsByIds(memberships.map((membership) => membership.org_id))
+    const roleByOrg = new Map(memberships.map((membership) => [membership.org_id, membership.role]))
+    return NextResponse.json({
+      organizations: organizations.map((organization) => ({
+        ...organization,
+        role: roleByOrg.get(organization.id) ?? 'viewer',
+        member_aiverid: session.userId,
+      })),
+    })
+  } catch (error) {
+    return responseError(error)
+  }
+}
+
 export async function inviteMemberHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
   return withLabAuth(request, orgId, async ({ member, repository }) => {
     if (member.role !== 'owner') return NextResponse.json({ error: 'Only organization owners may invite members.' }, { status: 403 })
@@ -264,7 +327,7 @@ export async function inviteMemberHandler(request: NextRequest, orgId: string): 
 
 export async function createTemplateHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
   return withLabAuth(request, orgId, async ({ member, repository }) => {
-    if (member.role !== 'owner' && member.role !== 'reviewer') return NextResponse.json({ error: 'Reviewer role is required.' }, { status: 403 })
+    assertReviewerRole(member)
     const body = await readObjectBody(request)
     onlyKeys(body, ['spec'])
     if (!isTemplateSpec(body.spec)) throw new LabDataError('spec must be a valid verchem-prep-template/v1 object.', 400)
@@ -284,10 +347,38 @@ export async function createTemplateHandler(request: NextRequest, orgId: string)
 
 export async function approveTemplateHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
   return withLabAuth(request, orgId, async ({ member, repository }) => {
-    if (member.role !== 'owner' && member.role !== 'reviewer') return NextResponse.json({ error: 'Reviewer role is required.' }, { status: 403 })
+    assertReviewerRole(member)
     const template = await repository.approveTemplate(orgId, id, member.aiverid)
     if (!template) return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
     return NextResponse.json(template)
+  })
+}
+
+export async function retireTemplateHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ member, repository }) => {
+    assertReviewerRole(member)
+    const current = await repository.getTemplate(orgId, id)
+    if (!current) return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
+    if (current.status !== 'approved') {
+      throw new LabDataError('Only approved templates can be retired.', 409)
+    }
+    const template = await repository.retireTemplate(orgId, id)
+    if (!template) throw new LabDataError('The template changed before this request completed.', 409)
+    return NextResponse.json(template)
+  })
+}
+
+export async function listTemplatesHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ repository }) => {
+    return NextResponse.json({ templates: await repository.listTemplates(orgId) })
+  })
+}
+
+export async function getTemplateHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ repository }) => {
+    const template = await repository.getTemplate(orgId, id)
+    if (!template) return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
+    return NextResponse.json({ template })
   })
 }
 
@@ -306,6 +397,62 @@ export async function createRecordHandler(request: NextRequest, orgId: string): 
       actorLevel: member.verificationLevel,
     })
     return NextResponse.json(record, { status: 201 })
+  })
+}
+
+export async function listRecordsHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ repository }) => {
+    const limit = listLimit(request.nextUrl.searchParams.get('limit'))
+    const cursor = listCursor(request.nextUrl.searchParams.get('cursor'))
+    const records = await repository.listRecords(orgId, { cursor, limit })
+    const templates = await Promise.all(records.map((record) =>
+      repository.getTemplateForRecord(orgId, record.template_id, record.template_version)
+    ))
+    const last = records.at(-1)
+    return NextResponse.json({
+      records: records.map((record, index) => ({
+        id: record.id,
+        record_no: record.record_no,
+        state: record.state,
+        outcome: record.outcome,
+        created_at: record.created_at,
+        template_key: templates[index]?.key ?? null,
+        template_name: templates[index]?.spec.name ?? null,
+      })),
+      next_cursor: records.length === limit && last ? last.created_at : null,
+    })
+  })
+}
+
+export async function getRecordDetailHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ repository }) => {
+    const record = await scopedRecord(repository, orgId, id)
+    const template = await repository.getTemplateForRecord(orgId, record.template_id, record.template_version)
+    if (!template) throw new LabDataError('Template version not found.', 409)
+    const events = await repository.listEvents(orgId, id)
+    let preview: ReturnType<typeof calculateAsPrepared> | null = null
+    let previewError: string | null = null
+    if (record.draft) {
+      try {
+        preview = calculateAsPrepared(toAsPreparedInput(template, record.draft))
+      } catch (error) {
+        previewError = error instanceof Error ? error.message : 'Stored measurements could not be previewed.'
+      }
+    }
+    return NextResponse.json({
+      record: withoutShareTokenHash(record),
+      template,
+      preview,
+      preview_error: previewError,
+      events: events.map((event) => ({
+        actor: event.actor,
+        action: event.action,
+        at: event.at,
+        reason: (event.action === 'reject' || event.action === 'void') && typeof event.payload.reason === 'string'
+          ? event.payload.reason
+          : null,
+      })),
+    })
   })
 }
 
@@ -334,6 +481,18 @@ export async function updateRecordHandler(request: NextRequest, orgId: string, i
     const updated = await repository.updateDraft(orgId, id, draft, event)
     if (!updated) return NextResponse.json({ error: 'Preparation record not found.' }, { status: 404 })
     return NextResponse.json({ record: updated, preview })
+  })
+}
+
+export async function listMembersHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ member, repository }) => {
+    const members = await repository.listMembers(orgId)
+    return NextResponse.json({
+      members: members.map((row) => member.role === 'owner'
+        ? { display_name: row.display_name, role: row.role, invited_email: row.invited_email }
+        : { display_name: row.display_name, role: row.role }
+      ),
+    })
   })
 }
 

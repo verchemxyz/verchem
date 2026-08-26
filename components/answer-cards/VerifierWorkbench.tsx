@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { AnswerCard } from '@/lib/answer-cards/types'
 import {
   verifyCardJwsInBrowser,
@@ -38,6 +39,7 @@ function CheckRow({ label, state, detail }: { label: string; state: 'pass' | 'wa
 }
 
 export default function VerifierWorkbench() {
+  const searchParams = useSearchParams()
   const [jws, setJws] = useState('')
   const [verification, setVerification] = useState<VerificationState | null>(null)
   const [busy, setBusy] = useState(false)
@@ -50,6 +52,45 @@ export default function VerifierWorkbench() {
       setJws(pending)
     }
   }, [])
+
+  useEffect(() => {
+    const pack = searchParams.get('pack')
+    const token = searchParams.get('token')
+    if (!pack || !token) return
+    if (!/^[A-Za-z0-9-]{1,128}$/.test(pack) || !/^[A-Za-z0-9_-]{43}$/.test(token)) {
+      setError('The evidence-pack link is malformed.')
+      return
+    }
+    let active = true
+    const loadPack = async () => {
+      setBusy(true)
+      setError(null)
+      setVerification(null)
+      try {
+        const response = await fetch(`/api/lab/records/${encodeURIComponent(pack)}/pack.json?token=${encodeURIComponent(token)}`, {
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        })
+        const value = await response.json() as unknown
+        const signature = typeof value === 'object' && value !== null && !Array.isArray(value)
+          ? (value as Record<string, unknown>).signature
+          : null
+        if (!response.ok || typeof signature !== 'string') {
+          const message = typeof value === 'object' && value !== null && !Array.isArray(value) && typeof (value as Record<string, unknown>).error === 'string'
+            ? (value as Record<string, unknown>).error as string
+            : 'The evidence pack could not be loaded.'
+          throw new Error(message)
+        }
+        if (active) setJws(signature)
+      } catch (loadError: unknown) {
+        if (active) setError(loadError instanceof Error ? loadError.message : 'The evidence pack could not be loaded.')
+      } finally {
+        if (active) setBusy(false)
+      }
+    }
+    void loadPack()
+    return () => { active = false }
+  }, [searchParams])
 
   const verify = async () => {
     setBusy(true)

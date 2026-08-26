@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { VerificationLevelBadge } from '@/components/lab-qc'
 import type { AnswerCard, CardStatus } from '@/lib/answer-cards/types'
 import type { EngineReplayAssessment } from '@/lib/answer-cards/replay'
 
@@ -85,6 +86,27 @@ function statusBadge(status: CardStatus): {
         reason: 'No calculation engine was used. This is a conceptual answer.',
       }
   }
+}
+
+function LabRecordDetails({ card }: { card: AnswerCard }) {
+  const record = card.lab_record
+  if (!record) return null
+  return (
+    <section className="rounded-xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground">Laboratory record</h3>
+        <span className={record.outcome === 'released_with_deviation' ? 'rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning-strong' : 'rounded-full border border-success/40 bg-success/10 px-2.5 py-1 text-xs font-medium text-success-strong'}>{record.outcome.replaceAll('_', ' ')}</span>
+      </div>
+      <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+        <div><dt className="text-muted-foreground">Organization</dt><dd className="mt-1 text-foreground">{record.org.name}</dd></div>
+        <div><dt className="text-muted-foreground">Record number</dt><dd className="mt-1 font-mono tabular-nums text-foreground">{record.record_no}</dd></div>
+        <div><dt className="text-muted-foreground">Preparer</dt><dd className="mt-1 text-foreground">{record.preparer.display_name}<span className="mt-1 block"><VerificationLevelBadge level={record.preparer.verification_level} /></span><span className="mt-1 block font-mono text-xs tabular-nums text-muted-foreground">{record.preparer.at}</span></dd></div>
+        <div><dt className="text-muted-foreground">Reviewer</dt><dd className="mt-1 text-foreground">{record.reviewer.display_name}<span className="mt-1 block"><VerificationLevelBadge level={record.reviewer.verification_level} /></span><span className="mt-1 block font-mono text-xs tabular-nums text-muted-foreground">{record.reviewer.at}</span></dd></div>
+        {record.deviation_reason && <div className="sm:col-span-2"><dt className="text-muted-foreground">Deviation reason</dt><dd className="mt-1 text-foreground">{record.deviation_reason}</dd></div>}
+      </dl>
+      <p className="mt-5 border-t border-border pt-4 text-xs text-muted-foreground">Release-manifest integrity and current-engine replay are reported in the independent checks above.</p>
+    </section>
+  )
 }
 
 export default function AnswerCardView({ card, signatureValid, engineReplay }: AnswerCardViewProps) {
@@ -251,6 +273,8 @@ export default function AnswerCardView({ card, signatureValid, engineReplay }: A
         </div>
       )}
 
+      <LabRecordDetails card={card} />
+
       {/* Audit informational warning (does NOT downgrade badge) */}
       {!audit.clean && audit.unmatched.length > 0 && (
         <div
@@ -297,7 +321,7 @@ export default function AnswerCardView({ card, signatureValid, engineReplay }: A
       )}
 
       {/* Explanation */}
-      {card.explanation && (
+      {card.explanation && !card.lab_record && (
         <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
             Explanation

@@ -74,6 +74,15 @@
   --destructive-strong: #A63A32;
   --secondary-strong: #0E5B57;
 
+  /* Lab-QC certificate semantics — reserved for the controlled-record surface. */
+  --lab-accent: #0F6B52;
+  --lab-state-draft: #5E6B75;
+  --lab-state-submitted: #8A6410;
+  --lab-state-released: #0F6B52;
+  --lab-state-deviation: #A65F13;
+  --lab-state-rejected: #A63A32;
+  --lab-state-voided: #7A8794;
+
   /* Gradients — neutralized, single-tone only */
   --gradient-primary: linear-gradient(180deg, #FAFAF6 0%, #F5F5F0 100%);
   --gradient-secondary: linear-gradient(180deg, #F5F5F0 0%, #E8EBE6 100%);
@@ -180,6 +189,15 @@
   --destructive-strong: #E88277;
   --secondary-strong: #4FB8AE;
 
+  /* Lab-QC certificate semantics — dark-mode counterparts. */
+  --lab-accent: #4FD1A5;
+  --lab-state-draft: #C4D1CD;
+  --lab-state-submitted: #D4A03A;
+  --lab-state-released: #4FD1A5;
+  --lab-state-deviation: #E68A2E;
+  --lab-state-rejected: #E88277;
+  --lab-state-voided: #9BA8A4;
+
   /* Gradients */
   --gradient-primary: linear-gradient(180deg, #171B20 0%, #1E2329 100%);
   --gradient-secondary: linear-gradient(180deg, #1E2329 0%, #27303A 100%);
@@ -249,6 +267,7 @@
   --color-success-strong: var(--success-strong);
   --color-destructive-strong: var(--destructive-strong);
   --color-secondary-strong: var(--secondary-strong);
+  --color-lab-accent: var(--lab-accent);
 
   /* Primary color scale */
   --color-primary-50: var(--primary-50);
@@ -324,6 +343,37 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
 }
+
+.lab-display {
+  font-family: var(--font-lab-display), Georgia, serif;
+}
+
+.lab-document {
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.lab-status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  border: 1px solid currentColor;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.lab-status-draft { color: var(--lab-state-draft); background: color-mix(in srgb, var(--lab-state-draft) 10%, transparent); }
+.lab-status-submitted { color: var(--lab-state-submitted); background: color-mix(in srgb, var(--lab-state-submitted) 12%, transparent); }
+.lab-status-released { color: var(--lab-state-released); background: color-mix(in srgb, var(--lab-state-released) 12%, transparent); }
+.lab-status-deviation { color: var(--lab-state-deviation); background: color-mix(in srgb, var(--lab-state-deviation) 14%, transparent); }
+.lab-status-rejected { color: var(--lab-state-rejected); background: color-mix(in srgb, var(--lab-state-rejected) 12%, transparent); }
+.lab-status-voided { color: var(--lab-state-voided); background: color-mix(in srgb, var(--lab-state-voided) 10%, transparent); border-color: var(--destructive); text-decoration: line-through; text-decoration-color: var(--destructive); }
 
 /* Smooth transitions for theme changes */
 * {

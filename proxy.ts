@@ -91,6 +91,7 @@ async function verifySessionSignature(value: string, signature: string): Promise
 const PROTECTED_ROUTES = [
   '/account',
   '/preferences',
+  '/lab',
   '/api/lab',
 ]
 

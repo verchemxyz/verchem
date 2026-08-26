@@ -37,6 +37,7 @@ export interface LabDatabaseQuery extends PromiseLike<LabDatabaseResponse> {
   insert(values: Record<string, unknown> | Array<Record<string, unknown>>): LabDatabaseQuery
   update(values: Record<string, unknown>): LabDatabaseQuery
   eq(column: string, value: unknown): LabDatabaseQuery
+  lt?(column: string, value: unknown): LabDatabaseQuery
   is(column: string, value: null): LabDatabaseQuery
   order(column: string, options?: { ascending?: boolean }): LabDatabaseQuery
   limit(count: number): LabDatabaseQuery
@@ -166,6 +167,16 @@ export interface AppendEventInput {
   at?: string
 }
 
+export interface LabRecordListItem {
+  id: string
+  template_id: string
+  template_version: number
+  record_no: string
+  state: PrepRecord['state']
+  outcome: PrepRecord['outcome']
+  created_at: string
+}
+
 export type TransitionEventInput = Omit<AppendEventInput, 'orgId' | 'recordId'>
 
 export class LabRepository {
@@ -177,6 +188,15 @@ export class LabRepository {
       .select('org_id, aiverid, role, display_name, invited_email, invited_by, joined_at, revoked_at, revoked_by')
       .eq('aiverid', aiverid)
       .is('revoked_at', null)
+      .order('created_at', { ascending: true }))
+  }
+
+  /** Historical membership lookup for a caller's own access state only. */
+  async getMembershipHistoryForAiverid(aiverid: string): Promise<LabMemberRow[]> {
+    return asRows<LabMemberRow>(await this.client
+      .from('org_members')
+      .select('org_id, aiverid, role, display_name, invited_email, invited_by, joined_at, revoked_at, revoked_by')
+      .eq('aiverid', aiverid)
       .order('created_at', { ascending: true }))
   }
 
@@ -206,6 +226,12 @@ export class LabRepository {
       .select('id, name, slug, country, accreditation_ref, created_by, created_at')
       .eq('id', orgId)
       .maybeSingle())
+  }
+
+  /** Membership-derived organization lookup. Callers must never accept these ids from the client. */
+  async getOrganizationsByIds(orgIds: readonly string[]): Promise<Organization[]> {
+    const organizations = await Promise.all(orgIds.map((orgId) => this.getOrganization(orgId)))
+    return organizations.filter((organization): organization is Organization => organization !== null)
   }
 
   async createOrganization(input: CreateOrganizationInput): Promise<Organization> {
@@ -357,6 +383,24 @@ export class LabRepository {
       .maybeSingle())
   }
 
+  async getTemplate(orgId: string, id: string): Promise<PrepTemplate | null> {
+    return asOne<PrepTemplate>(await this.client
+      .from('prep_templates')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('id', id)
+      .maybeSingle())
+  }
+
+  async listTemplates(orgId: string): Promise<PrepTemplate[]> {
+    return asRows<PrepTemplate>(await this.client
+      .from('prep_templates')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('key', { ascending: true })
+      .order('version', { ascending: false }))
+  }
+
   async getTemplateForRecord(orgId: string, id: string, version: number): Promise<PrepTemplate | null> {
     return asOne<PrepTemplate>(await this.client
       .from('prep_templates')
@@ -400,6 +444,24 @@ export class LabRepository {
       .eq('org_id', orgId)
       .eq('id', id)
       .maybeSingle())
+  }
+
+  /**
+   * Read-model list deliberately excludes draft, signed payload, signature,
+   * share-token hash, and all identity fields. Detail reads are separate.
+   */
+  async listRecords(
+    orgId: string,
+    options: { cursor: string | null; limit: number }
+  ): Promise<LabRecordListItem[]> {
+    let query = this.client
+      .from('prep_records')
+      .select('id, template_id, template_version, record_no, state, outcome, created_at')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(options.limit)
+    if (options.cursor !== null && query.lt) query = query.lt('created_at', options.cursor)
+    return asRows<LabRecordListItem>(await query)
   }
 
   /** Internal resolver for public status/share endpoints. Never returns a response by itself. */
@@ -476,6 +538,15 @@ export class LabRepository {
       .eq('org_id', orgId)
       .eq('record_id', recordId)
       .order('seq', { ascending: true }))
+  }
+
+  async listMembers(orgId: string): Promise<LabMemberRow[]> {
+    return asRows<LabMemberRow>(await this.client
+      .from('org_members')
+      .select('org_id, aiverid, role, display_name, invited_email, invited_by, joined_at, revoked_at, revoked_by')
+      .eq('org_id', orgId)
+      .is('revoked_at', null)
+      .order('joined_at', { ascending: true }))
   }
 
   async appendLabEvent(input: AppendEventInput): Promise<LabEvent> {

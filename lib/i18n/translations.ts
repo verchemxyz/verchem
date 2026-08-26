@@ -256,6 +256,167 @@ export interface Translations {
     unstable: string
   }
 
+  // Lab-QC controlled preparation records
+  lab: {
+    title: string
+    records: string
+    templates: string
+    members: string
+    createLab: string
+    createLabDescription: string
+    labName: string
+    country: string
+    accreditationRef: string
+    saveAndContinue: string
+    loadingLab: string
+    newPreparation: string
+    manageTemplates: string
+    recentRecords: string
+    noRecords: string
+    noApprovedTemplates: string
+    newTemplate: string
+    template: string
+    version: string
+    approved: string
+    draft: string
+    retired: string
+    submitted: string
+    released: string
+    releasedWithDeviation: string
+    rejected: string
+    voided: string
+    allStates: string
+    createTemplate: string
+    templateName: string
+    targetConcentration: string
+    targetVolume: string
+    targetVolumeUnit: string
+    concentrationUnit: string
+    reagentForm: string
+    solvent: string
+    reagentPurity: string
+    purityBasis: string
+    preparationTemperature: string
+    molarMass: string
+    solutionDensity: string
+    equivalentsFactor: string
+    acceptanceLimit: string
+    requiredFields: string
+    instructions: string
+    citations: string
+    addItem: string
+    removeItem: string
+    create: string
+    approve: string
+    retire: string
+    startPreparation: string
+    measurements: string
+    savePreview: string
+    submitForReview: string
+    withdraw: string
+    release: string
+    reject: string
+    voidRecord: string
+    reason: string
+    deviationReason: string
+    releaseApproval: string
+    preview: string
+    previewNotReleased: string
+    asPrepared: string
+    deviation: string
+    uncertaintyBudget: string
+    unavailable: string
+    prepared: string
+    reviewedReleased: string
+    recordNumber: string
+    issued: string
+    eventHistory: string
+    downloadPdf: string
+    copyVerifyLink: string
+    saveShareLink: string
+    shareLinkUnavailable: string
+    copied: string
+    copyFailed: string
+    requiredByTemplate: string
+    requiredValueMissing: string
+    errorPrefix: string
+    legalSignature: string
+    invitedEmail: string
+    role: string
+    noMembers: string
+    createNewAttempt: string
+    benchRecord: string
+    reagentLot: string
+    expiry: string
+    coaAssay: string
+    coaBasis: string
+    actualNetMass: string
+    deliveredVolume: string
+    finalVolume: string
+    balanceId: string
+    flaskId: string
+    temperature: string
+    notes: string
+    notesHelp: string
+    equipmentUncertainty: string
+    equipmentHelp: string
+    roleRequired: string
+    selectTemplate: string
+    newestVersion: string
+    declaredBenchInputs: string
+    asPreparedResult: string
+    withinAcceptance: string
+    outsideAcceptance: string
+    actualAmount: string
+    noReasonRecorded: string
+    evidenceRecord: string
+    eventHashPrefix: string
+    verificationQrCode: string
+    verifyLinkUnavailable: string
+    basisMass: string
+    basisVolume: string
+    unknownError: string
+    requiredFieldsDisclaimer: string
+    balanceStandardUncertainty: string
+    flaskToleranceHalfWidth: string
+    flaskCalibrationTemp: string
+    fillRepeatabilitySd: string
+    temperatureHalfWidth: string
+    volumeExpansionCoefficient: string
+    coaAssayToleranceHalfWidth: string
+    uncertaintyTerm: string
+    uncertaintyDistribution: string
+    uncertaintyHalfWidthOrSd: string
+    uncertaintyRelative: string
+    uncertaintyBasis: string
+    uncertaintyNotIncluded: string
+    uncertaintySourceCoaAssay: string
+    uncertaintySourceBalanceMass: string
+    uncertaintySourceFlaskCalibration: string
+    uncertaintySourceFillRepeatability: string
+    uncertaintySourceTemperatureExpansion: string
+    controlledPreparationLedger: string
+    organizationAccess: string
+    name: string
+    preparationLedger: string
+    selectApprovedTemplate: string
+    versionedControlledSourceDocument: string
+    molarMassHelp: string
+    solutionDensityHelp: string
+    equivalentsFactorHelp: string
+    controlledSourceDocument: string
+    target: string
+    draftBelongsToAnotherPreparer: string
+    roleOwner: string
+    roleReviewer: string
+    roleAnalyst: string
+    roleViewer: string
+    recordBenchMeasurements: string
+    noRejectionReason: string
+    storedEvidencePackUnavailable: string
+    laboratoryNavigation: string
+  }
+
   // Footer
   footer: {
     copyright: string
@@ -505,6 +666,166 @@ export const en: Translations = {
     unstable: 'Unstable',
   },
 
+  lab: {
+    title: 'Laboratory preparation records',
+    records: 'Records',
+    templates: 'Templates',
+    members: 'Members',
+    createLab: 'Create your laboratory',
+    createLabDescription: 'Set up the organization that owns controlled preparation records.',
+    labName: 'Laboratory name',
+    country: 'Country (ISO 3166-1 alpha-2)',
+    accreditationRef: 'Accreditation reference',
+    saveAndContinue: 'Save and continue',
+    loadingLab: 'Loading laboratory workspace…',
+    newPreparation: 'New preparation',
+    manageTemplates: 'Manage templates',
+    recentRecords: 'Recent records',
+    noRecords: 'No preparation records yet.',
+    noApprovedTemplates: 'Approve a template before creating a preparation record.',
+    newTemplate: 'New template',
+    template: 'Template',
+    version: 'Version',
+    approved: 'Approved',
+    draft: 'Draft',
+    retired: 'Retired',
+    submitted: 'Submitted',
+    released: 'Released',
+    releasedWithDeviation: 'Released with deviation',
+    rejected: 'Rejected',
+    voided: 'Voided',
+    allStates: 'All states',
+    createTemplate: 'Create template',
+    templateName: 'Template name',
+    targetConcentration: 'Target concentration',
+    targetVolume: 'Target volume',
+    targetVolumeUnit: 'Target volume unit',
+    concentrationUnit: 'Concentration unit',
+    reagentForm: 'Exact reagent form',
+    solvent: 'Solvent',
+    reagentPurity: 'Template reagent purity (%)',
+    purityBasis: 'Purity basis',
+    preparationTemperature: 'Preparation temperature (°C)',
+    molarMass: 'Molar mass (g/mol)',
+    solutionDensity: 'Solution density (g/mL)',
+    equivalentsFactor: 'Equivalents factor',
+    acceptanceLimit: 'Acceptance limit (± relative %)',
+    requiredFields: 'Required preparation fields',
+    instructions: 'Instructions',
+    citations: 'Citations',
+    addItem: 'Add item',
+    removeItem: 'Remove',
+    create: 'Create',
+    approve: 'Approve',
+    retire: 'Retire',
+    startPreparation: 'Start preparation',
+    measurements: 'Recorded measurements',
+    savePreview: 'Save & refresh preview',
+    submitForReview: 'Submit for review',
+    withdraw: 'Withdraw to draft',
+    release: 'Release',
+    reject: 'Reject',
+    voidRecord: 'Void record',
+    reason: 'Reason',
+    deviationReason: 'Deviation reason',
+    releaseApproval: 'Release approval',
+    preview: 'Preview',
+    previewNotReleased: 'PREVIEW — not yet released',
+    asPrepared: 'As-prepared concentration',
+    deviation: 'Deviation from target',
+    uncertaintyBudget: 'Uncertainty budget',
+    unavailable: 'Unavailable',
+    prepared: 'Prepared',
+    reviewedReleased: 'Reviewed & released',
+    recordNumber: 'Record number',
+    issued: 'Issued',
+    eventHistory: 'Record event history',
+    downloadPdf: 'Download PDF',
+    copyVerifyLink: 'Copy verify link',
+    saveShareLink: 'Save this one-time share link',
+    shareLinkUnavailable: 'The one-time public share token is unavailable in this browser. Members can still view the evidence pack.',
+    copied: 'Copied',
+    copyFailed: 'Could not copy the verify link.',
+    requiredByTemplate: 'Required by this template',
+    requiredValueMissing: 'A value is required by this template',
+    errorPrefix: 'Server response:',
+    legalSignature: 'This signature attests the integrity of this record as issued by VerChem; it does not attest the correctness of bench execution.',
+    invitedEmail: 'Invited email',
+    role: 'Role',
+    noMembers: 'No active members found.',
+    createNewAttempt: 'Create new attempt',
+    benchRecord: 'Bench record',
+    reagentLot: 'Reagent lot',
+    expiry: 'Expiry',
+    coaAssay: 'CoA assay (%)',
+    coaBasis: 'CoA basis',
+    actualNetMass: 'Actual net mass (g)',
+    deliveredVolume: 'Delivered solute volume (mL)',
+    finalVolume: 'Final volume (mL)',
+    balanceId: 'Balance ID',
+    flaskId: 'Flask ID',
+    temperature: 'Temperature (°C)',
+    notes: 'Notes',
+    notesHelp: 'Notes are retained in the signed evidence pack after release.',
+    equipmentUncertainty: 'Declared equipment uncertainty',
+    equipmentHelp: 'Enter certified values where available. A blank optional term remains visibly not included; the engine will not infer it.',
+    roleRequired: 'Reviewer role is required.',
+    selectTemplate: 'Select template',
+    newestVersion: 'newest',
+    declaredBenchInputs: 'Declared bench inputs',
+    asPreparedResult: 'As-prepared result',
+    withinAcceptance: 'within acceptance',
+    outsideAcceptance: 'outside acceptance',
+    actualAmount: 'Actual amount',
+    noReasonRecorded: 'No reason recorded.',
+    evidenceRecord: 'Evidence record',
+    eventHashPrefix: 'Event hash prefix',
+    verificationQrCode: 'QR code for independent verification',
+    verifyLinkUnavailable: 'Verify link unavailable',
+    basisMass: 'mass',
+    basisVolume: 'volume',
+    unknownError: 'Something went wrong. Please try again.',
+    requiredFieldsDisclaimer: 'Required-field indicators guide completion only; the server independently validates all transitions and calculations.',
+    balanceStandardUncertainty: 'Balance standard uncertainty (g)',
+    flaskToleranceHalfWidth: 'Flask tolerance half-width (mL)',
+    flaskCalibrationTemp: 'Flask calibration temperature (°C)',
+    fillRepeatabilitySd: 'Fill repeatability SD (mL)',
+    temperatureHalfWidth: 'Temperature half-width (°C)',
+    volumeExpansionCoefficient: 'Volume expansion coefficient (°C⁻¹)',
+    coaAssayToleranceHalfWidth: 'CoA assay tolerance half-width (%)',
+    uncertaintyTerm: 'Term',
+    uncertaintyDistribution: 'Distribution',
+    uncertaintyHalfWidthOrSd: 'Half-width / SD',
+    uncertaintyRelative: 'u(x)/x',
+    uncertaintyBasis: 'Basis',
+    uncertaintyNotIncluded: 'not included',
+    uncertaintySourceCoaAssay: 'CoA assay',
+    uncertaintySourceBalanceMass: 'Balance mass',
+    uncertaintySourceFlaskCalibration: 'Flask calibration',
+    uncertaintySourceFillRepeatability: 'Fill repeatability',
+    uncertaintySourceTemperatureExpansion: 'Temperature expansion',
+    controlledPreparationLedger: 'Controlled preparation ledger',
+    organizationAccess: 'Organization access',
+    name: 'Name',
+    preparationLedger: 'Preparation ledger',
+    selectApprovedTemplate: 'Select an approved template to start a new controlled draft.',
+    versionedControlledSourceDocument: 'Versioned controlled source document',
+    molarMassHelp: 'Required by molar/normality targets.',
+    solutionDensityHelp: 'Required for % w/w, ppm, and ppb mass-fraction targets.',
+    equivalentsFactorHelp: 'Required for normality (N).',
+    controlledSourceDocument: 'Controlled source document',
+    target: 'Target',
+    draftBelongsToAnotherPreparer: 'This draft belongs to another preparer and remains editable only by that preparer.',
+    roleOwner: 'Owner',
+    roleReviewer: 'Reviewer',
+    roleAnalyst: 'Analyst',
+    roleViewer: 'Viewer',
+    recordBenchMeasurements: 'Record bench measurements to generate a server-calculated preview.',
+    noRejectionReason: 'No rejection reason was returned.',
+    storedEvidencePackUnavailable: 'Stored evidence pack is unavailable.',
+    laboratoryNavigation: 'Laboratory navigation',
+  },
+
   footer: {
     copyright: '© 2025 VerChem',
     builtWith: 'Built with Next.js & TypeScript',
@@ -751,6 +1072,166 @@ export const th: Translations = {
     molecularFormula: 'สูตรโมเลกุล',
     stable: 'เสถียร',
     unstable: 'ไม่เสถียร',
+  },
+
+  lab: {
+    title: 'บันทึกการเตรียมสารในห้องปฏิบัติการ',
+    records: 'บันทึก',
+    templates: 'แม่แบบ',
+    members: 'สมาชิก',
+    createLab: 'สร้างห้องปฏิบัติการของคุณ',
+    createLabDescription: 'ตั้งค่าองค์กรที่เป็นเจ้าของบันทึกการเตรียมสารแบบควบคุม',
+    labName: 'ชื่อห้องปฏิบัติการ',
+    country: 'ประเทศ (ISO 3166-1 alpha-2)',
+    accreditationRef: 'เลขอ้างอิงการรับรอง',
+    saveAndContinue: 'บันทึกและดำเนินการต่อ',
+    loadingLab: 'กำลังโหลดพื้นที่ทำงานห้องปฏิบัติการ…',
+    newPreparation: 'เตรียมสารใหม่',
+    manageTemplates: 'จัดการแม่แบบ',
+    recentRecords: 'บันทึกล่าสุด',
+    noRecords: 'ยังไม่มีบันทึกการเตรียมสาร',
+    noApprovedTemplates: 'อนุมัติแม่แบบก่อนสร้างบันทึกการเตรียมสาร',
+    newTemplate: 'แม่แบบใหม่',
+    template: 'แม่แบบ',
+    version: 'รุ่น',
+    approved: 'อนุมัติแล้ว',
+    draft: 'ฉบับร่าง',
+    retired: 'เลิกใช้แล้ว',
+    submitted: 'ส่งตรวจแล้ว',
+    released: 'ออกบันทึกแล้ว',
+    releasedWithDeviation: 'ออกบันทึกพร้อมข้อเบี่ยงเบน',
+    rejected: 'ไม่อนุมัติ',
+    voided: 'ยกเลิกแล้ว',
+    allStates: 'ทุกสถานะ',
+    createTemplate: 'สร้างแม่แบบ',
+    templateName: 'ชื่อแม่แบบ',
+    targetConcentration: 'ความเข้มข้นเป้าหมาย',
+    targetVolume: 'ปริมาตรเป้าหมาย',
+    targetVolumeUnit: 'หน่วยปริมาตรเป้าหมาย',
+    concentrationUnit: 'หน่วยความเข้มข้น',
+    reagentForm: 'รูปแบบสารรีเอเจนต์ที่แน่นอน',
+    solvent: 'ตัวทำละลาย',
+    reagentPurity: 'ความบริสุทธิ์สารในแม่แบบ (%)',
+    purityBasis: 'ฐานความบริสุทธิ์',
+    preparationTemperature: 'อุณหภูมิการเตรียม (°C)',
+    molarMass: 'มวลโมลาร์ (g/mol)',
+    solutionDensity: 'ความหนาแน่นสารละลาย (g/mL)',
+    equivalentsFactor: 'ตัวคูณสมมูล',
+    acceptanceLimit: 'เกณฑ์ยอมรับ (± ร้อยละสัมพัทธ์)',
+    requiredFields: 'ข้อมูลการเตรียมที่ต้องระบุ',
+    instructions: 'คำแนะนำ',
+    citations: 'เอกสารอ้างอิง',
+    addItem: 'เพิ่มรายการ',
+    removeItem: 'ลบ',
+    create: 'สร้าง',
+    approve: 'อนุมัติ',
+    retire: 'เลิกใช้',
+    startPreparation: 'เริ่มเตรียมสาร',
+    measurements: 'ค่าที่บันทึก',
+    savePreview: 'บันทึกและอัปเดตตัวอย่าง',
+    submitForReview: 'ส่งให้ตรวจทาน',
+    withdraw: 'ถอนกลับเป็นฉบับร่าง',
+    release: 'ออกบันทึก',
+    reject: 'ไม่อนุมัติ',
+    voidRecord: 'ยกเลิกบันทึก',
+    reason: 'เหตุผล',
+    deviationReason: 'เหตุผลของข้อเบี่ยงเบน',
+    releaseApproval: 'การอนุมัติออกบันทึก',
+    preview: 'ตัวอย่าง',
+    previewNotReleased: 'ตัวอย่าง — ยังไม่ได้ออกบันทึก',
+    asPrepared: 'ความเข้มข้นตามที่เตรียมจริง',
+    deviation: 'ความเบี่ยงเบนจากเป้าหมาย',
+    uncertaintyBudget: 'งบประมาณความไม่แน่นอน',
+    unavailable: 'ไม่พร้อมใช้',
+    prepared: 'ผู้เตรียม',
+    reviewedReleased: 'ผู้ทบทวนและออกบันทึก',
+    recordNumber: 'เลขบันทึก',
+    issued: 'ออกเมื่อ',
+    eventHistory: 'ประวัติเหตุการณ์บันทึก',
+    downloadPdf: 'ดาวน์โหลด PDF',
+    copyVerifyLink: 'คัดลอกลิงก์ตรวจสอบ',
+    saveShareLink: 'บันทึกลิงก์แชร์แบบใช้ครั้งเดียวนี้',
+    shareLinkUnavailable: 'ไม่พบโทเค็นลิงก์สาธารณะครั้งเดียวในเบราว์เซอร์นี้ สมาชิกยังเปิด evidence pack ได้',
+    copied: 'คัดลอกแล้ว',
+    copyFailed: 'ไม่สามารถคัดลอกลิงก์ตรวจสอบได้',
+    requiredByTemplate: 'แม่แบบนี้กำหนดให้ระบุ',
+    requiredValueMissing: 'แม่แบบนี้กำหนดให้ระบุค่า',
+    errorPrefix: 'ข้อความจากเซิร์ฟเวอร์:',
+    legalSignature: 'ลายเซ็นนี้รับรองความสมบูรณ์ของบันทึกตามที่ VerChem ออกให้ และไม่ได้รับรองความถูกต้องของการปฏิบัติงานบนโต๊ะปฏิบัติการ',
+    invitedEmail: 'อีเมลที่เชิญ',
+    role: 'บทบาท',
+    noMembers: 'ไม่พบสมาชิกที่ยังใช้งาน',
+    createNewAttempt: 'สร้างการเตรียมครั้งใหม่',
+    benchRecord: 'บันทึกบนโต๊ะปฏิบัติการ',
+    reagentLot: 'ล็อตสารรีเอเจนต์',
+    expiry: 'วันหมดอายุ',
+    coaAssay: 'ค่า CoA assay (%)',
+    coaBasis: 'ฐาน CoA',
+    actualNetMass: 'มวลสุทธิจริง (g)',
+    deliveredVolume: 'ปริมาตรสารที่ตวงจริง (mL)',
+    finalVolume: 'ปริมาตรสุดท้าย (mL)',
+    balanceId: 'รหัสเครื่องชั่ง',
+    flaskId: 'รหัสขวดวัดปริมาตร',
+    temperature: 'อุณหภูมิ (°C)',
+    notes: 'บันทึกเพิ่มเติม',
+    notesHelp: 'บันทึกเพิ่มเติมจะอยู่ใน evidence pack ที่เซ็นแล้วหลังออกบันทึก',
+    equipmentUncertainty: 'ความไม่แน่นอนของอุปกรณ์ที่ประกาศ',
+    equipmentHelp: 'ระบุค่าจากใบรับรองเมื่อมี ช่องว่างของเทอมที่เลือกได้จะถูกแสดงว่าไม่รวม และ engine จะไม่อนุมานค่าให้',
+    roleRequired: 'ต้องมีบทบาทผู้ตรวจทาน',
+    selectTemplate: 'เลือกแม่แบบ',
+    newestVersion: 'รุ่นล่าสุด',
+    declaredBenchInputs: 'ข้อมูลการปฏิบัติงานที่ประกาศ',
+    asPreparedResult: 'ผลการเตรียมจริง',
+    withinAcceptance: 'อยู่ในเกณฑ์ยอมรับ',
+    outsideAcceptance: 'นอกเกณฑ์ยอมรับ',
+    actualAmount: 'ปริมาณที่ใช้จริง',
+    noReasonRecorded: 'ไม่มีการบันทึกเหตุผล',
+    evidenceRecord: 'บันทึกหลักฐาน',
+    eventHashPrefix: 'คำนำหน้าแฮชเหตุการณ์',
+    verificationQrCode: 'คิวอาร์โค้ดสำหรับการตรวจสอบอิสระ',
+    verifyLinkUnavailable: 'ลิงก์ตรวจสอบไม่พร้อมใช้',
+    basisMass: 'มวล',
+    basisVolume: 'ปริมาตร',
+    unknownError: 'เกิดข้อผิดพลาด โปรดลองอีกครั้ง',
+    requiredFieldsDisclaimer: 'ตัวบ่งชี้ช่องบังคับมีไว้ช่วยตรวจความครบถ้วนเท่านั้น เซิร์ฟเวอร์จะตรวจสอบทุกการเปลี่ยนสถานะและการคำนวณโดยอิสระ',
+    balanceStandardUncertainty: 'ความไม่แน่นอนมาตรฐานของเครื่องชั่ง (g)',
+    flaskToleranceHalfWidth: 'ค่าครึ่งช่วงความคลาดเคลื่อนของขวดวัดปริมาตร (mL)',
+    flaskCalibrationTemp: 'อุณหภูมิสอบเทียบขวดวัดปริมาตร (°C)',
+    fillRepeatabilitySd: 'SD การเติมซ้ำ (mL)',
+    temperatureHalfWidth: 'ค่าครึ่งช่วงอุณหภูมิ (°C)',
+    volumeExpansionCoefficient: 'สัมประสิทธิ์การขยายตัวเชิงปริมาตร (°C⁻¹)',
+    coaAssayToleranceHalfWidth: 'ค่าครึ่งช่วงความคลาดเคลื่อน CoA assay (%)',
+    uncertaintyTerm: 'เทอม',
+    uncertaintyDistribution: 'การแจกแจง',
+    uncertaintyHalfWidthOrSd: 'ครึ่งช่วง / SD',
+    uncertaintyRelative: 'u(x)/x',
+    uncertaintyBasis: 'เกณฑ์อ้างอิง',
+    uncertaintyNotIncluded: 'ไม่รวม',
+    uncertaintySourceCoaAssay: 'CoA assay',
+    uncertaintySourceBalanceMass: 'มวลจากเครื่องชั่ง',
+    uncertaintySourceFlaskCalibration: 'การสอบเทียบขวดวัดปริมาตร',
+    uncertaintySourceFillRepeatability: 'การเติมซ้ำ',
+    uncertaintySourceTemperatureExpansion: 'การขยายตัวจากอุณหภูมิ',
+    controlledPreparationLedger: 'ทะเบียนการเตรียมสารควบคุม',
+    organizationAccess: 'สิทธิ์การเข้าถึงองค์กร',
+    name: 'ชื่อ',
+    preparationLedger: 'ทะเบียนการเตรียมสาร',
+    selectApprovedTemplate: 'เลือกแม่แบบที่อนุมัติแล้วเพื่อเริ่มฉบับร่างการเตรียมสารใหม่',
+    versionedControlledSourceDocument: 'เอกสารต้นทางควบคุมแบบมีรุ่น',
+    molarMassHelp: 'จำเป็นสำหรับเป้าหมายแบบโมลาร์/นอร์มาลิตี',
+    solutionDensityHelp: 'จำเป็นสำหรับเป้าหมาย % w/w, ppm และ ppb แบบเศษส่วนมวล',
+    equivalentsFactorHelp: 'จำเป็นสำหรับนอร์มาลิตี (N)',
+    controlledSourceDocument: 'เอกสารต้นทางควบคุม',
+    target: 'เป้าหมาย',
+    draftBelongsToAnotherPreparer: 'ฉบับร่างนี้เป็นของผู้เตรียมคนอื่น และแก้ไขได้โดยผู้เตรียมคนนั้นเท่านั้น',
+    roleOwner: 'เจ้าของ',
+    roleReviewer: 'ผู้ตรวจทาน',
+    roleAnalyst: 'นักวิเคราะห์',
+    roleViewer: 'ผู้ดู',
+    recordBenchMeasurements: 'บันทึกค่าบนโต๊ะปฏิบัติการเพื่อสร้างตัวอย่างผลที่คำนวณโดยเซิร์ฟเวอร์',
+    noRejectionReason: 'ไม่มีการส่งเหตุผลการไม่อนุมัติกลับมา',
+    storedEvidencePackUnavailable: 'evidence pack ที่จัดเก็บไว้ไม่พร้อมใช้งาน',
+    laboratoryNavigation: 'การนำทางห้องปฏิบัติการ',
   },
 
   footer: {

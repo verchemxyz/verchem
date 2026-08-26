@@ -13,7 +13,16 @@ import { verifyCardJwsInBrowser } from '@/lib/answer-cards/browser-verifier'
 import { getReleaseManifestHash } from '@/lib/answer-cards/release-manifest'
 import { signCard, toSignablePayload } from '@/lib/answer-cards/signature'
 import { appendEvent } from '@/lib/lab/audit-chain'
-import { setLabApiDependenciesForTests } from '@/lib/lab/api'
+import {
+  getRecordDetailHandler,
+  getTemplateHandler,
+  listMembersHandler,
+  listOrganizationsHandler,
+  listRecordsHandler,
+  listTemplatesHandler,
+  retireTemplateHandler,
+  setLabApiDependenciesForTests,
+} from '@/lib/lab/api'
 import { releaseRecord } from '@/lib/lab/evidence-pack'
 import { createLabRepository, createRecordShareToken, hashRecordShareToken, pendingInviteAiverid, type LabDatabaseClient, type LabDatabaseQuery, type LabDatabaseResponse } from '@/lib/supabase/lab'
 import type { PrepRecord, PrepTemplate } from '@/lib/lab/types'
@@ -226,6 +235,67 @@ test('IDOR is a 404 and revoked membership is a 403 before record access', async
   assert.equal(revoked.status, 403)
 })
 
+test('new read handlers preserve tenant isolation and expose only their response contracts', async () => {
+  const { database } = setup()
+  database.tables.org_members[0]!.invited_email = 'preparer@example.test'
+
+  const crossOrgTemplate = await getTemplateHandler(
+    request(`/api/lab/orgs/${ORG_B}/templates/${TEMPLATE_ID}`, 'GET'),
+    ORG_B,
+    TEMPLATE_ID
+  )
+  const crossOrgRecord = await getRecordDetailHandler(
+    request(`/api/lab/orgs/${ORG_B}/records/${RECORD_ID}`, 'GET'),
+    ORG_B,
+    RECORD_ID
+  )
+  assert.equal(crossOrgTemplate.status, 404)
+  assert.equal(crossOrgRecord.status, 404)
+
+  const members = await listMembersHandler(request(`/api/lab/orgs/${ORG_A}/members`, 'GET'), ORG_A)
+  const memberBody = await members.json() as { members: Array<Record<string, unknown>> }
+  assert.equal(members.status, 200)
+  assert.ok(memberBody.members.every((member) => !Object.hasOwn(member, 'invited_email')))
+
+  const records = await listRecordsHandler(request(`/api/lab/orgs/${ORG_A}/records`, 'GET'), ORG_A)
+  const recordBody = await records.json() as { records: Array<Record<string, unknown>> }
+  assert.equal(records.status, 200)
+  assert.ok(recordBody.records.every((item) => !Object.hasOwn(item, 'draft')))
+})
+
+test('a revoked member receives 403 from every new read and retire handler', async () => {
+  setup({ revoked: true })
+  const requests: Array<[string, () => Promise<Response>]> = [
+    ['organizations', () => listOrganizationsHandler(request('/api/lab/orgs', 'GET'))],
+    ['templates', () => listTemplatesHandler(request(`/api/lab/orgs/${ORG_A}/templates`, 'GET'), ORG_A)],
+    ['template detail', () => getTemplateHandler(request(`/api/lab/orgs/${ORG_A}/templates/${TEMPLATE_ID}`, 'GET'), ORG_A, TEMPLATE_ID)],
+    ['records', () => listRecordsHandler(request(`/api/lab/orgs/${ORG_A}/records`, 'GET'), ORG_A)],
+    ['record detail', () => getRecordDetailHandler(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'GET'), ORG_A, RECORD_ID)],
+    ['members', () => listMembersHandler(request(`/api/lab/orgs/${ORG_A}/members`, 'GET'), ORG_A)],
+    ['retire', () => retireTemplateHandler(request(`/api/lab/orgs/${ORG_A}/templates/${TEMPLATE_ID}/retire`, 'POST'), ORG_A, TEMPLATE_ID)],
+  ]
+  for (const [name, call] of requests) {
+    const response = await call()
+    assert.equal(response.status, 403, name)
+  }
+})
+
+test('retiring a template requires reviewer role and an approved status', async () => {
+  const analyst = setup()
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: PREPARER, name: 'Preparer', verification_level: 1, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => analyst.repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'analyst',
+  })
+  const denied = await retireTemplateHandler(request(`/api/lab/orgs/${ORG_A}/templates/${TEMPLATE_ID}/retire`, 'POST'), ORG_A, TEMPLATE_ID)
+  assert.equal(denied.status, 403)
+
+  const draftTemplate = setup()
+  draftTemplate.database.tables.prep_templates[0]!.status = 'draft'
+  const conflict = await retireTemplateHandler(request(`/api/lab/orgs/${ORG_A}/templates/${TEMPLATE_ID}/retire`, 'POST'), ORG_A, TEMPLATE_ID)
+  assert.equal(conflict.status, 409)
+})
+
 test('release recomputes stored draft, atomically seals its release event, and persists a w3-v4 lab card', async () => {
   const { database, repository } = setup()
   const response = await releasePost(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
@@ -348,6 +418,13 @@ test('required template fields are enforced on draft PATCH and release', async (
   assert.equal(patch.status, 400)
   assert.match((await patch.json() as { error: string }).error, /expiry/)
 
+  ;(database.tables.prep_templates[0]!.spec as PrepTemplate['spec']).requiredFields = ['temperature']
+  const blankTemperature = { ...patchMeasurements, temperatureC: null }
+  const temperaturePatch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: blankTemperature }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  assert.equal(temperaturePatch.status, 400)
+  assert.match((await temperaturePatch.json() as { error: string }).error, /temperature/)
+
+  ;(database.tables.prep_templates[0]!.spec as PrepTemplate['spec']).requiredFields = ['expiry']
   draftRecord.state = 'submitted'
   setLabApiDependenciesForTests({
     verifySession: async () => ({ userId: REVIEWER, name: 'Reviewer', verification_level: 3, tier: 'free', expiresAt: new Date('2099-01-01') }),

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { CalcShell } from '@/components/lab'
 import VerifierWorkbench from '@/components/answer-cards/VerifierWorkbench'
 
@@ -18,7 +19,9 @@ export default function VerifyPage() {
       backLabel="Create a signed calculation"
       maxWidth="5xl"
     >
-      <VerifierWorkbench />
+      <Suspense fallback={<p className="text-muted-foreground">Loading independent verifier…</p>}>
+        <VerifierWorkbench />
+      </Suspense>
     </CalcShell>
   )
 }
