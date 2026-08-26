@@ -75,6 +75,7 @@ export const CURRENT_ENGINE_VERSIONS = {
   'quantum-heisenberg-uncertainty': STAGE0_REPLAY_EPOCH,
   'quantum-number-validation': STAGE0_REPLAY_EPOCH,
   'electron-configuration': STAGE0_REPLAY_EPOCH,
+  'as-prepared': '1.0.0',
 } as const satisfies Readonly<Record<string, EngineSemanticVersion>>
 
 export function getCurrentEngineVersion(engine: string): EngineSemanticVersion | undefined {

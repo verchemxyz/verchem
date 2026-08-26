@@ -18,6 +18,7 @@ import { electrochemistryTools } from './electrochemistry'
 import { nuclearTools } from './nuclear'
 import { quantumTools } from './quantum'
 import { electronConfigTools } from './electron-config'
+import { labPrepTools } from './lab-prep'
 
 const TOOL_DEFINITIONS: VerifiedTool[] = [
   ...phTools,
@@ -31,6 +32,7 @@ const TOOL_DEFINITIONS: VerifiedTool[] = [
   ...nuclearTools,
   ...quantumTools,
   ...electronConfigTools,
+  ...labPrepTools,
 ]
 
 export const ALL_TOOLS: VersionedVerifiedTool[] = TOOL_DEFINITIONS.map((tool) => {

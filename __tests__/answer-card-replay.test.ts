@@ -150,7 +150,7 @@ async function run(): Promise<void> {
   assert.ok(weakBaseTool)
   assert.equal(weakBaseTool.engineVersion, '2.0.1')
 
-  assert.equal(ALL_TOOLS.length, 61)
+  assert.equal(ALL_TOOLS.length, 62)
   assert.equal(Object.keys(CURRENT_ENGINE_VERSIONS).length, ALL_TOOLS.length)
   assert.equal(new Set(ALL_TOOLS.map((candidate) => candidate.engine)).size, ALL_TOOLS.length)
   assert.ok(ALL_TOOLS.every((candidate) => /^\d+\.\d+\.\d+$/.test(candidate.engineVersion)))
