@@ -11,7 +11,7 @@ export interface ReleaseManifestFile {
 
 export interface ReleaseManifestBuild {
   git_sha: string
-  dirty: boolean
+  dirty: boolean | 'unknown'
   node: string
 }
 
@@ -104,7 +104,7 @@ function isEditions(value: unknown): value is ReleaseManifestEditions {
 function isBuild(value: unknown): value is ReleaseManifestBuild {
   if (!isRecord(value) || Object.keys(value).sort().join(',') !== 'dirty,git_sha,node') return false
   return typeof value.git_sha === 'string' && GIT_SHA.test(value.git_sha) &&
-    typeof value.dirty === 'boolean' &&
+    (typeof value.dirty === 'boolean' || value.dirty === 'unknown') &&
     isBoundedString(value.node)
 }
 

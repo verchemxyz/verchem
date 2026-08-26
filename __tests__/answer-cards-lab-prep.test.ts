@@ -56,7 +56,7 @@ describe('calculate_as_prepared registered adapter', () => {
     const tool = TOOL_BY_NAME.get('calculate_as_prepared')
     assert.ok(tool)
     assert.equal(tool.engine, 'as-prepared')
-    assert.equal(tool.engineVersion, '1.0.0')
+    assert.equal(tool.engineVersion, '1.1.0')
 
     const result = tool.execute(CARD_INPUT)
     assert.equal(result.ok, true)
@@ -87,7 +87,7 @@ describe('calculate_as_prepared registered adapter', () => {
     assert.equal(card.status, 'verified')
     assert.equal(card.tool_calls.length, 1)
     assert.equal(card.tool_calls[0]?.engine, 'as-prepared')
-    assert.equal(card.tool_calls[0]?.engine_version, '1.0.0')
+    assert.equal(card.tool_calls[0]?.engine_version, '1.1.0')
     assert.equal(card.tool_calls[0]?.result.ok, true)
     assert.equal(await verifyCardSignature(toSignablePayload(card), card.signature), true)
   })

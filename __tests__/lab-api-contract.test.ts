@@ -5,6 +5,7 @@ import { NextRequest } from 'next/server'
 import { GET as getJwks } from '@/app/.well-known/verchem-keys.json/route'
 import { POST as releasePost } from '@/app/api/lab/orgs/[org]/records/[id]/release/route'
 import { POST as approvePost } from '@/app/api/lab/orgs/[org]/templates/[id]/approve/route'
+import { PATCH as updatePatch } from '@/app/api/lab/orgs/[org]/records/[id]/route'
 import { GET as packGet } from '@/app/api/lab/records/[id]/pack.json/route'
 import { GET as statusGet } from '@/app/api/lab/records/[id]/status/route'
 import { buildDeterministicAnswerCard } from '@/lib/answer-cards/deterministic-card'
@@ -13,7 +14,8 @@ import { getReleaseManifestHash } from '@/lib/answer-cards/release-manifest'
 import { signCard, toSignablePayload } from '@/lib/answer-cards/signature'
 import { appendEvent } from '@/lib/lab/audit-chain'
 import { setLabApiDependenciesForTests } from '@/lib/lab/api'
-import { createLabRepository, createRecordShareToken, pendingInviteAiverid, type LabDatabaseClient, type LabDatabaseQuery, type LabDatabaseResponse } from '@/lib/supabase/lab'
+import { releaseRecord } from '@/lib/lab/evidence-pack'
+import { createLabRepository, createRecordShareToken, hashRecordShareToken, pendingInviteAiverid, type LabDatabaseClient, type LabDatabaseQuery, type LabDatabaseResponse } from '@/lib/supabase/lab'
 import type { PrepRecord, PrepTemplate } from '@/lib/lab/types'
 
 type Row = Record<string, unknown>
@@ -84,8 +86,38 @@ class RecordingDatabase implements LabDatabaseClient {
   zeroReleaseUpdate = false
   constructor(rows: Record<string, Row[]>) { this.tables = rows }
   from(table: string): LabDatabaseQuery { return new RecordingQuery(this, table) }
-  async rpc(name: string, _parameters?: Row): Promise<LabDatabaseResponse> {
+  async rpc(name: string, parameters: Row = {}): Promise<LabDatabaseResponse> {
     this.queries.push({ table: `rpc:${name}`, filters: [], update: null, insert: null })
+    if (name === 'lab_apply_transition') {
+      const orgId = parameters.p_org_id
+      const recordId = parameters.p_record_id
+      const from = parameters.p_from
+      const to = parameters.p_to
+      const patch = parameters.p_patch
+      const event = parameters.p_event
+      if (typeof orgId !== 'string' || typeof recordId !== 'string' || typeof from !== 'string' || typeof to !== 'string' ||
+          typeof patch !== 'object' || patch === null || Array.isArray(patch) ||
+          typeof event !== 'object' || event === null || Array.isArray(event)) {
+        return { data: null, error: { code: '22023' } }
+      }
+      const record = this.tables.prep_records.find((row) => row.id === recordId && row.org_id === orgId && row.state === from)
+      if (!record) return { data: null, error: { code: 'P4C09' } }
+      const events = this.tables.lab_events.filter((row) => row.record_id === recordId)
+      const tail = events.at(-1) ?? null
+      const candidate = event as Row
+      if (
+        candidate.record_id !== recordId ||
+        candidate.prev_hash !== (tail?.hash ?? null) ||
+        candidate.seq !== events.length + 1 ||
+        this.tables.lab_events.some((row) => row.record_id === recordId && row.seq === candidate.seq)
+      ) {
+        return { data: null, error: { code: 'P4C09' } }
+      }
+      if (this.zeroReleaseUpdate && to === 'released') return { data: null, error: { code: 'P4C09' } }
+      this.tables.lab_events.push({ org_id: orgId, ...candidate })
+      Object.assign(record, patch, { state: to })
+      return { data: { ...record }, error: null }
+    }
     return { data: null, error: { code: 'PGRST116' } }
   }
 }
@@ -134,7 +166,7 @@ function record(state: PrepRecord['state'] = 'submitted'): PrepRecord {
     id: RECORD_ID, org_id: ORG_A, template_id: TEMPLATE_ID, template_version: 1, record_no: 'PR-2026-000001',
     state, draft: draft(), signed_payload: null, signature: null, outcome: null, deviation_reason: null,
     supersedes: null, created_by: PREPARER, released_by: null, released_at: null, voided_at: null,
-    void_reason: null, share_token: null, created_at: '2026-08-26T00:00:00.000Z',
+    void_reason: null, share_token_hash: null, created_at: '2026-08-26T00:00:00.000Z',
   }
 }
 
@@ -194,12 +226,11 @@ test('IDOR is a 404 and revoked membership is a 403 before record access', async
   assert.equal(revoked.status, 403)
 })
 
-test('release recomputes stored draft, seals release event first, and persists a w3-v4 lab card', async () => {
-  Reflect.set(process.env, 'ANSWER_CARD_SECRET', 'contract-test-secret')
+test('release recomputes stored draft, atomically seals its release event, and persists a w3-v4 lab card', async () => {
   const { database, repository } = setup()
   const response = await releasePost(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
   assert.equal(response.status, 200, await response.clone().text())
-  const body = await response.json() as { signature: string }
+  const body = await response.json() as { signature: string; share_token: string }
   const released = database.tables.prep_records[0]!
   const payload = JSON.parse(String(released.signed_payload)) as Record<string, unknown>
   const result = (payload.tool_calls as Array<{ result: { value: { asPrepared: { value: number } } } }>)[0]!.result.value.asPrepared.value
@@ -214,6 +245,9 @@ test('release recomputes stored draft, seals release event first, and persists a
   assert.equal(lab.events_count, events.length)
   assert.equal((await repository.verifyRecordChain(ORG_A, RECORD_ID)).ok, true)
   assert.equal(typeof body.signature, 'string')
+  assert.equal(typeof body.share_token, 'string')
+  assert.equal(released.share_token_hash, hashRecordShareToken(body.share_token))
+  assert.notEqual(released.share_token_hash, body.share_token)
 })
 
 test('self-approval/self-release are forbidden and release from draft conflicts', async () => {
@@ -238,12 +272,91 @@ test('self-approval/self-release are forbidden and release from draft conflicts'
 })
 
 test('a lost concurrent release returns 409 and does not persist the signed card', async () => {
-  Reflect.set(process.env, 'ANSWER_CARD_SECRET', 'contract-test-secret')
   const { database } = setup({ zeroRelease: true })
   const response = await releasePost(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
   assert.equal(response.status, 409)
   assert.equal(database.tables.prep_records[0]?.signed_payload, null)
   assert.equal(database.tables.prep_records[0]?.signature, null)
+  assert.equal(database.tables.prep_records[0]?.state, 'submitted')
+  assert.equal(database.tables.lab_events.some((event) => event.action === 'release'), false)
+})
+
+test('the transition RPC fake rejects stale event sequences and state mismatches without mutation', async () => {
+  const { database, repository } = setup()
+  const initialEvents = await repository.listEvents(ORG_A, RECORD_ID)
+  const stale = appendEvent(initialEvents[0]!, {
+    record_id: RECORD_ID, seq: 2, actor: REVIEWER, actor_level: 3, action: 'reject', payload: { reason: 'stale' }, at: '2026-08-26T00:02:00.000Z',
+  })
+  await assert.rejects(
+    repository.transition(ORG_A, RECORD_ID, 'submitted', 'rejected', {}, stale),
+    (error: unknown) => error instanceof Error && 'status' in error && error.status === 409
+  )
+  assert.equal(database.tables.prep_records[0]?.state, 'submitted')
+  assert.equal(database.tables.lab_events.length, initialEvents.length)
+
+  const current = initialEvents.at(-1)!
+  const fresh = appendEvent(current, {
+    record_id: RECORD_ID, seq: 3, actor: REVIEWER, actor_level: 3, action: 'reject', payload: { reason: 'state mismatch' }, at: '2026-08-26T00:02:00.000Z',
+  })
+  await assert.rejects(
+    repository.transition(ORG_A, RECORD_ID, 'draft', 'submitted', {}, fresh),
+    (error: unknown) => error instanceof Error && 'status' in error && error.status === 409
+  )
+  assert.equal(database.tables.prep_records[0]?.state, 'submitted')
+  assert.equal(database.tables.lab_events.length, initialEvents.length)
+})
+
+test('a signing configuration failure leaves no release event and keeps the record submitted', async () => {
+  const originalNodeEnv = process.env.NODE_ENV
+  const originalPrivateKey = process.env.CARD_SIGNING_PRIVATE_KEY
+  const { database, repository } = setup()
+  try {
+    Reflect.set(process.env, 'NODE_ENV', 'production')
+    Reflect.deleteProperty(process.env, 'CARD_SIGNING_PRIVATE_KEY')
+    await assert.rejects(
+      releaseRecord(repository, {
+        orgId: ORG_A,
+        recordId: RECORD_ID,
+        reviewer: { aiverid: REVIEWER, role: 'reviewer', verificationLevel: 3, revokedAt: null, displayName: 'Reviewer' },
+      }),
+      /CARD_SIGNING_PRIVATE_KEY is required in production/
+    )
+    assert.equal(database.tables.prep_records[0]?.state, 'submitted')
+    assert.equal(database.tables.lab_events.some((event) => event.action === 'release'), false)
+  } finally {
+    if (originalNodeEnv === undefined) Reflect.deleteProperty(process.env, 'NODE_ENV')
+    else Reflect.set(process.env, 'NODE_ENV', originalNodeEnv)
+    if (originalPrivateKey === undefined) Reflect.deleteProperty(process.env, 'CARD_SIGNING_PRIVATE_KEY')
+    else Reflect.set(process.env, 'CARD_SIGNING_PRIVATE_KEY', originalPrivateKey)
+  }
+})
+
+test('required template fields are enforced on draft PATCH and release', async () => {
+  const { database, repository } = setup()
+  const draftRecord = database.tables.prep_records[0]!
+  draftRecord.state = 'draft'
+  ;(database.tables.prep_templates[0]!.spec as PrepTemplate['spec']).requiredFields = ['expiry']
+  const patchMeasurements = { ...(draft()!.measurements as unknown as Record<string, unknown>) }
+  delete patchMeasurements.as_prepared
+  delete patchMeasurements.notes
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: PREPARER, name: 'Preparer', verification_level: 1, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'preparer',
+  })
+  const patch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: patchMeasurements }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  assert.equal(patch.status, 400)
+  assert.match((await patch.json() as { error: string }).error, /expiry/)
+
+  draftRecord.state = 'submitted'
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: REVIEWER, name: 'Reviewer', verification_level: 3, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'reviewer',
+  })
+  const release = await releasePost(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  assert.equal(release.status, 409)
+  assert.match((await release.json() as { error: string }).error, /expiry/)
 })
 
 test('pending invite claims bind by lowercase email hash', async () => {
@@ -259,9 +372,8 @@ test('pending invite claims bind by lowercase email hash', async () => {
 })
 
 test('pack.json requires a member or valid bearer token, and status exposes only the permitted keys', async () => {
-  Reflect.set(process.env, 'ANSWER_CARD_SECRET', 'contract-test-secret')
   const { database } = setup()
-  database.tables.prep_records[0] = { ...database.tables.prep_records[0]!, state: 'released', draft: null, signed_payload: JSON.stringify({ question: 'q' }), signature: 'sig', share_token: 'not-a-real-token' }
+  database.tables.prep_records[0] = { ...database.tables.prep_records[0]!, state: 'released', draft: null, signed_payload: JSON.stringify({ question: 'q' }), signature: 'sig', share_token_hash: 'not-a-real-token' }
   const denied = await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })
   assert.equal(denied.status, 200, 'member session is allowed')
 
@@ -273,9 +385,10 @@ test('pack.json requires a member or valid bearer token, and status exposes only
   const invalid = await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json?token=wrong`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })
   assert.equal(invalid.status, 404)
   const released = database.tables.prep_records[0]!
-  released.share_token = createRecordShareToken(RECORD_ID)
+  const shareToken = createRecordShareToken()
+  released.share_token_hash = hashRecordShareToken(shareToken)
   const eventsBeforePublicView = database.tables.lab_events.length
-  const publicPack = await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json?token=${released.share_token}`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })
+  const publicPack = await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json?token=${shareToken}`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })
   assert.equal(publicPack.status, 200)
   assert.equal(database.tables.lab_events.length, eventsBeforePublicView, 'public pack view must not append audit events')
   const status = await statusGet(request(`/api/lab/records/${RECORD_ID}/status`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })

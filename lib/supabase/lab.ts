@@ -8,7 +8,7 @@ import 'server-only'
  * recording fake in contract tests without creating a live Supabase project.
  */
 
-import { createHash, createHmac, timingSafeEqual } from 'node:crypto'
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import { canonicalJsonString } from '@/lib/answer-cards/canonical-json'
 import { appendEvent, verifyChain, type LabEvent } from '@/lib/lab/audit-chain'
@@ -84,9 +84,12 @@ function asRows<T>(response: LabDatabaseResponse): T[] {
 }
 
 function databaseError(error: LabDatabaseError): LabDataError {
-  if (error.code === '23505') return new LabDataError('The requested value already exists.', 409)
+  if (error.code === '23505' || error.code === 'P4C09') {
+    return new LabDataError('The preparation record changed before this request completed.', 409)
+  }
   if (error.code === '23503' || error.code === 'PGRST116') return new LabDataError('The requested resource was not found.', 404)
   if (error.code === '23514') return new LabDataError('The requested state is not valid.', 409)
+  if (error.code === '22023') return new LabDataError('The request contains invalid transition data.', 400)
   return new LabDataError('Lab database operation failed.', 500)
 }
 
@@ -146,8 +149,11 @@ export interface InviteMemberInput {
 
 export interface CreateRecordInput {
   templateId: string
+  templateVersion: number
   createdBy: string
   year?: number
+  actorLevel: VerificationLevel
+  at?: string
 }
 
 export interface AppendEventInput {
@@ -159,6 +165,8 @@ export interface AppendEventInput {
   payload: Record<string, unknown>
   at?: string
 }
+
+export type TransitionEventInput = Omit<AppendEventInput, 'orgId' | 'recordId'>
 
 export class LabRepository {
   constructor(private readonly client: LabDatabaseClient = getSupabase()) {}
@@ -362,11 +370,23 @@ export class LabRepository {
   async createRecord(orgId: string, input: CreateRecordInput): Promise<PrepRecord> {
     const year = input.year ?? new Date().getUTCFullYear()
     if (!Number.isInteger(year) || year < 2000 || year > 9999) throw new LabDataError('Record year is invalid.', 400)
+    const recordId = randomUUID()
+    const event = appendEvent(null, {
+      record_id: recordId,
+      seq: 1,
+      actor: input.createdBy,
+      actor_level: input.actorLevel,
+      action: 'create',
+      payload: { template_id: input.templateId, template_version: input.templateVersion },
+      at: input.at ?? new Date().toISOString(),
+    })
     const response = await this.client.rpc('lab_create_record', {
       p_org_id: orgId,
       p_template_id: input.templateId,
       p_created_by: input.createdBy,
       p_year: year,
+      p_record_id: recordId,
+      p_event: event,
     })
     const record = asOne<PrepRecord>(response)
     if (!record) throw new LabDataError('Record creation returned no row.', 500)
@@ -407,36 +427,46 @@ export class LabRepository {
     return { ...record, supersedes: superseding[0]?.id ?? null }
   }
 
-  async updateDraft(orgId: string, id: string, createdBy: string, draft: PrepDraft): Promise<PrepRecord | null> {
-    const response = await this.client
-      .from('prep_records')
-      .update({ draft })
-      .eq('org_id', orgId)
-      .eq('id', id)
-      .eq('created_by', createdBy)
-      .eq('state', 'draft')
-      .select('*')
-      .maybeSingle()
-    return asOne<PrepRecord>(await response)
+  async updateDraft(
+    orgId: string,
+    id: string,
+    draft: PrepDraft,
+    event: LabEvent
+  ): Promise<PrepRecord | null> {
+    return this.transition(orgId, id, 'draft', 'draft', { draft }, event)
   }
 
-  /** Conditional update is the required concurrency boundary for all transitions. */
+  /** Build an event from the current chain tail; caller persists it atomically with its transition. */
+  async buildLabEvent(orgId: string, recordId: string, input: TransitionEventInput): Promise<LabEvent> {
+    const events = await this.listEvents(orgId, recordId)
+    return appendEvent(events.at(-1) ?? null, {
+      record_id: recordId,
+      seq: events.length + 1,
+      actor: input.actor,
+      actor_level: input.actorLevel,
+      action: input.action,
+      payload: input.payload,
+      at: input.at ?? new Date().toISOString(),
+    })
+  }
+
+  /** Atomic compare-and-swap: append a validated event and transition one locked record. */
   async transition(
     orgId: string,
     id: string,
     from: PrepRecord['state'],
     to: PrepRecord['state'],
-    patch: Record<string, unknown> = {}
+    patch: Record<string, unknown>,
+    event: LabEvent
   ): Promise<PrepRecord | null> {
-    const response = await this.client
-      .from('prep_records')
-      .update({ ...patch, state: to })
-      .eq('org_id', orgId)
-      .eq('id', id)
-      .eq('state', from)
-      .select('*')
-      .maybeSingle()
-    return asOne<PrepRecord>(await response)
+    return asOne<PrepRecord>(await this.client.rpc('lab_apply_transition', {
+      p_org_id: orgId,
+      p_record_id: id,
+      p_from: from,
+      p_to: to,
+      p_patch: patch,
+      p_event: event,
+    }))
   }
 
   async listEvents(orgId: string, recordId: string): Promise<LabEvent[]> {
@@ -449,17 +479,7 @@ export class LabRepository {
   }
 
   async appendLabEvent(input: AppendEventInput): Promise<LabEvent> {
-    const events = await this.listEvents(input.orgId, input.recordId)
-    const previous = events.at(-1) ?? null
-    const event = appendEvent(previous, {
-      record_id: input.recordId,
-      seq: events.length + 1,
-      actor: input.actor,
-      actor_level: input.actorLevel,
-      action: input.action,
-      payload: input.payload,
-      at: input.at ?? new Date().toISOString(),
-    })
+    const event = await this.buildLabEvent(input.orgId, input.recordId, input)
     const response = await this.client
       .from('lab_events')
       .insert({ org_id: input.orgId, ...event })
@@ -483,7 +503,8 @@ export class LabRepository {
     deviationReason: string | null,
     releasedBy: string,
     releasedAt: string,
-    shareToken: string
+    shareToken: string,
+    event: LabEvent
   ): Promise<PrepRecord | null> {
     return this.transition(orgId, id, 'submitted', 'released', {
       signed_payload: signedPayload,
@@ -493,8 +514,8 @@ export class LabRepository {
       released_by: releasedBy,
       released_at: releasedAt,
       draft: null,
-      share_token: shareToken,
-    })
+      share_token_hash: hashRecordShareToken(shareToken),
+    }, event)
   }
 }
 
@@ -502,20 +523,24 @@ export function createLabRepository(client?: LabDatabaseClient): LabRepository {
   return new LabRepository(client)
 }
 
-/** HMAC bearer token used only for public pack download; never exposes record contents on failure. */
-export function createRecordShareToken(recordId: string): string {
-  const secret = process.env.ANSWER_CARD_SECRET
-  if (!secret) throw new LabDataError('Evidence-pack sharing is not configured.', 500)
-  return createHmac('sha256', secret).update(recordId, 'utf8').digest('base64url')
+/** A one-time random bearer token. Only its SHA-256 hash is ever persisted. */
+export function createRecordShareToken(): string {
+  return randomBytes(32).toString('base64url')
 }
 
-export function hasValidRecordShareToken(recordId: string, supplied: string | null, stored: string | null): boolean {
-  if (supplied === null || stored === null || supplied.length !== stored.length) return false
-  const expected = createRecordShareToken(recordId)
-  if (expected.length !== stored.length) return false
+export function hashRecordShareToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex')
+}
+
+export function hasValidRecordShareToken(supplied: string | null, storedHash: string | null): boolean {
+  if (supplied === null || storedHash === null || !/^[A-Za-z0-9_-]{43}$/.test(supplied) || !/^[0-9a-f]{64}$/.test(storedHash)) {
+    return false
+  }
   try {
-    return timingSafeEqual(Buffer.from(supplied), Buffer.from(stored)) &&
-      timingSafeEqual(Buffer.from(expected), Buffer.from(stored))
+    return timingSafeEqual(
+      Buffer.from(hashRecordShareToken(supplied), 'ascii'),
+      Buffer.from(storedHash, 'ascii')
+    )
   } catch {
     return false
   }

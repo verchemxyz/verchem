@@ -4,8 +4,9 @@ import { buildDeterministicAnswerCard } from '@/lib/answer-cards/deterministic-c
 import { canonicalPayloadString, signCard, toSignablePayload } from '@/lib/answer-cards/signature'
 import { getReleaseManifestHash } from '@/lib/answer-cards/release-manifest'
 import { calculateAsPrepared, type AsPreparedInput, type AsPreparedResult } from './as-prepared'
-import { verifyChain } from './audit-chain'
+import { appendEvent, verifyChain } from './audit-chain'
 import { authorize, releaseOutcome, type Member } from './prep-record'
+import { missingRequiredPrepFields } from './required-fields'
 import { createRecordShareToken, LabDataError, LabRepository } from '@/lib/supabase/lab'
 import type { LabActor, LabRecordEnvelope, PrepDraft, PrepRecord, PrepTemplate } from './types'
 
@@ -124,18 +125,9 @@ export interface ReleasedEvidence {
 }
 
 /**
- * Release workflow. The final conditional UPDATE is intentionally last: it is
- * the concurrency decision. When it affects zero rows, the in-memory pack is
- * discarded and no signed payload/signature is persisted.
- *
- * KNOWN LIMITATION (tracked for the ship gate): the release event is appended
- * before the conditional UPDATE, so if two reviewers race, the loser's
- * `release` event remains in the append-only chain even though their release
- * did not happen. Integrity is unaffected — the winner's sealed head/count
- * cover exactly the events that existed at its release, and the chain still
- * verifies — but the log shows an extra `release` entry. The proper fix is a
- * single Postgres function that appends the event and performs the state
- * transition in one transaction.
+ * Release workflow. The release event, state compare-and-swap, and evidence
+ * fields are committed by one database RPC; no losing race can leave an
+ * orphan release event behind.
  */
 export async function releaseRecord(
   repository: LabRepository,
@@ -158,6 +150,10 @@ export async function releaseRecord(
   }
   // Calculate before re-authorizing so acceptance is always derived from the stored draft.
   const draft = ensureDraft(record.draft)
+  const missingFields = missingRequiredPrepFields(template.spec.requiredFields, draft)
+  if (missingFields.length > 0) {
+    throw new LabDataError(`Required preparation fields are missing: ${missingFields.join(', ')}.`, 409)
+  }
   const asPrepared = calculateAsPrepared(toAsPreparedInput(template, draft))
   const authorized = authorize('release', input.reviewer, {
     state: record.state,
@@ -173,18 +169,17 @@ export async function releaseRecord(
   const releasedAt = isoNow(input.now)
   const outcome = releaseOutcome(asPrepared.withinAcceptance)
 
-  // Append before signing. The sealed prefix therefore includes the release event.
-  const releaseEvent = await repository.appendLabEvent({
-    orgId: input.orgId,
-    recordId: record.id,
+  const events = await repository.listEvents(input.orgId, record.id)
+  const releaseEvent = appendEvent(events.at(-1) ?? null, {
+    record_id: record.id,
+    seq: events.length + 1,
     actor: input.reviewer.aiverid,
-    actorLevel: input.reviewer.verificationLevel,
+    actor_level: input.reviewer.verificationLevel,
     action: 'release',
     payload: { outcome, deviation_reason: input.deviationReason ?? null },
     at: releasedAt,
   })
-  const events = await repository.listEvents(input.orgId, record.id)
-  const chain = verifyChain(events)
+  const chain = verifyChain([...events, releaseEvent])
   if (!chain.ok || chain.head !== releaseEvent.hash || chain.length < 1) {
     throw new LabDataError('Audit chain verification failed before release.', 409)
   }
@@ -221,12 +216,12 @@ export async function releaseRecord(
   })
   const signature = await signCard(toSignablePayload(card))
   const payload = canonicalPayloadString(toSignablePayload(card))
-  const shareToken = createRecordShareToken(record.id)
+  const shareToken = createRecordShareToken()
 
   const released = await repository.setReleasedRecord(
     input.orgId, record.id, payload, signature, outcome,
     outcome === 'released_with_deviation' ? input.deviationReason?.trim() ?? null : null,
-    input.reviewer.aiverid, releasedAt, shareToken
+    input.reviewer.aiverid, releasedAt, shareToken, releaseEvent
   )
   if (!released) {
     throw new LabDataError('The record was changed by another reviewer before release.', 409)

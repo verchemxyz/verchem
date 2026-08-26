@@ -148,7 +148,7 @@ function isProtectedRoute(pathname: string): boolean {
 // Check if path is public
 function isPublicLabRoute(pathname: string, method: string): boolean {
   if (method !== 'GET') return false
-  return /^\/api\/lab\/records\/[^/]+\/(?:status|pack\.json)$/.test(pathname)
+  return /^\/api\/lab\/records\/[^/]+\/(?:status|pack\.json)\/?$/.test(pathname)
 }
 
 function isPublicRoute(pathname: string, method: string): boolean {

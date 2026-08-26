@@ -41,7 +41,11 @@ export interface ActualMeasurements {
 
 export interface AsPreparedInput {
   target: StockPrepInput
-  /** Template display unit; StockPrepInput.targetVolume remains canonical litres. */
+  /**
+   * Unit of `target.targetVolume` AS DECLARED BY THE TEMPLATE. The engine
+   * converts to litres before delegating to calculateStockPrep, so a template
+   * written in mL can never be silently signed as litres (wide-scan #3).
+   */
   targetVolumeUnit: 'mL' | 'L'
   acceptanceRelativePercent: number
   actual: ActualMeasurements
@@ -207,13 +211,20 @@ function calculateActualConcentration(
 export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
   // Keep the established target calculation as the first delegated operation so
   // its chemistry/unit guards are preserved unchanged.
-  const targetResult = calculateStockPrep(input.target)
-  const { actual } = input
-  const { equipment } = actual
-
   if (input.targetVolumeUnit !== 'mL' && input.targetVolumeUnit !== 'L') {
     throw new Error('targetVolumeUnit must be explicitly "mL" or "L".')
   }
+  if (!Number.isFinite(input.target.targetVolume) || input.target.targetVolume <= 0) {
+    throw new Error(`target.targetVolume must be a positive finite number in ${input.targetVolumeUnit}.`)
+  }
+  // Canonicalise the target to litres ONCE; every downstream number (target
+  // amount, deviation, assumptions) is derived from this converted target.
+  const target: StockPrepInput = input.targetVolumeUnit === 'mL'
+    ? { ...input.target, targetVolume: input.target.targetVolume / 1000 }
+    : input.target
+  const targetResult = calculateStockPrep(target)
+  const { actual } = input
+  const { equipment } = actual
   if (!Number.isFinite(input.acceptanceRelativePercent) || input.acceptanceRelativePercent <= 0) {
     throw new Error('acceptanceRelativePercent must be a positive finite percentage.')
   }
@@ -223,8 +234,8 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
   if (!Number.isFinite(actual.coaAssayPercent) || actual.coaAssayPercent <= 0 || actual.coaAssayPercent > 100) {
     throw new Error('actual.coaAssayPercent must be a finite percentage in the range (0, 100].')
   }
-  if (actual.coaBasis !== input.target.reagentPurityBasis) {
-    throw new Error(`actual.coaBasis (${actual.coaBasis}) must match target.reagentPurityBasis (${input.target.reagentPurityBasis}).`)
+  if (actual.coaBasis !== target.reagentPurityBasis) {
+    throw new Error(`actual.coaBasis (${actual.coaBasis}) must match target.reagentPurityBasis (${target.reagentPurityBasis}).`)
   }
   if (!Number.isFinite(actual.temperatureC) || actual.temperatureC <= -273.15) {
     throw new Error('actual.temperatureC must be a finite value above absolute zero.')
@@ -240,7 +251,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
   const isMassPath = targetResult.measureBy === 'mass'
   if (isMassPath) {
     if (actual.measuredMl !== null) {
-      throw new Error(`actual.measuredMl must be null because ${input.target.unit} is measured by mass, not volume.`)
+      throw new Error(`actual.measuredMl must be null because ${target.unit} is measured by mass, not volume.`)
     }
     requireFinitePositive(actual.weighedG, 'actual.weighedG', 'g')
   } else {
@@ -254,7 +265,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
     ? { value: actual.weighedG!, unit: 'g' as const }
     : { value: actual.measuredMl!, unit: 'mL' as const }
   const asPreparedValue = calculateActualConcentration(input.target, actual, targetResult.measureBy)
-  const deviationPercent = ((asPreparedValue - input.target.targetConc) / input.target.targetConc) * 100
+  const deviationPercent = ((asPreparedValue - target.targetConc) / target.targetConc) * 100
   if (!Number.isFinite(deviationPercent)) {
     throw new Error('Deviation from target is outside the finite representable range.')
   }
@@ -324,9 +335,9 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
       `QUAM:2012 A1 §A1.4(ii), fill-repeatability standard deviation used directly: ${equipment.fillRepeatabilitySdMl} mL divided by final volume ${actual.finalVolumeMl} mL.`
     )
 
-  const normalizedSolvent = input.target.solvent.trim()
+  const normalizedSolvent = target.solvent.trim()
   const expansionCoefficient = equipment.volumeExpansionCoefficientPerC ??
-    (isWaterSolvent(input.target.solvent) ? WATER_VOLUME_EXPANSION_PER_C : null)
+    (isWaterSolvent(target.solvent) ? WATER_VOLUME_EXPANSION_PER_C : null)
   const temperatureTerm = equipment.temperatureHalfWidthC === null
     ? notIncludedTerm(
       'temperature_expansion',
@@ -367,7 +378,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
   return {
     targetAmount: { value: targetResult.amount, unit: targetResult.amountUnit },
     actualAmount,
-    asPrepared: { value: asPreparedValue, unit: input.target.unit },
+    asPrepared: { value: asPreparedValue, unit: target.unit },
     deviationPercent,
     withinAcceptance: Math.abs(deviationPercent) <= input.acceptanceRelativePercent,
     uncertainty: {
@@ -375,7 +386,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
       combinedRelative,
       standard,
       expandedK2,
-      unit: input.target.unit,
+      unit: target.unit,
       coverage: 'k=2, ≈95 % (JCGM 100:2008 §6.3.3)',
       budget,
     },
@@ -387,6 +398,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
     },
     assumptions: [
       ...targetResult.assumptions,
+      `Target volume declared as ${input.target.targetVolume} ${input.targetVolumeUnit} (${target.targetVolume} L used for all calculations).`,
       `Actual concentration uses the recorded ${isMassPath ? 'net mass' : 'delivered solute volume'} and CoA assay ${actual.coaAssayPercent}% on its declared ${actual.coaBasis} basis.`,
       'Input uncertainty components are treated as uncorrelated and propagated by the relative product/quotient model (JCGM 100:2008 §5.1.6 eq.(12)).',
       `No systematic volume correction is applied for the ${Math.abs(actual.temperatureC - equipment.flaskCalibrationTemperatureC)} °C offset between preparation temperature (${actual.temperatureC} °C) and flask calibration temperature (${equipment.flaskCalibrationTemperatureC} °C); only the declared laboratory temperature variation enters the uncertainty budget.`,

@@ -49,7 +49,9 @@ async function run(): Promise<void> {
   // Lab-QC exposes only independent verification endpoints without a session;
   // all organization-scoped Lab paths are proxy-gated before their handlers run.
   await assertAnonymousPasses('/api/lab/records/00000000-0000-4000-8000-000000000010/status')
+  await assertAnonymousPasses('/api/lab/records/00000000-0000-4000-8000-000000000010/status/')
   await assertAnonymousPasses('/api/lab/records/00000000-0000-4000-8000-000000000010/pack.json')
+  await assertAnonymousPasses('/api/lab/records/00000000-0000-4000-8000-000000000010/pack.json/')
 
   // 2026-08-11 (พี่จ๊อบเคาะ): every local-compute tool and reference surface is
   // open to anonymous visitors — growth first, Free tier as decided.
@@ -100,6 +102,7 @@ async function run(): Promise<void> {
     '/account/cards/some.json',
     '/account/cards/some.png',
     '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records',
+    '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records/',
   ]) {
     const protectedResponse = await proxy(new NextRequest(`https://verchem.xyz${pathname}`))
     assert.equal(protectedResponse.status, 307, `${pathname} must remain gated for anonymous visitors`)

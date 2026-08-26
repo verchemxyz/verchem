@@ -247,7 +247,7 @@ const calculate_as_prepared: VerifiedTool = {
           reagent_form: { type: 'string' }, solvent: { type: 'string' }, preparation_temperature_C: { type: 'number' },
         },
       },
-      target_volume_unit: { type: 'string', enum: ['mL', 'L'], description: 'Explicit template display unit; StockPrepInput target_volume remains litres.' },
+      target_volume_unit: { type: 'string', enum: ['mL', 'L'], description: 'Unit of target.target_volume as declared by the template; the engine converts to litres before calculating.' },
       acceptance_relative_percent: { type: 'number', description: 'Acceptance limit as an absolute relative percent, for example 0.5 for ±0.5%.' },
       actual: {
         type: 'object',

@@ -1,6 +1,7 @@
 import type { StockPrepInput } from '@/lib/calculations/solution-prep'
 import type { VerificationLevel, MemberRole, RecordState, RecordAction } from './prep-record'
 import type { ActualMeasurements as EngineActualMeasurements, AsPreparedResult } from './as-prepared'
+import type { RequiredPrepField } from './required-fields'
 
 export type { VerificationLevel, MemberRole, RecordState, RecordAction }
 
@@ -34,7 +35,7 @@ export interface PrepTemplateSpec {
   target: StockPrepInput
   targetVolumeUnit: 'mL' | 'L'
   acceptance: { relativePercent: number }
-  requiredFields: Array<'lot' | 'coa_assay' | 'expiry' | 'balance_id' | 'flask_id' | 'temperature'>
+  requiredFields: RequiredPrepField[]
   instructions: string[]
   citations: string[]
 }
@@ -105,7 +106,7 @@ export interface PrepRecord {
   released_at: string | null
   voided_at: string | null
   void_reason: string | null
-  share_token: string | null
+  share_token_hash: string | null
   created_at: string
 }
 

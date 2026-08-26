@@ -119,6 +119,28 @@ describe('QUAM A1 golden result and uncertainty budget', () => {
   })
 })
 
+describe('target volume unit drives conversion (wide-scan #3)', () => {
+  test('a template declared in mL yields the same record as the same target in L', () => {
+    const inLitres = calculateAsPrepared(QUAM_INPUT)
+    const inMillilitres = calculateAsPrepared({
+      ...QUAM_INPUT,
+      targetVolumeUnit: 'mL',
+      target: { ...QUAM_INPUT.target, targetVolume: QUAM_INPUT.target.targetVolume * 1000 },
+    })
+    assert.equal(inMillilitres.targetAmount.value, inLitres.targetAmount.value)
+    assert.equal(inMillilitres.asPrepared.value, inLitres.asPrepared.value)
+    assert.equal(inMillilitres.deviationPercent, inLitres.deviationPercent)
+    assert.ok(inMillilitres.assumptions.some((line) => /declared as 100 mL \(0\.1 L used/.test(line)))
+  })
+  test('a mL number can no longer be silently signed as litres', () => {
+    // Target volume drives the amount to weigh; that is where unit confusion showed up.
+    const asLitres = calculateAsPrepared({ ...QUAM_INPUT, targetVolumeUnit: 'L', target: { ...QUAM_INPUT.target, targetVolume: 100 } })
+    const asMillilitres = calculateAsPrepared({ ...QUAM_INPUT, targetVolumeUnit: 'mL', target: { ...QUAM_INPUT.target, targetVolume: 100 } })
+    closeRelative(asLitres.targetAmount.value / asMillilitres.targetAmount.value, 1000, 1e-9)
+    closeRelative(asMillilitres.targetAmount.value, 0.1 * 1000 / 1000 / 0.9999, 1e-6) // 0.1 L × 1000 mg/L ÷ assay → 0.10001 g
+  })
+})
+
 describe('concentration bases and acceptance', () => {
   test('uses the exact CuSO4·5H2O molar mass and reports deviation signs in both directions', () => {
     const target = {

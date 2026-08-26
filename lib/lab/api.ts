@@ -10,6 +10,7 @@ import { calculateStockPrep } from '@/lib/calculations/solution-prep'
 import { calculateAsPrepared } from './as-prepared'
 import { releaseRecord, toAsPreparedInput } from './evidence-pack'
 import { authorize, type Member } from './prep-record'
+import { hasValidRequiredPrepFields, missingRequiredPrepFields } from './required-fields'
 import {
   createLabRepository,
   hasValidRecordShareToken,
@@ -163,7 +164,7 @@ function isTemplateSpec(value: unknown): value is PrepTemplateSpec {
     typeof spec.target === 'object' && spec.target !== null && !Array.isArray(spec.target) &&
     (spec.targetVolumeUnit === 'mL' || spec.targetVolumeUnit === 'L') &&
     typeof spec.acceptance === 'object' && spec.acceptance !== null && !Array.isArray(spec.acceptance) &&
-    Array.isArray(spec.requiredFields) && Array.isArray(spec.instructions) && Array.isArray(spec.citations)
+    hasValidRequiredPrepFields(spec.requiredFields) && Array.isArray(spec.instructions) && Array.isArray(spec.citations)
 }
 
 function buildDraft(value: unknown): PrepDraft {
@@ -200,6 +201,13 @@ function buildDraft(value: unknown): PrepDraft {
 /** sha256 over the canonical stored draft — the audit trail records WHAT was edited, not just that it was. */
 function draftHash(draft: PrepDraft): `sha256:${string}` {
   return `sha256:${createHash('sha256').update(canonicalJsonString(draft), 'utf8').digest('hex')}`
+}
+
+function assertRequiredDraftFields(template: PrepTemplateSpec, draft: PrepDraft, status: 400 | 409): void {
+  const missing = missingRequiredPrepFields(template.requiredFields, draft)
+  if (missing.length > 0) {
+    throw new LabDataError(`Required preparation fields are missing: ${missing.join(', ')}.`, status)
+  }
 }
 
 async function scopedRecord(repository: LabRepository, orgId: string, id: string): Promise<PrepRecord> {
@@ -282,10 +290,11 @@ export async function createRecordHandler(request: NextRequest, orgId: string): 
     const template = await repository.getApprovedTemplate(orgId, templateId)
     if (!template) return NextResponse.json({ error: 'Approved template not found.' }, { status: 409 })
     assertDecision(authorize('create', member, { state: 'draft', createdBy: member.aiverid, templateStatus: template.status }))
-    const record = await repository.createRecord(orgId, { templateId, createdBy: member.aiverid })
-    await repository.appendLabEvent({
-      orgId, recordId: record.id, actor: member.aiverid, actorLevel: member.verificationLevel,
-      action: 'create', payload: { template_id: record.template_id, template_version: record.template_version },
+    const record = await repository.createRecord(orgId, {
+      templateId,
+      templateVersion: template.version,
+      createdBy: member.aiverid,
+      actorLevel: member.verificationLevel,
     })
     return NextResponse.json(record, { status: 201 })
   })
@@ -300,18 +309,21 @@ export async function updateRecordHandler(request: NextRequest, orgId: string, i
     const body = await readObjectBody(request)
     onlyKeys(body, ['measurements'])
     const draft = buildDraft(body.measurements)
+    assertRequiredDraftFields(template.spec, draft, 400)
     let preview
     try {
       preview = calculateAsPrepared(toAsPreparedInput(template, draft))
     } catch (error) {
       throw new LabDataError(error instanceof Error ? error.message : 'Measurements were rejected by the calculation engine.', 400)
     }
-    const updated = await repository.updateDraft(orgId, id, member.aiverid, draft)
-    if (!updated) return NextResponse.json({ error: 'Preparation record not found.' }, { status: 404 })
-    await repository.appendLabEvent({
-      orgId, recordId: id, actor: member.aiverid, actorLevel: member.verificationLevel,
-      action: 'edit', payload: { draft_hash: draftHash(draft) },
+    const event = await repository.buildLabEvent(orgId, id, {
+      actor: member.aiverid,
+      actorLevel: member.verificationLevel,
+      action: 'edit',
+      payload: { draft_hash: draftHash(draft) },
     })
+    const updated = await repository.updateDraft(orgId, id, draft, event)
+    if (!updated) return NextResponse.json({ error: 'Preparation record not found.' }, { status: 404 })
     return NextResponse.json({ record: updated, preview })
   })
 }
@@ -343,12 +355,14 @@ async function recordTransitionHandler(
     const patch = action === 'void'
       ? { voided_at: new Date().toISOString(), void_reason: reason }
       : {}
-    const updated = await repository.transition(orgId, id, record.state, decision.nextState, patch)
-    if (!updated) return NextResponse.json({ error: 'The preparation record changed before this request completed.' }, { status: 409 })
-    await repository.appendLabEvent({
-      orgId, recordId: id, actor: member.aiverid, actorLevel: member.verificationLevel,
-      action, payload: reason === null ? {} : { reason },
+    const event = await repository.buildLabEvent(orgId, id, {
+      actor: member.aiverid,
+      actorLevel: member.verificationLevel,
+      action,
+      payload: reason === null ? {} : { reason },
     })
+    const updated = await repository.transition(orgId, id, record.state, decision.nextState, patch, event)
+    if (!updated) return NextResponse.json({ error: 'The preparation record changed before this request completed.' }, { status: 409 })
     return NextResponse.json(updated)
   })
 }
@@ -370,7 +384,8 @@ export async function releaseRecordHandler(request: NextRequest, orgId: string, 
     const released = await releaseRecord(repository, {
       orgId, recordId: id, reviewer: member, deviationReason: reason,
     })
-    return NextResponse.json({ record: released.record, signature: released.pack.signature, share_token: released.pack.shareToken })
+    const { share_token_hash: _shareTokenHash, ...record } = released.record
+    return NextResponse.json({ record, signature: released.pack.signature, share_token: released.pack.shareToken })
   })
 }
 
@@ -390,6 +405,9 @@ export async function publicStatusHandler(request: NextRequest, id: string): Pro
 export async function packJsonHandler(request: NextRequest, id: string): Promise<NextResponse> {
   try {
     const deps = dependencies()
+    const clientId = deps.clientId(request)
+    const preflight = deps.rateLimit(`lab-pack-ip:${clientId}`, LAB_PUBLIC_LIMIT)
+    if (!preflight.success) return NextResponse.json({ error: 'Evidence-pack request limit reached.' }, { status: 429 })
     const repository = deps.repository()
     const record = await repository.getRecordById(id)
     if (!record || !record.signed_payload || !record.signature || (record.state !== 'released' && record.state !== 'voided')) {
@@ -402,9 +420,9 @@ export async function packJsonHandler(request: NextRequest, id: string): Promise
       const row = await repository.getMember(record.org_id, session.userId)
       if (row) member = labMember(row, session)
     }
-    const tokenValid = suppliedToken !== null && hasValidRecordShareToken(record.id, suppliedToken, record.share_token)
+    const tokenValid = suppliedToken !== null && hasValidRecordShareToken(suppliedToken, record.share_token_hash)
     if (!member && !tokenValid) return NextResponse.json({ error: 'Evidence pack not found.' }, { status: 404 })
-    const limitKey = member ? `lab-read:${member.aiverid}` : `lab-public:${deps.clientId(request)}`
+    const limitKey = member ? `lab-read:${member.aiverid}` : `lab-public:${clientId}`
     const limit = deps.rateLimit(limitKey, member ? LAB_READ_LIMIT : LAB_PUBLIC_LIMIT)
     if (!limit.success) return NextResponse.json({ error: 'Evidence-pack request limit reached.' }, { status: 429 })
     if (member) {

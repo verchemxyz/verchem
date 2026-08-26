@@ -71,6 +71,7 @@ test('generator archives immutable content locally, rejects missing CI archives,
       generatedAt: '2026-08-26T00:00:00.000Z',
       archiveMissing: true,
     })
+    assert.equal(first.build.dirty, 'unknown', 'git-less builds must state that dirty status is unknown')
     const firstBytes = await readFile(path.join(root, outputPath), 'utf8')
     const firstArchivePath = path.join(
       root,

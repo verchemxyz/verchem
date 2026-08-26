@@ -92,12 +92,22 @@ function gitOutput(root: string, arguments_: readonly string[]): string | null {
   }
 }
 
-function buildMetadata(root: string, hashedPaths: readonly string[]) {
+function buildMetadata(
+  root: string,
+  hashedPaths: readonly string[],
+  options: GenerateReleaseManifestOptions
+) {
   const gitSha = gitOutput(root, ['rev-parse', 'HEAD'])
   const status = gitOutput(root, ['status', '--porcelain', '--', ...hashedPaths])
+  const environment = options.environment ?? process.env
+  if ((environment.CI || environment.VERCEL) && (gitSha === null || status === null)) {
+    const log = options.log ?? console.warn
+    log('Release manifest: git metadata is unavailable in CI/Vercel; build.git_sha/build.dirty are marked unknown where needed.')
+  }
+  const dirty: boolean | 'unknown' = status === null ? 'unknown' : status.length > 0
   return {
     git_sha: gitSha && /^[a-f0-9]{40}$/.test(gitSha) ? gitSha : 'unknown',
-    dirty: status !== null && status.length > 0,
+    dirty,
     node: process.version,
   }
 }
@@ -236,7 +246,7 @@ export async function generateReleaseManifest(
   }
   const manifest: ReleaseManifest = {
     ...manifestContent,
-    build: buildMetadata(repositoryRoot, [...enginePaths, ...dataPaths]),
+    build: buildMetadata(repositoryRoot, [...enginePaths, ...dataPaths], options),
     generated_at: options.generatedAt ?? new Date().toISOString(),
     content_hash: calculateGeneratedManifestContentHash(manifestContent),
   }
