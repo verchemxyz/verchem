@@ -56,6 +56,19 @@ function readObject(value: unknown, field: string): Record<string, unknown> {
   return value
 }
 
+function validateOptionalText(
+  raw: Record<string, unknown>,
+  key: string,
+  field: string,
+  max: number,
+  nullable = false
+): void {
+  if (!(key in raw)) return
+  if (raw[key] === null && nullable) return
+  const value = readRequiredString(raw[key], field)
+  if (value.length > max) throw new Error(`${field} must contain at most ${max} characters.`)
+}
+
 function assertOnlyKeys(raw: Record<string, unknown>, allowed: readonly string[], field: string): void {
   const allowedKeys = new Set(allowed)
   const unknownKeys = Object.keys(raw).filter((key) => !allowedKeys.has(key))
@@ -174,12 +187,32 @@ function parseInput(input: Record<string, unknown>): AsPreparedInput {
     'coa_basis',
     'temperature_C',
     'equipment',
+    // Controlled-record metadata is signed in the deterministic tool input,
+    // but deliberately excluded from numerical calculation inputs.
+    'reagent_lot',
+    'expiry',
+    'balance_id',
+    'flask_id',
+    'notes',
   ] as const
   assertOnlyKeys(actual, actualKeys, 'actual')
-  assertRequiredKeys(actual, actualKeys, 'actual')
+  assertRequiredKeys(actual, [
+    'weighed_g', 'measured_ml', 'final_volume_ml', 'coa_assay_percent',
+    'coa_basis', 'temperature_C', 'equipment',
+  ], 'actual')
   const coaBasis = readRequiredString(actual.coa_basis, 'actual.coa_basis')
   if (coaBasis !== 'mass' && coaBasis !== 'volume') {
     throw new Error('actual.coa_basis must be "mass" or "volume".')
+  }
+  validateOptionalText(actual, 'reagent_lot', 'actual.reagent_lot', 160)
+  validateOptionalText(actual, 'expiry', 'actual.expiry', 64, true)
+  validateOptionalText(actual, 'balance_id', 'actual.balance_id', 120, true)
+  validateOptionalText(actual, 'flask_id', 'actual.flask_id', 120, true)
+  if ('notes' in actual) {
+    const notes = actual.notes
+    if (typeof notes !== 'string' || notes.length > 4_000 || /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/.test(notes)) {
+      throw new Error('actual.notes must be a string of at most 4000 characters with no control characters.')
+    }
   }
 
   return {
@@ -223,6 +256,8 @@ const calculate_as_prepared: VerifiedTool = {
           weighed_g: { type: 'number' }, measured_ml: { type: 'number' }, final_volume_ml: { type: 'number' },
           coa_assay_percent: { type: 'number' }, coa_basis: { type: 'string', enum: ['mass', 'volume'] },
           temperature_C: { type: 'number' }, equipment: { type: 'object' },
+          reagent_lot: { type: 'string' }, expiry: { type: 'string' }, balance_id: { type: 'string' },
+          flask_id: { type: 'string' }, notes: { type: 'string' },
         },
       },
     },

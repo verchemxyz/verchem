@@ -11,6 +11,8 @@ export interface CanonicalSessionUser {
   aiverid: string
   db_id?: string
   name: string
+  /** AIVerID verification level. Invalid/missing claims always fail down to 1. */
+  verification_level: 1 | 2 | 3 | 4
   email?: string
   subscription_tier: 'free'
   registered_at: string | null
@@ -23,6 +25,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 
 function nonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() !== '' ? value : null
+}
+
+function verificationLevel(value: unknown): 1 | 2 | 3 | 4 {
+  return value === 1 || value === 2 || value === 3 || value === 4 ? value : 1
 }
 
 /** Resolve the hub identity in Identity Standard order: aiverid, sub, legacy id. */
@@ -54,6 +60,7 @@ export function createCanonicalSessionUser(
     id: aiverid,
     aiverid,
     name: displayName,
+    verification_level: verificationLevel(record.verification_level),
     ...(email ? { email } : {}),
     subscription_tier: 'free',
     registered_at: registeredAt,
@@ -81,6 +88,7 @@ export function mergeDatabaseUser(
     // cannot change the authorization key issued by AIVerID.
     id: sessionUser.aiverid,
     aiverid: sessionUser.aiverid,
+    verification_level: sessionUser.verification_level,
   }
 }
 

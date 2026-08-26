@@ -91,6 +91,7 @@ async function verifySessionSignature(value: string, signature: string): Promise
 const PROTECTED_ROUTES = [
   '/account',
   '/preferences',
+  '/api/lab',
 ]
 
 // Routes that are always public
@@ -145,7 +146,18 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 // Check if path is public
-function isPublicRoute(pathname: string): boolean {
+function isPublicLabRoute(pathname: string, method: string): boolean {
+  if (method !== 'GET') return false
+  return /^\/api\/lab\/records\/[^/]+\/(?:status|pack\.json)$/.test(pathname)
+}
+
+function isPublicRoute(pathname: string, method: string): boolean {
+  // `/api` is normally public because individual handlers authenticate, but
+  // Lab-QC is deliberately proxy-gated too. Only verification status and a
+  // bearer-token-controlled pack download remain public.
+  if (pathname === '/api/lab' || pathname.startsWith('/api/lab/')) {
+    return isPublicLabRoute(pathname, method)
+  }
   return PUBLIC_ROUTES.some(route => {
     if (route === '/') return pathname === '/'
     return pathname === route || pathname.startsWith(`${route}/`)
@@ -156,7 +168,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip public routes and static files
-  if (isPublicRoute(pathname)) {
+  if (isPublicRoute(pathname, request.method)) {
     return publicRouteResponse(pathname)
   }
 

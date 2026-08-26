@@ -50,6 +50,23 @@ test('aiverid/sub win over a different local id without parsing the opaque value
   }), 'TH-SUB-FALLBACK')
 })
 
+test('verification level defaults closed to level 1 and accepts only numeric 1–4 claims', () => {
+  const base = { aiverid: AIVERID, name: 'Verified User' }
+  assert.equal(createCanonicalSessionUser(base, AIVERID).verification_level, 1)
+  assert.equal(createCanonicalSessionUser({ ...base, verification_level: '2' }, AIVERID).verification_level, 1)
+  assert.equal(createCanonicalSessionUser({ ...base, verification_level: 5 }, AIVERID).verification_level, 1)
+  assert.equal(createCanonicalSessionUser({ ...base, verification_level: 3 }, AIVERID).verification_level, 3)
+
+  const level = (verification_level: unknown) => parseVerifiedSessionPayload({
+    user: { ...base, verification_level },
+    expires_at: FUTURE_EXPIRY,
+  })?.verification_level
+  assert.equal(level(undefined), 1)
+  assert.equal(level('2'), 1)
+  assert.equal(level(5), 1)
+  assert.equal(level(3), 3)
+})
+
 test('database users.id is retained only as db_id and every DB write key stays canonical', async () => {
   const baseUser = createCanonicalSessionUser({
     aiverid: AIVERID,

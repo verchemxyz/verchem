@@ -10,6 +10,7 @@
 
 import type { SignablePayload, CardStatus } from './types'
 import { hasValidReleaseManifestHash, isValidProvenanceEnvelope } from './provenance-shape'
+import { isValidLabRecordEnvelope } from './lab-record-shape'
 
 const STATUSES: readonly CardStatus[] = ['verified', 'partial', 'unverified', 'error']
 const ENGINE_SEMVER = /^\d+\.\d+\.\d+$/
@@ -30,6 +31,7 @@ export function isValidSignablePayload(p: unknown): p is SignablePayload {
   if (p.version === 'w3-v4' &&
     (!isValidProvenanceEnvelope(p.provenance) || !hasValidReleaseManifestHash(p.provenance))) return false
   if (p.provenance !== undefined && !isValidProvenanceEnvelope(p.provenance)) return false
+  if (p.lab_record !== undefined && (p.version !== 'w3-v4' || !isValidLabRecordEnvelope(p.lab_record))) return false
 
   if (!isPlainObj(p.audit) || typeof p.audit.clean !== 'boolean' || !Array.isArray(p.audit.unmatched)) {
     return false

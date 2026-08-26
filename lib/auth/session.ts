@@ -18,6 +18,8 @@ import { resolveCanonicalAiverId } from '@/lib/auth/session-identity'
 
 export interface VerifiedSession {
   userId: string
+  name: string
+  verification_level: 1 | 2 | 3 | 4
   email?: string
   tier: SubscriptionTier
   expiresAt: Date
@@ -48,6 +50,10 @@ function subscriptionTier(user: Record<string, unknown>): SubscriptionTier {
     : 'free'
 }
 
+function verificationLevel(value: unknown): 1 | 2 | 3 | 4 {
+  return value === 1 || value === 2 || value === 3 || value === 4 ? value : 1
+}
+
 /** Parse data only after its HMAC has been verified by the caller. */
 export function parseVerifiedSessionPayload(
   value: unknown,
@@ -70,6 +76,8 @@ export function parseVerifiedSessionPayload(
   const email = typeof user.email === 'string' ? user.email : undefined
   return {
     userId,
+    name: typeof user.name === 'string' && user.name.trim().length > 0 ? user.name : 'User',
+    verification_level: verificationLevel(user.verification_level),
     ...(email ? { email } : {}),
     tier: subscriptionTier(user),
     expiresAt,

@@ -1,4 +1,5 @@
 import type { AnswerCard, VerifiedTool } from './types'
+import type { LabRecordEnvelope } from '@/lib/lab/types'
 import { TOOL_BY_NAME } from './tools/registry'
 import { signCard, toSignablePayload } from './signature'
 import { ANSWER_CARD_SCHEMA_VERSION, buildProvenanceEnvelope } from './provenance'
@@ -144,11 +145,18 @@ function readableToolName(name: string): string {
     .join(' ')
 }
 
-export async function createDeterministicAnswerCard(
+export interface DeterministicCardOptions {
+  issuedAt?: string
+  question?: string
+  labRecord?: LabRecordEnvelope
+}
+
+/** Build the unsigned deterministic payload shared by direct cards and Lab-QC packs. */
+export function buildDeterministicAnswerCard(
   toolName: string,
   rawInput: unknown,
-  issuedAt = new Date().toISOString()
-): Promise<AnswerCard> {
+  options: DeterministicCardOptions = {}
+): Omit<AnswerCard, 'signature'> {
   const tool = TOOL_BY_NAME.get(toolName)
   if (!tool) {
     throw new DirectCalculationError('unknown_tool', 'Unknown deterministic engine tool', 404)
@@ -172,8 +180,8 @@ export async function createDeterministicAnswerCard(
     result,
     citation: tool.citation,
   }
-  const card: AnswerCard = {
-    question: `Verified calculation: ${readableToolName(tool.name)}`,
+  return {
+    question: options.question ?? `Verified calculation: ${readableToolName(tool.name)}`,
     status: 'verified',
     verified: true,
     tool_calls: [toolCall],
@@ -181,11 +189,17 @@ export async function createDeterministicAnswerCard(
     audit: { clean: true, unmatched: [] },
     model: 'verchem-deterministic',
     version: ANSWER_CARD_SCHEMA_VERSION,
-    issued_at: issuedAt,
+    issued_at: options.issuedAt ?? new Date().toISOString(),
     provenance: buildProvenanceEnvelope([toolCall], 'deterministic'),
-    signature: '',
+    ...(options.labRecord === undefined ? {} : { lab_record: options.labRecord }),
   }
+}
 
-  card.signature = await signCard(toSignablePayload(card))
-  return card
+export async function createDeterministicAnswerCard(
+  toolName: string,
+  rawInput: unknown,
+  issuedAt = new Date().toISOString()
+): Promise<AnswerCard> {
+  const card = buildDeterministicAnswerCard(toolName, rawInput, { issuedAt })
+  return { ...card, signature: await signCard(toSignablePayload(card)) }
 }

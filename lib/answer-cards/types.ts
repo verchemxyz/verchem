@@ -5,6 +5,7 @@
  */
 
 import type { EngineSemanticVersion } from './engine-versions'
+import type { LabRecordEnvelope } from '@/lib/lab/types'
 
 export type CardStatus = 'verified' | 'partial' | 'unverified' | 'error'
 
@@ -66,6 +67,8 @@ export interface AnswerCard {
   issued_at: string
   /** Present on w3-v3+ artifacts; w3-v4 requires release_manifest_hash. */
   provenance?: ProvenanceEnvelope
+  /** Present only on signed w3-v4 Lab-QC evidence packs. */
+  lab_record?: LabRecordEnvelope
   signature: string
 }
 
@@ -88,4 +91,6 @@ export interface SignablePayload {
   issued_at: string
   /** Present on w3-v3+ artifacts; w3-v4 requires release_manifest_hash. */
   provenance?: ProvenanceEnvelope
+  /** Present only on signed w3-v4 Lab-QC evidence packs. */
+  lab_record?: LabRecordEnvelope
 }

@@ -111,6 +111,7 @@ export async function rowToVerifiedCard(row: AnswerCardDisplayRow): Promise<Load
         version: parsed.version,
         issued_at: parsed.issued_at,
         ...(parsed.provenance === undefined ? {} : { provenance: parsed.provenance }),
+        ...(parsed.lab_record === undefined ? {} : { lab_record: parsed.lab_record }),
         signature: row.signature,
       }
     : {

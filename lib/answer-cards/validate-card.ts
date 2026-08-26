@@ -12,6 +12,7 @@ import type { AnswerCard, CardStatus, ToolCall, ToolResult } from './types'
 import type { EngineSemanticVersion } from './engine-versions'
 import { isStructurallyValidCardJws } from './signature'
 import { hasValidReleaseManifestHash, isValidProvenanceEnvelope } from './provenance-shape'
+import { isValidLabRecordEnvelope } from './lab-record-shape'
 
 const STATUSES: readonly CardStatus[] = ['verified', 'partial', 'unverified', 'error']
 const MAX_QUESTION = 1000
@@ -86,7 +87,7 @@ function parseResult(v: unknown): ToolResult | null {
 export function parseSubmittedCard(body: unknown): AnswerCard | null {
   if (!isPlainObj(body)) return null
 
-  const { question, status, tool_calls, explanation, audit, model, version, issued_at, provenance, signature } =
+  const { question, status, tool_calls, explanation, audit, model, version, issued_at, provenance, lab_record, signature } =
     body
 
   if (!isStr(question) || question.trim().length === 0 || question.length > MAX_QUESTION) return null
@@ -99,6 +100,7 @@ export function parseSubmittedCard(body: unknown): AnswerCard | null {
   if (version === 'w3-v4' &&
     (!isValidProvenanceEnvelope(provenance) || !hasValidReleaseManifestHash(provenance))) return null
   if (provenance !== undefined && !isValidProvenanceEnvelope(provenance)) return null
+  if (lab_record !== undefined && (version !== 'w3-v4' || !isValidLabRecordEnvelope(lab_record))) return null
   // Cheap compact-JWS structure/header validation happens before public-key
   // lookup and Ed25519 verification in the save route.
   if (!isStr(signature) || !isStructurallyValidCardJws(signature)) return null
@@ -149,6 +151,7 @@ export function parseSubmittedCard(body: unknown): AnswerCard | null {
     version,
     issued_at,
     ...(provenance === undefined ? {} : { provenance }),
+    ...(lab_record === undefined ? {} : { lab_record }),
     signature,
   }
 }

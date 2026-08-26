@@ -56,6 +56,7 @@ export function toSignablePayload(card: Omit<AnswerCard, 'signature'>): Signable
     version: card.version,
     issued_at: card.issued_at,
     ...(card.provenance === undefined ? {} : { provenance: card.provenance }),
+    ...(card.lab_record === undefined ? {} : { lab_record: card.lab_record }),
   }
 }
 

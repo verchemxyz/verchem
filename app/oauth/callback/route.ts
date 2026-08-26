@@ -15,6 +15,7 @@ import {
   resolveCanonicalAiverId,
 } from '@/lib/auth/session-identity'
 import { prepareSessionCookie } from '@/lib/auth/oauth-token-seal'
+import { createLabRepository } from '@/lib/supabase/lab'
 
 interface OAuthTokenResponse {
   access_token: string
@@ -349,6 +350,18 @@ export async function GET(request: NextRequest) {
       })
     } else {
       console.info('Skipping Supabase sync: admin client not configured')
+    }
+
+    // Lab-QC invitations are keyed by a deterministic lowercase-email hash
+    // until the invited person has authenticated. Claiming is best-effort: a
+    // transient Lab database issue must never prevent an otherwise valid OAuth
+    // login, and every protected Lab route still loads membership fresh.
+    if (sessionData.user.email) {
+      try {
+        await createLabRepository().claimPendingInvites(aiveridValue, sessionData.user.email)
+      } catch (claimError) {
+        console.error('Failed to claim pending Lab-QC invitations:', claimError)
+      }
     }
 
     // Bearer tokens are AES-256-GCM sealed before serialization. The size guard
