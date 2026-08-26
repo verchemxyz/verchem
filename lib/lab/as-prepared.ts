@@ -398,7 +398,7 @@ export function calculateAsPrepared(input: AsPreparedInput): AsPreparedResult {
     },
     assumptions: [
       ...targetResult.assumptions,
-      `Target volume declared as ${input.target.targetVolume} ${input.targetVolumeUnit} (${target.targetVolume} L used for all calculations).`,
+      `Target volume declared as ${input.target.targetVolume} ${input.targetVolumeUnit} (${target.targetVolume} L used for the target-amount calculation; the as-prepared concentration uses the recorded final volume).`,
       `Actual concentration uses the recorded ${isMassPath ? 'net mass' : 'delivered solute volume'} and CoA assay ${actual.coaAssayPercent}% on its declared ${actual.coaBasis} basis.`,
       'Input uncertainty components are treated as uncorrelated and propagated by the relative product/quotient model (JCGM 100:2008 §5.1.6 eq.(12)).',
       `No systematic volume correction is applied for the ${Math.abs(actual.temperatureC - equipment.flaskCalibrationTemperatureC)} °C offset between preparation temperature (${actual.temperatureC} °C) and flask calibration temperature (${equipment.flaskCalibrationTemperatureC} °C); only the declared laboratory temperature variation enters the uncertainty budget.`,

@@ -164,6 +164,11 @@ function isTemplateSpec(value: unknown): value is PrepTemplateSpec {
     typeof spec.target === 'object' && spec.target !== null && !Array.isArray(spec.target) &&
     (spec.targetVolumeUnit === 'mL' || spec.targetVolumeUnit === 'L') &&
     typeof spec.acceptance === 'object' && spec.acceptance !== null && !Array.isArray(spec.acceptance) &&
+    Object.keys(spec.acceptance).join(',') === 'relativePercent' &&
+    typeof (spec.acceptance as Record<string, unknown>).relativePercent === 'number' &&
+    Number.isFinite((spec.acceptance as Record<string, unknown>).relativePercent) &&
+    ((spec.acceptance as Record<string, unknown>).relativePercent as number) > 0 &&
+    ((spec.acceptance as Record<string, unknown>).relativePercent as number) <= 100 &&
     hasValidRequiredPrepFields(spec.requiredFields) && Array.isArray(spec.instructions) && Array.isArray(spec.citations)
 }
 
@@ -264,7 +269,11 @@ export async function createTemplateHandler(request: NextRequest, orgId: string)
     onlyKeys(body, ['spec'])
     if (!isTemplateSpec(body.spec)) throw new LabDataError('spec must be a valid verchem-prep-template/v1 object.', 400)
     try {
-      calculateStockPrep(body.spec.target)
+      // Same normalisation the engine applies (as-prepared 1.1.0): the declared
+      // unit drives a mL→L conversion before the target calculation is validated.
+      calculateStockPrep(body.spec.targetVolumeUnit === 'mL'
+        ? { ...body.spec.target, targetVolume: body.spec.target.targetVolume / 1000 }
+        : body.spec.target)
     } catch (error) {
       throw new LabDataError(error instanceof Error ? error.message : 'Template target was rejected by the calculation engine.', 400)
     }

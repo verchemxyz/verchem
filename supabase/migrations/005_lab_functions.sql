@@ -92,9 +92,12 @@ DECLARE
   created_record prep_records;
   allocated_record_no TEXT;
 BEGIN
+  -- FOR SHARE: a concurrent retire (UPDATE) must wait, so a record can never be
+  -- born from a template that was retired between this read and the INSERT.
   SELECT * INTO bound_template
   FROM prep_templates
-  WHERE id = p_template_id AND org_id = p_org_id AND status = 'approved';
+  WHERE id = p_template_id AND org_id = p_org_id AND status = 'approved'
+  FOR SHARE;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'approved template not found for organization'
@@ -110,7 +113,9 @@ BEGIN
   )
   RETURNING * INTO created_record;
 
-  IF p_event->>'record_id' IS DISTINCT FROM created_record.id::TEXT
+  IF jsonb_typeof(p_event) IS DISTINCT FROM 'object'
+     OR (p_event ? 'payload' AND jsonb_typeof(p_event->'payload') NOT IN ('object', 'null'))
+     OR p_event->>'record_id' IS DISTINCT FROM created_record.id::TEXT
      OR p_event->>'prev_hash' IS NOT NULL
      OR p_event->>'seq' IS DISTINCT FROM '1'
      OR p_event->>'actor' IS DISTINCT FROM p_created_by
@@ -130,7 +135,7 @@ BEGIN
     p_event->>'actor',
     (p_event->>'actor_level')::SMALLINT,
     p_event->>'action',
-    COALESCE(p_event->'payload', '{}'::jsonb),
+    COALESCE(NULLIF(p_event->'payload', 'null'::jsonb), '{}'::jsonb),
     p_event->>'prev_hash',
     p_event->>'hash',
     (p_event->>'at')::TIMESTAMPTZ
@@ -164,6 +169,10 @@ DECLARE
 BEGIN
   IF jsonb_typeof(p_patch) IS DISTINCT FROM 'object' OR jsonb_typeof(p_event) IS DISTINCT FROM 'object' THEN
     RAISE EXCEPTION 'transition patch and event must be JSON objects'
+      USING ERRCODE = '22023';
+  END IF;
+  IF p_event ? 'payload' AND jsonb_typeof(p_event->'payload') NOT IN ('object', 'null') THEN
+    RAISE EXCEPTION 'audit event payload must be a JSON object'
       USING ERRCODE = '22023';
   END IF;
 
@@ -209,7 +218,7 @@ BEGIN
     p_event->>'actor',
     (p_event->>'actor_level')::SMALLINT,
     p_event->>'action',
-    COALESCE(p_event->'payload', '{}'::jsonb),
+    COALESCE(NULLIF(p_event->'payload', 'null'::jsonb), '{}'::jsonb),
     p_event->>'prev_hash',
     p_event->>'hash',
     (p_event->>'at')::TIMESTAMPTZ
