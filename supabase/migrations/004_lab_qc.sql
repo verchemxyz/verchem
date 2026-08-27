@@ -116,7 +116,14 @@ CREATE TABLE IF NOT EXISTS lab_events (
   payload JSONB NOT NULL DEFAULT '{}'::jsonb,
   prev_hash TEXT CHECK (prev_hash IS NULL OR prev_hash ~ '^sha256:[0-9a-f]{64}$'),
   hash TEXT NOT NULL CHECK (hash ~ '^sha256:[0-9a-f]{64}$'),
-  at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- TEXT, not TIMESTAMPTZ: `at` is covered by the event hash, so it must come
+  -- back byte-for-byte. TIMESTAMPTZ does not round-trip — PostgREST renders it
+  -- `...T15:35:29.995+00:00` where Date#toISOString() wrote `...995Z`, and
+  -- Postgres drops trailing zeros from the fraction (.990 → .99) — which breaks
+  -- the chain permanently on an append-only table. COLLATE "C" keeps ordering
+  -- byte-wise, so this fixed-width UTC format still sorts chronologically.
+  at TEXT COLLATE "C" NOT NULL
+    CHECK (at ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$'),
   UNIQUE (record_id, seq),
   FOREIGN KEY (org_id, record_id) REFERENCES prep_records(org_id, id) ON DELETE RESTRICT,
   CHECK ((seq = 1) = (prev_hash IS NULL))

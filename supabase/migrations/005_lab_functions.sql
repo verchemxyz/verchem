@@ -138,7 +138,7 @@ BEGIN
     COALESCE(NULLIF(p_event->'payload', 'null'::jsonb), '{}'::jsonb),
     p_event->>'prev_hash',
     p_event->>'hash',
-    (p_event->>'at')::TIMESTAMPTZ
+    p_event->>'at'
   );
 
   RETURN created_record;
@@ -221,7 +221,7 @@ BEGIN
     COALESCE(NULLIF(p_event->'payload', 'null'::jsonb), '{}'::jsonb),
     p_event->>'prev_hash',
     p_event->>'hash',
-    (p_event->>'at')::TIMESTAMPTZ
+    p_event->>'at'
   );
 
   UPDATE prep_records

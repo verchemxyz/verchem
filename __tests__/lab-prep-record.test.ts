@@ -148,7 +148,27 @@ const content = (seq: number, action: RecordAction, payload: Record<string, unkn
   actor_level: 1,
   action,
   payload,
-  at: `2026-08-26T10:0${seq}:00Z`,
+  at: `2026-08-26T10:0${seq}:00.000Z`,
+})
+
+test('event at must be exactly what toISOString() emits — it is stored as TEXT and hashed', () => {
+  // lab_events.at is TEXT, not TIMESTAMPTZ: the value is covered by the hash, so
+  // the database must hand back the same bytes. Accepting a looser shape here
+  // would let a chain be written that can never verify after a round-trip.
+  for (const bad of [
+    '2026-08-26T10:01:00Z',          // no milliseconds
+    '2026-08-26T10:01:00.995+00:00', // offset instead of Z (what TIMESTAMPTZ returns)
+    '2026-08-26T10:01:00.99Z',       // trailing zero dropped (what Postgres does)
+    '2026-08-26T10:01:00.995123Z',   // microseconds
+    '2026-08-26 10:01:00.995Z',      // space separator
+  ]) {
+    assert.throws(
+      () => appendEvent(null, { ...content(1, 'create'), at: bad }),
+      /millisecond precision/,
+      `expected rejection of "${bad}"`
+    )
+  }
+  assert.ok(appendEvent(null, { ...content(1, 'create'), at: new Date().toISOString() }).hash)
 })
 
 test('chain builds, verifies, and yields a stable head hash', () => {

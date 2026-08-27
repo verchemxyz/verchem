@@ -51,6 +51,31 @@ export function isSha256Ref(value: unknown): value is Sha256Ref {
   return typeof value === 'string' && SHA256_REF.test(value)
 }
 
+/**
+ * `at` is hashed, so it has to survive the database round-trip byte-for-byte.
+ * `TIMESTAMPTZ` does not: PostgREST renders it `2026-08-27T15:35:29.995+00:00`
+ * where `Date#toISOString()` produced `...995Z`, and Postgres drops trailing
+ * zeros from the fraction (`.990` → `.99`). `lab_events.at` is therefore TEXT,
+ * pinned at both the database (CHECK) and this layer to exactly the shape
+ * `toISOString()` emits.
+ */
+export const LAB_EVENT_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+
+export function isLabEventAt(value: unknown): value is string {
+  return typeof value === 'string' && LAB_EVENT_AT_PATTERN.test(value)
+}
+
+/**
+ * `payload` is stored as JSONB, which re-encodes the *text* of numbers (`1e-7`
+ * is stored as `0.0000001`). That is safe here and was measured to be so: the
+ * hash is computed over canonical JSON of the *parsed* value, and every JS value
+ * tested — decimals, exponents, -0, NaN/Infinity (→ null), undefined keys,
+ * nested objects, unicode — round-trips to an identical canonical string. Only
+ * a writer that bypasses this application (raw SQL with more precision than a
+ * double) could break that, which is outside the chain's threat model above.
+ * `at` was the field that genuinely did not survive; see LAB_EVENT_AT_PATTERN.
+ */
+
 /** sha256 over canonical JSON of the event content plus its predecessor's hash. */
 export function computeEventHash(content: LabEventContent, prevHash: Sha256Ref | null): Sha256Ref {
   const material = canonicalJsonString({ ...content, prev_hash: prevHash })
@@ -66,6 +91,11 @@ export function appendEvent(previous: LabEvent | null, content: LabEventContent)
   }
   if (previous !== null && previous.record_id !== content.record_id) {
     throw new Error('Cannot chain events across different records.')
+  }
+  if (!isLabEventAt(content.at)) {
+    throw new Error(
+      `Event 'at' must be an ISO-8601 UTC instant with millisecond precision, received "${String(content.at)}".`
+    )
   }
   const prevHash = previous === null ? null : previous.hash
   return { ...content, prev_hash: prevHash, hash: computeEventHash(content, prevHash) }
