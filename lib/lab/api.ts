@@ -708,15 +708,27 @@ export async function packJsonHandler(request: NextRequest, id: string): Promise
     const limit = deps.rateLimit(limitKey, member ? LAB_READ_LIMIT : LAB_PUBLIC_LIMIT)
     if (!limit.success) return NextResponse.json({ error: 'Evidence-pack request limit reached.' }, { status: 429 })
     if (member) {
+      // `member` predates the retry loop below; access can be revoked in the
+      // window between attempts. Re-checking only `currentRecord` on retry
+      // and reusing this stale membership would let a just-revoked caller's
+      // second attempt still pass `authorize` and receive the pack.
+      if (!session) throw new LabDataError('Evidence pack not found.', 404)
       let currentRecord = record
+      let currentMember = member
       let appended = false
       for (let attempt = 0; attempt < 3 && !appended; attempt += 1) {
-        assertDecision(authorize('view_pack', member, {
+        const freshRow = await repository.getMember(record.org_id, currentMember.aiverid)
+        if (!freshRow) {
+          if (tokenValid) break // a revoked member with a valid bearer token still reads via the token path below
+          throw new LabDataError('Evidence pack not found.', 404)
+        }
+        currentMember = labMember(freshRow, session)
+        assertDecision(authorize('view_pack', currentMember, {
           state: currentRecord.state, createdBy: currentRecord.created_by, templateStatus: 'approved',
         }))
         const event = await repository.buildLabEvent(record.org_id, record.id, {
-          actor: member.aiverid,
-          actorLevel: member.verificationLevel,
+          actor: currentMember.aiverid,
+          actorLevel: currentMember.verificationLevel,
           action: 'view_pack',
           payload: {},
         })

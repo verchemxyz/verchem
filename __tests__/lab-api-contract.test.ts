@@ -478,6 +478,34 @@ test('pack.json requires a member or valid bearer token, and status exposes only
   assert.deepEqual(Object.keys(await status.json()).sort(), ['state', 'superseded_by', 'voided_at'])
 })
 
+test('a member revoked between the pre-loop check and the pack-view retry is refused, not served the pack', async () => {
+  const { database, repository } = setup()
+  database.tables.prep_records[0] = {
+    ...database.tables.prep_records[0]!, state: 'released', draft: null,
+    signed_payload: JSON.stringify({ question: 'q' }), signature: 'sig', share_token_hash: null,
+  }
+  // packJsonHandler reads live membership once before the retry loop (to decide
+  // whether to enter it at all) and, after the fix, again inside the loop before
+  // trusting that membership for `authorize`. The first call reports PREPARER as
+  // an active member; every call after simulates an owner revoking them in the
+  // gap — proving the loop no longer authorizes off a snapshot taken before it.
+  let calls = 0
+  const originalGetMember = repository.getMember.bind(repository)
+  repository.getMember = async (orgId: string, aiverid: string) => {
+    calls += 1
+    return calls === 1 ? originalGetMember(orgId, aiverid) : null
+  }
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: PREPARER, name: 'Preparer', verification_level: 1, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 100, resetTime: Date.now() + 60_000 }), clientId: () => 'contract-test',
+  })
+  const response = await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json`, 'GET'), { params: Promise.resolve({ id: RECORD_ID }) })
+  assert.equal(response.status, 404, 'revocation discovered inside the loop must still refuse the pack')
+  assert.equal(await response.json().then((v) => (v as { error: string }).error), 'Evidence pack not found.')
+  assert.ok(calls >= 2, 'this test is void unless the loop actually re-checked membership after the pre-loop fetch')
+})
+
 test('browser verifier accepts lab_record only on a valid w3-v4 card', async () => {
   const labRecord = {
     schema: 'verchem-lab-record/v1' as const, org: { id: ORG_A, name: 'Lab A' }, record_no: 'PR-2026-000001', record_id: RECORD_ID,
