@@ -317,6 +317,18 @@ export async function listOrganizationsHandler(_request: NextRequest): Promise<N
       )
     }
     const repository = deps.repository()
+    // A colleague who was already signed in when the invitation was written has no
+    // new OAuth callback to claim it, and would see an empty Lab with no
+    // explanation until they happened to sign out. Every Lab screen loads this
+    // list, so claiming here is the way in. Best-effort: a Lab database problem
+    // must not turn into "you have no laboratories".
+    if (session.email) {
+      try {
+        await repository.claimPendingInvites(session.userId, session.email, session.name)
+      } catch (error) {
+        console.error('Failed to claim pending Lab-QC invitations:', error)
+      }
+    }
     const memberships = await repository.getMembership(session.userId)
     if (memberships.length === 0) {
       const history = await repository.getMembershipHistoryForAiverid(session.userId)

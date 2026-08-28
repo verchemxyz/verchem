@@ -308,12 +308,24 @@ export class LabRepository {
   }
 
   /** Claim active pending invitations for this canonical member identity. */
-  async claimPendingInvites(aiverid: string, email: string): Promise<LabMemberRow[]> {
+  /**
+   * `displayName` is the name AIVerID holds for the person who just authenticated.
+   * It replaces the nickname the inviter typed, because that nickname is what an
+   * evidence pack signs as the actor: without this, whoever sent the invitation
+   * chooses the name that appears on a colleague's signed record.
+   */
+  async claimPendingInvites(aiverid: string, email: string, displayName?: string): Promise<LabMemberRow[]> {
     const normalizedEmail = normalizeEmail(email)
     const pendingId = pendingInviteAiverid(normalizedEmail)
+    const claimedName = displayName?.trim().slice(0, 120)
     const response = await this.client
       .from('org_members')
-      .update({ aiverid, joined_at: new Date().toISOString(), invited_email: normalizedEmail })
+      .update({
+        aiverid,
+        joined_at: new Date().toISOString(),
+        invited_email: normalizedEmail,
+        ...(claimedName ? { display_name: claimedName } : {}),
+      })
       .eq('aiverid', pendingId)
       .eq('invited_email', normalizedEmail)
       .is('revoked_at', null)

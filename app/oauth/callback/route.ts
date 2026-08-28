@@ -358,7 +358,7 @@ export async function GET(request: NextRequest) {
     // login, and every protected Lab route still loads membership fresh.
     if (sessionData.user.email) {
       try {
-        await createLabRepository().claimPendingInvites(aiveridValue, sessionData.user.email)
+        await createLabRepository().claimPendingInvites(aiveridValue, sessionData.user.email, sessionData.user.name)
       } catch (claimError) {
         console.error('Failed to claim pending Lab-QC invitations:', claimError)
       }

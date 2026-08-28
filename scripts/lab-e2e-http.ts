@@ -170,7 +170,7 @@ async function main(): Promise<void> {
     method: 'POST', as: OWNER, expect: 201, body: { email: REVIEWER.email, role: 'reviewer', display_name: REVIEWER.name },
   })
   await call(`/api/lab/orgs/${orgId}/members`, {
-    method: 'POST', as: OWNER, expect: 201, body: { email: ANALYST.email, role: 'analyst', display_name: ANALYST.name },
+    method: 'POST', as: OWNER, expect: 201, body: { email: ANALYST.email, role: 'analyst', display_name: 'Whatever The Owner Typed' },
   })
   const reinvited = await call(`/api/lab/orgs/${orgId}/members`, {
     method: 'POST', as: OWNER, expect: 409, body: { email: ANALYST.email, role: 'viewer' },
@@ -189,14 +189,22 @@ async function main(): Promise<void> {
   assert.ok(invitedRows.some((row) => row.invited_email === ANALYST.email && row.joined_at === null),
     'a pending invitation must read as pending before it is claimed')
 
-  // The OAuth callback claims pending invites on first sign-in; replay that step.
-  assert.equal((await repository.claimPendingInvites(REVIEWER.aiverid, REVIEWER.email)).length, 1)
-  assert.equal((await repository.claimPendingInvites(ANALYST.aiverid, ANALYST.email)).length, 1)
+  // A colleague who was already signed in has no fresh OAuth callback: reaching
+  // the organisation list must claim the invitation on its own.
+  const analystOrgs = await call('/api/lab/orgs', { as: ANALYST, expect: 200 })
+  assert.equal((analystOrgs.json.organizations as Array<{ id: string; role: string }>).length, 1,
+    'signing in before the invitation existed must not leave the colleague outside the laboratory')
+  // The reviewer arrives the other way, through the OAuth callback.
+  assert.equal((await repository.claimPendingInvites(REVIEWER.aiverid, REVIEWER.email, REVIEWER.name)).length, 1)
   await call(`/api/lab/orgs/${orgId}/templates`, { as: ANALYST, expect: 200 })
   const ownerView = await call(`/api/lab/orgs/${orgId}/members`, { as: OWNER, expect: 200 })
   const ownerRows = ownerView.json.members as Array<Record<string, unknown>>
   assert.ok(ownerRows.some((row) => row.invited_email === ANALYST.email && typeof row.joined_at === 'string'),
     'a claimed invitation must read as active')
+  // The signed actor name must be the one AIVerID holds, not the nickname the
+  // inviter typed — an evidence pack signs it as the person who acted.
+  assert.ok(ownerRows.some((row) => row.invited_email === ANALYST.email && row.display_name === ANALYST.name),
+    'claiming must replace the inviter-chosen nickname with the authenticated name')
   const analystView = await call(`/api/lab/orgs/${orgId}/members`, { as: ANALYST, expect: 200 })
   assert.ok((analystView.json.members as Array<Record<string, unknown>>)
     .every((row) => !Object.hasOwn(row, 'invited_email') && !Object.hasOwn(row, 'joined_at')))
