@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict'
 import {
   authorize,
+  canCreatePreparation,
   formatRecordNumber,
   isValidReason,
   releaseOutcome,
@@ -61,6 +62,15 @@ test('viewer can only view packs of released/voided records', () => {
   }
   assert.equal(authorize('view_pack', member('viewer'), record('draft')).ok, false)
   assert.equal(authorize('view_pack', member('viewer'), record('voided')).ok, true)
+})
+
+test('preparation creation UI uses the same role matrix as authorization', () => {
+  assert.equal(canCreatePreparation('owner'), true)
+  assert.equal(canCreatePreparation('reviewer'), true)
+  assert.equal(canCreatePreparation('analyst'), true)
+  assert.equal(canCreatePreparation('viewer'), false)
+  assert.equal(canCreatePreparation(null), false)
+  assert.equal(canCreatePreparation(undefined), false)
 })
 
 test('revoked membership is forbidden for everything, including view', () => {

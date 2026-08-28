@@ -70,6 +70,11 @@ const ROLE_MATRIX: Readonly<Record<RecordAction, ReadonlySet<MemberRole>>> = {
   view_pack: new Set(['owner', 'reviewer', 'analyst', 'viewer']),
 }
 
+/** Browser-safe UI gate derived from the same role matrix enforced by `authorize()`. */
+export function canCreatePreparation(role: MemberRole | null | undefined): boolean {
+  return role !== null && role !== undefined && ROLE_MATRIX.create.has(role)
+}
+
 /** Legal transitions. `view_pack` and `create` do not change state. */
 const TRANSITIONS: Readonly<Record<RecordAction, Readonly<Partial<Record<RecordState, RecordState>>>>> = {
   create: {},

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useLabTranslations } from '@/components/lab-qc/use-lab-translations'
 import { LabApiError, labFetch, type LabOrganization } from '@/lib/lab/client'
+import { canCreatePreparation } from '@/lib/lab/prep-record'
 import type { PrepRecord, PrepTemplate } from '@/lib/lab/types'
 
 export default function NewRecordPage() {
@@ -43,12 +44,23 @@ export default function NewRecordPage() {
   }
 
   const mayManage = organization?.role === 'owner' || organization?.role === 'reviewer'
+  const mayPrepare = canCreatePreparation(organization?.role)
   const draftTemplate = allTemplates.find((template) => template.status === 'draft')
   const noApprovedTemplateHref = draftTemplate ? `/lab/${org}/templates/${draftTemplate.id}` : `/lab/${org}/templates${mayManage ? '/new' : ''}`
   const noApprovedTemplateLabel = draftTemplate ? t.viewTemplate : mayManage ? t.newTemplate : t.manageTemplates
   const noApprovedTemplateMessage = draftTemplate
     ? t.noApprovedTemplatesReview
     : mayManage ? t.noApprovedTemplatesCreate : t.ownerReviewerTemplateRequired
+
+  if (organization && !mayPrepare) {
+    return (
+      <section className="mx-auto max-w-2xl lab-document p-6 sm:p-8">
+        <h1 className="lab-display text-3xl font-semibold">{t.newPreparation}</h1>
+        <p className="mt-3 text-muted-foreground">{t.viewerCannotStartPreparation}</p>
+        <Link href={`/lab/${org}/records`} className="mt-5 inline-flex min-h-[44px] items-center border border-border bg-card px-4 py-2.5 font-medium text-foreground hover:bg-muted">{t.records}</Link>
+      </section>
+    )
+  }
 
   return (
     <section className="mx-auto max-w-2xl lab-document p-6 sm:p-8">

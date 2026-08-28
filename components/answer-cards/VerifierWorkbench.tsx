@@ -214,7 +214,7 @@ export default function VerifierWorkbench() {
           >
             {busy ? t.verifierVerifying : t.verifierVerifyButton}
           </button>
-          <label className="inline-flex min-h-[44px] cursor-pointer items-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
+          <label className="inline-flex min-h-[44px] cursor-pointer items-center rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             {t.verifierLoadJws}
             <input
               type="file"

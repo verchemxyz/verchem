@@ -32,6 +32,19 @@ function ActionReason({ label, value, onChange, required }: { label: string; val
   return <label className="block text-sm font-medium text-foreground">{label}{required ? <span className="ml-1 text-destructive-strong">*</span> : null}<textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} className="mt-1.5 w-full rounded-md border border-input-border bg-input px-3 py-2 text-foreground focus:ring-2 focus:ring-ring" /></label>
 }
 
+function recordEventLabel(t: ReturnType<typeof useLabTranslations>, action: string): string {
+  return {
+    create: t.recordEventCreated,
+    edit: t.recordEventEdited,
+    submit: t.recordEventSubmitted,
+    withdraw: t.recordEventWithdrawn,
+    release: t.recordEventReleased,
+    reject: t.recordEventRejected,
+    void: t.recordEventVoided,
+    rotate_share_token: t.recordEventShareLinkRotated,
+  }[action] ?? t.recordEventUpdated
+}
+
 export default function RecordDetailPage() {
   const { org, id } = useParams<{ org: string; id: string }>()
   const router = useRouter()
@@ -220,7 +233,7 @@ export default function RecordDetailPage() {
       {(state === 'released' || state === 'voided') && signedPack && <section className="space-y-5"><PrepRecordCertificate ref={certificateRef} record={detail.record} template={detail.template} pack={signedPack} verifyUrl={verifyUrl} compactJws={detail.record.signature ?? ''} /><div className="flex flex-wrap items-center gap-3"><button onClick={() => { void downloadPdf() }} className="min-h-[44px] rounded-md bg-[var(--lab-accent)] px-4 py-2.5 font-medium text-white">{t.downloadPdf}</button><button onClick={() => { void downloadJws() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground">{t.downloadJws}</button>{verifyUrl ? <button onClick={() => { void copyLink() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground">{t.copyVerifyLink}</button> : mayReview ? <button disabled={busy} onClick={() => { void rotateShareLink() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground disabled:opacity-50">{busy ? t.rotatingShareLink : t.requestNewShareLink}</button> : <span className="text-sm text-warning-strong">{t.shareLinkUnavailable}</span>}{state === 'released' && mayReview && <div className="flex flex-wrap items-end gap-3"><ActionReason label={t.reason} value={voidReason} onChange={setVoidReason} required /><button disabled={busy} onClick={() => { void transition('void') }} className="min-h-[44px] rounded-md border border-destructive/50 px-4 py-2.5 font-medium text-destructive-strong disabled:opacity-50">{t.voidRecord}</button></div>}</div>{shareNotice && <p role="status" className="text-sm text-[var(--lab-accent)]">{shareNotice}</p>}{shareToken && verifyUrl && <div className="border border-warning/50 bg-warning/10 p-4 text-sm text-warning-strong"><p className="font-semibold">{t.saveShareLink}</p><p className="mt-2 break-all font-mono text-xs text-foreground">{verifyUrl}</p></div>}</section>}
 
       {(state === 'released' || state === 'voided') && !signedPack && <p role="alert" className="text-destructive-strong">{t.errorPrefix} {t.storedEvidencePackUnavailable}</p>}
-      <section className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.eventHistory}</h2><ol className="mt-4 space-y-3 border-l border-border pl-4">{detail.events.map((event, index) => <li key={`${event.action}-${event.at}-${index}`}><p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">{event.action} · {formatLabDate(event.at)}</p><p className="mt-1 text-sm text-foreground">{event.actor}</p></li>)}</ol></section>
+      <section className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.eventHistory}</h2><ol className="mt-4 space-y-3 border-l border-border pl-4">{detail.events.map((event, index) => <li key={`${event.action}-${event.at}-${index}`}><p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">{recordEventLabel(t, event.action)} · {formatLabDate(event.at)}</p><p className="mt-1 text-sm text-foreground">{event.actor}</p></li>)}</ol></section>
     </div>
   )
 }
