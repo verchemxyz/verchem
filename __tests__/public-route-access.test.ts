@@ -101,12 +101,43 @@ async function run(): Promise<void> {
     '/account/cards/some-card-id',
     '/account/cards/some.json',
     '/account/cards/some.png',
-    '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records',
-    '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records/',
+    '/lab',
+    '/lab/00000000-0000-4000-8000-000000000001/records',
   ]) {
     const protectedResponse = await proxy(new NextRequest(`https://verchem.xyz${pathname}`))
     assert.equal(protectedResponse.status, 307, `${pathname} must remain gated for anonymous visitors`)
     assert.match(protectedResponse.headers.get('location') ?? '', /login_required=1/)
+  }
+
+  // Gated APIs are gated the same way, but they must answer in JSON: `fetch`
+  // follows redirects, so a 307 handed the client a 200 HTML page, which the
+  // Lab-QC fetch boundary could neither parse nor recognise as "sign in again".
+  for (const pathname of [
+    '/api/lab/orgs',
+    '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records',
+    '/api/lab/orgs/00000000-0000-4000-8000-000000000001/records/',
+  ]) {
+    const apiResponse = await proxy(new NextRequest(`https://verchem.xyz${pathname}`))
+    assert.equal(apiResponse.status, 401, `${pathname} must answer 401 rather than redirect`)
+    assert.equal(apiResponse.headers.get('location'), null, `${pathname} must not redirect an API caller`)
+    assert.match(apiResponse.headers.get('content-type') ?? '', /application\/json/)
+    assert.deepEqual(await apiResponse.json(), { error: 'Unauthorized' })
+  }
+
+  // A forged or stale cookie pair takes the same JSON path. Signature checking
+  // only happens when a secret is configured, so this case supplies one.
+  const originalSecret = process.env.SESSION_SECRET
+  process.env.SESSION_SECRET = 'route-access-test-secret'
+  try {
+    const forged = new NextRequest('https://verchem.xyz/api/lab/orgs')
+    forged.cookies.set('verchem-session', '{"user":{"aiverid":"x"},"expires_at":"2099-01-01T00:00:00.000Z"}')
+    forged.cookies.set('verchem-session-sig', 'not-a-valid-signature')
+    const forgedResponse = await proxy(forged)
+    assert.equal(forgedResponse.status, 401, 'a forged signature on an API call must answer 401')
+    assert.equal(forgedResponse.headers.get('location'), null)
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET
+    else process.env.SESSION_SECRET = originalSecret
   }
 
   console.log('Public route access tests passed')

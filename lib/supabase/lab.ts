@@ -254,6 +254,12 @@ export class LabRepository {
       p_created_by: input.createdBy,
       p_display_name: (input.displayName ?? input.createdBy).trim().slice(0, 120) || input.createdBy,
     })
+    // The only unique constraint `lab_create_org` can violate is organizations.slug,
+    // and slugs are global: without this, naming your laboratory after one that
+    // already exists answered with the record-concurrency message.
+    if (response.error?.code === '23505') {
+      throw new LabDataError('That laboratory name is already taken. Choose a different name.', 409)
+    }
     const organization = asOne<Organization>(response)
     if (!organization) throw new LabDataError('Organization creation returned no row.', 500)
     return organization
@@ -265,6 +271,19 @@ export class LabRepository {
     }
     const email = normalizeEmail(input.email)
     const displayName = (input.displayName?.trim() || email.split('@')[0] || 'Invited member').slice(0, 120)
+    // An invitation is stored under a hash of the email until that person signs
+    // in. Re-inviting an address that already has a live row is refused here:
+    // a second row can never be claimed (the claim would collide with the first
+    // membership), so it would sit in the member list as a permanent ghost.
+    const existing = await this.client
+      .from('org_members')
+      .select('aiverid, joined_at')
+      .eq('org_id', orgId)
+      .eq('invited_email', email)
+      .is('revoked_at', null)
+    if (asRows<{ aiverid: string; joined_at: string | null }>(await existing).length > 0) {
+      throw new LabDataError('That email address already belongs to a member of this laboratory.', 409)
+    }
     const response = await this.client
       .from('org_members')
       .insert({
@@ -278,7 +297,12 @@ export class LabRepository {
       })
       .select('org_id, aiverid, role, display_name, invited_email, invited_by, joined_at, revoked_at, revoked_by')
       .single()
-    const member = asOne<LabMemberRow>(await response)
+    const inserted = await response
+    // Two owners inviting the same address at once still race to the primary key.
+    if (inserted.error?.code === '23505') {
+      throw new LabDataError('That email address already belongs to a member of this laboratory.', 409)
+    }
+    const member = asOne<LabMemberRow>(inserted)
     if (!member) throw new LabDataError('Member invitation returned no row.', 500)
     return member
   }

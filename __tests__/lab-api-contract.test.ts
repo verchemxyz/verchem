@@ -15,6 +15,7 @@ import { signCard, toSignablePayload } from '@/lib/answer-cards/signature'
 import { appendEvent } from '@/lib/lab/audit-chain'
 import {
   getRecordDetailHandler,
+  inviteMemberHandler,
   getTemplateHandler,
   listMembersHandler,
   listOrganizationsHandler,
@@ -199,7 +200,8 @@ function setup(options: { revoked?: boolean; zeroRelease?: boolean; memberOrg?: 
       { org_id: ORG_A, aiverid: PREPARER, role: 'analyst', display_name: 'Preparer', invited_email: null, invited_by: PREPARER, joined_at: '2026-08-26T00:00:00.000Z', revoked_at: null },
       { org_id: ORG_A, aiverid: REVIEWER, role: 'reviewer', display_name: 'Reviewer', invited_email: null, invited_by: PREPARER, joined_at: '2026-08-26T00:00:00.000Z', revoked_at: options.revoked ? '2026-08-26T01:00:00.000Z' : null },
     ],
-    prep_templates: [template as unknown as Row], prep_records: [record() as unknown as Row], lab_events: eventRows(),
+    // Cloned: tests mutate the spec (requiredFields), and a shared object leaked that between them.
+    prep_templates: [structuredClone(template) as unknown as Row], prep_records: [record() as unknown as Row], lab_events: eventRows(),
   })
   database.zeroReleaseUpdate = options.zeroRelease ?? false
   const repository = createLabRepository(database)
@@ -492,6 +494,55 @@ test('browser verifier accepts lab_record only on a valid w3-v4 card', async () 
   const rejected = await verifyCardJwsInBrowser(await signCard(toSignablePayload(legacy)), jwks, { fetch: async () => new Response('', { status: 503 }) })
   assert.equal(rejected.signatureAuthentic, true)
   assert.equal(rejected.payload, null)
+})
+
+test('a cleared optional field is blank, not invalid — an empty notes box must still save', async () => {
+  const { database, repository } = setup()
+  database.tables.prep_records[0]!.state = 'draft'
+  const measurements = { ...(draft()!.measurements as unknown as Record<string, unknown>) }
+  delete measurements.as_prepared
+  Object.assign(measurements, { notes: '', expiry: '', balanceId: '', flaskId: '   ' })
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: PREPARER, name: 'Preparer', verification_level: 1, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'preparer',
+  })
+  const response = await updatePatch(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements }),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(response.status, 200)
+  const stored = await response.json() as { record: PrepRecord }
+  const saved = stored.record.draft?.measurements as unknown as Record<string, unknown>
+  assert.equal(saved.notes, '', 'an empty note stays an empty note')
+  assert.equal(saved.expiry, null)
+  assert.equal(saved.balanceId, null)
+  assert.equal(saved.flaskId, null)
+})
+
+test('an address already in the laboratory cannot be invited again', async () => {
+  const { database, repository } = setup()
+  database.tables.org_members[1]!.role = 'owner'
+  database.tables.org_members.push({
+    org_id: ORG_A, aiverid: pendingInviteAiverid('analyst2@example.test'), role: 'analyst',
+    display_name: 'Analyst Two', invited_email: 'analyst2@example.test', invited_by: REVIEWER,
+    joined_at: null, revoked_at: null,
+  })
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: REVIEWER, name: 'Owner', email: 'owner@example.test', verification_level: 3, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'owner',
+  })
+  const before = database.tables.org_members.length
+  const duplicate = await inviteMemberHandler(request(`/api/lab/orgs/${ORG_A}/members`, 'POST', { email: 'Analyst2@Example.test', role: 'viewer' }), ORG_A)
+  assert.equal(duplicate.status, 409)
+  assert.match((await duplicate.json() as { error: string }).error, /already belongs to a member/i)
+  assert.equal(database.tables.org_members.length, before, 'a refused invitation must not leave an unclaimable row')
+
+  const self = await inviteMemberHandler(request(`/api/lab/orgs/${ORG_A}/members`, 'POST', { email: 'OWNER@example.test', role: 'reviewer' }), ORG_A)
+  assert.equal(self.status, 409)
+  assert.match((await self.json() as { error: string }).error, /already a member/i)
+  assert.equal(database.tables.org_members.length, before)
 })
 
 async function run(): Promise<void> {

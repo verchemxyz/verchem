@@ -165,6 +165,24 @@ function isPublicRoute(pathname: string, method: string): boolean {
   })
 }
 
+/**
+ * Deny an unauthenticated request in the language its caller speaks.
+ *
+ * A browser navigation gets a redirect to the sign-in prompt. An `/api/*`
+ * request gets `401 {error}` instead: `fetch` follows redirects, so redirecting
+ * an API call handed `labFetch` a 200 HTML page — it parsed no JSON, returned
+ * null, and the Lab-QC screens failed with a JavaScript error rather than
+ * asking the user to sign in again. The proxy is the only place that can tell
+ * the two callers apart, because it runs before the route exists.
+ */
+function deniedResponse(pathname: string, redirectTo: URL): NextResponse {
+  const response = pathname.startsWith('/api/')
+    ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    : NextResponse.redirect(redirectTo)
+  clearSessionCookies(response)
+  return response
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -196,28 +214,22 @@ export async function proxy(request: NextRequest) {
       const loginUrl = new URL('/', request.url)
       loginUrl.searchParams.set('login_required', '1')
       loginUrl.searchParams.set('redirect', pathname)
-      const response = NextResponse.redirect(loginUrl)
-      clearSessionCookies(response)
-      return response
+      return deniedResponse(pathname, loginUrl)
     }
 
     // Verify session signature to prevent cookie forgery
     if (!signatureCookie?.value) {
       console.warn('Session cookie without signature - possible forgery attempt')
-      // Clear invalid cookies (matching domain/path) and redirect
-      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      clearSessionCookies(response)
-      return response
+      // Clear invalid cookies (matching domain/path) before denying.
+      return deniedResponse(pathname, new URL('/?error=invalid_session', request.url))
     }
 
     // Verify HMAC signature
     const isValid = await verifySessionSignature(sessionCookie.value, signatureCookie.value)
     if (!isValid) {
       console.warn('Invalid session signature - possible forgery attempt')
-      // Clear invalid cookies (matching domain/path) and redirect
-      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      clearSessionCookies(response)
-      return response
+      // Clear invalid cookies (matching domain/path) before denying.
+      return deniedResponse(pathname, new URL('/?error=invalid_session', request.url))
     }
 
     // Check session expiration
@@ -225,15 +237,11 @@ export async function proxy(request: NextRequest) {
       const sessionData = JSON.parse(sessionCookie.value)
       if (sessionData.expires_at && new Date(sessionData.expires_at) < new Date()) {
         console.info('Session expired')
-        const response = NextResponse.redirect(new URL('/?error=session_expired', request.url))
-        clearSessionCookies(response)
-        return response
+        return deniedResponse(pathname, new URL('/?error=session_expired', request.url))
       }
     } catch {
       console.warn('Invalid session data format')
-      const response = NextResponse.redirect(new URL('/?error=invalid_session', request.url))
-      clearSessionCookies(response)
-      return response
+      return deniedResponse(pathname, new URL('/?error=invalid_session', request.url))
     }
   }
 

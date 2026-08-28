@@ -152,6 +152,16 @@ function optionalString(value: unknown, field: string, max: number): string | nu
   return requiredString(value, field, max)
 }
 
+/**
+ * An optional text field the operator left blank. A cleared text box submits `''`,
+ * which is the absence of a value, not a violation — reading it as one made the
+ * whole preparation form unsavable whenever the notes box was left empty.
+ */
+function optionalText(value: unknown, field: string, max: number): string | null {
+  if (typeof value === 'string' && value.trim().length === 0) return null
+  return optionalString(value, field, max)
+}
+
 function assertDecision(decision: ReturnType<typeof authorize>): void {
   if (decision.ok) return
   throw new LabDataError(decision.reason, decision.code === 'forbidden' ? 403 : decision.code === 'conflict' ? 409 : 400)
@@ -213,12 +223,10 @@ function buildDraft(value: unknown): PrepDraft {
   // Validate the controlled-record fields before sending the full object to the pure engine.
   // Normalize all optional values so canonical signing never receives `undefined`.
   const reagentLot = requiredString(measurements.reagentLot, 'measurements.reagentLot', 160)
-  const expiry = optionalString(measurements.expiry, 'measurements.expiry', 64)
-  const balanceId = optionalString(measurements.balanceId, 'measurements.balanceId', 120)
-  const flaskId = optionalString(measurements.flaskId, 'measurements.flaskId', 120)
-  const notes = measurements.notes === undefined
-    ? ''
-    : optionalString(measurements.notes, 'measurements.notes', 4_000) ?? ''
+  const expiry = optionalText(measurements.expiry, 'measurements.expiry', 64)
+  const balanceId = optionalText(measurements.balanceId, 'measurements.balanceId', 120)
+  const flaskId = optionalText(measurements.flaskId, 'measurements.flaskId', 120)
+  const notes = optionalText(measurements.notes, 'measurements.notes', 4_000) ?? ''
   return {
     measurements: {
       ...measurements,
@@ -308,12 +316,19 @@ export async function listOrganizationsHandler(_request: NextRequest): Promise<N
 }
 
 export async function inviteMemberHandler(request: NextRequest, orgId: string): Promise<NextResponse> {
-  return withLabAuth(request, orgId, async ({ member, repository }) => {
+  return withLabAuth(request, orgId, async ({ member, repository, session }) => {
     if (member.role !== 'owner') return NextResponse.json({ error: 'Only organization owners may invite members.' }, { status: 403 })
     const body = await readObjectBody(request)
     onlyKeys(body, ['email', 'role', 'display_name'])
     if (body.role !== 'reviewer' && body.role !== 'analyst' && body.role !== 'viewer') {
       throw new LabDataError('role must be reviewer, analyst, or viewer.', 400)
+    }
+    // The owner's own membership row carries no invited_email, so the repository's
+    // duplicate check cannot see it: an owner inviting their own address would
+    // create a row that can never be claimed.
+    if (typeof session.email === 'string' &&
+      requiredString(body.email, 'email', 320).toLocaleLowerCase('en') === session.email.trim().toLocaleLowerCase('en')) {
+      throw new LabDataError('You are already a member of this laboratory.', 409)
     }
     const invited = await repository.inviteMember(orgId, {
       email: requiredString(body.email, 'email', 320),
