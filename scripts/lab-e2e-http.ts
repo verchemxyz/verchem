@@ -301,6 +301,31 @@ async function main(): Promise<void> {
   const packAfterVoid = await call(`/api/lab/records/${recordId}/pack.json?token=${encodeURIComponent(shareToken)}`, { expect: 200 })
   assert.equal(packAfterVoid.json.signature, packByMember.json.signature, 'voiding must not alter the signed pack')
 
+  console.log('15. a result outside acceptance cannot be released without a stated deviation')
+  const offRecord = await call(`/api/lab/orgs/${orgId}/records`, {
+    method: 'POST', as: ANALYST, body: { template_id: templateId }, expect: 201,
+  })
+  const offId = String(offRecord.json.id)
+  const offPatch = await call(`/api/lab/orgs/${orgId}/records/${offId}`, {
+    method: 'PATCH', as: ANALYST, expect: 200,
+    body: { measurements: { ...measurements, weighedG: 0.12, reagentLot: 'E2E-LOT-OFF' } },
+  })
+  assert.equal((offPatch.json.preview as { withinAcceptance: boolean }).withinAcceptance, false)
+  await call(`/api/lab/orgs/${orgId}/records/${offId}/submit`, { method: 'POST', as: ANALYST, expect: 200 })
+  // 409, not 400: whether a reason is required is decided by acceptance the
+  // server recomputes from the stored draft, so it is a conflict with state.
+  const noReason = await call(`/api/lab/orgs/${orgId}/records/${offId}/release`, { method: 'POST', as: OWNER, expect: 409 })
+  assert.match(String(noReason.json.error), /deviation reason/i)
+  // Whitespace is not a reason — the blank-tolerant parsing must not create a hole here.
+  const blankReason = await call(`/api/lab/orgs/${orgId}/records/${offId}/release`, {
+    method: 'POST', as: OWNER, body: { deviation_reason: '   ' }, expect: 409,
+  })
+  assert.match(String(blankReason.json.error), /deviation reason/i)
+  const withDeviation = await call(`/api/lab/orgs/${orgId}/records/${offId}/release`, {
+    method: 'POST', as: OWNER, body: { deviation_reason: 'Balance drift confirmed against check weight.' }, expect: 200,
+  })
+  assert.equal((withDeviation.json.record as { outcome: string }).outcome, 'released_with_deviation')
+
   console.log('\nLab-QC HTTP walkthrough: ALL PASSED')
 }
 
