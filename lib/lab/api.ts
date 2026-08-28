@@ -133,6 +133,28 @@ async function readObjectBody(request: NextRequest): Promise<Record<string, unkn
   return value as Record<string, unknown>
 }
 
+/**
+ * A POST whose fields are all optional may legitimately arrive with no body at
+ * all — `fetch` sends none when the caller passes none. Releasing a record that
+ * sits inside acceptance needs no deviation reason, so the release button posts
+ * nothing, and demanding a JSON object there rejected the product's central
+ * action with "Invalid JSON body." A malformed body is still refused.
+ */
+async function readOptionalObjectBody(request: NextRequest): Promise<Record<string, unknown>> {
+  const raw = await request.text()
+  if (raw.trim().length === 0) return {}
+  let value: unknown
+  try {
+    value = JSON.parse(raw)
+  } catch {
+    throw new LabDataError('Invalid JSON body.', 400)
+  }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new LabDataError('Body must be a JSON object.', 400)
+  }
+  return value as Record<string, unknown>
+}
+
 function onlyKeys(value: Record<string, unknown>, allowed: readonly string[]): void {
   const keys = Object.keys(value).filter((key) => !allowed.includes(key))
   if (keys.length > 0) throw new LabDataError(`Unknown field${keys.length === 1 ? '' : 's'}: ${keys.join(', ')}`, 400)
@@ -269,8 +291,8 @@ export async function createOrganizationHandler(request: NextRequest): Promise<N
     onlyKeys(body, ['name', 'country', 'accreditation_ref'])
     const organization = await deps.repository().createOrganization({
       name: requiredString(body.name, 'name', 200),
-      country: optionalString(body.country, 'country', 2),
-      accreditationRef: optionalString(body.accreditation_ref, 'accreditation_ref', 120),
+      country: optionalText(body.country, 'country', 2),
+      accreditationRef: optionalText(body.accreditation_ref, 'accreditation_ref', 120),
       createdBy: session.userId,
       displayName: session.name,
     })
@@ -333,7 +355,7 @@ export async function inviteMemberHandler(request: NextRequest, orgId: string): 
     const invited = await repository.inviteMember(orgId, {
       email: requiredString(body.email, 'email', 320),
       role: body.role,
-      displayName: optionalString(body.display_name, 'display_name', 120) ?? undefined,
+      displayName: optionalText(body.display_name, 'display_name', 120) ?? undefined,
       invitedBy: member.aiverid,
     })
     return NextResponse.json(invited, { status: 201 })
@@ -504,7 +526,7 @@ export async function listMembersHandler(request: NextRequest, orgId: string): P
     const members = await repository.listMembers(orgId)
     return NextResponse.json({
       members: members.map((row) => member.role === 'owner'
-        ? { display_name: row.display_name, role: row.role, invited_email: row.invited_email }
+        ? { display_name: row.display_name, role: row.role, invited_email: row.invited_email, joined_at: row.joined_at }
         : { display_name: row.display_name, role: row.role }
       ),
     })
@@ -561,9 +583,9 @@ export const voidRecordHandler = (request: NextRequest, orgId: string, id: strin
 
 export async function releaseRecordHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
   return withLabAuth(request, orgId, async ({ member, repository }) => {
-    const body = await readObjectBody(request)
+    const body = await readOptionalObjectBody(request)
     onlyKeys(body, ['deviation_reason'])
-    const reason = optionalString(body.deviation_reason, 'deviation_reason', 2_000)
+    const reason = optionalText(body.deviation_reason, 'deviation_reason', 2_000)
     const released = await releaseRecord(repository, {
       orgId, recordId: id, reviewer: member, deviationReason: reason,
     })

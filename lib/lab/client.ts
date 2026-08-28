@@ -36,7 +36,10 @@ export interface LabRecordDetail {
 export interface LabMemberView {
   display_name: string
   role: 'owner' | 'reviewer' | 'analyst' | 'viewer'
+  /** Owners only: the address an invitation was sent to. */
   invited_email?: string | null
+  /** Owners only: null until that person has signed in and claimed the invitation. */
+  joined_at?: string | null
 }
 
 function responseMessage(value: unknown): string | null {

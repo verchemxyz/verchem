@@ -545,6 +545,26 @@ test('an address already in the laboratory cannot be invited again', async () =>
   assert.equal(database.tables.org_members.length, before)
 })
 
+test('releasing a record inside acceptance needs no request body', async () => {
+  setup()
+  // The release button posts nothing when there is no deviation to explain.
+  const bodyless = await releasePost(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST'),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(bodyless.status, 200)
+  assert.equal((await bodyless.json() as { record: PrepRecord }).record.state, 'released')
+
+  setup()
+  const malformed = new NextRequest(`https://verchem.xyz/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'https://verchem.xyz' },
+    body: 'not json',
+  })
+  const refused = await releasePost(malformed, { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  assert.equal(refused.status, 400, 'a malformed body is still refused')
+})
+
 async function run(): Promise<void> {
   let failed = 0
   for (const { name, fn } of tests) {

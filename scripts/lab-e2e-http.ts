@@ -185,6 +185,15 @@ async function main(): Promise<void> {
   assert.equal((await repository.claimPendingInvites(REVIEWER.aiverid, REVIEWER.email)).length, 1)
   assert.equal((await repository.claimPendingInvites(ANALYST.aiverid, ANALYST.email)).length, 1)
   await call(`/api/lab/orgs/${orgId}/templates`, { as: ANALYST, expect: 200 })
+  // The owner's member list drives the invite screen: it must say who has not
+  // signed in yet, and must not expose invited addresses to everyone else.
+  const ownerView = await call(`/api/lab/orgs/${orgId}/members`, { as: OWNER, expect: 200 })
+  const ownerRows = ownerView.json.members as Array<Record<string, unknown>>
+  assert.equal(ownerRows.length, 3)
+  assert.ok(ownerRows.some((row) => row.invited_email === ANALYST.email && typeof row.joined_at === 'string'))
+  const analystView = await call(`/api/lab/orgs/${orgId}/members`, { as: ANALYST, expect: 200 })
+  assert.ok((analystView.json.members as Array<Record<string, unknown>>)
+    .every((row) => !Object.hasOwn(row, 'invited_email') && !Object.hasOwn(row, 'joined_at')))
 
   console.log('5. template: analyst cannot author, owner drafts, self-approval refused')
   await call(`/api/lab/orgs/${orgId}/templates`, { method: 'POST', as: ANALYST, body: { spec }, expect: 403 })
@@ -213,9 +222,11 @@ async function main(): Promise<void> {
   await call(`/api/lab/orgs/${orgId}/records/${recordId}/submit`, { method: 'POST', as: ANALYST, expect: 200 })
 
   console.log('7. release: preparer may not release their own record; reviewer may')
-  await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, { method: 'POST', as: ANALYST, body: {}, expect: 403 })
+  await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, { method: 'POST', as: ANALYST, expect: 403 })
+  // Exactly as the release button sends it: a record inside acceptance needs no
+  // deviation reason, so the UI posts no body at all.
   const released = await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, {
-    method: 'POST', as: OWNER, body: {}, expect: 200,
+    method: 'POST', as: OWNER, expect: 200,
   })
   const shareToken = String(released.json.share_token)
   assert.ok(shareToken.length > 20, 'release must return a one-time share token')
@@ -263,7 +274,7 @@ async function main(): Promise<void> {
   await call(`/api/lab/orgs/${orgId}/records/${recordId}`, {
     method: 'PATCH', as: ANALYST, body: { measurements }, expect: 409,
   })
-  await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, { method: 'POST', as: OWNER, body: {}, expect: 409 })
+  await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, { method: 'POST', as: OWNER, expect: 409 })
 
   console.log('12. cross-organisation access is not an oracle')
   await call('/api/lab/orgs', { method: 'POST', as: OUTSIDER, body: { name: `E2E Outside ${stamp}` }, expect: 201 })

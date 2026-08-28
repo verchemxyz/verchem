@@ -344,6 +344,15 @@ export interface Translations {
     invitedEmail: string
     role: string
     noMembers: string
+    inviteColleague: string
+    inviteColleagueHelp: string
+    emailAddress: string
+    displayNameOptional: string
+    sendInvitation: string
+    invitationSent: string
+    memberStatus: string
+    statusPending: string
+    statusActive: string
     createNewAttempt: string
     benchRecord: string
     reagentLot: string
@@ -753,6 +762,15 @@ export const en: Translations = {
     invitedEmail: 'Invited email',
     role: 'Role',
     noMembers: 'No active members found.',
+    inviteColleague: 'Invite a colleague',
+    inviteColleagueHelp: 'A preparation is released by someone other than the person who prepared it, so a laboratory needs at least two people. The invitation activates when they sign in with AIVerID using this address.',
+    emailAddress: 'Email address',
+    displayNameOptional: 'Display name (optional)',
+    sendInvitation: 'Send invitation',
+    invitationSent: 'Invitation recorded. It activates when they sign in with this email address.',
+    memberStatus: 'Status',
+    statusPending: 'Awaiting first sign-in',
+    statusActive: 'Active',
     createNewAttempt: 'Create new attempt',
     benchRecord: 'Bench record',
     reagentLot: 'Reagent lot',
@@ -1161,6 +1179,15 @@ export const th: Translations = {
     invitedEmail: 'อีเมลที่เชิญ',
     role: 'บทบาท',
     noMembers: 'ไม่พบสมาชิกที่ยังใช้งาน',
+    inviteColleague: 'เชิญเพื่อนร่วมงาน',
+    inviteColleagueHelp: 'ผู้ปล่อยผลต้องไม่ใช่คนเดียวกับผู้เตรียม แลบหนึ่งแห่งจึงต้องมีอย่างน้อยสองคน คำเชิญจะมีผลเมื่อผู้รับเข้าสู่ระบบด้วย AIVerID โดยใช้อีเมลนี้',
+    emailAddress: 'อีเมล',
+    displayNameOptional: 'ชื่อที่แสดง (ไม่บังคับ)',
+    sendInvitation: 'ส่งคำเชิญ',
+    invitationSent: 'บันทึกคำเชิญแล้ว จะมีผลเมื่อผู้รับเข้าสู่ระบบด้วยอีเมลนี้',
+    memberStatus: 'สถานะ',
+    statusPending: 'รอเข้าสู่ระบบครั้งแรก',
+    statusActive: 'ใช้งานอยู่',
     createNewAttempt: 'สร้างการเตรียมครั้งใหม่',
     benchRecord: 'บันทึกบนโต๊ะปฏิบัติการ',
     reagentLot: 'ล็อตสารรีเอเจนต์',
