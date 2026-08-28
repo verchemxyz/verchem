@@ -563,6 +563,15 @@ test('releasing a record inside acceptance needs no request body', async () => {
   })
   const refused = await releasePost(malformed, { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
   assert.equal(refused.status, 400, 'a malformed body is still refused')
+
+  setup()
+  const whitespace = new NextRequest(`https://verchem.xyz/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'https://verchem.xyz' },
+    body: '   ',
+  })
+  const refusedWhitespace = await releasePost(whitespace, { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  assert.equal(refusedWhitespace.status, 400, 'whitespace is malformed JSON, not an absent body')
 })
 
 async function run(): Promise<void> {

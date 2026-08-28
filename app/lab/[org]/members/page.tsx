@@ -122,14 +122,19 @@ export default function MembersPage() {
           <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={(event) => { void invite(event) }}>
             <label className="block text-sm font-medium text-foreground sm:col-span-2">
               {t.emailAddress}
+              {/* `type="email"` alone accepts user@host; the server requires a
+                  dotted domain, so the box asks for what will be accepted. */}
               <input
                 required
                 type="email"
+                pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+                title={t.emailFormatHint}
                 maxLength={320}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className={controlClass}
               />
+              <span className="mt-1 block text-xs font-normal text-muted-foreground">{t.emailFormatHint}</span>
             </label>
             <label className="block text-sm font-medium text-foreground">
               {t.role}

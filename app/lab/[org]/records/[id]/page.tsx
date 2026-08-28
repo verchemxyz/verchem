@@ -96,6 +96,16 @@ export default function RecordDetailPage() {
 
   const transition = async (action: 'submit' | 'withdraw' | 'reject' | 'void' | 'release') => {
     if (!detail) return
+    // The asterisk on the reason box has to mean something before the request
+    // is sent: these buttons are not in a form, so nothing else enforces it.
+    const requiredReason = action === 'reject' ? rejectReason
+      : action === 'void' ? voidReason
+      : action === 'release' && releaseNeedsReason ? releaseReason
+      : null
+    if (requiredReason !== null && requiredReason.trim().length < 3) {
+      setError(t.reasonRequired)
+      return
+    }
     setBusy(true); setError(null)
     try {
       let body: Record<string, string> | undefined

@@ -138,11 +138,12 @@ async function readObjectBody(request: NextRequest): Promise<Record<string, unkn
  * all — `fetch` sends none when the caller passes none. Releasing a record that
  * sits inside acceptance needs no deviation reason, so the release button posts
  * nothing, and demanding a JSON object there rejected the product's central
- * action with "Invalid JSON body." A malformed body is still refused.
+ * action with "Invalid JSON body." Only a genuinely empty body counts as absent:
+ * whitespace is malformed JSON and is still refused, like any other bad body.
  */
 async function readOptionalObjectBody(request: NextRequest): Promise<Record<string, unknown>> {
   const raw = await request.text()
-  if (raw.trim().length === 0) return {}
+  if (raw.length === 0) return {}
   let value: unknown
   try {
     value = JSON.parse(raw)

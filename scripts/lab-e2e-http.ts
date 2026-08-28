@@ -181,16 +181,22 @@ async function main(): Promise<void> {
   })
   assert.match(String(selfInvite.json.error), /already a member/i)
   await call(`/api/lab/orgs/${orgId}/templates`, { as: ANALYST, expect: 404 })
+  // The owner's member list drives the invite screen, so it must distinguish an
+  // invitation that is still waiting from a colleague who has signed in.
+  const invitedView = await call(`/api/lab/orgs/${orgId}/members`, { as: OWNER, expect: 200 })
+  const invitedRows = invitedView.json.members as Array<Record<string, unknown>>
+  assert.equal(invitedRows.length, 3)
+  assert.ok(invitedRows.some((row) => row.invited_email === ANALYST.email && row.joined_at === null),
+    'a pending invitation must read as pending before it is claimed')
+
   // The OAuth callback claims pending invites on first sign-in; replay that step.
   assert.equal((await repository.claimPendingInvites(REVIEWER.aiverid, REVIEWER.email)).length, 1)
   assert.equal((await repository.claimPendingInvites(ANALYST.aiverid, ANALYST.email)).length, 1)
   await call(`/api/lab/orgs/${orgId}/templates`, { as: ANALYST, expect: 200 })
-  // The owner's member list drives the invite screen: it must say who has not
-  // signed in yet, and must not expose invited addresses to everyone else.
   const ownerView = await call(`/api/lab/orgs/${orgId}/members`, { as: OWNER, expect: 200 })
   const ownerRows = ownerView.json.members as Array<Record<string, unknown>>
-  assert.equal(ownerRows.length, 3)
-  assert.ok(ownerRows.some((row) => row.invited_email === ANALYST.email && typeof row.joined_at === 'string'))
+  assert.ok(ownerRows.some((row) => row.invited_email === ANALYST.email && typeof row.joined_at === 'string'),
+    'a claimed invitation must read as active')
   const analystView = await call(`/api/lab/orgs/${orgId}/members`, { as: ANALYST, expect: 200 })
   assert.ok((analystView.json.members as Array<Record<string, unknown>>)
     .every((row) => !Object.hasOwn(row, 'invited_email') && !Object.hasOwn(row, 'joined_at')))
@@ -314,6 +320,12 @@ async function main(): Promise<void> {
   await call(`/api/lab/orgs/${orgId}/records/${offId}/submit`, { method: 'POST', as: ANALYST, expect: 200 })
   // 409, not 400: whether a reason is required is decided by acceptance the
   // server recomputes from the stored draft, so it is a conflict with state.
+  const whitespaceBody = await fetch(`${BASE}/api/lab/orgs/${orgId}/records/${offId}/release`, {
+    method: 'POST',
+    headers: { cookie: cookieFor(OWNER), 'content-type': 'application/json', origin: BASE },
+    body: '   ',
+  })
+  assert.equal(whitespaceBody.status, 400, 'whitespace is a malformed body, not an absent one')
   const noReason = await call(`/api/lab/orgs/${orgId}/records/${offId}/release`, { method: 'POST', as: OWNER, expect: 409 })
   assert.match(String(noReason.json.error), /deviation reason/i)
   // Whitespace is not a reason — the blank-tolerant parsing must not create a hole here.

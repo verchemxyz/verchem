@@ -353,6 +353,8 @@ export interface Translations {
     memberStatus: string
     statusPending: string
     statusActive: string
+    reasonRequired: string
+    emailFormatHint: string
     createNewAttempt: string
     benchRecord: string
     reagentLot: string
@@ -771,6 +773,8 @@ export const en: Translations = {
     memberStatus: 'Status',
     statusPending: 'Awaiting first sign-in',
     statusActive: 'Active',
+    reasonRequired: 'Write a reason of at least 3 characters before this action.',
+    emailFormatHint: 'Enter a full address, for example name@laboratory.co.th',
     createNewAttempt: 'Create new attempt',
     benchRecord: 'Bench record',
     reagentLot: 'Reagent lot',
@@ -1188,6 +1192,8 @@ export const th: Translations = {
     memberStatus: 'สถานะ',
     statusPending: 'รอเข้าสู่ระบบครั้งแรก',
     statusActive: 'ใช้งานอยู่',
+    reasonRequired: 'ต้องเขียนเหตุผลอย่างน้อย 3 ตัวอักษรก่อนทำรายการนี้',
+    emailFormatHint: 'กรอกอีเมลเต็มรูปแบบ เช่น name@laboratory.co.th',
     createNewAttempt: 'สร้างการเตรียมครั้งใหม่',
     benchRecord: 'บันทึกบนโต๊ะปฏิบัติการ',
     reagentLot: 'ล็อตสารรีเอเจนต์',
