@@ -1,6 +1,7 @@
 /** Replay a signed card against the engines that are current at load time. */
 
 import type { CardStatus, ToolCall, ToolResult } from './types'
+import type { BrowserReleaseManifestClaim } from './browser-verifier'
 import { TOOL_BY_NAME } from './tools/registry'
 
 export type EngineReplayStatus = 'current' | 'superseded' | 'corrected' | 'unavailable'
@@ -34,6 +35,37 @@ export function isCurrentlyVerifiedAnswer(
     replay.status === 'current' &&
     replay.currentEngineAgrees &&
     replay.allVersionsCurrent
+}
+
+export type LiveLabRecordState = 'released' | 'voided' | 'unavailable'
+
+/**
+ * The verifier headline is a stronger claim than signature authenticity.
+ * A current artifact must pass every cryptographic/replay gate and, for a
+ * Lab-QC pack, the public record must still be released now.
+ *
+ * `null`/`not_applicable` mean the artifact predates a check, not that it
+ * failed one: a w3-v2 card has no provenance envelope at all, and neither a
+ * w3-v2 nor a w3-v3 card carries a release-manifest hash (that arrived at
+ * w3-v4). Requiring `=== true` / `=== 'matched_current'` here would flip
+ * every card issued before those features shipped to "not currently
+ * verified" the moment this check went live, even though nothing about them
+ * changed. Only an explicit failure — `false`, `'mismatch'`, or
+ * `'unavailable'` (the manifest could not be fetched just now) — may block
+ * the headline.
+ */
+export function isCurrentlyVerifiedArtifact(
+  cardStatus: CardStatus,
+  signatureIntact: boolean,
+  replay: EngineReplayAssessment,
+  artifactHashMatches: boolean | null,
+  releaseManifest: BrowserReleaseManifestClaim,
+  liveLabRecordState: LiveLabRecordState | null
+): boolean {
+  return isCurrentlyVerifiedAnswer(cardStatus, signatureIntact, replay) &&
+    artifactHashMatches !== false &&
+    (releaseManifest === 'matched_current' || releaseManifest === 'not_applicable') &&
+    (liveLabRecordState === null || liveLabRecordState === 'released')
 }
 
 const FLOAT_REPLAY_ULPS = 32

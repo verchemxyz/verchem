@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict'
 
-import { assessEngineReplay, isCurrentlyVerifiedAnswer } from '@/lib/answer-cards/replay'
+import { assessEngineReplay, isCurrentlyVerifiedAnswer, isCurrentlyVerifiedArtifact } from '@/lib/answer-cards/replay'
 import { CURRENT_ENGINE_VERSIONS } from '@/lib/answer-cards/engine-versions'
 import { signCard, verifyCardSignature } from '@/lib/answer-cards/signature'
 import { ALL_TOOLS, TOOL_BY_NAME } from '@/lib/answer-cards/tools/registry'
@@ -43,6 +43,26 @@ async function run(): Promise<void> {
   assert.equal(currentAssessment.allVersionsCurrent, true)
   assert.equal(isCurrentlyVerifiedAnswer('verified', true, currentAssessment), true)
   assert.equal(isCurrentlyVerifiedAnswer('partial', true, currentAssessment), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'matched_current', null), true)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, false, 'matched_current', null), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'mismatch', null), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'unavailable', null), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'matched_current', 'released'), true)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'matched_current', 'voided'), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'matched_current', 'unavailable'), false)
+  // A w3-v2 card predates the provenance envelope (artifactHashMatches: null)
+  // AND the release manifest (releaseManifest: 'not_applicable') together —
+  // that combination means "issued before these checks existed", not
+  // "failed them", and must still read as currently verified.
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, null, 'not_applicable', null), true)
+  // A w3-v3 card has a provenance envelope but predates the release-manifest
+  // hash (added at w3-v4): a validated hash with a not-yet-applicable
+  // manifest must also verify.
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, true, 'not_applicable', null), true)
+  // Historical provenance absence never overrides an explicit failure signal.
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, null, 'mismatch', null), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, null, 'unavailable', null), false)
+  assert.equal(isCurrentlyVerifiedArtifact('verified', true, currentAssessment, false, 'not_applicable', null), false)
 
   // Cross-runtime libm differences of a few ULPs are representational noise,
   // not a scientific correction. Replay must remain portable across engines.

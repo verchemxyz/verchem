@@ -426,6 +426,68 @@ export interface Translations {
     noRejectionReason: string
     storedEvidencePackUnavailable: string
     laboratoryNavigation: string
+    verifierCompactJwsArtifact: string
+    verifierMalformedEvidenceLink: string
+    verifierEvidencePackLoadFailed: string
+    verifierPublicKeysLoadFailed: string
+    verifierUnexpectedFailure: string
+    verifierFileTooLarge: string
+    verifierVerifying: string
+    verifierVerifyButton: string
+    verifierLoadJws: string
+    verifierInspectJwks: string
+    verifierLocalChecksHelp: string
+    verifierCurrentHeadline: string
+    verifierNotCurrentHeadline: string
+    verifierVoidedHeadline: string
+    verifierCurrentDetail: string
+    verifierVoidedDetail: string
+    verifierReviewDetail: string
+    verifierSignatureAuthenticity: string
+    verifierSignaturePass: string
+    verifierSignatureFail: string
+    verifierProvenanceIntegrity: string
+    verifierProvenancePass: string
+    verifierProvenanceFail: string
+    verifierProvenanceHistorical: string
+    verifierReleaseManifest: string
+    verifierManifestCurrent: string
+    verifierManifestSuperseded: string
+    verifierManifestMismatch: string
+    verifierManifestUnavailable: string
+    verifierManifestHistorical: string
+    verifierCurrentEngineReplay: string
+    verifierReplayNotAttempted: string
+    verifierApplicability: string
+    verifierNoApplicability: string
+    verifierLiveStatus: string
+    verifierLiveReleased: string
+    verifierLiveVoided: string
+    verifierLiveUnavailable: string
+    verifierDecodedPayload: string
+    verifierStatePass: string
+    verifierStateWarn: string
+    verifierStateFail: string
+    compactJwsTitle: string
+    compactJwsHelp: string
+    copyJws: string
+    copyJwsFailed: string
+    jwsCopied: string
+    downloadJws: string
+    requestNewShareLink: string
+    rotatingShareLink: string
+    shareLinkRotated: string
+    shareLinkRotationFailed: string
+    recordChangedReloaded: string
+    legalPrivacyLabOverview: string
+    legalPrivacyLabData: string
+    legalPrivacyRetentionGeneral: string
+    legalPrivacyRetentionLab: string
+    legalTermsEducationSurface: string
+    legalTermsLabSurface: string
+    legalTermsLabVerified: string
+    legalTermsYourContent: string
+    legalTermsDonations: string
   }
 
   // Footer
@@ -846,6 +908,68 @@ export const en: Translations = {
     noRejectionReason: 'No rejection reason was returned.',
     storedEvidencePackUnavailable: 'Stored evidence pack is unavailable.',
     laboratoryNavigation: 'Laboratory navigation',
+    verifierCompactJwsArtifact: 'Compact JWS artifact',
+    verifierMalformedEvidenceLink: 'The evidence-pack link is malformed.',
+    verifierEvidencePackLoadFailed: 'The evidence pack could not be loaded.',
+    verifierPublicKeysLoadFailed: 'Could not load VerChem’s published public keys.',
+    verifierUnexpectedFailure: 'Verification failed unexpectedly.',
+    verifierFileTooLarge: 'The selected artifact exceeds the 256 KiB verifier limit.',
+    verifierVerifying: 'Verifying in this browser…',
+    verifierVerifyButton: 'Verify in this browser',
+    verifierLoadJws: 'Load .jws file',
+    verifierInspectJwks: 'Inspect published JWKS',
+    verifierLocalChecksHelp: 'Signature and provenance checks run locally with Web Crypto. The artifact is not uploaded. Current-engine replay runs from the calculation code bundled with this page.',
+    verifierCurrentHeadline: 'CURRENT VERIFIED ARTIFACT',
+    verifierNotCurrentHeadline: 'NOT CURRENTLY VERIFIED',
+    verifierVoidedHeadline: 'RELEASED THEN VOIDED — NO LONGER CURRENT',
+    verifierCurrentDetail: 'The signature is authentic, provenance matches the current release, the deterministic engine reproduces the result, and the Lab record remains released when applicable.',
+    verifierVoidedDetail: 'The signed artifact remains authentic historical evidence, but the live Lab record has been voided and must not be treated as current.',
+    verifierReviewDetail: 'Review the independent checks below before relying on this artifact.',
+    verifierSignatureAuthenticity: 'Signature authenticity',
+    verifierSignaturePass: 'Ed25519 signature matches the published key',
+    verifierSignatureFail: 'Signature verification failed.',
+    verifierProvenanceIntegrity: 'Provenance integrity',
+    verifierProvenancePass: 'The SHA-256 artifact hash matches the signed deterministic tool calls.',
+    verifierProvenanceFail: 'The provenance hash does not match the signed tool calls.',
+    verifierProvenanceHistorical: 'This historical artifact predates the provenance envelope.',
+    verifierReleaseManifest: 'Release manifest',
+    verifierManifestCurrent: 'Engine and data content hashes at issue time match the current published release manifest.',
+    verifierManifestSuperseded: 'Issued under an earlier published release; a newer release is now current.',
+    verifierManifestMismatch: 'The signed card does not match a valid published release manifest.',
+    verifierManifestUnavailable: 'The published release manifest could not be fetched. This does not change signature authenticity.',
+    verifierManifestHistorical: 'This historical artifact predates release-manifest provenance.',
+    verifierCurrentEngineReplay: 'Current engine replay',
+    verifierReplayNotAttempted: 'Replay was not attempted because no valid supported payload was decoded.',
+    verifierApplicability: 'Applicability declaration',
+    verifierNoApplicability: 'No machine-readable applicability declaration is present. Scientific applicability requires human review.',
+    verifierLiveStatus: 'Live Lab record status',
+    verifierLiveReleased: 'The public status endpoint confirms that this record remains released.',
+    verifierLiveVoided: 'The public status endpoint confirms that this record was released and later voided.',
+    verifierLiveUnavailable: 'The current Lab record status could not be confirmed. Signature authenticity is unaffected, but current use is not established.',
+    verifierDecodedPayload: 'Decoded signed payload',
+    verifierStatePass: 'pass',
+    verifierStateWarn: 'warning',
+    verifierStateFail: 'fail',
+    compactJwsTitle: 'Compact JWS — independently verifiable artifact',
+    compactJwsHelp: 'Copy this complete value into /verify or save the .jws file. It is the signed source of truth for this certificate.',
+    copyJws: 'Copy JWS',
+    copyJwsFailed: 'Could not copy the compact JWS.',
+    jwsCopied: 'JWS copied',
+    downloadJws: 'Download signed JWS',
+    requestNewShareLink: 'Request a new verification link',
+    rotatingShareLink: 'Creating a new link…',
+    shareLinkRotated: 'A new verification link was created. Any previous link no longer works.',
+    shareLinkRotationFailed: 'The verification link could not be replaced. Reload the record and try again.',
+    recordChangedReloaded: 'Someone changed this record after you opened it. The latest saved version has been reloaded.',
+    legalPrivacyLabOverview: 'VerChem Lab is a separate controlled-record surface for laboratory preparation, review, release, and external verification.',
+    legalPrivacyLabData: 'VerChem Lab stores the organization, preparation template, declared measurements, actor identity and verification level, audit events, release or void status, and the signed evidence pack needed to operate and verify the record.',
+    legalPrivacyRetentionGeneral: 'Saved educational content remains until you delete it where a deletion control is available, or until you ask us to close your account. Contact us at the address below to request deletion of account data that is not part of a VerChem Lab audit record.',
+    legalPrivacyRetentionLab: 'VerChem Lab preparation records and their audit events cannot be deleted once created. This append-only history is what allows an external auditor to test the integrity of an evidence pack. A released record may later be marked void, but neither the record nor its audit events are erased.',
+    legalTermsEducationSurface: 'VerChem provides free chemistry education and reference tools, including calculators, chemical data, structure tools, search, and AI Verified Answer Cards.',
+    legalTermsLabSurface: 'VerChem Lab provides controlled preparation records for laboratories. Lab records use append-only audit events so later changes remain detectable and released evidence can be checked by an external auditor.',
+    legalTermsLabVerified: 'For VerChem Lab evidence packs, a valid signature means the signed payload has not changed and was issued with a published VerChem signing key. It does not certify that the declared bench work was performed correctly, and a separately authentic record may later be voided.',
+    legalTermsYourContent: 'You retain ownership of content you create. Educational content that has a deletion control may be deleted through that control. VerChem Lab preparation records and audit events are different: once created they are append-only and cannot be deleted, although a released record may be marked void. By choosing to make an item public through a share link, you permit us to store and display it as needed to provide that feature.',
+    legalTermsDonations: 'VerChem’s chemistry education tools are free. Donations are voluntary, are processed by Stripe, and support continued development. Because no goods or services are exchanged for a donation, donations are generally non-refundable except where required by law.',
   },
 
   footer: {
@@ -1265,6 +1389,68 @@ export const th: Translations = {
     noRejectionReason: 'ไม่มีการส่งเหตุผลการไม่อนุมัติกลับมา',
     storedEvidencePackUnavailable: 'evidence pack ที่จัดเก็บไว้ไม่พร้อมใช้งาน',
     laboratoryNavigation: 'การนำทางห้องปฏิบัติการ',
+    verifierCompactJwsArtifact: 'อาร์ติแฟกต์ Compact JWS',
+    verifierMalformedEvidenceLink: 'ลิงก์ evidence pack มีรูปแบบไม่ถูกต้อง',
+    verifierEvidencePackLoadFailed: 'ไม่สามารถโหลด evidence pack ได้',
+    verifierPublicKeysLoadFailed: 'ไม่สามารถโหลดกุญแจสาธารณะที่ VerChem เผยแพร่ได้',
+    verifierUnexpectedFailure: 'เกิดข้อผิดพลาดที่ไม่คาดคิดระหว่างการตรวจสอบ',
+    verifierFileTooLarge: 'อาร์ติแฟกต์ที่เลือกมีขนาดเกินขีดจำกัด 256 KiB ของตัวตรวจสอบ',
+    verifierVerifying: 'กำลังตรวจสอบในเบราว์เซอร์นี้…',
+    verifierVerifyButton: 'ตรวจสอบในเบราว์เซอร์นี้',
+    verifierLoadJws: 'โหลดไฟล์ .jws',
+    verifierInspectJwks: 'ตรวจดูกุญแจ JWKS ที่เผยแพร่',
+    verifierLocalChecksHelp: 'การตรวจลายเซ็นและ provenance ทำในเครื่องด้วย Web Crypto โดยไม่อัปโหลดอาร์ติแฟกต์ และ replay ด้วย engine ปัจจุบันที่อยู่ในหน้านี้',
+    verifierCurrentHeadline: 'อาร์ติแฟกต์ที่ตรวจสอบแล้วและยังเป็นปัจจุบัน',
+    verifierNotCurrentHeadline: 'ไม่ใช่อาร์ติแฟกต์ที่ตรวจสอบแล้วในสถานะปัจจุบัน',
+    verifierVoidedHeadline: 'เคยออกบันทึกแล้วแต่ถูกยกเลิก — ไม่เป็นปัจจุบันอีกต่อไป',
+    verifierCurrentDetail: 'ลายเซ็นแท้ provenance ตรงกับรุ่นปัจจุบัน engine ให้ผลซ้ำตรงกัน และบันทึก Lab ยังคงอยู่ในสถานะออกบันทึกเมื่อเกี่ยวข้อง',
+    verifierVoidedDetail: 'อาร์ติแฟกต์ที่เซ็นแล้วยังคงเป็นหลักฐานประวัติที่แท้ แต่บันทึก Lab ปัจจุบันถูกยกเลิกแล้วและห้ามถือว่ายังใช้ได้',
+    verifierReviewDetail: 'โปรดตรวจผลการตรวจสอบอิสระด้านล่างก่อนนำอาร์ติแฟกต์นี้ไปใช้',
+    verifierSignatureAuthenticity: 'ความแท้ของลายเซ็น',
+    verifierSignaturePass: 'ลายเซ็น Ed25519 ตรงกับกุญแจสาธารณะ',
+    verifierSignatureFail: 'การตรวจสอบลายเซ็นไม่ผ่าน',
+    verifierProvenanceIntegrity: 'ความสมบูรณ์ของ provenance',
+    verifierProvenancePass: 'แฮช SHA-256 ของอาร์ติแฟกต์ตรงกับ tool call แบบกำหนดผลแน่นอนที่เซ็นไว้',
+    verifierProvenanceFail: 'แฮช provenance ไม่ตรงกับ tool call ที่เซ็นไว้',
+    verifierProvenanceHistorical: 'อาร์ติแฟกต์เก่านี้สร้างก่อนมี provenance envelope',
+    verifierReleaseManifest: 'Release manifest',
+    verifierManifestCurrent: 'แฮชเนื้อหา engine และข้อมูล ณ เวลาออกบันทึกตรงกับ release manifest ปัจจุบันที่เผยแพร่',
+    verifierManifestSuperseded: 'ออกด้วย release ที่เผยแพร่ก่อนหน้า และขณะนี้มี release ใหม่กว่าแล้ว',
+    verifierManifestMismatch: 'การ์ดที่เซ็นไว้ไม่ตรงกับ release manifest ที่เผยแพร่และตรวจสอบได้',
+    verifierManifestUnavailable: 'ไม่สามารถดึง release manifest ที่เผยแพร่ได้ แต่ไม่กระทบความแท้ของลายเซ็น',
+    verifierManifestHistorical: 'อาร์ติแฟกต์เก่านี้สร้างก่อนมี release-manifest provenance',
+    verifierCurrentEngineReplay: 'Replay ด้วย engine ปัจจุบัน',
+    verifierReplayNotAttempted: 'ไม่ได้ทำ replay เพราะถอดรหัส payload ที่ระบบรองรับไม่ได้',
+    verifierApplicability: 'คำประกาศขอบเขตการใช้งาน',
+    verifierNoApplicability: 'ไม่มีคำประกาศขอบเขตการใช้งานที่เครื่องอ่านได้ การประเมินความเหมาะสมทางวิทยาศาสตร์ยังต้องใช้มนุษย์ตรวจ',
+    verifierLiveStatus: 'สถานะสดของบันทึก Lab',
+    verifierLiveReleased: 'public status endpoint ยืนยันว่าบันทึกนี้ยังอยู่ในสถานะออกบันทึก',
+    verifierLiveVoided: 'public status endpoint ยืนยันว่าบันทึกนี้เคยออกแล้วและถูกยกเลิกภายหลัง',
+    verifierLiveUnavailable: 'ไม่สามารถยืนยันสถานะปัจจุบันของบันทึก Lab ได้ ความแท้ของลายเซ็นไม่เปลี่ยน แต่ยังยืนยันการใช้ในปัจจุบันไม่ได้',
+    verifierDecodedPayload: 'Payload ที่เซ็นแล้วและถอดรหัส',
+    verifierStatePass: 'ผ่าน',
+    verifierStateWarn: 'คำเตือน',
+    verifierStateFail: 'ไม่ผ่าน',
+    compactJwsTitle: 'Compact JWS — อาร์ติแฟกต์ที่ตรวจสอบได้อย่างอิสระ',
+    compactJwsHelp: 'คัดลอกค่าฉบับเต็มนี้ไปวางใน /verify หรือบันทึกเป็นไฟล์ .jws ค่านี้คือต้นฉบับที่เซ็นแล้วของใบรับรองนี้',
+    copyJws: 'คัดลอก JWS',
+    copyJwsFailed: 'ไม่สามารถคัดลอก Compact JWS ได้',
+    jwsCopied: 'คัดลอก JWS แล้ว',
+    downloadJws: 'ดาวน์โหลด JWS ที่เซ็นแล้ว',
+    requestNewShareLink: 'ขอลิงก์ตรวจสอบใหม่',
+    rotatingShareLink: 'กำลังสร้างลิงก์ใหม่…',
+    shareLinkRotated: 'สร้างลิงก์ตรวจสอบใหม่แล้ว ลิงก์ก่อนหน้าจะใช้ไม่ได้อีกต่อไป',
+    shareLinkRotationFailed: 'ไม่สามารถเปลี่ยนลิงก์ตรวจสอบได้ โปรดโหลดบันทึกใหม่แล้วลองอีกครั้ง',
+    recordChangedReloaded: 'มีผู้อื่นแก้บันทึกนี้หลังจากคุณเปิดหน้า ระบบโหลดข้อมูลล่าสุดที่บันทึกไว้แล้ว',
+    legalPrivacyLabOverview: 'VerChem Lab เป็นพื้นผิวแยกสำหรับการควบคุมบันทึกการเตรียม การทบทวน การออกบันทึก และการตรวจสอบโดยบุคคลภายนอก',
+    legalPrivacyLabData: 'VerChem Lab จัดเก็บข้อมูลองค์กร แม่แบบการเตรียม ค่าที่ผู้ใช้ประกาศ ตัวตนและระดับการยืนยันของผู้ดำเนินการ เหตุการณ์ audit สถานะออกบันทึกหรือยกเลิก และ evidence pack ที่เซ็นแล้วเท่าที่จำเป็นต่อการทำงานและตรวจสอบบันทึก',
+    legalPrivacyRetentionGeneral: 'เนื้อหาด้านการศึกษาที่บันทึกไว้จะคงอยู่จนกว่าคุณจะลบผ่านตัวควบคุมการลบที่มีให้ หรือขอให้เราปิดบัญชี โปรดติดต่อเราตามที่อยู่ด้านล่างเพื่อขอลบข้อมูลบัญชีที่ไม่เป็นส่วนหนึ่งของ audit record ของ VerChem Lab',
+    legalPrivacyRetentionLab: 'บันทึกการเตรียมของ VerChem Lab และเหตุการณ์ audit ของบันทึกนั้นไม่สามารถลบได้หลังสร้าง ประวัติแบบ append-only นี้ทำให้ผู้ตรวจประเมินภายนอกตรวจความสมบูรณ์ของ evidence pack ได้ บันทึกที่ออกแล้วสามารถเปลี่ยนสถานะเป็นยกเลิกได้ภายหลัง แต่ตัวบันทึกและเหตุการณ์ audit จะไม่ถูกลบ',
+    legalTermsEducationSurface: 'VerChem ให้บริการเครื่องมือการศึกษาและอ้างอิงด้านเคมีโดยไม่คิดค่าใช้จ่าย รวมถึงเครื่องคำนวณ ข้อมูลเคมี เครื่องมือโครงสร้าง การค้นหา และ AI Verified Answer Cards',
+    legalTermsLabSurface: 'VerChem Lab ให้บริการบันทึกการเตรียมสารแบบควบคุมสำหรับห้องปฏิบัติการ โดยใช้เหตุการณ์ audit แบบ append-only เพื่อให้ตรวจพบการเปลี่ยนแปลงภายหลังและให้ผู้ตรวจประเมินภายนอกตรวจหลักฐานที่ออกแล้วได้',
+    legalTermsLabVerified: 'สำหรับ evidence pack ของ VerChem Lab ลายเซ็นที่ผ่านหมายความว่า payload ที่เซ็นไม่ถูกเปลี่ยนและออกด้วยกุญแจลงนามของ VerChem ที่เผยแพร่ ไม่ได้รับรองว่าการปฏิบัติงานบนโต๊ะที่ประกาศไว้ทำอย่างถูกต้อง และบันทึกที่ลายเซ็นแท้อาจถูกยกเลิกภายหลังได้',
+    legalTermsYourContent: 'คุณยังคงเป็นเจ้าของเนื้อหาที่สร้าง เนื้อหาด้านการศึกษาที่มีตัวควบคุมการลบสามารถลบผ่านตัวควบคุมนั้นได้ ส่วนบันทึกการเตรียมและเหตุการณ์ audit ของ VerChem Lab เมื่อสร้างแล้วจะเป็นแบบ append-only และลบไม่ได้ แม้บันทึกที่ออกแล้วจะเปลี่ยนสถานะเป็นยกเลิกได้ เมื่อคุณเลือกเผยแพร่รายการผ่านลิงก์แชร์ คุณอนุญาตให้เราจัดเก็บและแสดงรายการนั้นเท่าที่จำเป็นต่อการให้บริการฟีเจอร์ดังกล่าว',
+    legalTermsDonations: 'เครื่องมือการศึกษาด้านเคมีของ VerChem ให้บริการโดยไม่คิดค่าใช้จ่าย การบริจาคเป็นความสมัครใจ ประมวลผลโดย Stripe และสนับสนุนการพัฒนาต่อ เนื่องจากไม่มีสินค้าหรือบริการแลกกับการบริจาค โดยทั่วไปการบริจาคจึงไม่คืนเงิน เว้นแต่กฎหมายกำหนด',
   },
 
   footer: {
