@@ -67,6 +67,16 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     )
+  },
+  {
+    href: '/lab',
+    labelKey: 'navigation.labQc',
+    descriptionKey: 'navigation.labQcDescription',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3h6m-5 0v5.172a2 2 0 01-.586 1.414l-5 5A2 2 0 005.828 20h12.344a2 2 0 001.414-3.414l-5-5A2 2 0 0114 10.172V3M8 14h8" />
+      </svg>
+    )
   }
 ];
 

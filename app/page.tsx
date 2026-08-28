@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Spectral } from "next/font/google";
 import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 import { VerificationSpectrum } from "@/components/VerificationSpectrum";
+import { LabQcSection } from "@/components/home/LabQcSection";
 import { COMPOUND_STATISTICS } from "@/lib/data/compounds";
 import { signCard } from "@/lib/answer-cards/signature";
 import { getActiveSigningKey } from "@/lib/answer-cards/signing-key";
@@ -21,6 +23,13 @@ const STRUCTURE_WORKFLOW = [
     number: "03",
   },
 ] as const;
+
+const spectral = Spectral({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-lab-display",
+  display: "swap",
+});
 
 export default async function Home() {
   // Build-time/server rendering runs the REAL pipeline: live engine, live
@@ -250,6 +259,11 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Lab-QC front door — static copy; the authenticated workspace stays at /lab. */}
+      <div className={spectral.variable}>
+        <LabQcSection />
+      </div>
 
       {/* Tools Grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

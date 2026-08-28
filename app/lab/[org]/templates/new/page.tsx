@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { FormEvent, useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { requiredPrepFieldLabel } from '@/components/lab-qc'
@@ -99,7 +100,7 @@ export default function NewTemplatePage() {
     } finally { setSaving(false) }
   }
 
-  if (organization && !mayManage) return <p className="text-destructive-strong">{t.errorPrefix} {t.roleRequired}</p>
+  if (organization && !mayManage) return <section className="lab-document mx-auto max-w-2xl p-6"><p className="text-destructive-strong">{t.errorPrefix} {t.roleRequired}</p><Link href={`/lab/${org}/templates`} className="mt-4 inline-flex min-h-[44px] items-center border border-border bg-card px-4 py-2.5 font-medium text-foreground hover:bg-muted">{t.manageTemplates}</Link></section>
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-4xl space-y-7">

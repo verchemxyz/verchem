@@ -36,10 +36,10 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
   title: {
-    default: "VerChem — Verified Chemistry Workbench",
+    default: "VerChem — Verified Chemistry Workbench & Lab-QC Evidence",
     template: "%s | VerChem"
   },
-  description: "Free deterministic chemistry calculators plus optional Ed25519 JWS-signed Verified Answer Cards that anyone can check against VerChem's published public keys. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
+  description: "Free deterministic chemistry calculators and a verified chemistry workbench, plus controlled standard-preparation records with independent release and Ed25519 JWS-signed evidence packs. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
   keywords: [
     "chemistry calculator",
     "equation balancer",
@@ -55,7 +55,11 @@ export const metadata: Metadata = {
     "Lewis structures",
     "VSEPR geometry",
     "accessible chemistry",
-    "WCAG compliant"
+    "WCAG compliant",
+    "laboratory quality control",
+    "ISO IEC 17025 laboratory records",
+    "controlled standard preparation",
+    "verifiable laboratory evidence"
   ],
   authors: [{ name: "VerChem Team" }],
   creator: "VerChem",
@@ -70,21 +74,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
-    title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Free deterministic chemistry calculators with Ed25519 JWS-signed Verified Answer Cards anyone can check against our public keys.',
+    title: 'VerChem — Chemistry Workbench & Lab-QC Evidence',
+    description: 'Deterministic chemistry tools plus controlled standard-preparation records and Ed25519 JWS-signed evidence packs.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'VerChem Verified Chemistry Workbench',
+        alt: 'VerChem Chemistry Workbench and Lab-QC evidence',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VerChem — Verified Chemistry Workbench',
-    description: 'Free deterministic chemistry calculators with Ed25519 JWS-signed Verified Answer Cards anyone can check against our public keys.',
+    title: 'VerChem — Chemistry Workbench & Lab-QC Evidence',
+    description: 'Deterministic chemistry tools plus controlled standard-preparation records and Ed25519 JWS-signed evidence packs.',
     images: ['/opengraph-image.png'],
   },
   robots: {

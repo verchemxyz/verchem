@@ -10,10 +10,12 @@
     "periodicTable": "ตารางธาตุ",
     "compounds": "สารประกอบ",
     "tools": "เครื่องมือ",
+    "labQc": "Lab-QC",
     "periodicTableDescription": "ดูตารางธาตุ",
     "compoundsDescription": "เรียกดูข้อมูลสารประกอบเคมี",
     "calculatorsDescription": "ใช้เครื่องคำนวณเคมี",
     "toolsDescription": "เปิดเครื่องมือและยูทิลิตีเคมี",
+    "labQcDescription": "เปิดบันทึกการเตรียมสารแบบควบคุมและหลักฐานที่ตรวจสอบได้อย่างอิสระ",
     "quickSearch": "ค้นหาด่วน",
     "toggleMenu": "เปิดหรือปิดเมนูนำทาง",
     "mobileNavigation": "เมนูนำทางบนมือถือ",
@@ -23,6 +25,26 @@
     "help": "ช่วยเหลือ",
     "about": "เกี่ยวกับ",
     "settings": "ตั้งค่า"
+  },
+  "home": {
+    "labQc": {
+      "eyebrow": "VERCHEM LAB · CONTROLLED STANDARD PREPARATION",
+      "headline": "จากการเตรียมสารมาตรฐานที่ควบคุมได้ สู่หลักฐานที่คนภายนอกตรวจเองได้",
+      "subhead": "ใช้แม่แบบที่อนุมัติแล้ว บันทึก lot, CoA, ค่าชั่งจริงและ uncertainty แยกผู้เตรียมจากผู้ปล่อยผล แล้วออก evidence pack ที่เซ็นด้วย Ed25519 JWS",
+      "context": "ออกแบบมาเพื่อสนับสนุนการควบคุมข้อมูลของแลบทดสอบที่ทำงานภายใต้ ISO/IEC 17025",
+      "workflowLabel": "ขั้นตอนการเตรียมสารแบบควบคุม",
+      "step1Title": "ควบคุมแม่แบบ",
+      "step1Description": "สูตร ค่าเป้าหมาย และเกณฑ์ยอมรับจะถูกตรึงหลังอนุมัติ",
+      "step2Title": "บันทึกสิ่งที่เกิดขึ้นจริง",
+      "step2Description": "บันทึก lot, CoA, ค่าชั่งหรือปริมาตรจริง อุปกรณ์ อุณหภูมิ และ uncertainty",
+      "step3Title": "ให้คนที่สองปล่อยผล",
+      "step3Description": "ผู้เตรียมไม่สามารถปล่อยผลในบันทึกของตนเอง",
+      "step4Title": "ออกหลักฐานที่ replay ได้",
+      "step4Description": "ออก JSON ที่เซ็นแล้ว เชื่อมกับ public key และ browser verifier",
+      "limitation": "ลายเซ็นยืนยันความสมบูรณ์ของข้อมูลตามที่ VerChem ออกให้ ไม่ได้รับรองว่าการปฏิบัติงานบนโต๊ะแลบถูกต้อง และไม่ใช่ใบรับรอง ISO/IEC 17025",
+      "openLab": "เปิดพื้นที่ VerChem Lab",
+      "verifyPack": "ตรวจ evidence pack"
+    }
   },
   "calculators": {
     "title": "เครื่องคำนวณเคมี",

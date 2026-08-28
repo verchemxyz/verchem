@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { TemplateStatusChip, requiredPrepFieldLabel } from '@/components/lab-qc'
@@ -43,6 +44,7 @@ export default function TemplateDetailPage() {
   const mayManage = organization?.role === 'owner' || organization?.role === 'reviewer'
   const mayApprove = mayManage && template.status === 'draft' && organization?.member_aiverid !== template.created_by
   const mayRetire = mayManage && template.status === 'approved'
+  const awaitsIndependentApproval = mayManage && template.status === 'draft' && organization?.member_aiverid === template.created_by
   const target = template.spec.target
 
   return (
@@ -53,6 +55,7 @@ export default function TemplateDetailPage() {
       <section className="grid gap-6 md:grid-cols-2"><div className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.requiredFields}</h2><ul className="mt-4 space-y-2 font-mono text-sm text-foreground">{template.spec.requiredFields.map((field) => <li key={field}>{requiredPrepFieldLabel(t, field)}</li>)}</ul></div><div className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.instructions}</h2><ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-foreground">{template.spec.instructions.map((instruction, index) => <li key={`${instruction}-${index}`}>{instruction}</li>)}</ol></div></section>
       <section className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.citations}</h2><ul className="mt-4 space-y-2 text-sm text-muted-foreground">{template.spec.citations.map((citation, index) => <li key={`${citation}-${index}`}>{citation}</li>)}</ul></section>
       <div className="flex flex-wrap gap-3">{mayApprove && <button disabled={busy} onClick={() => mutate('approve')} className="min-h-[44px] rounded-md bg-[var(--lab-accent)] px-5 py-2.5 font-medium text-white disabled:opacity-50">{t.approve}</button>}{mayRetire && <button disabled={busy} onClick={() => mutate('retire')} className="min-h-[44px] rounded-md border border-warning/50 px-5 py-2.5 font-medium text-warning-strong disabled:opacity-50">{t.retire}</button>}</div>
+      {awaitsIndependentApproval && <section className="lab-document border-t-2 border-t-[var(--lab-accent)] p-5"><h2 className="lab-display text-xl font-semibold">{t.templateCreatorCannotApprove}</h2><p className="mt-3 text-sm text-muted-foreground">{t.templateCreatorCannotApproveHelp}</p><Link href={`/lab/${org}/members`} className="mt-4 inline-flex min-h-[44px] items-center border border-border bg-card px-4 py-2.5 font-medium text-foreground hover:bg-muted">{t.members}</Link></section>}
     </div>
   )
 }

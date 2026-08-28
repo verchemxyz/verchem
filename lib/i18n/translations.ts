@@ -264,6 +264,10 @@ export interface Translations {
     members: string
     createLab: string
     createLabDescription: string
+    beforeYouBegin: string
+    beforeYouBeginTeam: string
+    beforeYouBeginTemplateReview: string
+    beforeYouBeginRecordRelease: string
     labName: string
     country: string
     accreditationRef: string
@@ -273,8 +277,14 @@ export interface Translations {
     manageTemplates: string
     recentRecords: string
     noRecords: string
+    noRecordsInSelectedState: string
     noApprovedTemplates: string
+    noTemplatesYet: string
+    noApprovedTemplatesCreate: string
+    noApprovedTemplatesReview: string
+    ownerReviewerTemplateRequired: string
     newTemplate: string
+    viewTemplate: string
     template: string
     version: string
     approved: string
@@ -356,6 +366,30 @@ export interface Translations {
     reasonRequired: string
     emailFormatHint: string
     createNewAttempt: string
+    labWorkspace: string
+    whatToDoNext: string
+    nextCreateFirstTemplate: string
+    nextCreateFirstTemplateHelp: string
+    nextInviteColleague: string
+    nextInviteColleagueHelp: string
+    nextPendingReviewerSignIn: string
+    nextPendingReviewerSignInHelp: string
+    nextApproveTemplate: string
+    nextApproveTemplateHelp: string
+    nextReviewSubmittedHelp: string
+    nextAwaitTemplateApproval: string
+    nextAwaitTemplateApprovalHelp: string
+    nextResumeDraft: string
+    nextResumeDraftHelp: string
+    nextStartPreparation: string
+    nextStartPreparationHelp: string
+    nextRequestPreparation: string
+    nextRequestPreparationHelp: string
+    waitingForYourReview: string
+    myDrafts: string
+    recentlyReleasedEvidence: string
+    templateCreatorCannotApprove: string
+    templateCreatorCannotApproveHelp: string
     benchRecord: string
     reagentLot: string
     expiry: string
@@ -746,6 +780,10 @@ export const en: Translations = {
     members: 'Members',
     createLab: 'Create your laboratory',
     createLabDescription: 'Set up the organization that owns controlled preparation records.',
+    beforeYouBegin: 'Before you begin',
+    beforeYouBeginTeam: 'At least two AIVerID users are required to complete the controlled workflow.',
+    beforeYouBeginTemplateReview: 'A template creator cannot approve their own template.',
+    beforeYouBeginRecordRelease: 'A preparer cannot release their own preparation record.',
     labName: 'Laboratory name',
     country: 'Country (ISO 3166-1 alpha-2)',
     accreditationRef: 'Accreditation reference',
@@ -755,8 +793,14 @@ export const en: Translations = {
     manageTemplates: 'Manage templates',
     recentRecords: 'Recent records',
     noRecords: 'No preparation records yet.',
+    noRecordsInSelectedState: 'No preparation records match the selected state.',
     noApprovedTemplates: 'Approve a template before creating a preparation record.',
+    noTemplatesYet: 'No templates have been created yet.',
+    noApprovedTemplatesCreate: 'No approved templates are available. Create a template, then have a different owner or reviewer approve it.',
+    noApprovedTemplatesReview: 'No approved templates are available. A draft template is awaiting review.',
+    ownerReviewerTemplateRequired: 'An owner or reviewer must create the first template, and a different owner or reviewer must approve it before a preparation can start.',
     newTemplate: 'New template',
+    viewTemplate: 'View template',
     template: 'Template',
     version: 'Version',
     approved: 'Approved',
@@ -838,6 +882,30 @@ export const en: Translations = {
     reasonRequired: 'Write a reason of at least 3 characters before this action.',
     emailFormatHint: 'Enter a full address, for example name@laboratory.co.th',
     createNewAttempt: 'Create new attempt',
+    labWorkspace: 'Laboratory workspace',
+    whatToDoNext: 'What to do next',
+    nextCreateFirstTemplate: 'Create your first controlled template',
+    nextCreateFirstTemplateHelp: 'Define the target, acceptance criteria, required bench fields, instructions, and citations before preparation begins.',
+    nextInviteColleague: 'Invite a colleague before a template can be approved',
+    nextInviteColleagueHelp: 'The template creator cannot approve their own template. Add a second active owner or reviewer to provide independent approval.',
+    nextPendingReviewerSignIn: 'Ask the invited reviewer to sign in before a template can be approved',
+    nextPendingReviewerSignInHelp: 'The invitation is still pending. It becomes an active laboratory membership when the colleague signs in with AIVerID using the invited email address.',
+    nextApproveTemplate: 'Approve a draft template',
+    nextApproveTemplateHelp: 'An independent owner or reviewer must approve the controlled template before anyone can start a preparation.',
+    nextReviewSubmittedHelp: 'A submitted preparation needs an independent owner or reviewer to release or reject it.',
+    nextAwaitTemplateApproval: 'Ask another owner or reviewer to approve your draft template',
+    nextAwaitTemplateApprovalHelp: 'The creator cannot approve the template they wrote.',
+    nextResumeDraft: 'Continue your draft preparation',
+    nextResumeDraftHelp: 'Record the actual bench measurements, preview the result, then submit it for independent release.',
+    nextStartPreparation: 'Start a preparation from an approved template',
+    nextStartPreparationHelp: 'Approved templates are ready for a new controlled preparation record.',
+    nextRequestPreparation: 'Ask an owner, reviewer, or analyst to start a preparation',
+    nextRequestPreparationHelp: 'Your current role can view controlled records but cannot create a preparation.',
+    waitingForYourReview: 'Waiting for your review',
+    myDrafts: 'My drafts',
+    recentlyReleasedEvidence: 'Recently released evidence',
+    templateCreatorCannotApprove: 'This template awaits independent approval.',
+    templateCreatorCannotApproveHelp: 'The template creator cannot approve their own template. Ask an owner to invite or assign another reviewer.',
     benchRecord: 'Bench record',
     reagentLot: 'Reagent lot',
     expiry: 'Expiry',
@@ -1227,6 +1295,10 @@ export const th: Translations = {
     members: 'สมาชิก',
     createLab: 'สร้างห้องปฏิบัติการของคุณ',
     createLabDescription: 'ตั้งค่าองค์กรที่เป็นเจ้าของบันทึกการเตรียมสารแบบควบคุม',
+    beforeYouBegin: 'ก่อนเริ่มต้น',
+    beforeYouBeginTeam: 'ต้องมีผู้ใช้ AIVerID อย่างน้อย 2 คนจึงจะทำ workflow แบบควบคุมได้ครบ',
+    beforeYouBeginTemplateReview: 'ผู้สร้างแม่แบบไม่สามารถอนุมัติแม่แบบของตนเองได้',
+    beforeYouBeginRecordRelease: 'ผู้เตรียมไม่สามารถปล่อยผลในบันทึกการเตรียมของตนเองได้',
     labName: 'ชื่อห้องปฏิบัติการ',
     country: 'ประเทศ (ISO 3166-1 alpha-2)',
     accreditationRef: 'เลขอ้างอิงการรับรอง',
@@ -1236,8 +1308,14 @@ export const th: Translations = {
     manageTemplates: 'จัดการแม่แบบ',
     recentRecords: 'บันทึกล่าสุด',
     noRecords: 'ยังไม่มีบันทึกการเตรียมสาร',
+    noRecordsInSelectedState: 'ไม่พบบันทึกการเตรียมสารที่ตรงกับสถานะที่เลือก',
     noApprovedTemplates: 'อนุมัติแม่แบบก่อนสร้างบันทึกการเตรียมสาร',
+    noTemplatesYet: 'ยังไม่มีการสร้างแม่แบบ',
+    noApprovedTemplatesCreate: 'ยังไม่มีแม่แบบที่อนุมัติแล้ว สร้างแม่แบบ แล้วให้ owner หรือ reviewer คนอื่นอนุมัติ',
+    noApprovedTemplatesReview: 'ยังไม่มีแม่แบบที่อนุมัติแล้ว มีแม่แบบฉบับร่างรอการตรวจทานอยู่',
+    ownerReviewerTemplateRequired: 'owner หรือ reviewer ต้องสร้างแม่แบบฉบับแรก และ owner หรือ reviewer คนอื่นต้องอนุมัติก่อนจึงจะเริ่มเตรียมสารได้',
     newTemplate: 'แม่แบบใหม่',
+    viewTemplate: 'ดูแม่แบบ',
     template: 'แม่แบบ',
     version: 'รุ่น',
     approved: 'อนุมัติแล้ว',
@@ -1319,6 +1397,30 @@ export const th: Translations = {
     reasonRequired: 'ต้องเขียนเหตุผลอย่างน้อย 3 ตัวอักษรก่อนทำรายการนี้',
     emailFormatHint: 'กรอกอีเมลเต็มรูปแบบ เช่น name@laboratory.co.th',
     createNewAttempt: 'สร้างการเตรียมครั้งใหม่',
+    labWorkspace: 'พื้นที่ทำงานห้องปฏิบัติการ',
+    whatToDoNext: 'สิ่งที่ต้องทำต่อ',
+    nextCreateFirstTemplate: 'สร้างแม่แบบควบคุมฉบับแรก',
+    nextCreateFirstTemplateHelp: 'กำหนดค่าเป้าหมาย เกณฑ์ยอมรับ ข้อมูลหน้างานที่ต้องระบุ คำแนะนำ และเอกสารอ้างอิงก่อนเริ่มเตรียมสาร',
+    nextInviteColleague: 'เชิญเพื่อนร่วมงานก่อนจึงจะอนุมัติแม่แบบได้',
+    nextInviteColleagueHelp: 'ผู้สร้างแม่แบบอนุมัติแม่แบบของตนเองไม่ได้ ต้องมี owner หรือ reviewer ที่ใช้งานอยู่คนที่สองเพื่ออนุมัติอย่างอิสระ',
+    nextPendingReviewerSignIn: 'ขอให้ reviewer ที่เชิญเข้าสู่ระบบก่อนจึงจะอนุมัติแม่แบบได้',
+    nextPendingReviewerSignInHelp: 'คำเชิญยังรอการเปิดใช้ จะกลายเป็นสมาชิกห้องปฏิบัติการที่ใช้งานอยู่เมื่อเพื่อนร่วมงานเข้าสู่ระบบด้วย AIVerID โดยใช้อีเมลที่เชิญ',
+    nextApproveTemplate: 'อนุมัติแม่แบบฉบับร่าง',
+    nextApproveTemplateHelp: 'owner หรือ reviewer ที่เป็นอิสระต้องอนุมัติแม่แบบควบคุมก่อนจึงจะเริ่มเตรียมสารได้',
+    nextReviewSubmittedHelp: 'การเตรียมสารที่ส่งตรวจแล้วต้องให้ owner หรือ reviewer ที่เป็นอิสระปล่อยผลหรือไม่อนุมัติ',
+    nextAwaitTemplateApproval: 'ขอให้ owner หรือ reviewer คนอื่นอนุมัติแม่แบบฉบับร่างของคุณ',
+    nextAwaitTemplateApprovalHelp: 'ผู้สร้างไม่สามารถอนุมัติแม่แบบที่ตนเขียนได้',
+    nextResumeDraft: 'ทำการเตรียมสารฉบับร่างของคุณต่อ',
+    nextResumeDraftHelp: 'บันทึกค่าที่วัดจริงบนโต๊ะแลบ ดูตัวอย่างผล แล้วส่งให้ปล่อยผลอย่างอิสระ',
+    nextStartPreparation: 'เริ่มเตรียมสารจากแม่แบบที่อนุมัติแล้ว',
+    nextStartPreparationHelp: 'แม่แบบที่อนุมัติแล้วพร้อมใช้สร้างบันทึกการเตรียมสารแบบควบคุมใหม่',
+    nextRequestPreparation: 'ขอให้ owner, reviewer หรือ analyst เริ่มการเตรียมสาร',
+    nextRequestPreparationHelp: 'บทบาทปัจจุบันของคุณดูบันทึกแบบควบคุมได้ แต่สร้างการเตรียมสารไม่ได้',
+    waitingForYourReview: 'รอการตรวจทานของคุณ',
+    myDrafts: 'ฉบับร่างของฉัน',
+    recentlyReleasedEvidence: 'หลักฐานที่เพิ่งปล่อยผล',
+    templateCreatorCannotApprove: 'แม่แบบนี้รอการอนุมัติอย่างอิสระ',
+    templateCreatorCannotApproveHelp: 'ผู้สร้างแม่แบบไม่สามารถอนุมัติแม่แบบของตนเองได้ ขอให้ owner เชิญหรือกำหนด reviewer คนอื่น',
     benchRecord: 'บันทึกบนโต๊ะปฏิบัติการ',
     reagentLot: 'ล็อตสารรีเอเจนต์',
     expiry: 'วันหมดอายุ',

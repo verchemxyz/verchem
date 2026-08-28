@@ -516,7 +516,7 @@ export function VerChemSoftwareApplicationSchema({ compoundCount }: { compoundCo
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Web',
     url: 'https://verchem.xyz',
-    description: `Free chemistry platform with 8 deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements), and a ${formattedCompoundCount}-compound database. Element data cites published IUPAC and NIST references.`,
+    description: `Free chemistry platform with deterministic calculators, a 2D structure editor with substructure search, an interactive periodic table (118 elements), a ${formattedCompoundCount}-compound database, and controlled standard-preparation records with independently verifiable Ed25519 JWS evidence packs. Element data cites published IUPAC and NIST references.`,
     offers: [
       {
         '@type': 'Offer',
@@ -537,7 +537,10 @@ export function VerChemSoftwareApplicationSchema({ compoundCount }: { compoundCo
       'Interactive Periodic Table (118 elements)',
       `Compounds Database (${formattedCompoundCount} records)`,
       'Step-by-step Solutions',
-      'Uncertainty Analysis'
+      'Uncertainty Analysis',
+      'Controlled Standard Preparation Records',
+      'Independent Release Workflow',
+      'Ed25519 JWS-Signed Laboratory Evidence Packs'
     ],
     availableLanguage: ['en'],
     screenshot: 'https://verchem.xyz/og-image.png'

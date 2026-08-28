@@ -65,6 +65,14 @@ export default function LabEntryPage() {
     <section className="mx-auto max-w-xl lab-document p-6 sm:p-8">
       <h1 className="lab-display text-3xl font-semibold text-foreground">{t.createLab}</h1>
       <p className="mt-3 text-muted-foreground">{t.createLabDescription}</p>
+      <aside className="mt-7 border-y border-border py-5" aria-labelledby="before-you-begin-heading">
+        <h2 id="before-you-begin-heading" className="lab-display text-xl font-semibold text-foreground">{t.beforeYouBegin}</h2>
+        <ul className="mt-3 space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>{t.beforeYouBeginTeam}</li>
+          <li>{t.beforeYouBeginTemplateReview}</li>
+          <li>{t.beforeYouBeginRecordRelease}</li>
+        </ul>
+      </aside>
       <form className="mt-7 space-y-5" onSubmit={submit}>
         <label className="block text-sm font-medium text-foreground">
           {t.labName}

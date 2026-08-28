@@ -59,7 +59,13 @@ export default function TemplatesPage() {
             </ul>
           </section>
         ))}
-        {templates.length === 0 && <p className="lab-document p-6 text-muted-foreground">{t.noApprovedTemplates}</p>}
+        {templates.length === 0 && (
+          <section className="lab-document border-t-2 border-t-[var(--lab-accent)] p-6">
+            <p className="text-muted-foreground">{t.noTemplatesYet}</p>
+            {!mayManage && <p className="mt-3 text-sm text-muted-foreground">{t.ownerReviewerTemplateRequired}</p>}
+            {mayManage && <Link href={`/lab/${org}/templates/new`} className="mt-4 inline-flex min-h-[44px] items-center bg-[var(--lab-accent)] px-4 py-2.5 font-medium text-white">{t.newTemplate}</Link>}
+          </section>
+        )}
       </div>
     </div>
   )
