@@ -49,6 +49,7 @@ const browserVerifier = read('lib/answer-cards/browser-verifier.ts')
 const checkoutRoute = read('app/api/stripe/checkout-session/route.ts')
 const moleculeBuilderRedirect = read('app/molecule-builder/page.tsx')
 const nextConfig = read('next.config.ts')
+const labPdfExport = read('lib/lab/pdf-export.ts')
 const publicCredibilityCopy = [
   llms,
   jsonLd,
@@ -137,6 +138,8 @@ assert.match(browserVerifier, /RFC 7638 thumbprint/)
 assert.match(browserVerifier, /artifactHashMatches/)
 assert.match(checkoutRoute, /status: 410/)
 assert.doesNotMatch(checkoutRoute, /PREMIUM_PLAN_PRICE_ID|checkout\.sessions\.create/)
+assert.match(labPdfExport, /creator: 'VerChem Lab'/)
+assert.doesNotMatch(labPdfExport, /VerChem Lab-QC/)
 
 assert.match(
   llms,

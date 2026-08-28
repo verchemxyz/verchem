@@ -96,7 +96,7 @@ export async function downloadLabEvidencePackPdf(
     pdf.setProperties({
       title: `VerChem laboratory record ${recordNo}`,
       author: 'VerChem',
-      creator: 'VerChem Lab-QC',
+      creator: 'VerChem Lab',
       subject: 'Controlled preparation evidence pack with independently verifiable compact JWS',
     })
     addCanvasPages(pdf, canvas, 24)
