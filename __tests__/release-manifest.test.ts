@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { GET as getArchivedReleaseManifestRoute } from '@/app/.well-known/verchem-release/[hash].json/route'
+import { GET as getArchivedReleaseManifestRoute } from '@/app/.well-known/verchem-release/[hash]/route'
 import { GET as getReleaseManifestRoute } from '@/app/.well-known/verchem-release.json/route'
 import {
   verifyCardJwsInBrowser,
@@ -140,6 +140,40 @@ test('release route returns a canonical manifest with an independently valid JWS
   assert.deepEqual(record.manifest, manifest)
 })
 
+test('the archive URL the verifier builds is reachable through Next routing, not just the handler', async () => {
+  // Every other test in this file calls the route handler directly, which is
+  // exactly how this shipped broken: the handler was correct, but the directory
+  // was named '[hash].json' and Next 16 files a dynamic segment carrying an
+  // extension under staticRoutes — matched by literal path — so no request ever
+  // reached it and /verify got the 404 page instead of an archive. This checks
+  // the built routing table, which is the part the handler cannot vouch for.
+  const manifestPath = path.join(process.cwd(), '.next', 'routes-manifest.json')
+  let manifestJson: string
+  try {
+    manifestJson = await readFile(manifestPath, 'utf8')
+  } catch {
+    assert.fail(
+      'No .next/routes-manifest.json — run `npm run build:webpack` before this suite; ' +
+      'skipping the check silently is how the unreachable route shipped.'
+    )
+  }
+  const routes = JSON.parse(manifestJson) as {
+    staticRoutes?: { page: string; regex: string }[]
+    dynamicRoutes?: { page: string; regex: string }[]
+  }
+  const page = '/.well-known/verchem-release/[hash]'
+  assert.equal(
+    (routes.staticRoutes ?? []).some((r) => r.page === page), false,
+    'archive route is filed as a static route — Next will match it by literal path and never reach the handler'
+  )
+  const dynamic = (routes.dynamicRoutes ?? []).find((r) => r.page === page)
+  assert.ok(dynamic, `archive route ${page} is missing from dynamicRoutes`)
+
+  // The exact path lib/answer-cards/browser-verifier.ts requests.
+  const url = `/.well-known/verchem-release/${'a'.repeat(64)}.json`
+  assert.ok(new RegExp(dynamic.regex).test(url), `built route regex does not match ${url}`)
+})
+
 test('archived release route serves a signed archive and rejects unknown or malformed hashes', async () => {
   const currentResponse = await getReleaseManifestRoute()
   const currentDocument: unknown = await currentResponse.json()
@@ -149,7 +183,7 @@ test('archived release route serves a signed archive and rejects unknown or malf
 
   const archivedResponse = await getArchivedReleaseManifestRoute(
     new Request(`https://verchem.xyz/.well-known/verchem-release/${hash}.json`),
-    { params: Promise.resolve({ hash }) }
+    { params: Promise.resolve({ hash: `${hash}.json` }) }
   )
   assert.equal(archivedResponse.status, 200)
   const archivedDocument: unknown = await archivedResponse.json()
@@ -167,13 +201,13 @@ test('archived release route serves a signed archive and rejects unknown or malf
 
   const unknownResponse = await getArchivedReleaseManifestRoute(
     new Request('https://verchem.xyz/.well-known/verchem-release/ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff.json'),
-    { params: Promise.resolve({ hash: 'f'.repeat(64) }) }
+    { params: Promise.resolve({ hash: `${'f'.repeat(64)}.json` }) }
   )
   assert.equal(unknownResponse.status, 404)
 
   const malformedResponse = await getArchivedReleaseManifestRoute(
     new Request('https://verchem.xyz/.well-known/verchem-release/not-a-hash.json'),
-    { params: Promise.resolve({ hash: 'not-a-hash' }) }
+    { params: Promise.resolve({ hash: 'not-a-hash.json' }) }
   )
   assert.equal(malformedResponse.status, 400)
 })
@@ -222,7 +256,7 @@ test('browser release-manifest claim distinguishes current, superseded, mismatch
   const currentHash = currentManifest.content_hash.slice('sha256:'.length)
   const archiveResponse = await getArchivedReleaseManifestRoute(
     new Request(`https://verchem.xyz/.well-known/verchem-release/${currentHash}.json`),
-    { params: Promise.resolve({ hash: currentHash }) }
+    { params: Promise.resolve({ hash: `${currentHash}.json` }) }
   )
   const archiveDocument: unknown = await archiveResponse.json()
 
