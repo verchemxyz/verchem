@@ -43,10 +43,8 @@ export default async function Home() {
   const demoToolCall = demoPayload.tool_calls[0]!;
   const demoMolarMass = (demoToolCall.result.value as { molar_mass: number }).molar_mass;
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Hero — Signed Evidence Panel */}
-      <section className="relative border-b border-border">
+  const chemistryToolsHero = (
+    <section className="relative border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           {/* Headline */}
           <div className="text-center animate-reveal">
@@ -257,8 +255,12 @@ export default async function Home() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
+      </div>
+    </section>
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
 
       {/* Lab-QC front door — static copy; the authenticated workspace stays at /lab. */}
       <div className={spectral.variable}>
@@ -346,6 +348,8 @@ export default async function Home() {
           />
         </div>
       </section>
+
+      {chemistryToolsHero}
 
       {/* Why Verified */}
       <section className="border-t border-border bg-calibration-grid">

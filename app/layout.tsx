@@ -36,7 +36,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://verchem.xyz'),
   title: {
-    default: "VerChem — Verified Chemistry Workbench & Lab-QC Evidence",
+    default: "VerChem Lab — Controlled Preparation & Verified Chemistry Evidence",
     template: "%s | VerChem"
   },
   description: "Free deterministic chemistry calculators and a verified chemistry workbench, plus controlled standard-preparation records with independent release and Ed25519 JWS-signed evidence packs. Includes an interactive 118-element table citing IUPAC and NIST references, a 3D molecular viewer, stoichiometry, pH, and gas laws.",
@@ -74,20 +74,20 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://verchem.xyz',
     siteName: 'VerChem',
-    title: 'VerChem — Chemistry Workbench & Lab-QC Evidence',
+    title: 'VerChem Lab — Controlled Preparation & Verified Chemistry Evidence',
     description: 'Deterministic chemistry tools plus controlled standard-preparation records and Ed25519 JWS-signed evidence packs.',
     images: [
       {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'VerChem Chemistry Workbench and Lab-QC evidence',
+        alt: 'VerChem Lab controlled preparation and verified chemistry evidence',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VerChem — Chemistry Workbench & Lab-QC Evidence',
+    title: 'VerChem Lab — Controlled Preparation & Verified Chemistry Evidence',
     description: 'Deterministic chemistry tools plus controlled standard-preparation records and Ed25519 JWS-signed evidence packs.',
     images: ['/opengraph-image.png'],
   },
