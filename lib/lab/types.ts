@@ -16,7 +16,8 @@ export interface LabActor {
 /** Signed with Lab-QC evidence packs; its shape is intentionally browser-verifiable. */
 export interface LabRecordEnvelope {
   schema: 'verchem-lab-record/v1'
-  org: { id: string; name: string }
+  /** accreditation_ref is optional so evidence issued before this field was signed remains verifiable. */
+  org: { id: string; name: string; accreditation_ref?: string | null }
   record_no: string
   record_id: string
   template: { key: string; version: number; spec_hash: string }

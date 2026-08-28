@@ -22,7 +22,7 @@ function actor(value: unknown, action: 'prepare' | 'release'): boolean {
     boundedString(value.at, 64) && value.action === action
 }
 
-/** Structural only: browser verification deliberately does not query Lab-QC state. */
+/** Structural verification for the signed envelope; live state is checked separately by /verify. */
 export function isValidLabRecordEnvelope(value: unknown): value is LabRecordEnvelope {
   if (!isRecord(value)) return false
   const allowed = new Set([
@@ -32,7 +32,10 @@ export function isValidLabRecordEnvelope(value: unknown): value is LabRecordEnve
   if (Object.keys(value).some((key) => !allowed.has(key))) return false
   if (value.schema !== 'verchem-lab-record/v1' || !RECORD_NO.test(String(value.record_no))) return false
   if (!boundedString(value.record_id, 128) || !isRecord(value.org) ||
-    !boundedString(value.org.id, 128) || !boundedString(value.org.name, NAME_MAX)) return false
+    Object.keys(value.org).some((key) => key !== 'id' && key !== 'name' && key !== 'accreditation_ref') ||
+    !boundedString(value.org.id, 128) || !boundedString(value.org.name, NAME_MAX) ||
+    (value.org.accreditation_ref !== undefined && value.org.accreditation_ref !== null &&
+      !boundedString(value.org.accreditation_ref, 120))) return false
   if (!isRecord(value.template)) return false
   const templateVersion = value.template.version
   const templateHash = value.template.spec_hash

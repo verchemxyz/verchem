@@ -42,10 +42,11 @@ export const PrepRecordCertificate = forwardRef<HTMLDivElement, {
   template: PrepTemplate
   pack: SignedLabPackData
   verifyUrl: string | null
-  accreditationRef?: string | null
-}>(({ record, template, pack, verifyUrl, accreditationRef = null }, ref) => {
+  compactJws: string
+}>(({ record, template, pack, verifyUrl, compactJws }, ref) => {
   const t = useLabTranslations()
   const [qr, setQr] = useState<string | null>(null)
+  const [copyStatus, setCopyStatus] = useState<string | null>(null)
   const envelope = pack.payload.lab_record
 
   useEffect(() => {
@@ -67,6 +68,16 @@ export const PrepRecordCertificate = forwardRef<HTMLDivElement, {
 
   if (!envelope) return null
   const shortHash = envelope.events_hash.slice(7, 23)
+  const accreditationRef = envelope.org.accreditation_ref ?? null
+
+  const copyJws = async () => {
+    try {
+      await navigator.clipboard.writeText(compactJws)
+      setCopyStatus(t.jwsCopied)
+    } catch {
+      setCopyStatus(t.copyJwsFailed)
+    }
+  }
 
   return (
     <article ref={ref} className="lab-document mx-auto max-w-[794px] p-5 text-foreground sm:p-8" aria-label={`${t.evidenceRecord} ${record.record_no}`}>
@@ -125,6 +136,27 @@ export const PrepRecordCertificate = forwardRef<HTMLDivElement, {
       <section className="grid gap-6 border-t border-border py-6 sm:grid-cols-2">
         <Person label={t.prepared} actor={envelope.preparer} />
         <Person label={t.reviewedReleased} actor={envelope.reviewer} />
+      </section>
+
+      <section className="border-t border-border py-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="lab-display text-xl font-semibold">{t.compactJwsTitle}</h2>
+            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground">{t.compactJwsHelp}</p>
+          </div>
+          <button
+            type="button"
+            data-pdf-exclude="true"
+            onClick={() => { void copyJws() }}
+            className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground"
+          >
+            {t.copyJws}
+          </button>
+        </div>
+        {copyStatus && <p role="status" data-pdf-exclude="true" className="mt-2 text-xs text-muted-foreground">{copyStatus}</p>}
+        <p data-pdf-jws-text="true" className="mt-4 select-text break-all border border-border bg-muted p-3 font-mono text-[8px] leading-relaxed text-foreground">
+          {compactJws}
+        </p>
       </section>
 
       <footer className="flex flex-col-reverse justify-between gap-5 border-t border-border pt-5 sm:flex-row sm:items-end">

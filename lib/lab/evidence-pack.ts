@@ -77,7 +77,7 @@ export function toAsPreparedToolInput(template: PrepTemplate, draft: PrepDraft):
 }
 
 export interface BuildLabRecordEnvelopeInput {
-  org: { id: string; name: string }
+  org: { id: string; name: string; accreditation_ref?: string | null }
   record: Pick<PrepRecord, 'id' | 'record_no'>
   template: Pick<PrepTemplate, 'key' | 'version' | 'spec_hash'>
   preparer: LabActor
@@ -183,18 +183,27 @@ export async function releaseRecord(
   if (!chain.ok || chain.head !== releaseEvent.hash || chain.length < 1) {
     throw new LabDataError('Audit chain verification failed before release.', 409)
   }
-  const prepareEvent = events.find((event) => event.action === 'create' && event.actor === record.created_by)
-  if (!prepareEvent) throw new LabDataError('Preparation event is unavailable for evidence issuance.', 409)
+  // `authorize('submit')` permits only the record creator, so the latest submit
+  // is the preparer's declaration of the actual completed work. A create event
+  // only timestamps an empty draft and may precede bench work by days.
+  const prepareEvent = events.filter((event) =>
+    event.action === 'submit' && event.actor === record.created_by
+  ).at(-1)
+  if (!prepareEvent) throw new LabDataError('The latest preparation submission event is unavailable for evidence issuance.', 409)
 
   const labRecord = buildLabRecordEnvelope({
-    org: { id: organization.id, name: organization.name },
+    org: {
+      id: organization.id,
+      name: organization.name,
+      accreditation_ref: organization.accreditation_ref,
+    },
     record,
     template,
     preparer: {
       aiverid: record.created_by,
       display_name: preparerMember.display_name,
       verification_level: prepareEvent.actor_level,
-      at: record.created_at,
+      at: prepareEvent.at,
       action: 'prepare',
     },
     reviewer: {

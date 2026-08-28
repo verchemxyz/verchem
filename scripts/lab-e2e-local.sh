@@ -43,20 +43,29 @@ export SUPABASE_SERVICE_ROLE_KEY="$KEY"
 export SESSION_SECRET="$SECRET"
 
 LOG="$(mktemp -t verchem-lab-e2e)"
-PORT="$PORT" npx next dev -p "$PORT" >"$LOG" 2>&1 &
+DIST_DIR=".next-lab-e2e"
+export NEXT_DIST_DIR="$DIST_DIR"
+export WATCHPACK_POLLING=true
+set -m
+PORT="$PORT" ./node_modules/.bin/next dev --webpack -p "$PORT" >"$LOG" 2>&1 &
 SERVER_PID=$!
+set +m
 cleanup() {
-  kill "$SERVER_PID" 2>/dev/null || true
+  # next dev forks a compiler child; terminate only the process group this
+  # script created so no watcher survives the gate.
+  kill -- "-$SERVER_PID" 2>/dev/null || true
   wait "$SERVER_PID" 2>/dev/null || true
+  node -e "require('fs').rmSync(process.argv[1], { recursive: true, force: true })" "$DIST_DIR"
+  rm -f "$LOG"
 }
 trap cleanup EXIT
 
 for _ in $(seq 1 90); do
-  if curl -sf -o /dev/null "http://localhost:$PORT/"; then break; fi
+  if curl --max-time 5 -sf -o /dev/null "http://localhost:$PORT/"; then break; fi
   if ! kill -0 "$SERVER_PID" 2>/dev/null; then echo "Dev server exited early:" >&2; cat "$LOG" >&2; exit 1; fi
   sleep 1
 done
-if ! curl -sf -o /dev/null "http://localhost:$PORT/"; then
+if ! curl --max-time 5 -sf -o /dev/null "http://localhost:$PORT/"; then
   echo "Dev server did not become ready on port $PORT:" >&2; cat "$LOG" >&2; exit 1
 fi
 

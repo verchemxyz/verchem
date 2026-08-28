@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CalcShell } from '@/components/lab'
+import { getTranslation } from '@/lib/i18n/translations'
 
 export const metadata: Metadata = {
   title: { absolute: 'Terms of Service | VerChem' },
@@ -12,8 +13,9 @@ export const metadata: Metadata = {
 // TODO(พี่จ๊อบ): set the operating legal entity name and the governing-law
 // jurisdiction in the "Governing law" section below before this is treated as
 // the final binding version. The rest describes the service as actually built.
-const EFFECTIVE_DATE = 'May 27, 2026'
+const EFFECTIVE_DATE = 'August 28, 2026'
 const CONTACT_EMAIL = 'verchem.xyz@gmail.com'
+const LAB_LEGAL = getTranslation('en').lab
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -44,12 +46,8 @@ export default function TermsOfServicePage() {
         </Section>
 
         <Section title="The service">
-          <p>
-            VerChem provides free chemistry education tools, including calculators, a
-            periodic table and compounds database, organic and spectroscopy references, a
-            2D structure editor, substructure search, and AI Verified Answer Cards. The
-            service is offered for educational and reference purposes.
-          </p>
+          <p>{LAB_LEGAL.legalTermsEducationSurface}</p>
+          <p>{LAB_LEGAL.legalTermsLabSurface}</p>
         </Section>
 
         <Section title="Accounts">
@@ -86,6 +84,7 @@ export default function TermsOfServicePage() {
             the question was interpreted as you intended. For any critical use, confirm the
             inputs and check the result yourself.
           </p>
+          <p>{LAB_LEGAL.legalTermsLabVerified}</p>
         </Section>
 
         <Section title="Acceptable use">
@@ -98,21 +97,11 @@ export default function TermsOfServicePage() {
         </Section>
 
         <Section title="Your content">
-          <p>
-            You retain ownership of content you create (such as drawn molecules). By
-            choosing to make an item public (for example, via a share link), you grant us
-            permission to store and display it as needed to provide that feature. You may
-            delete your content at any time.
-          </p>
+          <p>{LAB_LEGAL.legalTermsYourContent}</p>
         </Section>
 
         <Section title="Donations">
-          <p>
-            VerChem is free. Donations are entirely voluntary, are processed by Stripe,
-            and support continued development. Because no goods or services are exchanged
-            for a donation, donations are generally non-refundable except where required
-            by law.
-          </p>
+          <p>{LAB_LEGAL.legalTermsDonations}</p>
         </Section>
 
         <Section title="Intellectual property">

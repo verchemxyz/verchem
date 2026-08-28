@@ -8,12 +8,15 @@ import { verifySession, type VerifiedSession } from '@/lib/auth/session'
 import { checkRateLimit, getClientId, type RateLimitConfig } from '@/lib/rate-limit'
 import { calculateStockPrep } from '@/lib/calculations/solution-prep'
 import { calculateAsPrepared } from './as-prepared'
+import { appendEvent, isSha256Ref, type LabEvent } from './audit-chain'
 import { releaseRecord, toAsPreparedInput } from './evidence-pack'
 import { authorize, type Member } from './prep-record'
 import { hasValidRequiredPrepFields, missingRequiredPrepFields } from './required-fields'
 import {
   createLabRepository,
+  createRecordShareToken,
   hasValidRecordShareToken,
+  hashRecordShareToken,
   LabDataError,
   type LabRepository,
 } from '@/lib/supabase/lab'
@@ -216,6 +219,19 @@ function listCursor(value: string | null): string | null {
 function withoutShareTokenHash(record: PrepRecord): Omit<PrepRecord, 'share_token_hash'> {
   const { share_token_hash: _shareTokenHash, ...safeRecord } = record
   return safeRecord
+}
+
+function activeShareTokenHash(recordHash: string | null, events: LabEvent[]): string | null {
+  let activeHash = recordHash
+  for (const event of events) {
+    if (event.action !== 'view_pack' || event.payload.operation !== 'rotate_share_token') continue
+    const rotatedHash = event.payload.share_token_hash
+    // A malformed rotation must fail closed instead of reviving an older token.
+    activeHash = typeof rotatedHash === 'string' && /^[0-9a-f]{64}$/.test(rotatedHash)
+      ? rotatedHash
+      : null
+  }
+  return activeHash
 }
 
 function isTemplateSpec(value: unknown): value is PrepTemplateSpec {
@@ -480,6 +496,8 @@ export async function getRecordDetailHandler(request: NextRequest, orgId: string
     const template = await repository.getTemplateForRecord(orgId, record.template_id, record.template_version)
     if (!template) throw new LabDataError('Template version not found.', 409)
     const events = await repository.listEvents(orgId, id)
+    const revision = events.at(-1)?.hash
+    if (!revision) throw new LabDataError('The record audit chain is unavailable.', 409)
     let preview: ReturnType<typeof calculateAsPrepared> | null = null
     let previewError: string | null = null
     if (record.draft) {
@@ -494,9 +512,12 @@ export async function getRecordDetailHandler(request: NextRequest, orgId: string
       template,
       preview,
       preview_error: previewError,
+      revision,
       events: events.map((event) => ({
         actor: event.actor,
-        action: event.action,
+        action: event.action === 'view_pack' && event.payload.operation === 'rotate_share_token'
+          ? 'rotate_share_token'
+          : event.action,
         at: event.at,
         reason: (event.action === 'reject' || event.action === 'void') && typeof event.payload.reason === 'string'
           ? event.payload.reason
@@ -513,7 +534,15 @@ export async function updateRecordHandler(request: NextRequest, orgId: string, i
     if (!template) throw new LabDataError('Template version not found.', 409)
     assertDecision(authorize('edit', member, { state: record.state, createdBy: record.created_by, templateStatus: template.status }))
     const body = await readObjectBody(request)
-    onlyKeys(body, ['measurements'])
+    onlyKeys(body, ['measurements', 'base_revision'])
+    if (!isSha256Ref(body.base_revision)) {
+      throw new LabDataError('base_revision must be the current SHA-256 record revision.', 400)
+    }
+    const events = await repository.listEvents(orgId, id)
+    const head = events.at(-1)
+    if (!head || body.base_revision !== head.hash) {
+      throw new LabDataError('Someone changed this record after you opened it. Reload the latest version before saving.', 409)
+    }
     const draft = buildDraft(body.measurements)
     assertRequiredDraftFields(template.spec, draft, 400)
     let preview
@@ -522,15 +551,18 @@ export async function updateRecordHandler(request: NextRequest, orgId: string, i
     } catch (error) {
       throw new LabDataError(error instanceof Error ? error.message : 'Measurements were rejected by the calculation engine.', 400)
     }
-    const event = await repository.buildLabEvent(orgId, id, {
+    const event = appendEvent(head, {
+      record_id: id,
+      seq: head.seq + 1,
       actor: member.aiverid,
-      actorLevel: member.verificationLevel,
+      actor_level: member.verificationLevel,
       action: 'edit',
       payload: { draft_hash: draftHash(draft) },
+      at: new Date().toISOString(),
     })
     const updated = await repository.updateDraft(orgId, id, draft, event)
     if (!updated) return NextResponse.json({ error: 'Preparation record not found.' }, { status: 404 })
-    return NextResponse.json({ record: updated, preview })
+    return NextResponse.json({ record: updated, preview, revision: event.hash })
   })
 }
 
@@ -607,6 +639,34 @@ export async function releaseRecordHandler(request: NextRequest, orgId: string, 
   })
 }
 
+export async function rotateShareLinkHandler(request: NextRequest, orgId: string, id: string): Promise<NextResponse> {
+  return withLabAuth(request, orgId, async ({ member, repository }) => {
+    assertReviewerRole(member)
+    const record = await scopedRecord(repository, orgId, id)
+    if (record.state !== 'released' && record.state !== 'voided') {
+      throw new LabDataError('A verification link can only be created for a released or voided record.', 409)
+    }
+    const shareToken = createRecordShareToken()
+    // The applied database action constraint predates share-link rotation.
+    // Record the mutation as a view_pack operation so it remains inside the
+    // signed chain without rewriting an already-applied migration.
+    const event = await repository.buildLabEvent(orgId, id, {
+      actor: member.aiverid,
+      actorLevel: member.verificationLevel,
+      action: 'view_pack',
+      payload: {
+        operation: 'rotate_share_token',
+        share_token_hash: hashRecordShareToken(shareToken),
+      },
+    })
+    const updated = await repository.transition(orgId, id, record.state, record.state, {}, event)
+    if (!updated) {
+      throw new LabDataError('The preparation record changed before the verification link was created.', 409)
+    }
+    return NextResponse.json({ share_token: shareToken })
+  })
+}
+
 export async function publicStatusHandler(request: NextRequest, id: string): Promise<NextResponse> {
   try {
     const deps = dependencies()
@@ -638,19 +698,40 @@ export async function packJsonHandler(request: NextRequest, id: string): Promise
       const row = await repository.getMember(record.org_id, session.userId)
       if (row) member = labMember(row, session)
     }
-    const tokenValid = suppliedToken !== null && hasValidRecordShareToken(suppliedToken, record.share_token_hash)
+    const accessEvents = await repository.listEvents(record.org_id, record.id)
+    const tokenValid = suppliedToken !== null && hasValidRecordShareToken(
+      suppliedToken,
+      activeShareTokenHash(record.share_token_hash, accessEvents)
+    )
     if (!member && !tokenValid) return NextResponse.json({ error: 'Evidence pack not found.' }, { status: 404 })
     const limitKey = member ? `lab-read:${member.aiverid}` : `lab-public:${clientId}`
     const limit = deps.rateLimit(limitKey, member ? LAB_READ_LIMIT : LAB_PUBLIC_LIMIT)
     if (!limit.success) return NextResponse.json({ error: 'Evidence-pack request limit reached.' }, { status: 429 })
     if (member) {
-      assertDecision(authorize('view_pack', member, {
-        state: record.state, createdBy: record.created_by, templateStatus: 'approved',
-      }))
-      await repository.appendLabEvent({
-        orgId: record.org_id, recordId: record.id, actor: member.aiverid,
-        actorLevel: member.verificationLevel, action: 'view_pack', payload: {},
-      })
+      let currentRecord = record
+      let appended = false
+      for (let attempt = 0; attempt < 3 && !appended; attempt += 1) {
+        assertDecision(authorize('view_pack', member, {
+          state: currentRecord.state, createdBy: currentRecord.created_by, templateStatus: 'approved',
+        }))
+        const event = await repository.buildLabEvent(record.org_id, record.id, {
+          actor: member.aiverid,
+          actorLevel: member.verificationLevel,
+          action: 'view_pack',
+          payload: {},
+        })
+        try {
+          await repository.transition(record.org_id, record.id, currentRecord.state, currentRecord.state, {}, event)
+          appended = true
+        } catch (error) {
+          if (!(error instanceof LabDataError) || error.status !== 409 || attempt === 2) throw error
+          const latest = await repository.getRecord(record.org_id, record.id)
+          if (!latest || (latest.state !== 'released' && latest.state !== 'voided')) {
+            throw new LabDataError('Evidence pack not found.', 404)
+          }
+          currentRecord = latest
+        }
+      }
     }
     const payload: unknown = JSON.parse(record.signed_payload)
     if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {

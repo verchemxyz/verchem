@@ -21,11 +21,12 @@ import {
   listOrganizationsHandler,
   listRecordsHandler,
   listTemplatesHandler,
+  rotateShareLinkHandler,
   retireTemplateHandler,
   setLabApiDependenciesForTests,
 } from '@/lib/lab/api'
 import { releaseRecord } from '@/lib/lab/evidence-pack'
-import { createLabRepository, createRecordShareToken, hashRecordShareToken, pendingInviteAiverid, type LabDatabaseClient, type LabDatabaseQuery, type LabDatabaseResponse } from '@/lib/supabase/lab'
+import { createLabRepository, createRecordShareToken, hasValidRecordShareToken, hashRecordShareToken, pendingInviteAiverid, type LabDatabaseClient, type LabDatabaseQuery, type LabDatabaseResponse } from '@/lib/supabase/lab'
 import type { PrepRecord, PrepTemplate } from '@/lib/lab/types'
 
 type Row = Record<string, unknown>
@@ -195,7 +196,7 @@ function eventRows(): Row[] {
 
 function setup(options: { revoked?: boolean; zeroRelease?: boolean; memberOrg?: string } = {}) {
   const database = new RecordingDatabase({
-    organizations: [{ id: ORG_A, name: 'Lab A', slug: 'lab-a', country: null, accreditation_ref: null, created_by: PREPARER, created_at: '2026-08-26T00:00:00.000Z' }],
+    organizations: [{ id: ORG_A, name: 'Lab A', slug: 'lab-a', country: null, accreditation_ref: 'TISI-17025-TEST', created_by: PREPARER, created_at: '2026-08-26T00:00:00.000Z' }],
     org_members: [
       { org_id: ORG_A, aiverid: PREPARER, role: 'analyst', display_name: 'Preparer', invited_email: null, invited_by: PREPARER, joined_at: '2026-08-26T00:00:00.000Z', revoked_at: null },
       { org_id: ORG_A, aiverid: REVIEWER, role: 'reviewer', display_name: 'Reviewer', invited_email: null, invited_by: PREPARER, joined_at: '2026-08-26T00:00:00.000Z', revoked_at: options.revoked ? '2026-08-26T01:00:00.000Z' : null },
@@ -310,11 +311,13 @@ test('release recomputes stored draft, atomically seals its release event, and p
   const signedActual = (payload.tool_calls as Array<{ input: { actual: Record<string, unknown> } }>)[0]!.input.actual
   assert.equal(signedActual.reagent_lot, 'LOT-01')
   assert.equal(signedActual.balance_id, 'BAL-1')
-  const lab = payload.lab_record as { events_hash: string; events_count: number }
+  const lab = payload.lab_record as { events_hash: string; events_count: number; org: { accreditation_ref?: string | null }; preparer: { at: string } }
   const events = database.tables.lab_events
   assert.equal(events.at(-1)?.action, 'release')
   assert.equal(lab.events_hash, events.at(-1)?.hash)
   assert.equal(lab.events_count, events.length)
+  assert.equal(lab.org.accreditation_ref, 'TISI-17025-TEST')
+  assert.equal(lab.preparer.at, '2026-08-26T00:01:00.000Z', 'preparation time must come from submit, not record creation')
   assert.equal((await repository.verifyRecordChain(ORG_A, RECORD_ID)).ok, true)
   assert.equal(typeof body.signature, 'string')
   assert.equal(typeof body.share_token, 'string')
@@ -416,13 +419,14 @@ test('required template fields are enforced on draft PATCH and release', async (
     repository: () => repository, validOrigin: () => true,
     rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'preparer',
   })
-  const patch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: patchMeasurements }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  const baseRevision = (await repository.listEvents(ORG_A, RECORD_ID)).at(-1)!.hash
+  const patch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: patchMeasurements, base_revision: baseRevision }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
   assert.equal(patch.status, 400)
   assert.match((await patch.json() as { error: string }).error, /expiry/)
 
   ;(database.tables.prep_templates[0]!.spec as PrepTemplate['spec']).requiredFields = ['temperature']
   const blankTemperature = { ...patchMeasurements, temperatureC: null }
-  const temperaturePatch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: blankTemperature }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
+  const temperaturePatch = await updatePatch(request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: blankTemperature, base_revision: baseRevision }), { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) })
   assert.equal(temperaturePatch.status, 400)
   assert.match((await temperaturePatch.json() as { error: string }).error, /temperature/)
 
@@ -508,7 +512,10 @@ test('a cleared optional field is blank, not invalid — an empty notes box must
     rateLimit: () => ({ success: true, remaining: 1, resetTime: Date.now() + 1 }), clientId: () => 'preparer',
   })
   const response = await updatePatch(
-    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements }),
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', {
+      measurements,
+      base_revision: (await repository.listEvents(ORG_A, RECORD_ID)).at(-1)!.hash,
+    }),
     { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
   )
   assert.equal(response.status, 200)
@@ -518,6 +525,114 @@ test('a cleared optional field is blank, not invalid — an empty notes box must
   assert.equal(saved.expiry, null)
   assert.equal(saved.balanceId, null)
   assert.equal(saved.flaskId, null)
+})
+
+test('a stale draft revision is refused before it can overwrite a newer saved edit', async () => {
+  const { database, repository } = setup()
+  database.tables.prep_records[0]!.state = 'draft'
+  setLabApiDependenciesForTests({
+    verifySession: async () => ({ userId: PREPARER, name: 'Preparer', verification_level: 1, tier: 'free', expiresAt: new Date('2099-01-01') }),
+    repository: () => repository, validOrigin: () => true,
+    rateLimit: () => ({ success: true, remaining: 10, resetTime: Date.now() + 1 }), clientId: () => 'preparer',
+  })
+  const baseRevision = (await repository.listEvents(ORG_A, RECORD_ID)).at(-1)!.hash
+  const cleanMeasurements: Record<string, unknown> = {
+    ...(draft()!.measurements as unknown as Record<string, unknown>), notes: 'newer edit',
+  }
+  delete cleanMeasurements.as_prepared
+  const first = await updatePatch(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', { measurements: cleanMeasurements, base_revision: baseRevision }),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(first.status, 200)
+  const firstBody = await first.json() as { revision: string }
+  assert.notEqual(firstBody.revision, baseRevision)
+
+  const stale = await updatePatch(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}`, 'PATCH', {
+      measurements: { ...cleanMeasurements, notes: 'stale overwrite' }, base_revision: baseRevision,
+    }),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(stale.status, 409)
+  assert.match((await stale.json() as { error: string }).error, /changed this record after you opened it/i)
+  const stored = database.tables.prep_records[0]!.draft as { measurements: { notes: string } }
+  assert.equal(stored.measurements.notes, 'newer edit')
+})
+
+test('release refuses an impossible submitted record with no preparer submit event', async () => {
+  const { database } = setup()
+  database.tables.lab_events = database.tables.lab_events.filter((event) => event.action !== 'submit')
+  const response = await releasePost(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(response.status, 409)
+  assert.match((await response.json() as { error: string }).error, /submission event is unavailable/i)
+  assert.equal(database.tables.prep_records[0]?.state, 'submitted')
+  assert.equal(database.tables.lab_events.some((event) => event.action === 'release'), false)
+})
+
+test('release signs the latest submit after a withdraw and resubmission', async () => {
+  const { database } = setup()
+  const previous = database.tables.lab_events.at(-1) as unknown as ReturnType<typeof appendEvent>
+  const withdrawn = appendEvent(previous, {
+    record_id: RECORD_ID, seq: 3, actor: PREPARER, actor_level: 2, action: 'withdraw', payload: {}, at: '2026-08-26T00:02:00.000Z',
+  })
+  const edited = appendEvent(withdrawn, {
+    record_id: RECORD_ID, seq: 4, actor: PREPARER, actor_level: 2, action: 'edit', payload: {}, at: '2026-08-26T00:03:00.000Z',
+  })
+  const resubmitted = appendEvent(edited, {
+    record_id: RECORD_ID, seq: 5, actor: PREPARER, actor_level: 2, action: 'submit', payload: {}, at: '2026-08-26T00:04:00.000Z',
+  })
+  database.tables.lab_events.push(
+    { org_id: ORG_A, ...withdrawn }, { org_id: ORG_A, ...edited }, { org_id: ORG_A, ...resubmitted }
+  )
+  const response = await releasePost(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/release`, 'POST', {}),
+    { params: Promise.resolve({ org: ORG_A, id: RECORD_ID }) }
+  )
+  assert.equal(response.status, 200)
+  const payload = JSON.parse(String(database.tables.prep_records[0]!.signed_payload)) as {
+    lab_record: { preparer: { at: string; verification_level: number } }
+  }
+  assert.equal(payload.lab_record.preparer.at, resubmitted.at)
+  assert.equal(payload.lab_record.preparer.verification_level, 2)
+})
+
+test('share-link rotation supersedes the bearer hash in the append-only audit chain', async () => {
+  const { database, repository } = setup()
+  const oldToken = createRecordShareToken()
+  Object.assign(database.tables.prep_records[0]!, {
+    state: 'released', draft: null, signed_payload: JSON.stringify({ question: 'q' }), signature: 'sig',
+    share_token_hash: hashRecordShareToken(oldToken),
+  })
+  const response = await rotateShareLinkHandler(
+    request(`/api/lab/orgs/${ORG_A}/records/${RECORD_ID}/share-link`, 'POST'), ORG_A, RECORD_ID
+  )
+  assert.equal(response.status, 200)
+  const newToken = String((await response.json() as { share_token: string }).share_token)
+  const events = await repository.listEvents(ORG_A, RECORD_ID)
+  assert.equal(events.at(-1)?.action, 'view_pack')
+  assert.equal(events.at(-1)?.payload.operation, 'rotate_share_token')
+  const activeHash = String(events.at(-1)?.payload.share_token_hash)
+  assert.equal(hasValidRecordShareToken(oldToken, activeHash), false)
+  assert.equal(hasValidRecordShareToken(newToken, activeHash), true)
+  assert.equal(database.tables.prep_records[0]!.share_token_hash, hashRecordShareToken(oldToken))
+  assert.equal((await repository.verifyRecordChain(ORG_A, RECORD_ID)).ok, true)
+
+  setLabApiDependenciesForTests({
+    verifySession: async () => null,
+    repository: () => repository,
+    rateLimit: () => ({ success: true, remaining: 100, resetTime: Date.now() + 60_000 }),
+    clientId: () => 'contract-test',
+  })
+  assert.equal((await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json?token=${oldToken}`, 'GET'), {
+    params: Promise.resolve({ id: RECORD_ID }),
+  })).status, 404)
+  assert.equal((await packGet(request(`/api/lab/records/${RECORD_ID}/pack.json?token=${newToken}`, 'GET'), {
+    params: Promise.resolve({ id: RECORD_ID }),
+  })).status, 200)
 })
 
 test('an address already in the laboratory cannot be invited again', async () => {

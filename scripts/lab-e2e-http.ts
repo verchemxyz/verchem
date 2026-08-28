@@ -224,12 +224,27 @@ async function main(): Promise<void> {
   const recordId = String(record.json.id)
   assert.match(String(record.json.record_no), /^PR-\d{4}-\d{6}$/)
   await call(`/api/lab/orgs/${orgId}/records/${recordId}/submit`, { method: 'POST', as: ANALYST, expect: 409 })
+  const tabA = await call(`/api/lab/orgs/${orgId}/records/${recordId}`, { as: ANALYST, expect: 200 })
+  const tabB = await call(`/api/lab/orgs/${orgId}/records/${recordId}`, { as: ANALYST, expect: 200 })
+  const tabARevision = String(tabA.json.revision)
+  const tabBRevision = String(tabB.json.revision)
+  assert.equal(tabARevision, tabBRevision, 'two tabs opened together must start from the same revision')
+  const tabAMeasurements = { ...measurements, notes: 'Saved by tab A' }
   const updated = await call(`/api/lab/orgs/${orgId}/records/${recordId}`, {
-    method: 'PATCH', as: ANALYST, body: { measurements }, expect: 200,
+    method: 'PATCH', as: ANALYST, body: { measurements: tabAMeasurements, base_revision: tabARevision }, expect: 200,
   })
   const preview = updated.json.preview as { asPrepared: { value: number }; withinAcceptance: boolean }
   assert.ok(preview.withinAcceptance, 'the walkthrough fixture must land inside acceptance')
   assert.ok(Math.abs(preview.asPrepared.value - 1002.7) < 1, `unexpected as-prepared value: ${preview.asPrepared.value}`)
+  const staleTab = await call(`/api/lab/orgs/${orgId}/records/${recordId}`, {
+    method: 'PATCH', as: ANALYST,
+    body: { measurements: { ...measurements, notes: 'Stale tab B overwrite' }, base_revision: tabBRevision },
+    expect: 409,
+  })
+  assert.match(String(staleTab.json.error), /changed this record after you opened it/i)
+  const afterStaleAttempt = await call(`/api/lab/orgs/${orgId}/records/${recordId}`, { as: ANALYST, expect: 200 })
+  const savedNotes = (((afterStaleAttempt.json.record as Record<string, unknown>).draft as Record<string, unknown>).measurements as Record<string, unknown>).notes
+  assert.equal(savedNotes, 'Saved by tab A', 'a stale tab must not overwrite the first saved edit')
   await call(`/api/lab/orgs/${orgId}/records/${recordId}`, {
     method: 'PATCH', as: OWNER, body: { measurements }, expect: 403,
   })
@@ -242,7 +257,7 @@ async function main(): Promise<void> {
   const released = await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, {
     method: 'POST', as: OWNER, expect: 200,
   })
-  const shareToken = String(released.json.share_token)
+  let shareToken = String(released.json.share_token)
   assert.ok(shareToken.length > 20, 'release must return a one-time share token')
   assert.equal((released.json.record as { state: string }).state, 'released')
   assert.equal((released.json.record as { draft: unknown }).draft, null, 'draft must be cleared on release')
@@ -252,11 +267,34 @@ async function main(): Promise<void> {
   await call(`/api/lab/records/${recordId}/pack.json`, { expect: 404 })
   await call(`/api/lab/records/${recordId}/pack.json?token=not-the-token`, { expect: 404 })
   const packByToken = await call(`/api/lab/records/${recordId}/pack.json?token=${encodeURIComponent(shareToken)}`, { expect: 200 })
-  const packByMember = await call(`/api/lab/records/${recordId}/pack.json`, { as: ANALYST, expect: 200 })
-  assert.equal(packByToken.json.signature, packByMember.json.signature)
+  const eventsBeforeConcurrentViews = await repository.listEvents(orgId, recordId)
+  const [packByAnalyst, packByReviewer] = await Promise.all([
+    call(`/api/lab/records/${recordId}/pack.json`, { as: ANALYST, expect: 200 }),
+    call(`/api/lab/records/${recordId}/pack.json`, { as: REVIEWER, expect: 200 }),
+  ])
+  assert.equal(packByToken.json.signature, packByAnalyst.json.signature)
+  assert.equal(packByAnalyst.json.signature, packByReviewer.json.signature)
+  const eventsAfterConcurrentViews = await repository.listEvents(orgId, recordId)
+  assert.equal(
+    eventsAfterConcurrentViews.filter((event) => event.action === 'view_pack').length -
+      eventsBeforeConcurrentViews.filter((event) => event.action === 'view_pack').length,
+    2,
+    'both concurrent member views must append a chain-linked view_pack event'
+  )
 
-  console.log('9. the pack verifies as a signed w3-v4 card and matches the audit chain')
-  const { signature, ...payload } = packByMember.json
+  console.log('9. a member can rotate a lost share link without reviving the previous token')
+  const oldShareToken = shareToken
+  const rotated = await call(`/api/lab/orgs/${orgId}/records/${recordId}/share-link`, {
+    method: 'POST', as: OWNER, expect: 200,
+  })
+  shareToken = String(rotated.json.share_token)
+  assert.notEqual(shareToken, oldShareToken)
+  await call(`/api/lab/records/${recordId}/pack.json?token=${encodeURIComponent(oldShareToken)}`, { expect: 404 })
+  const packByRotatedToken = await call(`/api/lab/records/${recordId}/pack.json?token=${encodeURIComponent(shareToken)}`, { expect: 200 })
+  assert.equal(packByRotatedToken.json.signature, packByToken.json.signature)
+
+  console.log('10. the pack verifies as a signed w3-v4 card and matches the audit chain')
+  const { signature, ...payload } = packByAnalyst.json
   const card = parseSubmittedCard({ ...payload, signature })
   assert.ok(card, 'evidence pack must parse as a signed answer card')
   // Verified the way an auditor's browser does it: published JWKS only, no server secret.
@@ -271,6 +309,9 @@ async function main(): Promise<void> {
   const chain = verifyChain(events)
   assert.ok(chain.ok, 'audit chain must verify after a full HTTP lifecycle')
   assert.equal(card.lab_record?.record_no, String(record.json.record_no))
+  assert.equal(card.lab_record?.org.accreditation_ref, `TISI-${stamp}`)
+  const submitEvent = events.filter((event) => event.action === 'submit').at(-1)
+  assert.equal(card.lab_record?.preparer.at, submitEvent?.at, 'signed preparation time must be the latest submit declaration')
   // The pack pins the chain as it stood at release. Downloading it appends a
   // `view_pack` event, so the live head has moved on by design — what must hold
   // is that the sealed hash is still the hash of the event it named.
@@ -278,25 +319,26 @@ async function main(): Promise<void> {
   assert.equal(events[sealedIndex]?.hash, card.lab_record?.events_hash)
   assert.ok(events.length > sealedIndex + 1, 'reading the pack must itself be audited')
   assert.equal(events.at(-1)?.action, 'view_pack')
+  assert.equal(events.at(-1)?.payload.operation, 'rotate_share_token', 'share-link rotation must be visible in the audit chain')
 
-  console.log('10. public status endpoint answers without auth and leaks nothing')
+  console.log('11. public status endpoint answers without auth and leaks nothing')
   const status = await call(`/api/lab/records/${recordId}/status`, { expect: 200 })
   assert.deepEqual(Object.keys(status.json).sort(), ['state', 'superseded_by', 'voided_at'])
   assert.equal(status.json.state, 'released')
 
-  console.log('11. released records are sealed; a second release conflicts')
+  console.log('12. released records are sealed; a second release conflicts')
   await call(`/api/lab/orgs/${orgId}/records/${recordId}`, {
     method: 'PATCH', as: ANALYST, body: { measurements }, expect: 409,
   })
   await call(`/api/lab/orgs/${orgId}/records/${recordId}/release`, { method: 'POST', as: OWNER, expect: 409 })
 
-  console.log('12. cross-organisation access is not an oracle')
+  console.log('13. cross-organisation access is not an oracle')
   await call('/api/lab/orgs', { method: 'POST', as: OUTSIDER, body: { name: `E2E Outside ${stamp}` }, expect: 201 })
   await call(`/api/lab/orgs/${orgId}/records`, { as: OUTSIDER, expect: 404 })
   await call(`/api/lab/orgs/${orgId}/records/${recordId}`, { as: OUTSIDER, expect: 404 })
   await call(`/api/lab/records/${recordId}/pack.json`, { as: OUTSIDER, expect: 404 })
 
-  console.log('13. every /lab page and the public verifier render')
+  console.log('14. every /lab page and the public verifier render')
   for (const path of [
     '/lab', `/lab/${orgId}`, `/lab/${orgId}/templates`, `/lab/${orgId}/templates/new`, `/lab/${orgId}/templates/${templateId}`,
     `/lab/${orgId}/records`, `/lab/${orgId}/records/new`, `/lab/${orgId}/records/${recordId}`, `/lab/${orgId}/members`,
@@ -306,23 +348,27 @@ async function main(): Promise<void> {
     console.log(`  ✓ ${path}`)
   }
 
-  console.log('14. void keeps the record verifiable and updates the public status')
+  console.log('15. void keeps the record verifiable and updates the public status')
   await call(`/api/lab/orgs/${orgId}/records/${recordId}/void`, {
     method: 'POST', as: OWNER, body: { reason: 'walkthrough cleanup' }, expect: 200,
   })
   const voided = await call(`/api/lab/records/${recordId}/status`, { expect: 200 })
   assert.equal(voided.json.state, 'voided')
   const packAfterVoid = await call(`/api/lab/records/${recordId}/pack.json?token=${encodeURIComponent(shareToken)}`, { expect: 200 })
-  assert.equal(packAfterVoid.json.signature, packByMember.json.signature, 'voiding must not alter the signed pack')
+  assert.equal(packAfterVoid.json.signature, packByAnalyst.json.signature, 'voiding must not alter the signed pack')
 
-  console.log('15. a result outside acceptance cannot be released without a stated deviation')
+  console.log('16. a result outside acceptance cannot be released without a stated deviation')
   const offRecord = await call(`/api/lab/orgs/${orgId}/records`, {
     method: 'POST', as: ANALYST, body: { template_id: templateId }, expect: 201,
   })
   const offId = String(offRecord.json.id)
+  const offDetail = await call(`/api/lab/orgs/${orgId}/records/${offId}`, { as: ANALYST, expect: 200 })
   const offPatch = await call(`/api/lab/orgs/${orgId}/records/${offId}`, {
     method: 'PATCH', as: ANALYST, expect: 200,
-    body: { measurements: { ...measurements, weighedG: 0.12, reagentLot: 'E2E-LOT-OFF' } },
+    body: {
+      measurements: { ...measurements, weighedG: 0.12, reagentLot: 'E2E-LOT-OFF' },
+      base_revision: String(offDetail.json.revision),
+    },
   })
   assert.equal((offPatch.json.preview as { withinAcceptance: boolean }).withinAcceptance, false)
   await call(`/api/lab/orgs/${orgId}/records/${offId}/submit`, { method: 'POST', as: ANALYST, expect: 200 })

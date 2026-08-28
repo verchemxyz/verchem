@@ -10,6 +10,11 @@ const EMPTY_MODULE = path.resolve(process.cwd(), 'lib/rdkit/empty-module.ts');
 const STUBBED_NODE_CANVAS_DEPS = /^(jsdom|canvas)(\/.*)?$/;
 
 const nextConfig: NextConfig = {
+  // HTTP Lab-QC gates may run beside a developer's existing Next process.
+  // Give that gate an isolated build directory so neither process invalidates
+  // the other's compiler state.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
+
   // Turbopack config (silences webpack/turbopack mismatch warning in Next.js 16)
   turbopack: {
     resolveAlias: {

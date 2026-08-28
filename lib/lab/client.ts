@@ -30,6 +30,7 @@ export interface LabRecordDetail {
   template: PrepTemplate
   preview: AsPreparedResult | null
   preview_error: string | null
+  revision: `sha256:${string}`
   events: Array<{ actor: string; action: string; at: string; reason: string | null }>
 }
 

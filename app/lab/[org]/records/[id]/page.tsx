@@ -49,6 +49,7 @@ export default function RecordDetailPage() {
   const [releaseReason, setReleaseReason] = useState('')
   const [voidReason, setVoidReason] = useState('')
   const [shareToken, setShareToken] = useState<string | null>(null)
+  const [shareNotice, setShareNotice] = useState<string | null>(null)
   const [origin, setOrigin] = useState('')
 
   const load = useCallback(async () => {
@@ -57,6 +58,7 @@ export default function RecordDetailPage() {
     setPreview(response.preview)
     setPreviewError(response.preview_error)
     setMeasurements(response.record.draft?.measurements ?? createInitialMeasurements(response.template))
+    setEditStarted(false)
   }, [id, org, t.unknownError])
 
   useEffect(() => {
@@ -73,20 +75,31 @@ export default function RecordDetailPage() {
     if (!measurements) return false
     setBusy(true); setError(null)
     try {
-      const response = await labFetch<{ record: PrepRecord; preview: LabRecordDetail['preview'] }>(`/api/lab/orgs/${encodeURIComponent(org)}/records/${encodeURIComponent(id)}`, {
+      const response = await labFetch<{ record: PrepRecord; preview: LabRecordDetail['preview']; revision: `sha256:${string}` }>(`/api/lab/orgs/${encodeURIComponent(org)}/records/${encodeURIComponent(id)}`, {
         fallbackMessage: t.unknownError,
-        method: 'PATCH', body: JSON.stringify({ measurements }),
+        method: 'PATCH', body: JSON.stringify({ measurements, base_revision: detail?.revision }),
       })
-      setDetail((current) => current ? { ...current, record: { ...response.record, share_token_hash: null } } : current)
+      setDetail((current) => current ? { ...current, record: { ...response.record, share_token_hash: null }, revision: response.revision } : current)
       setPreview(response.preview)
       setPreviewError(null)
       return true
     } catch (requestError: unknown) {
+      if (requestError instanceof LabApiError && requestError.status === 409) {
+        try {
+          await load()
+          setError(t.recordChangedReloaded)
+          setPreviewError(t.recordChangedReloaded)
+        } catch (reloadError: unknown) {
+          const message = reloadError instanceof LabApiError ? reloadError.message : t.unknownError
+          setError(message); setPreviewError(message)
+        }
+        return false
+      }
       const message = requestError instanceof LabApiError ? requestError.message : t.unknownError
       setError(message); setPreviewError(message)
       return false
     } finally { setBusy(false) }
-  }, [id, measurements, org, t.unknownError])
+  }, [detail?.revision, id, load, measurements, org, t.recordChangedReloaded, t.unknownError])
 
   useEffect(() => {
     if (!editStarted || detail?.record.state !== 'draft') return
@@ -156,12 +169,36 @@ export default function RecordDetailPage() {
     if (!verifyUrl) return
     try { await navigator.clipboard.writeText(verifyUrl) } catch { setError(t.copyFailed) }
   }
+  const rotateShareLink = async () => {
+    setBusy(true); setError(null); setShareNotice(null)
+    try {
+      const response = await labFetch<{ share_token: string }>(`/api/lab/orgs/${encodeURIComponent(org)}/records/${encodeURIComponent(id)}/share-link`, {
+        fallbackMessage: t.unknownError,
+        method: 'POST',
+      })
+      sessionStorage.setItem(`verchem.lab.share-token:${id}`, response.share_token)
+      setShareToken(response.share_token)
+      setShareNotice(t.shareLinkRotated)
+      await load()
+    } catch {
+      setError(t.shareLinkRotationFailed)
+    } finally {
+      setBusy(false)
+    }
+  }
   const downloadPdf = async () => {
     if (!certificateRef.current || !detail) return
     try {
       const { downloadLabEvidencePackPdf } = await import('@/lib/lab/pdf-export')
-      await downloadLabEvidencePackPdf(certificateRef.current, detail.record.record_no)
-    } catch (requestError: unknown) { setError(requestError instanceof Error ? requestError.message : t.unknownError) }
+      await downloadLabEvidencePackPdf(certificateRef.current, detail.record.record_no, detail.record.signature ?? '', t.compactJwsTitle)
+    } catch { setError(t.unknownError) }
+  }
+  const downloadJws = async () => {
+    if (!detail?.record.signature) return
+    try {
+      const { downloadLabEvidencePackJws } = await import('@/lib/lab/pdf-export')
+      downloadLabEvidencePackJws(detail.record.signature, detail.record.record_no)
+    } catch { setError(t.unknownError) }
   }
 
   if (!detail || !measurements) return <p className={error ? 'text-destructive-strong' : 'text-muted-foreground'}>{error ? `${t.errorPrefix} ${error}` : t.loadingLab}</p>
@@ -180,7 +217,7 @@ export default function RecordDetailPage() {
 
       {state === 'rejected' && <section className="lab-document p-6"><h2 className="lab-display text-2xl font-semibold">{t.rejected}</h2><p className="mt-3 text-foreground">{rejectedReason ?? t.noRejectionReason}</p>{isPreparer && <button disabled={busy} onClick={() => { void createAttempt() }} className="mt-6 min-h-[44px] rounded-md bg-[var(--lab-accent)] px-4 py-2.5 font-medium text-white disabled:opacity-50">{t.createNewAttempt}</button>}</section>}
 
-      {(state === 'released' || state === 'voided') && signedPack && <section className="space-y-5"><PrepRecordCertificate ref={certificateRef} record={detail.record} template={detail.template} pack={signedPack} verifyUrl={verifyUrl} accreditationRef={organization?.accreditation_ref} /><div className="flex flex-wrap items-center gap-3"><button onClick={() => { void downloadPdf() }} className="min-h-[44px] rounded-md bg-[var(--lab-accent)] px-4 py-2.5 font-medium text-white">{t.downloadPdf}</button>{verifyUrl ? <button onClick={() => { void copyLink() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground">{t.copyVerifyLink}</button> : <span className="text-sm text-warning-strong">{t.shareLinkUnavailable}</span>}{state === 'released' && mayReview && <div className="flex flex-wrap items-end gap-3"><ActionReason label={t.reason} value={voidReason} onChange={setVoidReason} required /><button disabled={busy} onClick={() => { void transition('void') }} className="min-h-[44px] rounded-md border border-destructive/50 px-4 py-2.5 font-medium text-destructive-strong disabled:opacity-50">{t.voidRecord}</button></div>}</div>{shareToken && verifyUrl && <div className="border border-warning/50 bg-warning/10 p-4 text-sm text-warning-strong"><p className="font-semibold">{t.saveShareLink}</p><p className="mt-2 break-all font-mono text-xs text-foreground">{verifyUrl}</p></div>}</section>}
+      {(state === 'released' || state === 'voided') && signedPack && <section className="space-y-5"><PrepRecordCertificate ref={certificateRef} record={detail.record} template={detail.template} pack={signedPack} verifyUrl={verifyUrl} compactJws={detail.record.signature ?? ''} /><div className="flex flex-wrap items-center gap-3"><button onClick={() => { void downloadPdf() }} className="min-h-[44px] rounded-md bg-[var(--lab-accent)] px-4 py-2.5 font-medium text-white">{t.downloadPdf}</button><button onClick={() => { void downloadJws() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground">{t.downloadJws}</button>{verifyUrl ? <button onClick={() => { void copyLink() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground">{t.copyVerifyLink}</button> : mayReview ? <button disabled={busy} onClick={() => { void rotateShareLink() }} className="min-h-[44px] rounded-md border border-border bg-card px-4 py-2.5 font-medium text-foreground disabled:opacity-50">{busy ? t.rotatingShareLink : t.requestNewShareLink}</button> : <span className="text-sm text-warning-strong">{t.shareLinkUnavailable}</span>}{state === 'released' && mayReview && <div className="flex flex-wrap items-end gap-3"><ActionReason label={t.reason} value={voidReason} onChange={setVoidReason} required /><button disabled={busy} onClick={() => { void transition('void') }} className="min-h-[44px] rounded-md border border-destructive/50 px-4 py-2.5 font-medium text-destructive-strong disabled:opacity-50">{t.voidRecord}</button></div>}</div>{shareNotice && <p role="status" className="text-sm text-[var(--lab-accent)]">{shareNotice}</p>}{shareToken && verifyUrl && <div className="border border-warning/50 bg-warning/10 p-4 text-sm text-warning-strong"><p className="font-semibold">{t.saveShareLink}</p><p className="mt-2 break-all font-mono text-xs text-foreground">{verifyUrl}</p></div>}</section>}
 
       {(state === 'released' || state === 'voided') && !signedPack && <p role="alert" className="text-destructive-strong">{t.errorPrefix} {t.storedEvidencePackUnavailable}</p>}
       <section className="lab-document p-5"><h2 className="lab-display text-xl font-semibold">{t.eventHistory}</h2><ol className="mt-4 space-y-3 border-l border-border pl-4">{detail.events.map((event, index) => <li key={`${event.action}-${event.at}-${index}`}><p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">{event.action} · {formatLabDate(event.at)}</p><p className="mt-1 text-sm text-foreground">{event.actor}</p></li>)}</ol></section>

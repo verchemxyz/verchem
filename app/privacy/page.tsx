@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CalcShell } from '@/components/lab'
+import { getTranslation } from '@/lib/i18n/translations'
 
 export const metadata: Metadata = {
   title: { absolute: 'Privacy Policy | VerChem' },
@@ -12,8 +13,9 @@ export const metadata: Metadata = {
 // TODO(พี่จ๊อบ): confirm the operating legal entity name + governing-law
 // jurisdiction (see "Contact" and the Terms). Everything else below describes
 // the app's actual data practices verified against the codebase.
-const EFFECTIVE_DATE = 'May 27, 2026'
+const EFFECTIVE_DATE = 'August 28, 2026'
 const CONTACT_EMAIL = 'verchem.xyz@gmail.com'
+const LAB_LEGAL = getTranslation('en').lab
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -44,6 +46,7 @@ export default function PrivacyPolicyPage() {
             collect, how we use it, and the choices you have. We do not sell your
             personal information.
           </p>
+          <p>{LAB_LEGAL.legalPrivacyLabOverview}</p>
         </Section>
 
         <Section title="Information we collect">
@@ -66,6 +69,7 @@ export default function PrivacyPolicyPage() {
             deterministic engines on our servers and cryptographically signed. Do not
             include sensitive personal information in question text.
           </p>
+          <p><strong>VerChem Lab records.</strong> {LAB_LEGAL.legalPrivacyLabData}</p>
           <p>
             <strong>Donations.</strong> Voluntary donations are processed by Stripe
             through hosted payment links. Payment card details are entered on Stripe’s
@@ -112,10 +116,9 @@ export default function PrivacyPolicyPage() {
 
         <Section title="Data retention & deletion">
           <p>
-            Content you create remains until you delete it (for example, removing a
-            molecule from your library) or until you ask us to close your account. To
-            request deletion of your account data, contact us at the address below.
+            {LAB_LEGAL.legalPrivacyRetentionGeneral}
           </p>
+          <p><strong>VerChem Lab exception.</strong> {LAB_LEGAL.legalPrivacyRetentionLab}</p>
         </Section>
 
         <Section title="Security">
