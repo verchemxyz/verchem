@@ -24,9 +24,9 @@ export default function Viewer3DPage() {
 
   return (
     <CalcShell
-      eyebrow={`Interactive 3D · CPK · ${moleculeCount} built-in molecules`}
+      eyebrow={`Interactive 3D · CPK · ${moleculeCount} curated coordinate models`}
       title="3D Molecular Viewer"
-      subtitle="Interactive 3D visualization with real-time rendering and intuitive controls."
+      subtitle="Rotate curated built-in coordinate models in real time. This viewer displays supplied coordinates; it does not compute or validate molecular geometries."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"
@@ -134,7 +134,7 @@ export default function Viewer3DPage() {
                 </li>
                 <li className="flex items-center">
                   <span className="text-success-strong mr-2">✓</span>
-                  {moleculeCount} built-in molecule models
+                  {moleculeCount} curated coordinate models
                 </li>
                 <li className="flex items-center">
                   <span className="text-success-strong mr-2">✓</span>
@@ -190,9 +190,9 @@ export default function Viewer3DPage() {
             <h3 className="text-lg font-bold mb-3 text-foreground">About</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               VerChem 3D Molecular Viewer is a free, interactive tool for
-              visualizing chemical molecules in 3D. Built with modern web
-              technologies, it provides real-time rendering and intuitive
-              controls.
+              displaying curated molecular coordinate models in 3D. It
+              renders the supplied coordinates interactively but does not run
+              geometry optimization or establish experimental validity.
             </p>
             <div className="mt-4 pt-4 border-t border-border">
               <p className="text-xs text-muted-foreground">
@@ -205,7 +205,7 @@ export default function Viewer3DPage() {
 
       {/* Footnote */}
       <p className="text-center text-xs text-muted-foreground">
-        Interactive 3D rendering with the CPK color scheme.
+        Curated structural display data · Interactive CPK rendering · Not a computed or validated geometry
       </p>
     </CalcShell>
   )

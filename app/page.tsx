@@ -13,7 +13,7 @@ const STRUCTURE_WORKFLOW = [
   {
     href: "/tools/substructure-search",
     label: "Search",
-    description: "Match verified records",
+    description: "Match formula-checked records",
     number: "02",
   },
   {
@@ -293,7 +293,7 @@ export default async function Home() {
             href="/tools/substructure-search"
             marker="02 · Search"
             title="Substructure Search"
-            description="Run SMILES/SMARTS substructure queries or Tanimoto similarity across 209 verified structures."
+            description="Run SMILES/SMARTS substructure queries or Tanimoto similarity across 209 formula-consistency-checked structures."
             details={["SMILES / SMARTS", "Tanimoto", "209 structures"]}
             icon={<StructureSearchIcon />}
           />
@@ -321,7 +321,7 @@ export default async function Home() {
           <ToolCard
             href="/organic"
             title="Organic Chemistry"
-            description="22 functional groups, 40 named reactions with mechanisms, and reaction predictor."
+            description="22 functional groups, 40 named reactions with mechanisms, and a rule-based transformation guide."
             icon={<FlaskIcon />}
           />
           <ToolCard
@@ -404,7 +404,7 @@ export default async function Home() {
           {/* Stats row */}
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { value: "118", label: "Elements (NIST)" },
+              { value: "118", label: "Elements · IUPAC 2021 weights" },
               { value: "24+", label: "Deterministic tools" },
               { value: COMPOUND_STATISTICS.totalCompounds.toLocaleString("en-US"), label: "Compounds" },
               { value: "61", label: "Signed engines" },

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'Gas Laws Calculator - Ideal Gas, Boyle\'s, Charles\'s Law | VerChem' },
-  description: 'Calculate gas properties using Ideal Gas Law, Boyle\'s Law, Charles\'s Law, Gay-Lussac\'s Law, Combined Gas Law, and more. Free online gas law calculator for chemistry.',
+  description: 'Evaluate Ideal Gas Law, Boyle\'s Law, Charles\'s Law, Gay-Lussac\'s Law, Combined Gas Law, and related idealized models in your browser.',
   keywords: [
     'gas law calculator',
     'ideal gas law calculator',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Gas Laws Calculator - Ideal Gas, Boyle\'s, Charles\'s Law',
-    description: 'Calculate gas properties instantly using all major gas laws. Free, accurate, and easy to use.',
+    description: 'Evaluate major gas-law equations with their idealized model assumptions stated in the calculator.',
     type: 'website',
     url: 'https://verchem.xyz/tools/gas-laws',
     images: [

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { GET as getArchivedReleaseManifestRoute } from '@/app/.well-known/verchem-release/[hash]/route'
@@ -175,11 +175,14 @@ test('the archive URL the verifier builds is reachable through Next routing, not
 })
 
 test('archived release route serves a signed archive and rejects unknown or malformed hashes', async () => {
-  const currentResponse = await getReleaseManifestRoute()
-  const currentDocument: unknown = await currentResponse.json()
-  assert.ok(typeof currentDocument === 'object' && currentDocument !== null && !Array.isArray(currentDocument))
-  const currentManifest = (currentDocument as Record<string, unknown>).manifest as ReleaseManifest
-  const hash = currentManifest.content_hash.slice('sha256:'.length)
+  // Local pretest intentionally does not archive an intermediate dirty build.
+  // Exercise the route with a real committed archive; protected CI separately
+  // rejects a generated current manifest that has not been archived.
+  const archiveFiles = (await readdir(path.join(process.cwd(), 'lib/answer-cards/release-manifests')))
+    .filter((filename) => /^[a-f0-9]{64}\.json$/.test(filename))
+    .sort()
+  assert.ok(archiveFiles.length > 0, 'at least one committed release archive is required')
+  const hash = archiveFiles[0].slice(0, -'.json'.length)
 
   const archivedResponse = await getArchivedReleaseManifestRoute(
     new Request(`https://verchem.xyz/.well-known/verchem-release/${hash}.json`),
@@ -253,12 +256,16 @@ test('browser release-manifest claim distinguishes current, superseded, mismatch
   const routeDocument: unknown = await routeResponse.json()
   assert.ok(typeof routeDocument === 'object' && routeDocument !== null && !Array.isArray(routeDocument))
   const currentManifest = (routeDocument as Record<string, unknown>).manifest as ReleaseManifest
-  const currentHash = currentManifest.content_hash.slice('sha256:'.length)
-  const archiveResponse = await getArchivedReleaseManifestRoute(
-    new Request(`https://verchem.xyz/.well-known/verchem-release/${currentHash}.json`),
-    { params: Promise.resolve({ hash: `${currentHash}.json` }) }
-  )
-  const archiveDocument: unknown = await archiveResponse.json()
+  // Build the immutable current archive document in memory. A dirty local
+  // build is deliberately not added to the committed archive directory.
+  const currentArchive: ReleaseManifestArchive = {
+    ...manifestWithoutTimestamp(currentManifest),
+    content_hash: currentManifest.content_hash,
+  }
+  const archiveDocument = {
+    manifest: currentArchive,
+    jws: await signReleaseManifest(currentArchive),
+  }
 
   const matched = await verifyCardJwsInBrowser(card.signature, publishedJwks, {
     fetch: async (input) => new Response(

@@ -50,11 +50,11 @@ for (const compound of COMPOUNDS_WITH_SMILES) {
   }
 }
 
-/** Number of verified structures available for searching. */
+/** Number of curated, RDKit-parsed and formula-consistency-checked structures available for searching. */
 export const SEARCHABLE_COMPOUND_COUNT = CORPUS.length
 
 /**
- * Find every verified compound whose structure contains the query
+ * Find every checked-corpus compound whose structure contains the query
  * substructure (SMARTS or SMILES pattern).
  */
 export async function searchCompoundsBySubstructure(

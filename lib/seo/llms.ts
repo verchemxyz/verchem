@@ -42,7 +42,7 @@ Built with Next.js 16 and TypeScript, VerChem offers production-quality tools th
 ### Organic Chemistry Suite (NEW)
 - **Functional Groups Reference**: 22 functional groups with structures, properties, spectroscopy (IR/NMR), reactions, and examples
 - **Named Reactions Database**: 40 named reactions (SN1, SN2, E1, E2, Grignard, Aldol, Wittig, Diels-Alder, Suzuki, Heck, etc.) with step-by-step mechanisms, examples, and key study points
-- **Reaction Predictor**: Select a functional group + reagent to predict the product with mechanism explanation
+- **Rule-Based Transformation Guide**: Select a functional-group class and reagent to view a representative transformation rule with its educational mechanism explanation; it does not evaluate a complete molecular structure or competing pathways
 - **Difficulty Levels**: Introductory (15), Intermediate (15), Advanced (10) reactions
 - **Nobel Prize Reactions**: Grignard (1912), Diels-Alder (1950), Wittig (1979), Brown (1979), Sharpless (2001), Suzuki/Heck (2010), Grubbs (2005)
 - **Categories**: Addition, Elimination, Substitution, Oxidation, Reduction, Condensation, Coupling, Cycloaddition, Radical, Rearrangement, Multicomponent
@@ -94,7 +94,7 @@ Built with Next.js 16 and TypeScript, VerChem offers production-quality tools th
 - Organic Chemistry Hub: https://verchem.xyz/organic
 - Functional Groups Reference: https://verchem.xyz/organic/functional-groups
 - Named Reactions Database: https://verchem.xyz/organic/reactions
-- Reaction Predictor: https://verchem.xyz/organic/predict
+- Rule-Based Transformation Guide: https://verchem.xyz/organic/predict
 
 ### Spectroscopy
 - Spectroscopy Hub: https://verchem.xyz/spectroscopy
@@ -154,8 +154,8 @@ VerChem covers 22 functional groups across 7 categories: hydrocarbons (alkane, a
 **What named reactions are in VerChem?**
 VerChem includes 40 named organic reactions at three difficulty levels: Introductory (SN1, SN2, E1, E2, Markovnikov/anti-Markovnikov addition, halogenation, hydrogenation, hydration, Fischer esterification, saponification, radical halogenation, dehydration, EAS, hydroboration-oxidation), Intermediate (Grignard, Aldol, Wittig, Diels-Alder, Claisen, Michael, Friedel-Crafts, Williamson, Jones/PCC/Swern oxidation, NaBH4/LiAlH4/Wolff-Kishner reduction), and Advanced (Suzuki, Heck, Sonogashira, Grubbs metathesis, Sharpless epoxidation, Beckmann, Baeyer-Villiger, Robinson annulation, Mannich, Sandmeyer).
 
-**How does the Reaction Predictor work?**
-Select a starting functional group and a reagent/condition. VerChem predicts the product based on known organic reaction rules. It shows the product functional group, mechanism type, explanation of what happens, and selectivity information (e.g., Markovnikov vs anti-Markovnikov).
+**How does the Rule-Based Transformation Guide work?**
+Select a starting functional-group class and a listed reagent/condition. VerChem looks up a representative transformation from its curated educational rule set and shows the resulting functional-group class, mechanism category, explanation, and any rule-level selectivity note. It does not evaluate a full molecular structure, stereochemistry, competing pathways, solvent effects, temperature, or unlisted conditions, so it is not a computed reaction-pathway prediction.
 
 ### Deterministic Results vs Generated Text
 

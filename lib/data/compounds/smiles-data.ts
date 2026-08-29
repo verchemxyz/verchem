@@ -1,6 +1,6 @@
 /*
  * ============================================================================
- * Curated, RDKit-verified SMILES library  (VerChem Wedge W2)
+ * Curated, RDKit-parsed and formula-consistency-checked SMILES library
  * ============================================================================
  *
  * Maps `Compound.id` → canonical SMILES for MOLECULAR (covalent) compounds
@@ -19,8 +19,8 @@
  *
  * The check runs in __tests__/compound-smiles-verification.test.ts using the
  * REAL RDKit WASM module (not a mock).  A typo that produces a different
- * formula fails the test.  This is the "verified even in our seed data"
- * principle of the AI-First Verified Chemistry wedge.
+ * formula fails the test. This check does not establish experimental identity,
+ * stereochemical correctness, or scientific validation.
  *
  * NOTE: a constitutional isomer with an identical formula (e.g. swapping
  * ethanol CCO for dimethyl ether COC) is NOT caught automatically; those

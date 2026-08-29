@@ -358,7 +358,7 @@ export default function FunctionalGroupsPage() {
                     href="/organic/predict"
                     className="block text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    → Reaction Predictor
+                    → Transformation Guide
                   </Link>
                   <Link
                     href="/organic"

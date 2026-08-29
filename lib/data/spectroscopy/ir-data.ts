@@ -2,8 +2,9 @@
  * IR Spectroscopy Absorption Database
  *
  * Comprehensive database of characteristic infrared absorption frequencies
- * for functional group identification. All data is scientifically accurate
- * and referenced from standard spectroscopy sources (Silverstein, Pavia, SDBS).
+ * for functional group identification. Dataset-level references include
+ * Silverstein, Pavia, and SDBS; these characteristic ranges are educational
+ * reference data, not a blanket guarantee for every sample or instrument.
  *
  * Wavenumber ranges in cm^-1.
  */

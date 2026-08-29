@@ -127,9 +127,9 @@ export default function SubstructureSearchPage() {
 
   return (
     <CalcShell
-      eyebrow={`${SEARCHABLE_COMPOUND_COUNT} verified structures`}
+      eyebrow={`${SEARCHABLE_COMPOUND_COUNT} formula-checked structures`}
       title="Substructure Search"
-      subtitle="Draw or paste a fragment to find matching records in the RDKit-verified structure corpus, using molecular connectivity rather than text."
+      subtitle="Draw or paste a fragment to find matching records in the RDKit-parsed, formula-checked structure corpus, using molecular connectivity rather than text."
       backHref="/tools"
       backLabel="All tools"
       maxWidth="6xl"
@@ -140,7 +140,7 @@ export default function SubstructureSearchPage() {
           <CheckCircle className="h-4 w-4 text-success-strong" /> SMILES &amp; SMARTS
         </span>
         <span className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-success-strong" /> Formula-verified library
+          <CheckCircle className="h-4 w-4 text-success-strong" /> Formula-consistency-checked library
         </span>
         <span className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
@@ -254,7 +254,7 @@ export default function SubstructureSearchPage() {
 
           {hits.length === 0 ? (
             <Card className="p-8 text-center text-muted-foreground">
-              No compounds in the verified library match this query.
+              No compounds in the formula-checked library match this query.
               {mode === 'substructure'
                 ? ' Try a smaller fragment (e.g. just c1ccccc1).'
                 : ' Try lowering the bar with a closely related molecule.'}
@@ -334,9 +334,9 @@ export default function SubstructureSearchPage() {
             },
             {
               icon: ShieldCheck,
-              title: 'Verified corpus',
+              title: 'Formula consistency checks',
               description:
-                'Every structure’s SMILES is cross-checked against its NIST molecular formula by the calculation engine before it can be searched — no silent bad data.',
+                'Before a structure can be searched, RDKit-derived element counts must match its independently sourced molecular formula. This check does not establish experimental identity or scientific validation.',
             },
           ].map((item) => (
             <div key={item.title} className="rounded-lg border border-border bg-muted p-6">
@@ -380,15 +380,15 @@ export default function SubstructureSearchPage() {
             },
             {
               q: 'Why can’t I just search by molecular formula?',
-              a: 'A formula like C6H6 tells you the atom counts, not how the atoms are bonded. Substructure matching needs connectivity, which is why this tool searches a curated library of verified SMILES structures rather than the full formula database.',
+              a: 'A formula like C6H6 tells you the atom counts, not how the atoms are bonded. Substructure matching needs connectivity, which is why this tool searches a curated, formula-checked SMILES corpus rather than the full formula database.',
             },
             {
               q: 'Do I need to know SMARTS?',
               a: 'No. You can draw a structure or paste a plain SMILES (e.g. c1ccccc1 for benzene). SMARTS just gives you finer control over functional-group queries like [OX2H] for any hydroxyl group.',
             },
             {
-              q: 'How is the library kept accurate?',
-              a: 'Every SMILES in the searchable library is verified at build time: RDKit computes its element composition and it must match the compound’s independently-sourced molecular formula, or the test fails.',
+              q: 'How is the library checked?',
+              a: 'At build time, RDKit computes each SMILES element composition and it must match the compound’s independently sourced molecular formula, or the test fails. This is a formula-consistency check, not experimental structure validation.',
             },
           ].map((faq, i) => (
             <div key={i} className="rounded-lg border border-border bg-muted p-6">

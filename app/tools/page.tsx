@@ -22,7 +22,7 @@ const STRUCTURE_TOOLS = [
   {
     href: '/tools/substructure-search',
     label: 'Substructure Search',
-    description: 'Search 209 verified structures with SMILES/SMARTS substructure matching or Tanimoto similarity.',
+    description: 'Search 209 formula-consistency-checked structures with SMILES/SMARTS matching or Tanimoto similarity.',
     marker: '02 · Search',
   },
   {
@@ -63,7 +63,7 @@ const CHEMISTRY_TOOLS = [
   {
     href: '/tools/molar-mass',
     label: 'Molar Mass Calculator',
-    description: 'Molar mass with an element-by-element breakdown using standard atomic weights based on IUPAC 2021.',
+    description: 'Molar mass with an element-by-element breakdown using VerChem’s IUPAC 2021 standard atomic-weight reference table.',
   },
   {
     href: '/tools/periodic-table',
@@ -109,8 +109,8 @@ const ORGANIC_TOOLS = [
   },
   {
     href: '/organic/predict',
-    label: 'Reaction Predictor',
-    description: 'Select a functional group and reagent to predict the product with mechanism.',
+    label: 'Transformation Guide',
+    description: 'Explore representative functional-group transformations from a curated rule set.',
   },
 ] as const
 
@@ -178,7 +178,7 @@ const SECTIONS = [
   {
     id: 'structure-search',
     title: 'Structure & Search',
-    blurb: 'Draw once, search verified structures, and keep your work in one browser-native flow',
+    blurb: 'Draw once, search formula-checked structures, and keep your work in one browser-native flow',
     tools: STRUCTURE_TOOLS,
   },
   {
@@ -232,7 +232,7 @@ export default function ToolsPage() {
     <CalcShell
       eyebrow="VerChem · browser-native chemistry workbench"
       title="All Tools"
-      subtitle="Draw structures, search verified records, and run focused chemistry tools without leaving the browser."
+      subtitle="Draw structures, search formula-checked records, and run focused chemistry tools without leaving the browser."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"

@@ -429,7 +429,8 @@ function OrbitalsTab() {
     <div>
       <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">Orbital Explorer</h2>
       <p className="text-muted-foreground mb-6">
-        Explore electron shells, subshells, and orbital shapes.
+        Explore electron shells and subshells with symbolic shape icons. These icons are not
+        computed wavefunctions, probability-density isosurfaces, or orbital orientations.
       </p>
 
       {/* Shell selector */}
@@ -1192,8 +1193,8 @@ export default function QuantumChemistryPage() {
   return (
     <CalcShell
       eyebrow="Advanced chemistry \u00B7 Quantum & atomic structure"
-      title="Quantum Chemistry Calculator"
-      subtitle="Quantum numbers, orbital explorer, hydrogen atom spectra, de Broglie wavelength, photon energy, and Bohr model."
+      title="Quantum & Atomic Structure Tools"
+      subtitle="Textbook-model calculations for quantum numbers, hydrogen spectra, de Broglie wavelength, photon energy, and the Bohr model, with symbolic diagrams."
       backHref="/tools"
       backLabel="All tools"
       maxWidth="6xl"
@@ -1243,7 +1244,7 @@ export default function QuantumChemistryPage() {
             },
             {
               title: 'Bohr Model',
-              description: 'Electrons orbit the nucleus at quantized energy levels. E\u2099 = -13.6/n\u00B2 eV for hydrogen. Predicts spectral lines accurately.'
+              description: 'The Bohr model uses quantized energy levels. E\u2099 = -13.6/n\u00B2 eV applies to hydrogen; the Z\u00B2 form applies to one-electron hydrogen-like ions. It is not a general many-electron atomic model.'
             },
             {
               title: 'Photon Energy',
@@ -1251,7 +1252,7 @@ export default function QuantumChemistryPage() {
             },
             {
               title: 'Atomic Orbitals',
-              description: 'Orbitals are probability distributions for finding electrons. s(sphere), p(dumbbell), d(clover), f(complex) shapes.'
+              description: 'Atomic orbitals are wavefunctions whose squared magnitude gives a probability density. The s, p, d, and f icons shown here are symbolic teaching diagrams, not computed isosurfaces.'
             },
             {
               title: 'Emission Spectra',

@@ -103,13 +103,21 @@ export default function TitrationLabPage() {
 
   return (
     <CalcShell
-      eyebrow="Interactive · Real-time pH and color changes"
-      title="Acid-Base Titration Lab"
-      subtitle="Watch pH changes in real-time as you add titrant drop by drop."
+      eyebrow="Interactive model · Stepwise pH and color changes"
+      title="Acid-Base Titration Simulation"
+      subtitle="Step through a deterministic acid-base calculation as titrant is added. The curve and colors are simulated outputs, not measured observations."
       backHref="/virtual-lab"
       backLabel="Virtual Lab"
       maxWidth="7xl"
     >
+      <Card className="border-l-2 border-l-primary-500 p-4">
+        <p className="text-sm text-muted-foreground">
+          <strong className="text-foreground">Simulation status:</strong> Educational deterministic
+          model. The pH curve, equivalence point, and indicator colors are calculated outputs—not
+          measurements or experimental observations.
+        </p>
+      </Card>
+
       {/* Example Selection */}
       {!isRunning && (
         <Card className="p-6">
@@ -232,7 +240,7 @@ export default function TitrationLabPage() {
         <div className="space-y-6">
           {/* Lab Equipment Visualization */}
           <Card className="p-6">
-            <SectionTitle className="mb-4">Lab equipment</SectionTitle>
+            <SectionTitle className="mb-4">Schematic setup</SectionTitle>
 
             {/* Virtual Lab Setup */}
             <div className="relative h-96 bg-muted border border-border rounded-md p-4 flex items-end justify-center">
@@ -331,7 +339,7 @@ export default function TitrationLabPage() {
             {!isRunning ? (
               <div>
                 <Button onClick={startTitration} className="w-full">
-                  Start Titration
+                  Start Simulation
                 </Button>
                 {setupError && (
                   <p role="alert" className="mt-3 text-sm text-destructive-strong">
@@ -522,9 +530,9 @@ export default function TitrationLabPage() {
         <SectionTitle className="mb-3">How to use</SectionTitle>
         <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
           <li>Select an example or configure a supported acid, strong-base titrant, concentration, volume, and indicator</li>
-          <li>Click &quot;Start Titration&quot; to begin</li>
+          <li>Click &quot;Start Simulation&quot; to begin</li>
           <li>Add titrant using the control buttons (0.1, 1.0, or 5.0 mL)</li>
-          <li>Watch the flask color change and pH curve update in real-time</li>
+          <li>Watch the illustrative flask color and calculated pH curve update after each step</li>
           <li>Look for the equivalence point (marked in red on the graph)</li>
           <li>Reset and compare the available indicators against the calculated equivalence region</li>
         </ol>

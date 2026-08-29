@@ -77,9 +77,9 @@ export default function VSEPRPage() {
 
   return (
     <CalcShell
-      eyebrow="Molecular geometry · VSEPR theory"
+      eyebrow="Rule-based model · VSEPR theory"
       title="VSEPR Geometry Predictor"
-      subtitle="Predict molecular geometry using VSEPR theory with interactive 3D visualization."
+      subtitle="Apply VSEPR rules to estimate an idealized molecular geometry, shown as a 2D schematic projection."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"
@@ -172,7 +172,7 @@ export default function VSEPRPage() {
           {/* Result */}
           {prediction && (
             <Card className="p-6">
-              <SectionTitle className="mb-4">Result</SectionTitle>
+              <SectionTitle className="mb-4">Rule-based result</SectionTitle>
 
               <div className="mb-6">
                 <VSEPRViewer prediction={prediction} width={500} height={400} />
@@ -271,7 +271,7 @@ export default function VSEPRPage() {
               {prediction.steps.length > 0 && (
                 <div className="mt-6 bg-muted border border-border rounded-md p-4">
                   <h3 className="text-sm font-bold text-foreground mb-2">
-                    Prediction Steps
+                    Rule evaluation steps
                   </h3>
                   <ol className="space-y-1 text-sm text-muted-foreground">
                     {prediction.steps.map((step, i) => (

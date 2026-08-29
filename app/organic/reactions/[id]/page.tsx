@@ -326,7 +326,7 @@ export default async function ReactionDetailPage({ params }: PageProps) {
             href="/organic/predict"
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
-            Reaction Predictor →
+            Transformation Guide →
           </Link>
         </div>
     </CalcShell>

@@ -440,7 +440,7 @@ export default function GasLawsCalculatorPage() {
               {
                 icon: Zap,
                 title: 'Instant Results',
-                description: 'Get accurate calculations in milliseconds'
+                description: 'Evaluate the selected gas-law equation in milliseconds'
               },
               {
                 icon: Calculator,
@@ -464,8 +464,8 @@ export default function GasLawsCalculatorPage() {
               },
               {
                 icon: FlaskConical,
-                title: 'Lab Ready',
-                description: 'Precise enough for laboratory calculations'
+                title: 'Model-Scoped Results',
+                description: 'Results follow the selected idealized gas-law assumptions; real-gas non-ideality is not modeled'
               }
             ].map((feature) => (
               <div

@@ -7,7 +7,7 @@ import { NAMED_REACTIONS, REACTION_STATISTICS } from '@/lib/data/organic/named-r
 export const metadata: Metadata = {
   title: { absolute: 'Organic Chemistry Tools | VerChem' },
   description:
-    'Free organic chemistry study tools: 22 functional groups, 40 named reactions with mechanisms, reaction predictor, and interactive reference guides.',
+    'Free organic chemistry study tools: 22 functional groups, 40 named reactions with mechanisms, a rule-based transformation guide, and interactive references.',
   keywords: [
     'organic chemistry',
     'functional groups',
@@ -36,10 +36,10 @@ const TOOLS = [
   },
   {
     href: '/organic/predict',
-    label: 'Reaction Predictor',
+    label: 'Transformation Guide',
     description:
-      'Select a functional group and reagent to predict the product. Learn what happens and why.',
-    count: 'Interactive',
+      'Explore representative functional-group transformations from a curated rule set.',
+    count: 'Rule-based',
   },
 ]
 
@@ -68,8 +68,8 @@ const ROADMAP = [
   },
   {
     step: 4,
-    title: 'Advanced & Prediction',
-    body: 'Explore cross-coupling, metathesis, and asymmetric catalysis. Use the Reaction Predictor to test your understanding.',
+    title: 'Advanced & Transformation Rules',
+    body: 'Explore cross-coupling, metathesis, and asymmetric catalysis. Use the Transformation Guide to test your understanding of representative reaction rules.',
   },
 ]
 
@@ -78,7 +78,7 @@ export default function OrganicChemistryHub() {
     <CalcShell
       eyebrow="Organic chemistry suite"
       title="Master Organic Chemistry"
-      subtitle="From functional groups to named reactions to product prediction — everything you need to ace organic chemistry, completely free."
+      subtitle="From functional groups to named reactions and rule-based transformations — a free organic chemistry study suite."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"

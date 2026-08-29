@@ -7,7 +7,10 @@ const LEVEL_NAMES: Record<1 | 2 | 3 | 4, string> = {
 
 export function VerificationLevelBadge({ level }: { level: 1 | 2 | 3 | 4 }) {
   return (
-    <span className="inline-flex items-center rounded border border-border bg-muted px-2 py-1 font-mono text-[11px] tabular-nums text-muted-foreground">
+    <span
+      className="inline-flex items-center rounded border border-border bg-muted px-2 py-1 font-mono text-[11px] tabular-nums text-muted-foreground"
+      title="AIVerID identity level of this person — not a scientific-validity classification"
+    >
       AIVerID · {LEVEL_NAMES[level]} (level {level})
     </span>
   )

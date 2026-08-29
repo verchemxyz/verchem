@@ -93,7 +93,7 @@ assert.deepEqual(
 const distinctStructureCount = new Set(COMPOUNDS_WITH_SMILES.map((c) => c.smiles)).size
 assert.match(
   homePage,
-  new RegExp(`across ${distinctStructureCount} verified structures`),
+  new RegExp(`across ${distinctStructureCount} formula-consistency-checked structures`),
   'homepage featured-card copy must match the deduped searchable corpus'
 )
 assert.match(
@@ -103,7 +103,7 @@ assert.match(
 )
 assert.match(
   toolsHubPage,
-  new RegExp(`Search ${distinctStructureCount} verified structures`),
+  new RegExp(`Search ${distinctStructureCount} formula-consistency-checked structures`),
   '/tools Structure & Search copy must match the deduped searchable corpus'
 )
 

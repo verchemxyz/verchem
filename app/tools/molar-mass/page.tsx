@@ -8,28 +8,31 @@ import { CalcShell, Card, SectionTitle, Button, ResultPanel, ErrorBanner } from 
 import MoleculeInput from '@/components/molecule-editor/MoleculeInput'
 import { useRDKit } from '@/lib/rdkit/hook'
 import { getMolWeight, smilesToFormula } from '@/lib/rdkit/operations'
+import { calculateMolarMass as calculateReferenceMolarMass, parseFormula as parseReferenceFormula } from '@/lib/data/compounds/utils'
+import { getElementBySymbol } from '@/lib/data/periodic-table'
 
-// Common compounds with their formulas and molar masses
-const COMMON_COMPOUNDS = [
-  { name: 'Water', formula: 'H2O', mass: 18.015 },
-  { name: 'Carbon Dioxide', formula: 'CO2', mass: 44.01 },
-  { name: 'Glucose', formula: 'C6H12O6', mass: 180.16 },
-  { name: 'Sodium Chloride', formula: 'NaCl', mass: 58.44 },
-  { name: 'Sulfuric Acid', formula: 'H2SO4', mass: 98.079 },
-  { name: 'Ethanol', formula: 'C2H5OH', mass: 46.07 },
-  { name: 'Ammonia', formula: 'NH3', mass: 17.031 },
-  { name: 'Calcium Carbonate', formula: 'CaCO3', mass: 100.09 },
-  { name: 'Aspirin', formula: 'C9H8O4', mass: 180.16 },
+const COMMON_COMPOUND_FORMULAS = [
+  { name: 'Water', formula: 'H2O' },
+  { name: 'Carbon Dioxide', formula: 'CO2' },
+  { name: 'Glucose', formula: 'C6H12O6' },
+  { name: 'Sodium Chloride', formula: 'NaCl' },
+  { name: 'Sulfuric Acid', formula: 'H2SO4' },
+  { name: 'Ethanol', formula: 'C2H5OH' },
+  { name: 'Ammonia', formula: 'NH3' },
+  { name: 'Calcium Carbonate', formula: 'CaCO3' },
+  { name: 'Aspirin', formula: 'C9H8O4' },
 ]
 
-// Atomic masses (NIST values)
-const ATOMIC_MASSES: Record<string, number> = {
-  H: 1.008, He: 4.003, Li: 6.941, Be: 9.012, B: 10.81, C: 12.011, N: 14.007,
-  O: 15.999, F: 18.998, Ne: 20.18, Na: 22.99, Mg: 24.305, Al: 26.982,
-  Si: 28.086, P: 30.974, S: 32.065, Cl: 35.453, Ar: 39.948, K: 39.098,
-  Ca: 40.078, Fe: 55.845, Cu: 63.546, Zn: 65.38, Br: 79.904, Ag: 107.87,
-  I: 126.9, Au: 196.97, Pb: 207.2,
+function requireReferenceMolarMass(formula: string): number {
+  const mass = calculateReferenceMolarMass(formula)
+  if (mass === undefined) throw new Error(`Invalid common-compound formula: ${formula}`)
+  return mass
 }
+
+const COMMON_COMPOUNDS = COMMON_COMPOUND_FORMULAS.map((compound) => ({
+  ...compound,
+  mass: requireReferenceMolarMass(compound.formula),
+}))
 
 interface ElementCount {
   element: string
@@ -38,29 +41,23 @@ interface ElementCount {
   contribution: number
 }
 
-function parseFormula(formula: string): ElementCount[] | null {
-  const elements: Record<string, number> = {}
-  const regex = /([A-Z][a-z]?)(\d*)/g
-  let match
-
-  while ((match = regex.exec(formula)) !== null) {
-    const [, element, countStr] = match
-    if (!element) continue
-    const count = countStr ? parseInt(countStr, 10) : 1
-    elements[element] = (elements[element] || 0) + count
-  }
+function buildFormulaBreakdown(formula: string): ElementCount[] | null {
+  const composition = parseReferenceFormula(formula)
+  if (!composition) return null
 
   const result: ElementCount[] = []
   let totalMass = 0
 
-  for (const [element, count] of Object.entries(elements)) {
-    const atomicMass = ATOMIC_MASSES[element]
-    if (!atomicMass) return null
+  for (const [element, count] of Object.entries(composition)) {
+    const atomicMass = getElementBySymbol(element)?.atomicMass
+    if (atomicMass === undefined || !Number.isFinite(count) || count <= 0) return null
     const contribution = atomicMass * count
+    if (!Number.isFinite(contribution) || contribution <= 0) return null
     totalMass += contribution
     result.push({ element, count, mass: atomicMass, contribution })
   }
 
+  if (!Number.isFinite(totalMass) || totalMass <= 0) return null
   return result.map(item => ({
     ...item,
     contribution: (item.contribution / totalMass) * 100
@@ -143,7 +140,7 @@ export default function MolarMassCalculatorPage() {
     setError('')
 
     setTimeout(() => {
-      const elements = parseFormula(formula)
+      const elements = buildFormulaBreakdown(formula)
       if (!elements || elements.length === 0) {
         setError('Invalid formula. Please use format like H2O, NaCl, C6H12O6')
         setResult(null)
@@ -158,7 +155,7 @@ export default function MolarMassCalculatorPage() {
   const handleQuickSelect = (compound: typeof COMMON_COMPOUNDS[0]) => {
     setInputMode('formula')
     setFormula(compound.formula)
-    const elements = parseFormula(compound.formula)
+    const elements = buildFormulaBreakdown(compound.formula)
     if (elements) {
       const mass = elements.reduce((sum, el) => sum + el.mass * el.count, 0)
       setResult({ mass, elements })
@@ -172,7 +169,7 @@ export default function MolarMassCalculatorPage() {
       <CalcShell
         eyebrow="Standard atomic weights · based on IUPAC 2021"
         title="Molar Mass Calculator"
-        subtitle="Calculate molecular weight instantly with element-by-element breakdown. Perfect for stoichiometry, lab work, and chemistry homework."
+        subtitle="Calculate molecular weight instantly with an element-by-element breakdown for routine stoichiometry and chemistry work."
         backHref="/tools"
         backLabel="All tools"
         maxWidth="6xl"
@@ -183,7 +180,7 @@ export default function MolarMassCalculatorPage() {
             <CheckCircle className="h-4 w-4 text-success-strong" /> 100% Free
           </span>
           <span className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-success-strong" /> Cited IUPAC Weights
+            <CheckCircle className="h-4 w-4 text-success-strong" /> IUPAC 2021 Basis
           </span>
           <span className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-success-strong" /> Element Breakdown
@@ -391,7 +388,7 @@ export default function MolarMassCalculatorPage() {
               {
                 step: '3',
                 title: 'Lookup Masses',
-                description: 'Standard atomic weights are based on the IUPAC 2021 table'
+                description: 'Use conventional standard atomic weights from the project’s IUPAC 2021 reference table'
               },
               {
                 step: '4',
@@ -464,8 +461,8 @@ export default function MolarMassCalculatorPage() {
               },
               {
                 icon: Atom,
-                title: 'IUPAC-Based Atomic Weights',
-                description: 'Uses standard atomic weights based on the IUPAC 2021 table and states that reference basis explicitly'
+                title: 'IUPAC 2021 Reference Basis',
+                description: 'Uses the same conventional standard atomic-weight table as VerChem’s deterministic calculation engine'
               },
               {
                 icon: Scale,
@@ -484,8 +481,8 @@ export default function MolarMassCalculatorPage() {
               },
               {
                 icon: FlaskConical,
-                title: 'Lab Ready',
-                description: 'Precise enough for professional laboratory calculations'
+                title: 'Declared Reference Basis',
+                description: 'Deterministic formula sums from conventional standard atomic weights; isotope-specific and uncertainty-sensitive work needs an appropriate reference method'
               }
             ].map((feature) => (
               <div
@@ -526,7 +523,7 @@ export default function MolarMassCalculatorPage() {
               },
               {
                 q: 'How accurate is this calculator?',
-                a: 'Our calculator uses NIST (National Institute of Standards and Technology) atomic masses, which are the most accurate and up-to-date values available for chemical calculations.'
+                a: 'The result is a deterministic sum using conventional standard atomic weights from VerChem’s IUPAC 2021 reference table. It does not model isotope-specific composition or measurement uncertainty.'
               }
             ].map((faq, i) => (
               <div

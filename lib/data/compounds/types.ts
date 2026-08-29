@@ -72,7 +72,7 @@ export interface Compound {
   formula: string
   /**
    * Canonical SMILES for molecular (covalent) compounds.
-   * Populated from the curated, RDKit-verified library in `smiles-data.ts`
+   * Populated from the curated, RDKit-parsed and formula-consistency-checked library in `smiles-data.ts`
    * and merged in `index.ts`. Undefined for ionic / metallic / network
    * solids where a discrete SMILES is not chemically meaningful.
    * Every value is cross-checked against `formula` at test time

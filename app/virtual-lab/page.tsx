@@ -6,11 +6,11 @@ export default function VirtualLabPage() {
     {
       id: 'titration',
       name: 'Acid-Base Titration',
-      description: 'Perform virtual titrations with real-time pH curves and color changes',
+      description: 'Run a deterministic acid-base model with stepwise pH curves and illustrative indicator colors',
       difficulty: 'Beginner',
       time: '10-15 min',
       features: [
-        'Real-time pH monitoring',
+        'Stepwise calculated pH',
         'Multiple indicators',
         'Animated color changes',
         'Equivalence point detection',
@@ -23,14 +23,14 @@ export default function VirtualLabPage() {
     <CalcShell
       eyebrow="Interactive · Virtual laboratory"
       title="Virtual Chemistry Laboratory"
-      subtitle="Practice chemistry experiments safely online. No equipment needed, no chemicals wasted, unlimited attempts — built for students and educators."
+      subtitle="Explore deterministic educational simulations without physical chemicals. Model outputs are not wet-lab observations and do not replace laboratory practice or safety training."
       backHref="/"
       backLabel="Home"
       maxWidth="7xl"
     >
       {/* Assurances */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-        {['100% Safe', 'No Equipment Needed', 'Unlimited Practice', 'Free Forever'].map((item) => (
+        {['No Chemical Exposure', 'No Equipment Needed', 'Unlimited Practice', 'Free Forever'].map((item) => (
           <div key={item} className="flex items-center gap-2">
             <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -128,8 +128,8 @@ export default function VirtualLabPage() {
             </div>
             <h3 className="text-lg font-bold mb-2 text-foreground">Cost Effective</h3>
             <p className="text-muted-foreground text-sm">
-              Save thousands on equipment and chemicals. Practice unlimited
-              times without consumables.
+              Explore the supported models without purchasing equipment or
+              consuming reagents.
             </p>
           </div>
 
@@ -139,10 +139,10 @@ export default function VirtualLabPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold mb-2 text-foreground">100% Safe</h3>
+            <h3 className="text-lg font-bold mb-2 text-foreground">No Physical Chemical Exposure</h3>
             <p className="text-muted-foreground text-sm">
-              No risk of explosions, burns, or toxic exposure. Perfect for
-              learning dangerous reactions safely.
+              The software simulation contains no physical reagents. It does
+              not reproduce every laboratory hazard or replace safety training.
             </p>
           </div>
 
@@ -163,15 +163,15 @@ export default function VirtualLabPage() {
 
       {/* CTA */}
       <Card className="p-8 text-center">
-        <SectionTitle className="mb-3 text-2xl">Ready to start experimenting?</SectionTitle>
+        <SectionTitle className="mb-3 text-2xl">Ready to explore the model?</SectionTitle>
         <p className="text-muted-foreground mb-6">
-          Choose a lab above and start your virtual chemistry session.
+          Choose a simulation above and compare the calculated behavior.
         </p>
         <Link
           href="/virtual-lab/titration"
           className="inline-flex items-center justify-center rounded-md font-medium px-6 py-3 min-h-[44px] bg-primary-500 text-primary-foreground hover:bg-primary-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
-          Start with Titration Lab
+          Open Titration Simulation
         </Link>
       </Card>
     </CalcShell>

@@ -268,6 +268,10 @@ export default function VSEPRViewer({
         {renderGeometry()}
       </svg>
 
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        2D schematic projection — not a computed 3D structure or experimental geometry.
+      </p>
+
       {/* Legend — swatch colors mirror the SVG's chemistry-encoding fills (central/bonding/lone-pair), kept literal */}
       <div className="mt-4 flex justify-center gap-4 text-sm text-foreground">
         <div className="flex items-center gap-2">

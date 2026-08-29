@@ -43,9 +43,9 @@ export default function ReactionPredictorPage() {
 
   return (
     <CalcShell
-      eyebrow="Organic chemistry · Reaction predictor"
-      title="Reaction Predictor"
-      subtitle="Select a starting functional group and a reagent to predict the product. Learn the mechanism and selectivity for each transformation."
+      eyebrow="Organic chemistry · Rule-based guide"
+      title="Reaction Transformation Guide"
+      subtitle="Look up a representative functional-group transformation from the curated rule set. This guide does not evaluate a full molecular structure, stereochemistry, competing pathways, or unlisted conditions."
       backHref="/organic"
       backLabel="Organic Hub"
       maxWidth="4xl"
@@ -112,14 +112,14 @@ export default function ReactionPredictorPage() {
           </Field>
         </div>
 
-        {/* Predict Button */}
+        {/* Transformation Button */}
         <div className="flex gap-3">
           <Button
             onClick={handlePredict}
             disabled={!selectedGroupId || !selectedReagent}
             className="flex-1"
           >
-            Predict Product
+            Show Transformation
           </Button>
           <Button variant="secondary" onClick={handleReset}>
             Reset
@@ -150,7 +150,7 @@ export default function ReactionPredictorPage() {
 
             {/* To */}
             <div className="bg-muted border border-primary-500/40 rounded-md p-4 flex-1 w-full">
-              <div className="text-xs text-primary-600 font-medium uppercase mb-1">Product</div>
+              <div className="text-xs text-primary-600 font-medium uppercase mb-1">Product Functional Group</div>
               <div className="text-lg font-bold text-foreground">{toGroup?.name || prediction.toGroup}</div>
               <div className="text-sm text-muted-foreground font-mono">{toGroup?.structure}</div>
             </div>
@@ -203,8 +203,7 @@ export default function ReactionPredictorPage() {
       {showResult && !prediction && (
         <Card className="p-6 text-center border-l-2 border-l-warning">
           <p className="text-warning-strong font-medium">
-            No prediction rule found for this combination. This combination may not be a common
-            reaction, or it may not be in our database yet.
+            No transformation rule is available for this combination in the curated guide.
           </p>
         </Card>
       )}
@@ -241,7 +240,7 @@ export default function ReactionPredictorPage() {
           </table>
           {PREDICTION_RULES.length > 20 && (
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              Showing 20 of {PREDICTION_RULES.length} rules. Use the predictor above to explore all.
+              Showing 20 of {PREDICTION_RULES.length} rules. Use the guide above to explore all.
             </p>
           )}
         </div>

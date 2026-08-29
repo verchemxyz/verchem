@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'Molar Mass Calculator - Free Online Molecular Weight Calculator | VerChem' },
-  description: 'Calculate molar mass for supported molecular formulas with an element breakdown and standard atomic weights based on the IUPAC 2021 table.',
+  description: 'Calculate molar mass for supported fixed-composition formulas using conventional standard atomic weights from VerChem’s IUPAC 2021 reference table.',
   keywords: [
     'molar mass calculator',
     'molecular weight calculator',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Molar Mass Calculator - Free Online Molecular Weight Calculator',
-    description: 'Calculate molar mass for supported formulas with IUPAC-based standard atomic weights and an element breakdown.',
+    description: 'Calculate molar mass for supported formulas using VerChem’s IUPAC 2021 standard atomic-weight reference table.',
     type: 'website',
     url: 'https://verchem.xyz/tools/molar-mass',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Molar Mass Calculator - Free Online Molecular Weight Calculator',
-    description: 'Calculate molar mass for supported formulas using standard atomic weights based on IUPAC 2021.',
+    description: 'Calculate molar mass for supported formulas using VerChem’s IUPAC 2021 standard atomic-weight reference table.',
   },
   alternates: {
     canonical: 'https://verchem.xyz/tools/molar-mass',

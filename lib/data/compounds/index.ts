@@ -129,8 +129,8 @@ const RAW_COMPOUNDS: Compound[] = [
 ]
 
 /**
- * Attach curated, RDKit-verified SMILES (from smiles-data.ts) to every
- * compound whose id appears in the library. Compounds without a verified
+ * Attach curated, RDKit-parsed and formula-consistency-checked SMILES (from
+ * smiles-data.ts) to every compound whose id appears in the library. Compounds without a checked
  * structure keep `smiles` undefined.
  */
 export const COMPREHENSIVE_COMPOUNDS: Compound[] = RAW_COMPOUNDS.map(compound => {
@@ -140,7 +140,7 @@ export const COMPREHENSIVE_COMPOUNDS: Compound[] = RAW_COMPOUNDS.map(compound =>
 
 export const COMMON_COMPOUNDS = COMPREHENSIVE_COMPOUNDS
 
-/** A compound guaranteed to carry a verified SMILES string. */
+/** A compound guaranteed to carry a curated SMILES string. */
 export type CompoundWithSmiles = Compound & { smiles: string }
 
 /** Compounds that have a curated, verified SMILES — the substructure-search corpus. */

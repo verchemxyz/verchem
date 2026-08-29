@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: { absolute: 'Stoichiometry Calculator - Free Mass, Mole, Limiting Reagent | VerChem' },
-  description: 'Calculate stoichiometry problems instantly. Mass to mole, mole to mass, limiting reagent, percent yield, and more. Free online stoichiometry calculator for chemistry.',
+  description: 'Calculate mass-to-mole, mole-to-mass, limiting-reagent, and percent-yield results from the values and stoichiometric relationships you enter.',
   keywords: [
     'stoichiometry calculator',
     'stoichiometry problems',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Stoichiometry Calculator - Free Mass, Mole, Limiting Reagent',
-    description: 'Solve stoichiometry problems instantly. Mass-mole conversions, limiting reagent, percent yield calculator.',
+    description: 'Solve mass-mole conversions, limiting-reagent, and percent-yield calculations from declared inputs.',
     type: 'website',
     url: 'https://verchem.xyz/tools/stoichiometry',
     images: [
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Stoichiometry Calculator - Free Mass, Mole, Limiting Reagent',
-    description: 'Solve stoichiometry problems instantly. Free and accurate.',
+    description: 'Solve stoichiometry problems from declared molar masses, coefficients, and quantities.',
   },
   alternates: {
     canonical: 'https://verchem.xyz/tools/stoichiometry',

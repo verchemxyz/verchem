@@ -1,0 +1,1 @@
+export { ScientificEvidenceBadges } from './ScientificEvidenceBadges'

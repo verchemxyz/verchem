@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, CheckCircle, Beaker, Calculator, Scale, FlaskConical, Zap, BookOpen, ArrowRightLeft, Percent } from 'lucide-react'
 import { StoichiometrySchema } from '@/components/seo/JsonLd'
 import { CalcShell, Card, SectionTitle, Button, ResultPanel, StepList, ErrorBanner } from '@/components/lab'
+import { calculateMolarMass as calculateReferenceMolarMass } from '@/lib/data/compounds/utils'
 
 type CalculationMode = 'mass-to-mole' | 'mole-to-mass' | 'mass-to-mass' | 'limiting-reagent' | 'percent-yield'
 
@@ -42,13 +43,20 @@ const MODES: Record<CalculationMode, ModeInfo> = {
   }
 }
 
-// Molar masses for common compounds
-const MOLAR_MASSES: Record<string, number> = {
-  'H2O': 18.015, 'CO2': 44.01, 'NaCl': 58.44, 'H2SO4': 98.079,
-  'HCl': 36.46, 'NaOH': 40.00, 'C6H12O6': 180.16, 'NH3': 17.031,
-  'O2': 32.00, 'N2': 28.01, 'H2': 2.016, 'CH4': 16.04,
-  'C2H5OH': 46.07, 'CaCO3': 100.09, 'Fe2O3': 159.69, 'Al2O3': 101.96
+const MOLAR_MASS_FORMULAS = [
+  'H2O', 'CO2', 'NaCl', 'H2SO4', 'HCl', 'NaOH', 'C6H12O6', 'NH3',
+  'O2', 'N2', 'H2', 'CH4', 'C2H5OH', 'CaCO3', 'Fe2O3', 'Al2O3',
+]
+
+function requireReferenceMolarMass(formula: string): number {
+  const mass = calculateReferenceMolarMass(formula)
+  if (mass === undefined) throw new Error(`Invalid molar-mass shortcut formula: ${formula}`)
+  return mass
 }
+
+const MOLAR_MASSES: Readonly<Record<string, number>> = Object.fromEntries(
+  MOLAR_MASS_FORMULAS.map((formula) => [formula, requireReferenceMolarMass(formula)])
+)
 
 const EXAMPLE_PROBLEMS = [
   {
@@ -466,13 +474,13 @@ export default function StoichiometryCalculatorPage() {
               },
               {
                 icon: Scale,
-                title: 'NIST Molar Masses',
-                description: 'Built-in reference for accurate atomic masses'
+                title: 'Declared Molar-Mass Inputs',
+                description: 'Calculations use the molar masses and stoichiometric coefficients you enter, with common-compound shortcuts shown explicitly'
               },
               {
                 icon: FlaskConical,
-                title: 'Lab Ready',
-                description: 'Precise calculations for laboratory work'
+                title: 'Model-Scoped Results',
+                description: 'Deterministic stoichiometric results under the entered equation, coefficients, molar masses, and quantities'
               },
               {
                 icon: Beaker,
