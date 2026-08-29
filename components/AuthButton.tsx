@@ -9,8 +9,8 @@ import { useRouter } from 'next/navigation'
 const OAuthLoginButton = dynamic(() => import('./oauth-login-button'), {
   ssr: false,
   loading: () => (
-    <button disabled className="btn-premium text-sm">
-      Loading...
+    <button disabled className="inline-flex min-h-11 items-center rounded-md border border-border bg-muted px-3 text-sm text-muted-foreground">
+      AIVerID
     </button>
   ),
 })
@@ -78,47 +78,40 @@ const AuthButton = () => {
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>
+    return <div className="h-11 w-24 animate-pulse rounded-md border border-border bg-muted" aria-label="Checking sign-in status" />
   }
 
   if (isAuthenticated && user) {
     return (
-      <div className="flex items-center gap-4">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-muted border border-border rounded-lg">
-          <span className="text-sm font-medium text-foreground">
-            {user.name || user.email?.split('@')[0] || 'User'}
-          </span>
-          {user.subscription_tier && user.subscription_tier !== 'free' && (
-            <span className="text-xs px-2 py-0.5 bg-primary-500 text-primary-foreground rounded-full">
-              {user.subscription_tier}
-            </span>
-          )}
-        </div>
+      <div className="flex items-center gap-1">
         <Link
           href="/account"
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+          title={user.name || user.email || 'My account'}
         >
-          My Account
+          <svg className="h-4 w-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A10 10 0 1118.88 17.8M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="hidden 2xl:inline">{user.name || user.email?.split('@')[0] || 'My account'}</span>
+          <span className="sr-only 2xl:hidden">My account</span>
         </Link>
         <button
+          type="button"
           onClick={handleLogout}
-          className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title="Sign out"
+          aria-label="Sign out"
         >
-          Sign Out
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+          </svg>
         </button>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="hidden md:block">
-        <OAuthLoginButton />
-      </div>
-      <div className="md:hidden">
-        <OAuthLoginButton />
-      </div>
-    </div>
+    <OAuthLoginButton compact />
   )
 }
 

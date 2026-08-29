@@ -2,13 +2,13 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'VerChem - Chemistry Platform',
+    name: 'VerChem Lab - Verified Chemistry Evidence',
     short_name: 'VerChem',
-    description: 'Professional chemistry calculators and interactive tools',
+    description: 'Controlled standard-preparation records, independently released evidence, and deterministic chemistry tools.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#2563eb',
+    background_color: '#FAFAF6',
+    theme_color: '#0F6764',
     orientation: 'portrait-primary',
     icons: [
       {

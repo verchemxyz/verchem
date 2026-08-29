@@ -134,7 +134,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
       className={`bg-background border-b border-border ${className}`}
       onKeyDown={handleNavKeyDown}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[96rem] px-3 sm:px-5 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo/Brand */}
           <div className="flex items-center">
@@ -153,7 +153,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden xl:flex items-center space-x-1">
             {NAVIGATION_ITEMS.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               const label = t(item.labelKey);
@@ -181,11 +181,11 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
           
           {/* Right Side Controls */}
           <div className="flex items-center gap-2">
-            <div className="hidden xl:block">
+            <div className="hidden 2xl:block">
               <LanguageSelector />
             </div>
             {/* Support Heart Button */}
-            <div className="hidden sm:block">
+            <div className="hidden 2xl:block">
               <SupportHeartButton />
             </div>
 
@@ -208,7 +208,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
             </div>
 
             {/* Unit System Toggle */}
-            <div className="hidden sm:block">
+            <div className="hidden lg:block">
               <UnitSystemToggle compact />
             </div>
 
@@ -216,7 +216,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
             <ThemeToggle />
 
             {/* Accessibility Menu */}
-            <AccessibilityMenu />
+            <AccessibilityMenu compact />
 
             {/* Mobile Menu Button */}
             <button
@@ -224,7 +224,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
                 setIsMenuOpen(!isMenuOpen);
                 announceToScreenReader(`Navigation menu ${isMenuOpen ? 'closed' : 'opened'}`);
               }}
-              className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="xl:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               aria-expanded={isMenuOpen}
               aria-label={t('navigation.toggleMenu')}
               aria-controls="mobile-menu"
@@ -244,7 +244,7 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
         {isMenuOpen && (
           <div 
             id="mobile-menu"
-            className="md:hidden border-t border-border py-4"
+            className="xl:hidden border-t border-border py-4"
             role="menu"
             aria-label={t('navigation.mobileNavigation')}
           >
@@ -281,6 +281,10 @@ export function EnhancedNavigation({ className = '' }: EnhancedNavigationProps) 
               })}
               <div className="px-3 pt-2">
                 <LanguageSelectorInline />
+              </div>
+              <div className="flex items-center gap-3 px-3 pt-2 sm:hidden">
+                <AuthButton />
+                <SupportHeartButton />
               </div>
             </div>
             

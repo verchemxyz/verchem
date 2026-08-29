@@ -120,6 +120,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isVercelRuntime = process.env.VERCEL === '1';
+
   return (
     <html lang="en" suppressHydrationWarning className={`${plexSans.variable} ${plexMono.variable}`}>
       <head>
@@ -129,12 +131,11 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {/* PWA meta tags */}
-        <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="VerChem" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
         {/* Global SEO Schemas for AI Discoverability (GEO) */}
         <VerChemGlobalFAQSchema compoundCount={COMPOUND_STATISTICS.totalCompounds} />
@@ -199,9 +200,13 @@ export default function RootLayout({
               <ServiceWorkerRegistration />
               <InstallPrompt />
 
-              {/* Vercel Analytics & Speed Insights */}
-              <Analytics />
-              <SpeedInsights />
+              {/* These proxy endpoints exist on Vercel, not in a local production server. */}
+              {isVercelRuntime && (
+                <>
+                  <Analytics />
+                  <SpeedInsights />
+                </>
+              )}
             </Providers>
           </AccessibilityProvider>
         </ThemeProvider>

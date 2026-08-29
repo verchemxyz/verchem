@@ -6,9 +6,10 @@ import { useFocusManager } from '@/lib/accessibility/focus-manager';
 
 interface AccessibilityMenuProps {
   className?: string;
+  compact?: boolean;
 }
 
-export function AccessibilityMenu({ className = '' }: AccessibilityMenuProps) {
+export function AccessibilityMenu({ className = '', compact = false }: AccessibilityMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -115,7 +116,7 @@ export function AccessibilityMenu({ className = '' }: AccessibilityMenuProps) {
       <button
         ref={buttonRef}
         onClick={handleToggleMenu}
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-accent focus:ring-2 focus:ring-ring focus:outline-none transition-colors"
+        className={`${compact ? 'h-11 w-11 justify-center p-0' : 'px-3 py-2'} flex items-center gap-2 text-sm font-medium text-foreground bg-card border border-border rounded-lg hover:bg-accent focus:ring-2 focus:ring-ring focus:outline-none transition-colors`}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-label="Accessibility settings"
@@ -123,7 +124,7 @@ export function AccessibilityMenu({ className = '' }: AccessibilityMenuProps) {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
-        <span className="hidden sm:inline">Accessibility</span>
+        <span className={compact ? 'sr-only' : 'hidden sm:inline'}>Accessibility</span>
       </button>
 
       {/* Dropdown Menu */}

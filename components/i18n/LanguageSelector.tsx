@@ -9,7 +9,7 @@ export const LanguageSelector: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const currentLang = getLanguageByCode(currentLanguage);
+  const currentLang = getLanguageByCode(currentLanguage) ?? availableLanguages[0];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -27,15 +27,16 @@ export const LanguageSelector: React.FC = () => {
     setIsOpen(false);
   };
 
-  if (!currentLang) return null;
-
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         data-language-selector-button
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
         <GlobeAltIcon className="h-4 w-4" />
         <span className="flex items-center space-x-2">
@@ -50,6 +51,7 @@ export const LanguageSelector: React.FC = () => {
           <div className="py-1">
             {availableLanguages.map((language) => (
               <button
+                type="button"
                 key={language.code}
                 onClick={() => handleLanguageChange(language.code)}
                 className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-3 hover:bg-accent transition-colors ${

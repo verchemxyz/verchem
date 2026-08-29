@@ -48,9 +48,9 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           {/* Headline */}
           <div className="text-center animate-reveal">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight leading-[1.1]">
+            <h2 className="text-3xl font-bold leading-[1.1] tracking-tight text-foreground md:text-4xl lg:text-5xl">
               Verified Chemistry Workbench
-            </h1>
+            </h2>
             <p className="mt-5 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Deterministic calculators stay fast and local. Verified Answer Cards add signed, replayable evidence when you need it.
             </p>
@@ -267,6 +267,8 @@ export default async function Home() {
         <LabQcSection />
       </div>
 
+      {chemistryToolsHero}
+
       {/* Tools Grid */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="mb-12">
@@ -348,8 +350,6 @@ export default async function Home() {
           />
         </div>
       </section>
-
-      {chemistryToolsHero}
 
       {/* Why Verified */}
       <section className="border-t border-border bg-calibration-grid">
@@ -492,7 +492,7 @@ function FeaturedToolCard({
 }) {
   return (
     <Link href={href} className="group block h-full">
-      <div className="relative h-full overflow-hidden rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary-500/50">
+      <div className="relative h-full overflow-hidden rounded-lg border border-border bg-card p-6 transition-[border-color,transform] duration-200 group-hover:-translate-y-1 group-hover:border-primary-500/50">
         <div className="absolute inset-x-0 top-0 h-px bg-primary-500" />
         <div className="flex items-start justify-between gap-4">
           <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -532,7 +532,7 @@ function ToolCard({
 }) {
   return (
     <Link href={href} className="group block">
-      <div className="h-full border border-border rounded-lg bg-card p-5 transition-colors hover:border-primary-500/50">
+      <div className="h-full border border-border rounded-lg bg-card p-5 transition-[border-color,transform] duration-200 group-hover:-translate-y-1 group-hover:border-primary-500/50">
         <div className="flex items-start gap-4">
           <div className="shrink-0 w-10 h-10 rounded-md bg-muted flex items-center justify-center text-foreground">
             {icon}

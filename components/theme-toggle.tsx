@@ -4,22 +4,13 @@ import { useTheme } from '@/lib/theme-context';
 
 export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const activeTheme = theme === 'system' ? resolvedTheme : theme;
 
   const toggleTheme = () => {
-    const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
-    const currentIndex = themes.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+    setTheme(activeTheme === 'dark' ? 'light' : 'dark');
   };
 
   const getIcon = () => {
-    if (theme === 'system') {
-      return (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-      );
-    }
     if (resolvedTheme === 'dark') {
       return (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,17 +25,15 @@ export function ThemeToggle() {
     );
   };
 
-  const getLabel = () => {
-    if (theme === 'system') return 'System';
-    return resolvedTheme === 'dark' ? 'Dark' : 'Light';
-  };
+  const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-muted hover:bg-accent text-muted-foreground transition-colors duration-200"
-      title={`Current: ${getLabel()}. Click to cycle through Light, Dark, System`}
-      aria-label={`Current theme: ${getLabel()}. Click to change theme`}
+      className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-transparent bg-muted text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-95 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      title={`Switch to ${nextTheme} theme`}
+      aria-label={`Switch to ${nextTheme} theme`}
     >
       {getIcon()}
     </button>

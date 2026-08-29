@@ -45,7 +45,9 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const { i18n: i18nInstance } = useTranslation();
-  const [currentLanguage, setCurrentLanguage] = useState(i18nInstance.language || 'en');
+  // Keep the first client render identical to SSR. The saved/browser language is
+  // restored after hydration so React never has to discard and rebuild the shell.
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -60,9 +62,30 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     };
 
     i18nInstance.on('languageChanged', handleLanguageChange);
-    handleLanguageChange(i18nInstance.language || 'en');
+
+    // React can still be hydrating streamed descendants when parent effects run.
+    // Two animation frames keep the deterministic English snapshot in place until
+    // hydration has committed, then restore the user's preference without a rebuild.
+    let restoreFrame = 0;
+    const hydrationFrame = window.requestAnimationFrame(() => {
+      restoreFrame = window.requestAnimationFrame(() => {
+        const storedLanguage = localStorage.getItem('verchem-language');
+        const browserLanguage = navigator.language.split('-')[0];
+        const preferredLanguage = [storedLanguage, browserLanguage, 'en'].find(
+          (language): language is string => Boolean(language && getLanguageByCode(language))
+        ) ?? 'en';
+
+        if (i18nInstance.resolvedLanguage === preferredLanguage) {
+          handleLanguageChange(preferredLanguage);
+        } else {
+          void i18nInstance.changeLanguage(preferredLanguage);
+        }
+      });
+    });
 
     return () => {
+      window.cancelAnimationFrame(hydrationFrame);
+      window.cancelAnimationFrame(restoreFrame);
       i18nInstance.off('languageChanged', handleLanguageChange);
     };
   }, [i18nInstance]);
