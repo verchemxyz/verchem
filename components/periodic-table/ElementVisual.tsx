@@ -35,6 +35,14 @@ interface ProjectedElectron extends ElectronPoint {
   projected: ProjectedPoint
 }
 
+type OrbitDepth = 'back' | 'front'
+type OrbitPlane = 'xy' | 'xz' | 'yz'
+
+interface OrbitPath {
+  depth: OrbitDepth
+  path: string
+}
+
 const CATEGORY_GRADIENTS: Record<ElementCategory | 'default', { start: string; end: string }> = {
   'alkali-metal': { start: '#fb7185', end: '#be123c' },
   'alkaline-earth-metal': { start: '#fb923c', end: '#c2410c' },
@@ -127,7 +135,7 @@ function createElectronPoints(shells: number[], atomicNumber: number): ElectronP
   })
 }
 
-function createGreatCircle(radius: number, plane: 'xy' | 'xz' | 'yz'): Point3D[] {
+function createGreatCircle(radius: number, plane: OrbitPlane): Point3D[] {
   return Array.from({ length: 65 }, (_, index) => {
     const angle = (index / 64) * Math.PI * 2
     const cosine = Math.cos(angle) * radius
@@ -139,13 +147,82 @@ function createGreatCircle(radius: number, plane: 'xy' | 'xz' | 'yz'): Point3D[]
   })
 }
 
-function pointsToPath(points: Point3D[], rotation: { x: number; y: number }) {
-  return points
-    .map((point, index) => {
-      const projected = projectPoint(point, rotation)
-      return `${index === 0 ? 'M' : 'L'}${projected.screenX.toFixed(2)} ${projected.screenY.toFixed(2)}`
-    })
-    .join(' ')
+function splitOrbitByDepth(
+  points: Point3D[],
+  rotation: { x: number; y: number }
+): OrbitPath[] {
+  const projected = points.map((point) => projectPoint(point, rotation))
+  const paths: OrbitPath[] = []
+  let currentDepth: OrbitDepth | null = null
+  let commands: string[] = []
+
+  const flushPath = () => {
+    if (currentDepth !== null && commands.length > 1) {
+      paths.push({ depth: currentDepth, path: commands.join(' ') })
+    }
+  }
+
+  for (let index = 1; index < projected.length; index += 1) {
+    const from = projected[index - 1]
+    const to = projected[index]
+    const depth: OrbitDepth = (from.z + to.z) / 2 >= 0 ? 'front' : 'back'
+
+    if (depth !== currentDepth) {
+      flushPath()
+      currentDepth = depth
+      commands = [`M${from.screenX.toFixed(2)} ${from.screenY.toFixed(2)}`]
+    }
+
+    commands.push(`L${to.screenX.toFixed(2)} ${to.screenY.toFixed(2)}`)
+  }
+
+  flushPath()
+  return paths
+}
+
+function OrbitLayer({
+  depth,
+  shellCircles,
+  rotation,
+  selectedShell,
+}: {
+  depth: OrbitDepth
+  shellCircles: Array<Record<OrbitPlane, Point3D[]>>
+  rotation: { x: number; y: number }
+  selectedShell: number | null
+}) {
+  return shellCircles.map((circles, shellIndex) => {
+    const isDimmed = selectedShell !== null && selectedShell !== shellIndex
+    const color = SHELL_COLORS[shellIndex]
+
+    return (['xy', 'xz', 'yz'] as const).flatMap((plane, planeIndex) =>
+      splitOrbitByDepth(circles[plane], rotation)
+        .filter((segment) => segment.depth === depth)
+        .map((segment, segmentIndex) => (
+          <path
+            key={`${depth}-shell-${shellIndex}-${plane}-${segmentIndex}`}
+            data-orbit-depth={depth}
+            d={segment.path}
+            fill="none"
+            stroke={color}
+            strokeWidth={
+              selectedShell === shellIndex
+                ? depth === 'front' ? 2.15 : 1.7
+                : depth === 'front' ? 1.3 : 1.05
+            }
+            strokeDasharray={planeIndex === 0 ? undefined : '3 5'}
+            strokeLinecap="round"
+            opacity={
+              isDimmed
+                ? depth === 'front' ? 0.07 : 0.025
+                : depth === 'front'
+                  ? planeIndex === 0 ? 0.62 : 0.42
+                  : planeIndex === 0 ? 0.24 : 0.14
+            }
+          />
+        ))
+    )
+  })
 }
 
 function ElectronMarker({
@@ -364,21 +441,12 @@ export default function ElementVisual({ element }: ElementVisualProps) {
             return <circle key={`star-${index}`} cx={x} cy={y} r={index % 7 === 0 ? 1.2 : 0.65} fill="white" opacity={opacity} />
           })}
 
-          {shellCircles.map((circles, shellIndex) => {
-            const isDimmed = selectedShell !== null && selectedShell !== shellIndex
-            const color = SHELL_COLORS[shellIndex]
-            return (['xy', 'xz', 'yz'] as const).map((plane, planeIndex) => (
-              <path
-                key={`shell-${shellIndex}-${plane}`}
-                d={`${pointsToPath(circles[plane], rotation)} Z`}
-                fill="none"
-                stroke={color}
-                strokeWidth={selectedShell === shellIndex ? 1.8 : 1.05}
-                strokeDasharray={planeIndex === 0 ? undefined : '3 5'}
-                opacity={isDimmed ? 0.035 : planeIndex === 0 ? 0.34 : 0.2}
-              />
-            ))
-          })}
+          <OrbitLayer
+            depth="back"
+            shellCircles={shellCircles}
+            rotation={rotation}
+            selectedShell={selectedShell}
+          />
 
           {projectedElectrons
             .filter((electron) => electron.projected.z < 0)
@@ -394,6 +462,14 @@ export default function ElementVisual({ element }: ElementVisualProps) {
           <circle cx="213" cy="162" r="34" fill="#000" opacity="0.32" />
           <circle cx="210" cy="157" r="33" fill={`url(#${nucleusGradientId})`} stroke="white" strokeOpacity="0.72" strokeWidth="1.5" />
           <circle cx="201" cy="147" r="7" fill="white" opacity="0.48" />
+
+          <OrbitLayer
+            depth="front"
+            shellCircles={shellCircles}
+            rotation={rotation}
+            selectedShell={selectedShell}
+          />
+
           <text x="210" y="155" textAnchor="middle" fill="white" fontSize="21" fontWeight="800">
             {element.symbol}
           </text>

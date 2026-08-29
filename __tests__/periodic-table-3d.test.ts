@@ -42,7 +42,19 @@ const structurePreview = readFileSync(
   resolve(process.cwd(), 'components/periodic-table/ElementStructurePreview.tsx'),
   'utf8'
 )
+const elementVisual = readFileSync(
+  resolve(process.cwd(), 'components/periodic-table/ElementVisual.tsx'),
+  'utf8'
+)
 assert.doesNotMatch(structurePreview, /Tetrahedral network|Octahedral coordination|Metallic lattice/)
 assert.match(structurePreview, /Predicted ground state/)
+assert.match(elementVisual, /function splitOrbitByDepth/)
+assert.match(elementVisual, /depth="back"/)
+assert.match(elementVisual, /depth="front"/)
+assert.ok(
+  elementVisual.indexOf('depth="back"') < elementVisual.indexOf('fill={`url(#${nucleusGradientId})`}') &&
+    elementVisual.indexOf('depth="front"') > elementVisual.indexOf('fill={`url(#${nucleusGradientId})`}'),
+  'orbit paths must straddle the nucleus in SVG paint order'
+)
 
 console.log('Periodic table 3D integrity: 118/118 electron configurations verified')

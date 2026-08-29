@@ -46,7 +46,7 @@ export function LabQcSection() {
 
           <ol className="mt-8 grid gap-x-8 gap-y-7 md:grid-cols-2" aria-label={copy('workflowLabel')}>
             {WORKFLOW_STEPS.map((step) => (
-              <li key={step.number} className="border-t-2 border-[var(--lab-accent)] pt-4">
+              <li key={step.number} className="border-l border-border pl-4">
                 <div className="font-mono text-xs font-semibold tracking-[0.14em] text-[var(--lab-accent)]">{step.number}</div>
                 <h3 className="lab-display mt-3 text-xl font-semibold text-foreground">
                   {copy(step.titleKey)}
