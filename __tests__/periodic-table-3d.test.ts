@@ -51,6 +51,14 @@ assert.match(structurePreview, /Predicted ground state/)
 assert.match(elementVisual, /function splitOrbitByDepth/)
 assert.match(elementVisual, /depth="back"/)
 assert.match(elementVisual, /depth="front"/)
+assert.doesNotMatch(elementVisual, /time - previousTime >= 32/)
+assert.match(elementVisual, /document\.visibilityState === 'visible'/)
+assert.match(elementVisual, /new IntersectionObserver/)
+assert.equal(
+  (elementVisual.match(/splitOrbitByDepth\(circles\[plane\], rotation\)/g) ?? []).length,
+  1,
+  'orbit geometry must be projected once per frame and shared by both depth layers'
+)
 assert.ok(
   elementVisual.indexOf('depth="back"') < elementVisual.indexOf('fill={`url(#${nucleusGradientId})`}') &&
     elementVisual.indexOf('depth="front"') > elementVisual.indexOf('fill={`url(#${nucleusGradientId})`}'),

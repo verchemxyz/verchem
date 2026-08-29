@@ -43,6 +43,11 @@ interface OrbitPath {
   path: string
 }
 
+interface ProjectedOrbitPath extends OrbitPath {
+  shellIndex: number
+  planeIndex: number
+}
+
 const CATEGORY_GRADIENTS: Record<ElementCategory | 'default', { start: string; end: string }> = {
   'alkali-metal': { start: '#fb7185', end: '#be123c' },
   'alkaline-earth-metal': { start: '#fb923c', end: '#c2410c' },
@@ -59,6 +64,7 @@ const CATEGORY_GRADIENTS: Record<ElementCategory | 'default', { start: string; e
 }
 
 const SHELL_COLORS = ['#67e8f9', '#5eead4', '#86efac', '#fde047', '#fb923c', '#f472b6', '#c084fc']
+const ORBIT_PLANES: readonly OrbitPlane[] = ['xy', 'xz', 'yz']
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const INITIAL_ROTATION = { x: -16, y: 24 }
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
@@ -182,47 +188,58 @@ function splitOrbitByDepth(
 
 function OrbitLayer({
   depth,
-  shellCircles,
-  rotation,
+  projectedPaths,
   selectedShell,
 }: {
   depth: OrbitDepth
-  shellCircles: Array<Record<OrbitPlane, Point3D[]>>
-  rotation: { x: number; y: number }
+  projectedPaths: Record<OrbitDepth, ProjectedOrbitPath[]>
   selectedShell: number | null
 }) {
-  return shellCircles.map((circles, shellIndex) => {
+  return projectedPaths[depth].map(({ path, planeIndex, shellIndex }, pathIndex) => {
     const isDimmed = selectedShell !== null && selectedShell !== shellIndex
     const color = SHELL_COLORS[shellIndex]
 
-    return (['xy', 'xz', 'yz'] as const).flatMap((plane, planeIndex) =>
-      splitOrbitByDepth(circles[plane], rotation)
-        .filter((segment) => segment.depth === depth)
-        .map((segment, segmentIndex) => (
-          <path
-            key={`${depth}-shell-${shellIndex}-${plane}-${segmentIndex}`}
-            data-orbit-depth={depth}
-            d={segment.path}
-            fill="none"
-            stroke={color}
-            strokeWidth={
-              selectedShell === shellIndex
-                ? depth === 'front' ? 2.15 : 1.7
-                : depth === 'front' ? 1.3 : 1.05
-            }
-            strokeDasharray={planeIndex === 0 ? undefined : '3 5'}
-            strokeLinecap="round"
-            opacity={
-              isDimmed
-                ? depth === 'front' ? 0.07 : 0.025
-                : depth === 'front'
-                  ? planeIndex === 0 ? 0.62 : 0.42
-                  : planeIndex === 0 ? 0.24 : 0.14
-            }
-          />
-        ))
+    return (
+      <path
+        key={`${depth}-shell-${shellIndex}-${planeIndex}-${pathIndex}`}
+        data-orbit-depth={depth}
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth={
+          selectedShell === shellIndex
+            ? depth === 'front' ? 2.15 : 1.7
+            : depth === 'front' ? 1.3 : 1.05
+        }
+        strokeDasharray={planeIndex === 0 ? undefined : '3 5'}
+        strokeLinecap="round"
+        opacity={
+          isDimmed
+            ? depth === 'front' ? 0.07 : 0.025
+            : depth === 'front'
+              ? planeIndex === 0 ? 0.62 : 0.42
+              : planeIndex === 0 ? 0.24 : 0.14
+        }
+      />
     )
   })
+}
+
+function projectOrbitPaths(
+  shellCircles: Array<Record<OrbitPlane, Point3D[]>>,
+  rotation: { x: number; y: number }
+): Record<OrbitDepth, ProjectedOrbitPath[]> {
+  const paths: Record<OrbitDepth, ProjectedOrbitPath[]> = { back: [], front: [] }
+
+  shellCircles.forEach((circles, shellIndex) => {
+    ORBIT_PLANES.forEach((plane, planeIndex) => {
+      splitOrbitByDepth(circles[plane], rotation).forEach((segment) => {
+        paths[segment.depth].push({ ...segment, shellIndex, planeIndex })
+      })
+    })
+  })
+
+  return paths
 }
 
 function ElectronMarker({
@@ -287,7 +304,10 @@ export default function ElementVisual({ element }: ElementVisualProps) {
   const [rotation, setRotation] = useState(INITIAL_ROTATION)
   const [isAutoRotating, setIsAutoRotating] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
+  const [isInViewport, setIsInViewport] = useState(true)
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true)
   const [selectedShell, setSelectedShell] = useState<number | null>(null)
+  const visualRef = useRef<HTMLDivElement>(null)
   const dragPosition = useRef<{ pointerId: number; x: number; y: number } | null>(null)
   const prefersReducedMotion = useSyncExternalStore(
     subscribeToReducedMotion,
@@ -300,33 +320,65 @@ export default function ElementVisual({ element }: ElementVisualProps) {
   const gradient = CATEGORY_GRADIENTS[element.category] ?? CATEGORY_GRADIENTS.default
 
   useEffect(() => {
-    if (!isAutoRotating || isDragging || prefersReducedMotion) return
+    const visual = visualRef.current
+    if (!visual || typeof IntersectionObserver === 'undefined') return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInViewport(entry.isIntersecting),
+      { rootMargin: '120px' }
+    )
+    observer.observe(visual)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const updateVisibility = () => setIsDocumentVisible(document.visibilityState === 'visible')
+    updateVisibility()
+    document.addEventListener('visibilitychange', updateVisibility)
+    return () => document.removeEventListener('visibilitychange', updateVisibility)
+  }, [])
+
+  useEffect(() => {
+    if (
+      !isAutoRotating ||
+      isDragging ||
+      prefersReducedMotion ||
+      !isInViewport ||
+      !isDocumentVisible
+    ) return
 
     let animationFrame = 0
     let previousTime: number | undefined
 
     const animate = (time: number) => {
-      if (previousTime === undefined || time - previousTime >= 32) {
-        const elapsedSeconds = previousTime === undefined ? 0 : Math.min((time - previousTime) / 1000, 0.08)
+      if (previousTime !== undefined) {
+        const elapsedSeconds = Math.min((time - previousTime) / 1000, 0.08)
         setRotation((current) => ({
           ...current,
           y: (current.y + elapsedSeconds * 8) % 360,
         }))
-        previousTime = time
       }
+      previousTime = time
       animationFrame = window.requestAnimationFrame(animate)
     }
 
     animationFrame = window.requestAnimationFrame(animate)
     return () => window.cancelAnimationFrame(animationFrame)
-  }, [isAutoRotating, isDragging, prefersReducedMotion])
+  }, [isAutoRotating, isDocumentVisible, isDragging, isInViewport, prefersReducedMotion])
 
-  const projectedElectrons = electrons
-    .map((electron) => ({
-      ...electron,
-      projected: projectPoint(electron.position, rotation),
-    }))
-    .sort((a, b) => a.projected.z - b.projected.z)
+  const projectedOrbits = useMemo(
+    () => projectOrbitPaths(shellCircles, rotation),
+    [rotation, shellCircles]
+  )
+  const projectedElectrons = useMemo(
+    () => electrons
+      .map((electron) => ({
+        ...electron,
+        projected: projectPoint(electron.position, rotation),
+      }))
+      .sort((a, b) => a.projected.z - b.projected.z),
+    [electrons, rotation]
+  )
 
   const startDragging = (event: PointerEvent<SVGSVGElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -389,7 +441,7 @@ export default function ElementVisual({ element }: ElementVisualProps) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#080C14] text-white shadow-2xl">
+    <div ref={visualRef} className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#080C14] text-white shadow-2xl">
       <div className="pointer-events-none absolute -left-24 -top-28 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -right-20 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
 
@@ -443,8 +495,7 @@ export default function ElementVisual({ element }: ElementVisualProps) {
 
           <OrbitLayer
             depth="back"
-            shellCircles={shellCircles}
-            rotation={rotation}
+            projectedPaths={projectedOrbits}
             selectedShell={selectedShell}
           />
 
@@ -465,8 +516,7 @@ export default function ElementVisual({ element }: ElementVisualProps) {
 
           <OrbitLayer
             depth="front"
-            shellCircles={shellCircles}
-            rotation={rotation}
+            projectedPaths={projectedOrbits}
             selectedShell={selectedShell}
           />
 
