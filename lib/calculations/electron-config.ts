@@ -138,7 +138,7 @@ const ELECTRON_CONFIG_EXCEPTIONS: { [key: number]: string } = {
   92: '[Rn] 5f³ 6d¹ 7s²', // U
   93: '[Rn] 5f⁴ 6d¹ 7s²', // Np
   96: '[Rn] 5f⁷ 6d¹ 7s²', // Cm
-  103: '[Rn] 5f¹⁴ 6d¹ 7s²', // Lr
+  103: '[Rn] 5f¹⁴ 7s² 7p¹', // Lr - NIST ASD ground state
 }
 
 /**

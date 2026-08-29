@@ -4,6 +4,7 @@
 
 import ElementVisual from './ElementVisual'
 import ElementStructurePreview from './ElementStructurePreview'
+import { useEffect, useRef } from 'react'
 import type { Element } from '@/lib/types/chemistry'
 
 interface ElementModalProps {
@@ -29,6 +30,25 @@ const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string
 
 export default function ElementModal({ element, onClose }: ElementModalProps) {
   const colors = CATEGORY_COLORS[element.category] || CATEGORY_COLORS.unknown
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    closeButtonRef.current?.focus()
+
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape)
+      document.body.style.overflow = originalOverflow
+      previouslyFocused?.focus()
+    }
+  }, [onClose])
 
   return (
     <div
@@ -39,7 +59,7 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={`${element.name} element details`}
-        className="bg-card border border-border rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-card border border-border rounded-xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -62,9 +82,10 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
               </div>
             </div>
             <button
+              ref={closeButtonRef}
               onClick={onClose}
               aria-label={`Close ${element.name} details`}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               <svg
                 className="w-6 h-6"
@@ -87,13 +108,12 @@ export default function ElementModal({ element, onClose }: ElementModalProps) {
         <div className="p-6 space-y-6">
           {/* Visual */}
           <div className="space-y-3">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
               <ElementVisual element={element} />
               <ElementStructurePreview element={element} />
             </div>
             <p className="text-xs text-muted-foreground">
-              ภาพด้านซ้ายคือการกระจายตัวของอิเล็กตรอน ส่วนด้านขวาเป็นตัวอย่างรูปพันธะ/โมเลกุลที่พบบ่อยของ{' '}
-              {element.name} เพื่อช่วยจับคู่โครงสร้างกับสมบัติได้เร็วขึ้น
+              The 3D model and subshell map are generated from {element.name}&apos;s listed neutral-atom ground-state electron configuration. Electron positions are symbolic occupancy markers, not classical trajectories.
             </p>
           </div>
 

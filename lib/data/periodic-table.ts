@@ -2567,7 +2567,7 @@ export const PERIODIC_TABLE: Element[] = [
     group: undefined,
     period: 7,
     block: 'f',
-    electronConfiguration: '[Rn] 5f¹⁴ 6d¹ 7s²',
+    electronConfiguration: '[Rn] 5f¹⁴ 7s² 7p¹',
     electronegativity: 1.3,
     ionizationEnergy: 470,
     electronAffinity: undefined,
