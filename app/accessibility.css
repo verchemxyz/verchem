@@ -199,8 +199,10 @@ a:focus-visible,
   }
 }
 
-/* Live Regions */
-[aria-live] {
+/* Visually hidden live regions opt in with .sr-only. Never hide every
+   [aria-live] element: visible status, validation, and loading UI also uses
+   live-region semantics and must remain perceivable to sighted users. */
+.sr-only[aria-live] {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -351,7 +353,6 @@ a:focus-visible,
 /* Print Styles */
 @media print {
   .skip-link,
-  [aria-live],
   .sr-only {
     display: none !important;
   }

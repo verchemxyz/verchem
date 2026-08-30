@@ -49,6 +49,7 @@ const browserVerifier = read('lib/answer-cards/browser-verifier.ts')
 const checkoutRoute = read('app/api/stripe/checkout-session/route.ts')
 const moleculeBuilderRedirect = read('app/molecule-builder/page.tsx')
 const nextConfig = read('next.config.ts')
+const accessibilityCss = read('app/accessibility.css')
 const labPdfExport = read('lib/lab/pdf-export.ts')
 const publicCredibilityCopy = [
   llms,
@@ -76,6 +77,16 @@ assert.match(
   nextConfig,
   /source: '\/molecule-builder',[\s\S]*?destination: '\/draw',[\s\S]*?permanent: true/,
   'the permanent redirect must run before the auth proxy'
+)
+assert.doesNotMatch(
+  accessibilityCss,
+  /(?:^|\n)\s*\[aria-live\]\s*(?:,|\{)/,
+  'visible live regions must not be globally hidden, including in print styles'
+)
+assert.match(
+  accessibilityCss,
+  /\.sr-only\[aria-live\]\s*\{/,
+  'only explicitly screen-reader-only live regions should receive hidden-region styles'
 )
 const directLegacyLinkPattern = /href\s*(?:=|:)\s*\{?\s*["'`]\/molecule-builder(?:[/?#"'`])/
 const directLegacyLinkFiles = ['app', 'components']
@@ -280,6 +291,19 @@ async function runBehavioralRedirectContracts(): Promise<void> {
   assert.match(redirectDigest, /NEXT_REDIRECT/, `page fallback must issue a framework redirect, got: ${redirectDigest}`)
   assert.ok(redirectDigest.includes('/draw'), `page fallback must target /draw, got: ${redirectDigest}`)
   assert.ok(redirectDigest.includes('308'), `page fallback must be permanent (308), got: ${redirectDigest}`)
+
+  assert.ok(config.headers, 'next.config must define security headers')
+  const headerRules = await config.headers()
+  const globalHeaders = headerRules.find((entry) => entry.source === '/:path*')
+  const csp = globalHeaders?.headers.find(
+    (header) => header.key === 'Content-Security-Policy'
+  )?.value
+  assert.ok(csp, 'global headers must define a Content-Security-Policy')
+  assert.match(
+    csp,
+    /(?:^|; )worker-src 'self' blob:(?:;|$)/,
+    'CSP must permit Ketcher\'s same-origin Blob Web Worker'
+  )
 }
 
 runBehavioralRedirectContracts()
