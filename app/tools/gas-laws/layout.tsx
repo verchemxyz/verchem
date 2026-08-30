@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz/tools/gas-laws',
     images: [
       {
-        url: '/og-gas-laws.png',
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: 'VerChem Gas Laws Calculator',

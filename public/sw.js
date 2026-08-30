@@ -6,7 +6,7 @@
  * Author: สมนึก (Claude Opus 4.5)
  */
 
-const CACHE_VERSION = 'verchem-v2.0.3';
+const CACHE_VERSION = 'verchem-v2.0.4';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const STAGING_CACHE = `${CACHE_VERSION}-staging`;
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/compounds',
   '/solutions',
   '/tools/ph-calculator',
-  '/manifest.json',
+  '/manifest.webmanifest',
   '/logo.png',
   '/offline.html',
 ];
@@ -513,8 +513,8 @@ self.addEventListener('push', (event) => {
   const data = event.data.json();
   const options = {
     body: data.body,
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
     vibrate: [100, 50, 100],
     data: {
       url: data.url || '/',

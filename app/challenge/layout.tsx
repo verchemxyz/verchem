@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz/challenge',
     images: [
       {
-        url: '/og-challenge.png',
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: 'VerChem Chemistry Challenge',

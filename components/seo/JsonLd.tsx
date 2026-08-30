@@ -543,7 +543,7 @@ export function VerChemSoftwareApplicationSchema({ compoundCount }: { compoundCo
       'Ed25519 JWS-Signed Laboratory Evidence Packs'
     ],
     availableLanguage: ['en'],
-    screenshot: 'https://verchem.xyz/og-image.png'
+    screenshot: 'https://verchem.xyz/opengraph-image.png'
   }
 
   return (

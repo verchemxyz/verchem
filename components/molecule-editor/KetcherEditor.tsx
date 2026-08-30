@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useEffect } from 'react';
 import { Editor } from 'ketcher-react';
+import 'ketcher-react/dist/index.css';
 import { structServiceProvider } from '@/lib/molecule/ketcher-config';
 import type { Ketcher } from 'ketcher-core';
 

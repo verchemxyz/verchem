@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz/tools/equation-balancer',
     images: [
       {
-        url: '/og-equation-balancer.png',
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: 'VerChem Chemical Equation Balancer',

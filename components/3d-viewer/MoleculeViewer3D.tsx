@@ -349,13 +349,14 @@ export default function MoleculeViewer3D({
     render()
   }, [render])
 
-  // Mouse handlers
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Pointer handlers (mouse, pen, and touch)
+  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
     setIsDragging(true)
     setLastMousePos({ x: e.clientX, y: e.clientY })
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (isDragging) {
       const dx = e.clientX - lastMousePos.x
       const dy = e.clientY - lastMousePos.y
@@ -376,8 +377,8 @@ export default function MoleculeViewer3D({
       if (!canvas) return
 
       const rect = canvas.getBoundingClientRect()
-      const mouseX = e.clientX - rect.left
-      const mouseY = e.clientY - rect.top
+      const mouseX = (e.clientX - rect.left) * (width / rect.width)
+      const mouseY = (e.clientY - rect.top) * (height / rect.height)
 
       const centered = centerMolecule(molecule)
       const atom = findAtomAtPosition(
@@ -393,11 +394,14 @@ export default function MoleculeViewer3D({
     }
   }
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
     setIsDragging(false)
   }
 
-  const handleMouseLeave = () => {
+  const handlePointerLeave = () => {
     setIsDragging(false)
     setHoveredAtom(null)
   }
@@ -409,8 +413,8 @@ export default function MoleculeViewer3D({
     if (!canvas) return
 
     const rect = canvas.getBoundingClientRect()
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
+    const mouseX = (e.clientX - rect.left) * (width / rect.width)
+    const mouseY = (e.clientY - rect.top) * (height / rect.height)
 
     const centered = centerMolecule(molecule)
     const atom = findAtomAtPosition(
@@ -456,22 +460,24 @@ export default function MoleculeViewer3D({
   }
 
   return (
-    <div className="relative inline-block">
+    <div className="relative w-full" style={{ maxWidth: `${width}px` }}>
       <canvas
         ref={canvasRef}
         width={width}
         height={height}
-        className="border border-border rounded-lg cursor-move"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        aria-label={`Interactive coordinate viewer for ${molecule.name}`}
+        className="block h-auto w-full touch-none cursor-move rounded-lg border border-border"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
         onClick={handleClick}
         onWheel={handleWheel}
       />
 
       {/* Controls */}
-      <div className="absolute bottom-4 left-4 bg-popover border border-border rounded-lg p-2 space-y-1">
+      <div className="mt-3 grid grid-cols-4 gap-1 rounded-lg border border-border bg-popover p-2 sm:absolute sm:bottom-4 sm:left-4 sm:mt-0 sm:block sm:space-y-1">
         <button
           onClick={resetView}
           className="w-full px-3 py-1 text-sm bg-primary-500 hover:bg-primary-600 text-primary-foreground rounded"
@@ -499,8 +505,8 @@ export default function MoleculeViewer3D({
       </div>
 
       {/* Info */}
-      <div className="absolute top-4 left-4 bg-popover border border-border rounded-lg p-3">
-        <h3 className="text-foreground font-bold">{molecule.name}</h3>
+      <div className="absolute left-2 top-2 max-w-[calc(100%-1rem)] rounded-lg border border-border bg-popover p-2 sm:left-4 sm:top-4 sm:p-3">
+        <h3 className="truncate font-bold text-foreground">{molecule.name}</h3>
         <p className="text-muted-foreground text-sm">{molecule.formula}</p>
         {molecule.geometry && (
           <p className="text-muted-foreground text-xs mt-1">
@@ -510,7 +516,7 @@ export default function MoleculeViewer3D({
       </div>
 
       {/* Instructions */}
-      <div className="absolute bottom-4 right-4 bg-popover border border-border rounded-lg p-2 text-xs text-muted-foreground">
+      <div className="absolute bottom-4 right-4 hidden rounded-lg border border-border bg-popover p-2 text-xs text-muted-foreground sm:block">
         <p>Drag to rotate</p>
         <p>Scroll to zoom</p>
         <p>Click atom for info</p>

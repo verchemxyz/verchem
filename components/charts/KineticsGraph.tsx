@@ -91,8 +91,6 @@ export default function KineticsGraph({
     const dpr = window.devicePixelRatio || 1
     canvas.width = width * dpr
     canvas.height = height * dpr
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
     ctx.scale(dpr, dpr)
 
     // Margins
@@ -302,11 +300,14 @@ export default function KineticsGraph({
   }, [dataPoints, order, initialConc, maxTime, halfLife, highlightTime, width, height, getConcentration])
 
   return (
-    <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
+    <div
+      className="w-full rounded-xl border border-border bg-card p-4 shadow-sm"
+      style={{ maxWidth: `${width + 34}px` }}
+    >
       <canvas
         ref={canvasRef}
-        style={{ width, height }}
-        className="rounded-lg"
+        aria-label={`${order} order concentration versus time graph`}
+        className="block h-auto w-full rounded-lg"
       />
       <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
         <div>

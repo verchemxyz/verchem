@@ -207,12 +207,13 @@ export default function LewisStructureViewer({
   }, [structure, width, height, showFormalCharges, showLonePairs, backgroundColor])
 
   return (
-    <div className="inline-block">
+    <div className="w-full" style={{ maxWidth: `${width}px` }}>
       <canvas
         ref={canvasRef}
         width={width}
         height={height}
-        className="border border-border rounded-lg bg-[#FAFAF6]"
+        aria-label={`Lewis structure for ${structure.formula}`}
+        className="block h-auto w-full rounded-lg border border-border bg-[#FAFAF6]"
       />
     </div>
   )

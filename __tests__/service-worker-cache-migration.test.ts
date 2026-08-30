@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import vm from 'node:vm'
 
 const ORIGIN = 'https://verchem.xyz'
-const CURRENT_VERSION = 'verchem-v2.0.3'
+const CURRENT_VERSION = 'verchem-v2.0.4'
 const STAGING_CACHE = `${CURRENT_VERSION}-staging`
 const STAGING_URL_PATH = `/.verchem-sw-staging/${CURRENT_VERSION}`
 const STATIC_ASSETS = [
@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   '/compounds',
   '/solutions',
   '/tools/ph-calculator',
-  '/manifest.json',
+  '/manifest.webmanifest',
   '/logo.png',
   '/offline.html',
 ] as const
@@ -828,7 +828,7 @@ async function verifyLazyRecoveryIsSingleFlight(): Promise<void> {
   )
   const concurrentFetches = [
     restartedWorker.dispatchFetch(assetRequest('/logo.png')),
-    restartedWorker.dispatchFetch(assetRequest('/manifest.json')),
+    restartedWorker.dispatchFetch(assetRequest('/manifest.webmanifest')),
     restartedWorker.dispatchFetch(assetRequest('/offline.html')),
   ]
   await firstPutStarted
@@ -1025,7 +1025,7 @@ async function verifyOlderWorkerCannotReadNewerCache(): Promise<void> {
 }
 
 async function run(): Promise<void> {
-  assert.match(serviceWorkerSource, /const CACHE_VERSION = 'verchem-v2\.0\.3';/)
+  assert.match(serviceWorkerSource, /const CACHE_VERSION = 'verchem-v2\.0\.4';/)
   await verifyActivationRetiresOnlyAfterClaim()
   await verifyWaitingInstallIsAdditive()
   await verifyFailedInstallIsIdempotent()

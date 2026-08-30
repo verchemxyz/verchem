@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     url: 'https://verchem.xyz/solutions',
     images: [
       {
-        url: '/og-ph-calculator.png',
+        url: '/opengraph-image.png',
         width: 1200,
         height: 630,
         alt: 'VerChem Solutions and pH Calculator',

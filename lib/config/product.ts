@@ -59,7 +59,7 @@ export const PRODUCT_METADATA = {
     'periodic table',
     'chemical equations',
   ],
-  ogImage: '/og-image.png',
+  ogImage: '/opengraph-image.png',
   twitterHandle: '@verchem',
 }
 

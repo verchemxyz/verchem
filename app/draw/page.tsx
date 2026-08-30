@@ -32,6 +32,7 @@ export default function DrawPage() {
   const [shareError, setShareError] = useState<string | null>(null);
   const [isLoadingShared, setIsLoadingShared] = useState(false);
   const loadedShareKeyRef = useRef<string | null>(null);
+  const hasStructure = smiles.trim().length > 0;
 
   const handleInit = useCallback((ketcherInstance: Ketcher) => {
     setKetcher(ketcherInstance);
@@ -43,6 +44,8 @@ export default function DrawPage() {
 
   // Keyboard shortcut: Cmd/Ctrl+S → open save modal
   const handleSaveClick = useCallback(async () => {
+    if (!hasStructure) return;
+
     try {
       const res = await fetch('/api/session');
       if (!res.ok) {
@@ -56,7 +59,7 @@ export default function DrawPage() {
     setSaveError(null);
     setSaveModalKey((k) => k + 1);
     setIsSaveModalOpen(true);
-  }, [router]);
+  }, [hasStructure, router]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -241,61 +244,74 @@ export default function DrawPage() {
       backLabel="All tools"
       maxWidth="7xl"
     >
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          onClick={handleExportSmiles}
-          disabled={!ketcher}
-          aria-label="Export as SMILES"
-          className="px-3 sm:px-4 py-2 text-sm"
-        >
-          SMILES
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleExportMol}
-          disabled={!ketcher}
-          aria-label="Export as MOL v2000"
-          className="px-3 sm:px-4 py-2 text-sm"
-        >
-          MOL v2000
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleExportInchi}
-          disabled={!ketcher}
-          aria-label="Export as InChI"
-          className="px-3 sm:px-4 py-2 text-sm"
-        >
-          InChI
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleExportPng}
-          disabled={!ketcher}
-          aria-label="Export as PNG image"
-          className="px-3 sm:px-4 py-2 text-sm"
-        >
-          PNG
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleExportSvg}
-          disabled={!ketcher}
-          aria-label="Export as SVG image"
-          className="px-3 sm:px-4 py-2 text-sm"
-        >
-          SVG
-        </Button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+            Export structure
+          </p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Export structure">
+            <Button
+              variant="secondary"
+              onClick={handleExportSmiles}
+              disabled={!ketcher || !hasStructure}
+              aria-label="Download structure as SMILES"
+              className="px-3 sm:px-4 py-2 text-sm"
+            >
+              SMILES
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleExportMol}
+              disabled={!ketcher || !hasStructure}
+              aria-label="Download structure as MOL v2000"
+              className="px-3 sm:px-4 py-2 text-sm"
+            >
+              MOL v2000
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleExportInchi}
+              disabled={!ketcher || !hasStructure}
+              aria-label="Download structure as InChI"
+              className="px-3 sm:px-4 py-2 text-sm"
+            >
+              InChI
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleExportPng}
+              disabled={!ketcher || !hasStructure}
+              aria-label="Download structure as PNG image"
+              className="px-3 sm:px-4 py-2 text-sm"
+            >
+              PNG
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleExportSvg}
+              disabled={!ketcher || !hasStructure}
+              aria-label="Download structure as SVG image"
+              className="px-3 sm:px-4 py-2 text-sm"
+            >
+              SVG
+            </Button>
+          </div>
+        </div>
         <Button
           onClick={handleSaveClick}
-          disabled={!ketcher}
+          disabled={!ketcher || !hasStructure}
           aria-label="Save structure to library (Ctrl+S)"
-          className="px-3 sm:px-4 py-2 text-sm"
+          className="px-3 sm:px-4 py-2 text-sm sm:shrink-0"
         >
           Save to Library
         </Button>
       </div>
+
+      {!hasStructure && (
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          Draw or paste a structure in the editor to enable export and saving.
+        </p>
+      )}
 
       <div className="relative border border-border rounded-lg overflow-hidden bg-card">
         {isLoadingShared && (

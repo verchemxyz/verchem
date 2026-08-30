@@ -82,7 +82,7 @@ export default function LewisPage() {
               <label htmlFor="lewis-formula" className="block text-sm font-medium text-foreground mb-1.5">
                 Molecular Formula
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   id="lewis-formula"
                   type="text"
@@ -90,9 +90,9 @@ export default function LewisPage() {
                   onChange={(e) => setFormula(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleGenerate()}
                   placeholder="e.g., H2O, CO2, NH3"
-                  className="input-premium flex-1"
+                  className="input-premium min-w-0 flex-1"
                 />
-                <Button onClick={handleGenerate} className="px-6 py-2">
+                <Button onClick={handleGenerate} className="w-full px-6 py-2 sm:w-auto">
                   Generate
                 </Button>
               </div>

@@ -264,7 +264,13 @@ export default function VSEPRViewer({
 
   return (
     <div className="bg-card rounded-lg border border-border p-4">
-      <svg width={width} height={height} className="mx-auto">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`${prediction.molecularGeometry.replace(/-/g, ' ')} VSEPR schematic`}
+        className="mx-auto h-auto w-full"
+        style={{ maxWidth: `${width}px` }}
+      >
         {renderGeometry()}
       </svg>
 
@@ -273,7 +279,7 @@ export default function VSEPRViewer({
       </p>
 
       {/* Legend — swatch colors mirror the SVG's chemistry-encoding fills (central/bonding/lone-pair), kept literal */}
-      <div className="mt-4 flex justify-center gap-4 text-sm text-foreground">
+      <div className="mt-4 flex flex-wrap justify-center gap-4 text-sm text-foreground">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-blue-800"></div>
           <span>Central Atom</span>
