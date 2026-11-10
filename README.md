@@ -1,10 +1,24 @@
 # VerChem
 
-VerChem is a browser-native chemistry workbench for deterministic calculations, chemical reference data, structure editing/search, and portable signed evidence.
+VerChem has two parts:
 
-Production: [https://verchem.xyz](https://verchem.xyz)
+- **VerChem Lab**: controlled standard-preparation records for testing laboratories, covering preparation, independent review, release, and a signed evidence pack.
+- **The chemistry workbench**: free, browser-native tools for deterministic calculations, chemical reference data, structure editing and search, and portable signed evidence.
 
-## What is included
+Production: [https://www.verchem.xyz](https://www.verchem.xyz)
+
+## VerChem Lab
+
+`/lab` (sign-in required) organizes work by laboratory organization, with `owner`, `reviewer`, `analyst` and `viewer` roles.
+
+1. **Templates.** A preparation template is versioned. Once approved by someone other than its author, it cannot be changed.
+2. **Preparation.** The preparer records the actual measurements against an approved template version and submits the record for review. Until a reviewer acts, the preparer can withdraw it to edit.
+3. **Review and release.** A different member, who must hold AIVerID verification level 1 or higher, releases or rejects the record. The server checks the measurements against the template's acceptance limits, and releasing outside them requires a recorded deviation reason. A released record can later be voided with a reason, or superseded by a new record.
+4. **Evidence.** Release produces an Ed25519-signed evidence pack (compact JWS, with JSON and PDF downloads). A one-time share link lets someone outside the organization check a released record at `/verify`.
+
+Every action is appended to a hash-chained event log that the database refuses to edit or delete. No AI is involved anywhere in the controlled-record path. VerChem Lab records a preparation and its release approval. It is not an ELN, LIMS or inventory system, and it does not certify or accredit a laboratory.
+
+## Chemistry workbench
 
 - Eight calculator families: equation balancing, stoichiometry, solutions and pH, gas laws, thermodynamics, kinetics, electrochemistry, and electron configuration
 - **Solutions & pH** - 11 modes with explicit temperature and activity-model boundaries
@@ -62,13 +76,13 @@ npm run validate
 npm run test:calculations
 ```
 
-The main test command covers calculation engines, units, validation, authentication/session boundaries, public API contracts, structure workflows, offline-cache migration, Answer Card signing/persistence/replay, browser verification, and deterministic artifact issuance.
+`npm test` runs every `__tests__/*.test.ts` file in its own process (`scripts/run-tests.ts`); `npm test -- lab` runs only files whose name contains `lab`. It covers VerChem Lab record rules and API contracts, calculation engines, units, validation, authentication/session boundaries, public API contracts, structure workflows, offline-cache migration, Answer Card signing/persistence/replay, browser verification, and deterministic artifact issuance.
 
 ## Trust-related environment variables
 
 - `CARD_SIGNING_PRIVATE_KEY`: base64-encoded Ed25519 PKCS8 PEM. Required in production; signing fails closed when absent.
 - `ANTHROPIC_API_KEY`: optional and used only by the AI-assisted Answer Card route.
-- Supabase and AIVerID variables: required only for account-backed save/share workflows.
+- Supabase, AIVerID and `SESSION_SECRET`: required for sign-in, saved items and VerChem Lab. `.env.example` lists every variable; [docs/architecture/DEPLOYMENT.md](docs/architecture/DEPLOYMENT.md) explains each one.
 
 Development and tests use an ephemeral signing key when `CARD_SIGNING_PRIVATE_KEY` is absent. Never treat artifacts issued with that ephemeral key as durable production evidence.
 
@@ -83,7 +97,8 @@ All current VerChem features are free. `/support` contains optional fixed-price 
 - Tailwind CSS 4
 - Ketcher for structure editing
 - RDKit WebAssembly for structure operations
-- Supabase for opt-in account storage
+- Supabase Postgres, reached only from the server, for accounts and VerChem Lab records ([schema](docs/architecture/DATABASE_SCHEMA.md))
+- AIVerID OAuth sign-in with a signed session cookie ([details](docs/architecture/AIVERID_INTEGRATION.md))
 - Ed25519 compact JWS and browser Web Crypto verification
 
 ## Scientific and privacy boundaries
@@ -94,4 +109,15 @@ All current VerChem features are free. `/support` contains optional fixed-price 
 - Direct signed calculations are not persisted unless the user explicitly saves them.
 - AI-assisted questions are sent to the configured model provider; direct deterministic calculations do not use that provider.
 
-Project-specific engineering and verification requirements are documented in [CLAUDE.md](./CLAUDE.md).
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `app/` | Next.js App Router pages and API routes |
+| `components/` | React components |
+| `lib/` | Calculation engines, chemical data, signing/verification, Lab records, auth, Supabase access |
+| `__tests__/`, `scripts/` | Test suites, validation, release-manifest generation, integration gates |
+| `supabase/` | Database migrations and setup runbook ([SETUP.md](supabase/SETUP.md)) |
+| `public/` | Static assets, locales, PWA files |
+| `docs/` | Design and integration documents — see [docs/README.md](docs/README.md) |
+| `capacitor.config.ts` | Mobile shell configuration (the generated `ios/` and `android/` projects are not committed) |

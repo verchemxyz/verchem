@@ -8,7 +8,7 @@
 -- ----- 000: users -----
 -- Users table for VerChem (synced from AIVerID OAuth on login)
 -- Backfilled as a migration 2026-05-29: the original `users` table was created
--- via the dashboard (DATABASE_SCHEMA.md) and had no migration file. This is the
+-- via the dashboard (docs/history/DATABASE_SCHEMA_PLAN_2025-11.md) and had no migration file. This is the
 -- canonical definition for a fresh project — using the SAME service-role-only
 -- pattern as molecules/answer_cards (NOT the auth.uid() pattern in the old doc,
 -- which never matched production: VerChem auth is AIVerID OAuth + HMAC cookie,

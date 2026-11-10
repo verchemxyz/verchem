@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "ios/**",
     "android/**",
     "public/sw.js",
+    // Local-only, gitignored team notes and research spikes (not part of the app)
+    ".ai-memory/**",
   ]),
   {
     rules: {

@@ -1,65 +1,41 @@
-# VerChem — Supabase Recovery / Fresh Setup Runbook
+# VerChem — Supabase setup
 
-**Why this exists:** the original Supabase project (`verchemxyz's Project`) was on
-the **free tier**, auto-paused after inactivity, and has now been paused **> 90
-days** (since 24 Jun 2024) → it can no longer be restored from the dashboard.
-Because VerChem auth is **AIVerID OAuth + HMAC cookie** (not Supabase Auth),
-login kept working — so the dead DB went unnoticed. But every DB-backed feature
-(save molecule, **W1 library**, **W3 verified-answer save/share**) has been
-silently failing since then.
+VerChem uses Supabase only as a Postgres database behind the server.
 
-Decision (พี่จ๊อบ, 2026-05-29): **download the backup, then set up a fresh project.**
+- **No Supabase Auth.** Sign-in is AIVerID OAuth plus a signed session cookie (see [docs/architecture/AIVERID_INTEGRATION.md](../docs/architecture/AIVERID_INTEGRATION.md)).
+- **Service role only.** Every table has row-level security enabled, privileges revoked from `anon` and `authenticated`, and a single service-role policy. The browser never talks to Supabase directly, and the anon key is not used.
+- **The migrations are the schema.** `supabase/migrations/` is the source of truth. [docs/architecture/DATABASE_SCHEMA.md](../docs/architecture/DATABASE_SCHEMA.md) summarizes it.
 
-The code only touches **3 tables** — `users`, `molecules`, `answer_cards` — each
-defined by a repo migration using the service-role-only pattern. (The other
-tables in `DATABASE_SCHEMA.md` — saved_calculations / favorites /
-user_preferences / calculation_history / subscriptions — are NOT used by current
-code; skip them unless you wire those features.)
+## Migrations
 
----
+Apply in order. Every file is idempotent.
 
-## Steps (พี่จ๊อบ does 1, 2, 4, 5, 6; SQL in step 3 is ready in this repo)
+| File | Creates / changes |
+|---|---|
+| `000_users_table.sql` | `users` — one row per AIVerID member (`aiverid` TEXT is the identity key) |
+| `001_molecules_table.sql` | `molecules` — structures saved from `/draw` |
+| `002_answer_cards_table.sql` | `answer_cards` — saved signed calculation cards |
+| `003_rename_aiverid.sql` | Upgrade only: renames the legacy member-id column to `aiverid` on older databases (no-op on fresh ones) |
+| `004_lab_qc.sql` | VerChem Lab tables: `organizations`, `org_members`, `prep_templates`, `prep_records`, `lab_events` (append-only), `lab_record_counters`, with state-guard triggers |
+| `005_lab_functions.sql` | VerChem Lab transactional functions: `lab_create_org`, `lab_create_record`, `lab_apply_transition`, and the share-token guard |
 
-### 1. Download the backup (no-regret — do this first)
-On the paused project dashboard → **Download backups** → keep the dump safe.
-(Supabase may eventually delete a long-paused project; this preserves the data.)
+`full_setup.sql` is an older combined copy of 000–002 only. It does not include VerChem Lab, so use the individual migration files for a new project.
 
-### 2. Create a new Supabase project
-Same org is fine. Suggested name `verchem`. Pick a region close to users.
-> ⚠️ Free tier pauses again after ~7 days of inactivity. For a live product,
-> set an uptime ping or move to Pro so this doesn't recur.
+## New project
 
-### 3. Run the schema (SQL Editor → New query → paste → Run)
-**Easiest:** paste the single combined file **`supabase/full_setup.sql`** once.
-(Or run `000` → `001` → `002` from `supabase/migrations/` individually — same
-result. All idempotent, safe to re-run.)
+1. Create a Supabase project (Postgres 17, matching `supabase/config.toml`).
+2. Apply the migrations 000 → 005, either from the SQL Editor or with the Supabase CLI (`npx supabase link` then `npx supabase db push`).
+3. Copy **Project URL** → `NEXT_PUBLIC_SUPABASE_URL` and **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` into the Vercel project (Production and Preview) and into a local `.env.local`. See `.env.example` for the full variable list.
+4. Redeploy so the new variables apply.
+5. Smoke test: sign in, save a structure from `/draw` (it should appear at `/account/molecules`), and open `/lab` (it should list organizations without an error). On production, do not create test organizations or records: Lab history cannot be deleted.
 
-> Do **NOT** run `supabase/enable-rls.sql` — it's superseded (it references the
-> unused saved_calculations/favorites/user_preferences tables and would error).
+## Production safety
 
-### 4. Copy the new credentials
-Project Settings → **API**:
-- Project URL → `NEXT_PUBLIC_SUPABASE_URL`
-- `anon` public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `service_role` secret key → `SUPABASE_SERVICE_ROLE_KEY`
+- **Never run `npm run gate:lab*` against production.** `lab_events` is append-only, even for `service_role`, so test rows can never be removed. Run the gates against a local stack: `npx supabase start` (applies the migrations), then `npm run gate:lab:local` or `npm run gate:lab:e2e`.
+- **Apply schema changes before deploying the code that needs them.** Empty tables waiting for code are harmless; code reaching for missing tables is an outage.
+- **Keep backups.** The Free plan has no automatic backups and pauses after about a week of inactivity. A production project holding VerChem Lab records needs either a paid plan with daily backups or scheduled `pg_dump` exports kept outside the repository.
+- Never commit dumps, keys, or connection strings. Database exports contain member data.
 
-### 5. Update environment variables
-**Vercel** (Production + Preview) and local **`.env.local`** — set the 3 above.
-While there, confirm W3 vars are also set in Vercel:
-- `ANSWER_CARD_SECRET` (or reuse `SESSION_SECRET`) — signs verified answer cards
-- `ANTHROPIC_API_KEY` — the verified-answer orchestrator
-- `SESSION_SECRET` — HMAC session cookies
+## History
 
-### 6. Redeploy + smoke test
-- Redeploy on Vercel so the new env vars apply.
-- Manual: `/draw` → save → `/account/molecules`; `/tools/verified-answer` → ask →
-  Save → make public → open `/verified/[id]`.
-- Orchestrator: `ANTHROPIC_API_KEY=… npm run test:smoke`.
-
----
-
-## Restoring old data (optional, later)
-If the downloaded backup holds real rows worth keeping: the `users` / `molecules`
-/ `answer_cards` shapes match `000/001/002` here, so you can `COPY`/`INSERT` those
-rows into the new project. (Given the DB was paused since before the app's public
-push, expect little-to-no production data.)
+The first Supabase project was paused for more than 90 days in 2024 and could not be restored. Login kept working because auth does not depend on Supabase, so the outage went unnoticed. It was rebuilt from these migrations in May 2026. `enable-rls.sql` and the `auth.uid()` policies from that era are gone: they never matched production.
