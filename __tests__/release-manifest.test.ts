@@ -52,11 +52,17 @@ test('generator archives immutable content locally, rejects missing CI archives,
       writeFixture(root, 'lib/data/reference.txt', 'reference-v1\n'),
     ])
 
+    // These runs model local work, so pin an empty environment: on GitHub
+    // Actions process.env.CI is set, and the generator would otherwise treat
+    // them as protected builds and refuse the unarchived fixture manifest.
+    const LOCAL_ENV = {}
+
     // Without --archive, local generation must NOT write an archive file.
     const unarchived = await generateReleaseManifest({
       repositoryRoot: root,
       outputPath,
       generatedAt: '2026-08-26T00:00:00.000Z',
+      environment: LOCAL_ENV,
     })
     const unarchivedPath = path.join(
       root,
@@ -70,6 +76,7 @@ test('generator archives immutable content locally, rejects missing CI archives,
       outputPath,
       generatedAt: '2026-08-26T00:00:00.000Z',
       archiveMissing: true,
+      environment: LOCAL_ENV,
     })
     assert.equal(first.build.dirty, 'unknown', 'git-less builds must state that dirty status is unknown')
     const firstBytes = await readFile(path.join(root, outputPath), 'utf8')
@@ -86,6 +93,7 @@ test('generator archives immutable content locally, rejects missing CI archives,
       repositoryRoot: root,
       outputPath,
       generatedAt: '2026-08-26T01:00:00.000Z',
+      environment: LOCAL_ENV,
     })
     assert.equal(first.content_hash, second.content_hash)
     assert.notEqual(first.generated_at, second.generated_at)
@@ -117,6 +125,7 @@ test('generator archives immutable content locally, rejects missing CI archives,
       repositoryRoot: root,
       outputPath,
       generatedAt: '2026-08-26T03:00:00.000Z',
+      environment: LOCAL_ENV,
     })
     assert.notEqual(changed.content_hash, first.content_hash)
   } finally {

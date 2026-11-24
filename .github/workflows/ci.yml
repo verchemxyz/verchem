@@ -29,11 +29,14 @@ jobs:
       - name: Unit Tests (Calculations)
         run: npm run test:calculations
 
+      # Build before the test suite: release-manifest.test.ts reads the built
+      # routing table (.next/routes-manifest.json) to prove the archive route
+      # is reachable.
+      - name: Build (Webpack)
+        run: npm run build:webpack
+
       - name: Test suite (all __tests__ files)
         run: npm run test
 
       - name: Validation Suite
         run: npm run validate
-
-      - name: Build (Webpack)
-        run: npm run build:webpack
