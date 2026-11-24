@@ -32,8 +32,17 @@ jobs:
       # Build before the test suite: release-manifest.test.ts reads the built
       # routing table (.next/routes-manifest.json) to prove the archive route
       # is reachable.
+      #
+      # A production build signs the home page's demo card while prerendering
+      # and refuses to run without CARD_SIGNING_PRIVATE_KEY. CI builds are never
+      # deployed, so this step signs with a throwaway Ed25519 key generated for
+      # this run only; the production key stays out of CI.
       - name: Build (Webpack)
-        run: npm run build:webpack
+        run: |
+          CARD_SIGNING_PRIVATE_KEY="$(node -e "const { generateKeyPairSync } = require('node:crypto'); const { privateKey } = generateKeyPairSync('ed25519'); process.stdout.write(Buffer.from(privateKey.export({ type: 'pkcs8', format: 'pem' })).toString('base64'))")"
+          echo "::add-mask::$CARD_SIGNING_PRIVATE_KEY"
+          export CARD_SIGNING_PRIVATE_KEY
+          npm run build:webpack
 
       - name: Test suite (all __tests__ files)
         run: npm run test
