@@ -176,5 +176,12 @@
     "Ar": "Argón",
     "K": "Potasio",
     "Ca": "Calcio"
+  },
+  "appPromo": {
+    "eyebrow": "App VerChem",
+    "title": "Usa VerChem sin conexión",
+    "body": "La app VerChem funciona sin conexión en teléfono y tableta. Pago único.",
+    "appStoreAlt": "Descargar en el App Store",
+    "googlePlayAlt": "Disponible en Google Play"
   }
 }

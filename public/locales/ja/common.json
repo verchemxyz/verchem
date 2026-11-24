@@ -176,5 +176,12 @@
     "Ar": "アルゴン",
     "K": "カリウム",
     "Ca": "カルシウム"
+  },
+  "appPromo": {
+    "eyebrow": "VerChem アプリ",
+    "title": "通信なしで VerChem を使う",
+    "body": "VerChem アプリはスマートフォンとタブレットでオフラインで使えます。買い切りです。",
+    "appStoreAlt": "App Store からダウンロード",
+    "googlePlayAlt": "Google Play で手に入れよう"
   }
 }

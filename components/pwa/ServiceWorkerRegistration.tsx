@@ -208,94 +208,25 @@ export function ServiceWorkerRegistration() {
   );
 }
 
-// Install prompt component
-export function InstallPrompt() {
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-
+/**
+ * The website does not ask visitors to install it: the offline VerChem app is
+ * sold through the app stores, and the website should not compete with it by
+ * promoting its own install (owner decision 2026-11-24).
+ *
+ * Calling preventDefault() on `beforeinstallprompt` also keeps Chromium's own
+ * install banner from appearing. The service worker and offline cache are
+ * unchanged, and the browser menu can still install the site for anyone who
+ * looks for it.
+ */
+export function SuppressInstallBanner() {
   useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-
-      // Show prompt after user has spent some time on the site
-      setTimeout(() => {
-        // Only show if not already dismissed
-        const dismissed = localStorage.getItem('verchem_install_dismissed');
-        if (!dismissed) {
-          setShowPrompt(true);
-        }
-      }, 60000); // 1 minute
+    const handler = (event: Event) => {
+      event.preventDefault();
     };
 
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    console.log('[PWA] Install prompt outcome:', outcome);
-    setDeferredPrompt(null);
-    setShowPrompt(false);
-  };
-
-  const handleDismiss = () => {
-    localStorage.setItem('verchem_install_dismissed', 'true');
-    setShowPrompt(false);
-  };
-
-  if (!showPrompt || !deferredPrompt) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg p-4 z-50">
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-12 h-12 bg-primary-500/10 rounded-lg flex items-center justify-center">
-          <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-        </div>
-        <div className="flex-1">
-          <p className="font-medium text-foreground">Install VerChem</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Install our app for quick access and offline support.
-          </p>
-        </div>
-        <button
-          onClick={handleDismiss}
-          aria-label="Dismiss install prompt"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <div className="flex gap-2 mt-4">
-        <button
-          onClick={handleInstall}
-          className="flex-1 px-4 py-2 bg-primary-500 text-primary-foreground rounded-md font-medium hover:bg-primary-600 transition-colors"
-        >
-          Install
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Not now
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Type for beforeinstallprompt event
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  return null;
 }

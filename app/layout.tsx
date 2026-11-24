@@ -7,7 +7,7 @@ import { EnhancedNavigation } from "@/components/accessibility/enhanced-navigati
 import { KeyboardShortcutsDialog } from "@/components/accessibility/keyboard-shortcuts-dialog";
 import { Providers } from "./providers";
 import LoginRequiredModal from "@/components/LoginRequiredModal";
-import { ServiceWorkerRegistration, InstallPrompt } from "@/components/pwa/ServiceWorkerRegistration";
+import { ServiceWorkerRegistration, SuppressInstallBanner } from "@/components/pwa/ServiceWorkerRegistration";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
@@ -198,7 +198,7 @@ export default function RootLayout({
 
               {/* PWA Components */}
               <ServiceWorkerRegistration />
-              <InstallPrompt />
+              <SuppressInstallBanner />
 
               {/* These proxy endpoints exist on Vercel, not in a local production server. */}
               {isVercelRuntime && (

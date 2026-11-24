@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AppPromo } from "@/components/app-promo/AppPromo";
 
 const WIDTHS = {
   "4xl": "max-w-4xl",
@@ -12,7 +13,10 @@ const WIDTHS = {
  * Lab Ledger page chrome for a tool/calculator.
  * Provides: background, a back link, an optional mono "eyebrow" label,
  * H1 title, subtitle, an optional right-aligned action, and a constrained
- * <main> with vertical rhythm. NO glass header, NO rainbow title.
+ * content column with vertical rhythm. NO glass header, NO rainbow title.
+ * The root layout already provides the page's single main landmark, so the
+ * column is a plain div. The column ends with the store-app card on the free tool
+ * routes listed in `lib/app-promo.ts`.
  *
  * Replaces the per-page glassmorphism header + `bg-clip-text` rainbow titles.
  */
@@ -69,9 +73,10 @@ export function CalcShell({
           </div>
         </div>
       </div>
-      <main className={`${width} mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6`}>
+      <div className={`${width} mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6`}>
         {children}
-      </main>
+        <AppPromo />
+      </div>
     </div>
   );
 }

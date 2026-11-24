@@ -176,5 +176,12 @@
     "Ar": "Argon",
     "K": "Kalium",
     "Ca": "Calcium"
+  },
+  "appPromo": {
+    "eyebrow": "VerChem-App",
+    "title": "VerChem ohne Internetverbindung nutzen",
+    "body": "Die VerChem-App funktioniert offline auf Smartphone und Tablet. Einmalkauf.",
+    "appStoreAlt": "Laden im App Store",
+    "googlePlayAlt": "Jetzt bei Google Play"
   }
 }

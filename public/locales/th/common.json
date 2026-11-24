@@ -213,5 +213,12 @@
     "Ar": "อาร์กอน",
     "K": "โพแทสเซียม",
     "Ca": "แคลเซียม"
+  },
+  "appPromo": {
+    "eyebrow": "แอป VerChem",
+    "title": "ใช้ VerChem ได้แม้ไม่มีเน็ต",
+    "body": "แอป VerChem ใช้งานแบบออฟไลน์บนมือถือและแท็บเล็ต ซื้อครั้งเดียว",
+    "appStoreAlt": "ดาวน์โหลดได้ที่ App Store",
+    "googlePlayAlt": "ดาวน์โหลดที่ Google Play"
   }
 }

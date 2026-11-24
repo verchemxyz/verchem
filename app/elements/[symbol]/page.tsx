@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { AppPromo } from '@/components/app-promo/AppPromo'
 import { PERIODIC_TABLE } from '@/lib/data/periodic-table'
 import { Element, ElementCategory } from '@/lib/types/chemistry'
 
@@ -191,7 +192,7 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
     <>
       <ElementSchema element={element} />
 
-      <main className="min-h-screen bg-background py-8 px-4">
+      <div className="min-h-screen bg-background py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Breadcrumb */}
           <nav className="mb-6 text-sm">
@@ -413,8 +414,9 @@ export default async function ElementPage({ params }: { params: Promise<{ symbol
               </Link>
             </div>
           </div>
+          <AppPromo />
         </div>
-      </main>
+      </div>
     </>
   )
 }

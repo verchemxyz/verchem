@@ -396,5 +396,12 @@
       "copyright": "Built with ❤️ for chemistry students and professionals worldwide.",
       "ecosystem": "Part of the Ver* ecosystem"
     }
+  },
+  "appPromo": {
+    "eyebrow": "VerChem app",
+    "title": "Use VerChem without a connection",
+    "body": "The VerChem app runs offline on phone and tablet. One-time purchase.",
+    "appStoreAlt": "Download on the App Store",
+    "googlePlayAlt": "Get it on Google Play"
   }
 }

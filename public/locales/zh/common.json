@@ -176,5 +176,12 @@
     "Ar": "氩",
     "K": "钾",
     "Ca": "钙"
+  },
+  "appPromo": {
+    "eyebrow": "VerChem 应用",
+    "title": "无需联网即可使用 VerChem",
+    "body": "VerChem 应用可在手机和平板上离线使用。一次性购买。",
+    "appStoreAlt": "在 App Store 下载",
+    "googlePlayAlt": "下载应用，请到 Google Play"
   }
 }
